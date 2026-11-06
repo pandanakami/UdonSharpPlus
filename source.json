@@ -1,28 +1,18 @@
 {
-    "name":"Example Listing",
-    "id":"com.vrchat.example-listing",
-    "url":"https://vrchat-community.github.io/template-package-listing/index.json",
-    "author":{
-        "email":"developer@vrchat.com",
-        "name":"VRChat",
-        "url":"https://hello.vrchat.com"
+    "name": "pandanakami Listing",
+    "id": "com.pandanakami.listing",
+    "url": "https://pandanakami.github.io/CustomUdonSharp/index.json",
+    "author": {
+        "name": "pandanakami",
+        "url": "https://github.com/pandanakami"
     },
-    "description":"Example listing of VRChat packages",
-    "infoLink":{
-        "url":"http://github.com/vrchat-community/template-package-listing",
-        "text":"View on GitHub"
+    "description": "VPM listing for Custom UdonSharp (editor-only extensions for the UdonSharp compiler)",
+    "infoLink": {
+        "url": "https://github.com/pandanakami/CustomUdonSharp",
+        "text": "View on GitHub"
     },
-    "bannerUrl":"banner.png",
-    "githubRepos":[
-        "vrchat-community/clientsim"
-    ],
-    "packages":[
-        {
-            "name":"com.vrchat.udonsharp",
-            "releases":[
-                "https://github.com/vrchat-community/UdonSharp/releases/download/1.1.7/com.vrchat.UdonSharp.zip",
-                "https://github.com/vrchat-community/UdonSharp/releases/download/1.1.6/com.vrchat.UdonSharp-1.1.6.zip"
-            ]
-        }
+    "bannerUrl": "banner.png",
+    "githubRepos": [
+        "pandanakami/CustomUdonSharp"
     ]
 }
