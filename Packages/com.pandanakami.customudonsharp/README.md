@@ -65,3 +65,9 @@ enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
 2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前をシグネチャ由来の固定名にします（例：`Damage__int__string`、引数は `__p0`、戻り値は `__ret`）。
 
 書き換え後のソースは、デバッグ用に `Library/CustomUdonSharp/` に出力されます。
+
+## ライセンス
+
+[MIT License](LICENSE.md)（Copyright (c) 2026 pandanakami）
+
+このパッケージには、VRChat SDK・UdonSharp・Harmony・Roslyn は含まれていません。これらは VRChat SDK に同梱されたものを参照しているだけで、それぞれのライセンスに従います（VRChat SDK：https://hello.vrchat.com/legal/sdk ）。

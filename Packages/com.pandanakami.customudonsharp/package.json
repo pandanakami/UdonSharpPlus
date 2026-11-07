@@ -8,6 +8,8 @@
     "name": "pandanakami",
     "url": "https://github.com/pandanakami"
   },
+  "license": "MIT",
+  "licensesUrl": "https://github.com/pandanakami/CustomUdonSharp/blob/main/LICENSE",
   "url": "https://github.com/pandanakami/CustomUdonSharp",
   "vpmDependencies": {
     "com.vrchat.worlds": "~3.10.6"
