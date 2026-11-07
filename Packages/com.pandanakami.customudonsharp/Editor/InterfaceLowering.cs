@@ -34,6 +34,9 @@ namespace CustomUdonSharp
         internal const string UsbType = "global::UdonSharp.UdonSharpBehaviour";
         private static readonly string DumpDir = Path.Combine("Library", "CustomUdonSharp");
 
+        /// <summary>書き換え後のソースを Library/CustomUdonSharp/ に出すか（テストでは止める）</summary>
+        internal static bool DumpEnabled = true;
+
         internal sealed class InterfaceInfo
         {
             public INamedTypeSymbol Symbol;
@@ -97,7 +100,8 @@ namespace CustomUdonSharp
                 treeField.SetValue(bindings.GetValue(i), newTree);
                 sourceTextField?.SetValue(bindings.GetValue(i), newText);
 
-                Dump(bindings.GetValue(i), newText);
+                if (DumpEnabled)
+                    Dump(bindings.GetValue(i), newText);
             }
 
             foreach (string warning in warnings)

@@ -1,0 +1,4 @@
+## Diagnostics
+Error: Assets/CustomUdonSharpTests/Enemy.cs(8,13): error CS0538: 'UdonSharpBehaviour' in explicit interface declaration is not an interface
+## Logs
+Error: [CustomUdonSharp] Enemy.CustomUdonSharpTests.ExplicitImplementation.IDamageable.Damage : 明示的インタフェース実装は未対応です。public メソッドとして実装してください
