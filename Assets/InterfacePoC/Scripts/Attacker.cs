@@ -1,5 +1,6 @@
 using UdonSharp;
 using UnityEngine;
+using VRC.Udon.Common.Interfaces;
 
 namespace InterfacePoC
 {
@@ -37,6 +38,15 @@ namespace InterfacePoC
             foreach (IDamageable d in list)
                 total += d.Damage(5, "loop");
             Debug.Log($"[PoC] array loop total={total}");
+
+            // #32: [NetworkCallable] な実装メソッド
+            INetworkReceiver receiver = (INetworkReceiver)targets[0];
+            receiver.Receive(1, "local-interface");
+            ((UdonSharpBehaviour)receiver).SendCustomNetworkEvent(NetworkEventTarget.All, nameof(INetworkReceiver.Receive), 2, "network-interface-nameof");
+            Enemy enemy = (Enemy)targets[0];
+            enemy.SendCustomNetworkEvent(NetworkEventTarget.All, nameof(Enemy.Receive), 3, "network-concrete-nameof");
+            enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 4, "network-concrete-literal");
+            Debug.Log($"[PoC] nameof(Enemy.Receive)={nameof(Enemy.Receive)}");
 
             Debug.Log("[PoC] DONE");
         }

@@ -48,10 +48,12 @@ namespace CustomUdonSharp
             if (!(_roslynSymbolProperty.GetValue(method) is IMethodSymbol symbol))
                 return;
 
-            // 組み込みイベント（"Interact" → "_interact" のように改名済み）と [NetworkCallable] は外部と名前を取り決めているので触らない
+            // 組み込みイベント（"Interact" → "_interact" のように改名済み）は Udon 側と名前を取り決めているので触らない。
+            // [NetworkCallable] は対象にする：通信相手も同じソースからビルドされるので名前は揃い、
+            // 通信用メタデータ（UdonSharpCompilerV1.CollectNetworkMetadataFromAttributes）もこのレイアウトから作られる。
+            // ソース上の nameof(...) / 文字列リテラルでの呼び出しは InterfaceLowering 側で固定名に書き換える
             bool isBuiltinEvent = exportMethodName != symbol.Name && !exportMethodName.StartsWith("__", StringComparison.Ordinal);
-            bool isNetworkCallable = symbol.GetAttributes().Any(a => a.AttributeClass?.Name == "NetworkCallableAttribute");
-            if (isBuiltinEvent || isNetworkCallable)
+            if (isBuiltinEvent)
                 return;
 
             // ここに来る時点で U# 用ツリーはインタフェース型→UdonSharpBehaviour 置換済みなので、置換は不要

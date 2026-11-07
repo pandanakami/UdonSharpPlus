@@ -34,6 +34,21 @@ if (target is IDamageable)
 - インタフェース型の引数、ローカル変数、配列、`foreach`
 - メソッドの呼び出し（戻り値ありとなしの両方）
 - `is`、`as`、キャスト
+- `[NetworkCallable]` の実装メソッド（ローカル呼び出しと、`SendCustomNetworkEvent` でのネットワーク越しの呼び出しの両方）
+
+#### イベント名の渡し方
+
+引数のあるインタフェース実装メソッドは、Udon 上の名前が `Damage__int__string` のような固定名になります。`SendCustomNetworkEvent` などでイベント名を渡すときは、`nameof(...)` か文字列リテラルを使ってください。コンパイル時に固定名へ書き換えます。
+
+```csharp
+// インタフェース型から呼ぶときは UdonSharpBehaviour にキャストする
+((UdonSharpBehaviour)receiver).SendCustomNetworkEvent(NetworkEventTarget.All, nameof(INetworkReceiver.Receive), 1, "a");
+enemy.SendCustomNetworkEvent(NetworkEventTarget.All, nameof(Enemy.Receive), 1, "a");
+enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
+```
+
+- 変数に入れた文字列は書き換えられません。該当しそうな場合は警告を出します。
+- 書き換え対象のメソッドを指す `nameof(...)` は、どこで使っても固定名になります（`string s = nameof(Enemy.Receive);` の `s` は `"Receive__int__string"`）。
 
 未対応の書き方：
 

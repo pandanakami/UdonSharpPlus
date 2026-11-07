@@ -1,9 +1,10 @@
 using UdonSharp;
 using UnityEngine;
+using VRC.SDK3.UdonNetworkCalling;
 
 namespace InterfacePoC
 {
-    public class Enemy : UdonSharpBehaviour, IDamageable
+    public class Enemy : UdonSharpBehaviour, IDamageable, INetworkReceiver
     {
         public int hp = 100;
 
@@ -19,6 +20,12 @@ namespace InterfacePoC
         {
             hp = 100;
             Debug.Log($"[PoC] Enemy '{name}' ResetState -> hp={hp}");
+        }
+
+        [NetworkCallable]
+        public void Receive(int v, string sender)
+        {
+            Debug.Log($"[PoC] Enemy '{name}' Receive value={v} from='{sender}'");
         }
     }
 }

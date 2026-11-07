@@ -78,13 +78,14 @@ namespace CustomUdonSharp
                 return;
 
             var errors = new List<string>();
+            var warnings = new List<string>();
             CollectImplementers(compilation, trees, interfaces, errors);
 
             for (int i = 0; i < bindings.Length; i++)
             {
                 SyntaxTree tree = trees[i];
                 SemanticModel model = compilation.GetSemanticModel(tree);
-                var rewriter = new Rewriter(model, interfaces, errors);
+                var rewriter = new Rewriter(model, interfaces, errors, warnings);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
 
                 if (!rewriter.Changed)
@@ -99,6 +100,8 @@ namespace CustomUdonSharp
                 Dump(bindings.GetValue(i), newText);
             }
 
+            foreach (string warning in warnings)
+                Debug.LogWarning("[CustomUdonSharp] " + warning);
             foreach (string error in errors)
                 Debug.LogError("[CustomUdonSharp] " + error);
         }
@@ -237,22 +240,30 @@ namespace CustomUdonSharp
             private readonly SemanticModel _model;
             private readonly Dictionary<INamedTypeSymbol, InterfaceInfo> _interfaces;
             private readonly List<string> _errors;
+            private readonly List<string> _warnings;
+            private readonly Func<INamedTypeSymbol, bool> _erase;
             private readonly Stack<ClassState> _states = new Stack<ClassState>();
 
             public bool Changed { get; private set; }
 
-            public Rewriter(SemanticModel model, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, List<string> errors)
+            public Rewriter(SemanticModel model, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, List<string> errors, List<string> warnings)
             {
                 _model = model;
                 _interfaces = interfaces;
                 _errors = errors;
+                _warnings = warnings;
+                _erase = t => interfaces.ContainsKey(t.OriginalDefinition);
             }
 
-            private void Error(SyntaxNode node, string message)
+            private static string At(SyntaxNode node, string message)
             {
                 var span = node.GetLocation().GetLineSpan();
-                _errors.Add($"{span.Path}({span.StartLinePosition.Line + 1},{span.StartLinePosition.Character + 1}): {message}");
+                return $"{span.Path}({span.StartLinePosition.Line + 1},{span.StartLinePosition.Character + 1}): {message}";
             }
+
+            private void Error(SyntaxNode node, string message) => _errors.Add(At(node, message));
+
+            private void Warning(SyntaxNode node, string message) => _warnings.Add(At(node, message));
 
             private InterfaceInfo AsTarget(ITypeSymbol type)
             {
@@ -330,8 +341,14 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
-                if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method) || AsTarget(method.ContainingType) == null)
+                if (IsNameOf(node))
+                    return RewriteNameOf(node);
+
+                if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method))
                     return base.VisitInvocationExpression(node);
+
+                if (AsTarget(method.ContainingType) == null)
+                    return IsEventSender(method) ? RewriteEventName(node, method) : base.VisitInvocationExpression(node);
 
                 InterfaceInfo iface = AsTarget(method.ContainingType);
                 MethodInfo info = iface.Methods.FirstOrDefault(m => SymbolEqualityComparer.Default.Equals(m.Symbol, method.OriginalDefinition));
@@ -359,6 +376,175 @@ namespace CustomUdonSharp
                         SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(args)))
                     .WithTriviaFrom(node);
             }
+
+            // ---- イベント名（nameof / 文字列）--------------------------------
+            // 引数ありのインタフェース実装メソッドは Udon 上の名前がシグネチャ名になるので、
+            // SendCustomNetworkEvent(target, nameof(Enemy.Damage), ...) などで渡す名前もそれに合わせる。
+
+            private bool IsNameOf(ExpressionSyntax expr)
+            {
+                return expr is InvocationExpressionSyntax inv
+                    && inv.Expression is IdentifierNameSyntax id
+                    && id.Identifier.ValueText == "nameof"
+                    && inv.ArgumentList.Arguments.Count == 1
+                    && _model.GetConstantValue(inv).HasValue;   // 同名のユーザーメソッドではなく nameof 演算子
+            }
+
+            /// <summary>
+            /// nameof(X.M) を文字列リテラルにする。
+            /// - M が名前を固定化したメソッドなら、そのシグネチャ名（イベント名として使えるように）
+            /// - 対象インタフェースを含む式なら元の結果（型置換で nameof(UdonSharpBehaviour.M) になり壊れるのを防ぐ）
+            /// </summary>
+            private SyntaxNode RewriteNameOf(InvocationExpressionSyntax node)
+            {
+                ExpressionSyntax target = node.ArgumentList.Arguments[0].Expression;
+                SymbolInfo info = _model.GetSymbolInfo(target);
+                IEnumerable<ISymbol> candidates = info.Symbol != null ? new[] { info.Symbol } : (IEnumerable<ISymbol>)info.CandidateSymbols;
+
+                string text = ResolveRenamed(candidates.OfType<IMethodSymbol>(), node);
+                if (text == null && target.DescendantNodesAndSelf().OfType<NameSyntax>()
+                        .Any(n => _model.GetSymbolInfo(n).Symbol is INamedTypeSymbol t && AsTarget(t) != null))
+                    text = (string)_model.GetConstantValue(node).Value;
+
+                if (text == null)
+                    return base.VisitInvocationExpression(node);
+
+                Changed = true;
+                return StringLiteral(text).WithTriviaFrom(node);
+            }
+
+            // UdonSharpBehaviour / VRC の SendCustomEvent・SendCustomNetworkEvent・SendCustomEventDelayed* など
+            private static bool IsEventSender(IMethodSymbol method)
+            {
+                if (!method.Name.StartsWith("SendCustom", StringComparison.Ordinal) || EventNameParameter(method) == null)
+                    return false;
+                string type = method.ContainingType?.ToDisplayString() ?? "";
+                return type == "UdonSharp.UdonSharpBehaviour" || type.StartsWith("VRC.", StringComparison.Ordinal);
+            }
+
+            private static IParameterSymbol EventNameParameter(IMethodSymbol method) =>
+                method.Parameters.FirstOrDefault(p => p.Name == "eventName" && p.Type.SpecialType == SpecialType.System_String);
+
+            /// <summary>イベント名に定数文字列が渡されていれば、受け手の型から対象メソッドを探してシグネチャ名に置き換える</summary>
+            private SyntaxNode RewriteEventName(InvocationExpressionSyntax node, IMethodSymbol method)
+            {
+                IParameterSymbol eventName = EventNameParameter(method);
+                SeparatedSyntaxList<ArgumentSyntax> args = node.ArgumentList.Arguments;
+                int index = -1;
+                for (int i = 0; i < args.Count; i++)
+                {
+                    string paramName = args[i].NameColon != null
+                        ? args[i].NameColon.Name.Identifier.ValueText
+                        : (i < method.Parameters.Length ? method.Parameters[i].Name : null);
+                    if (paramName == eventName.Name)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+
+                var visited = (InvocationExpressionSyntax)base.VisitInvocationExpression(node);
+                if (index < 0 || IsNameOf(args[index].Expression))   // nameof は RewriteNameOf で処理済み
+                    return visited;
+
+                ExpressionSyntax arg = args[index].Expression;
+                ITypeSymbol receiverType = ReceiverType(node);
+                Optional<object> constant = _model.GetConstantValue(arg);
+
+                if (!constant.HasValue)
+                {
+                    if (HasRenamedMethods(receiverType))
+                        Warning(arg, $"'{method.Name}' のイベント名が定数ではないため、引数ありのインタフェース実装メソッドの名前に書き換えられません。nameof(...) か文字列リテラルで渡してください");
+                    return visited;
+                }
+
+                if (!(constant.Value is string name))
+                    return visited;
+
+                string renamed = ResolveRenamed(LookupMethods(receiverType, name), arg);
+                if (renamed == null)
+                    return visited;
+
+                Changed = true;
+                ArgumentSyntax oldArg = visited.ArgumentList.Arguments[index];
+                ArgumentSyntax newArg = oldArg.WithExpression(StringLiteral(renamed).WithTriviaFrom(oldArg.Expression));
+                return visited.WithArgumentList(visited.ArgumentList.WithArguments(visited.ArgumentList.Arguments.Replace(oldArg, newArg)));
+            }
+
+            private ITypeSymbol ReceiverType(InvocationExpressionSyntax node)
+            {
+                if (node.Expression is MemberAccessExpressionSyntax access)
+                    return _model.GetTypeInfo(access.Expression).Type;
+                return _model.GetEnclosingSymbol(node.SpanStart)?.ContainingType;   // SendCustomEvent(...) を自分に対して呼ぶ場合
+            }
+
+            private IEnumerable<IMethodSymbol> LookupMethods(ITypeSymbol type, string name)
+            {
+                if (type == null)
+                    yield break;
+
+                InterfaceInfo info = AsTarget(type);
+                if (info != null)
+                {
+                    foreach (INamedTypeSymbol iface in new[] { info.Symbol }.Concat(info.Symbol.AllInterfaces))
+                        foreach (IMethodSymbol m in iface.GetMembers(name).OfType<IMethodSymbol>())
+                            yield return m;
+                    yield break;
+                }
+
+                for (ITypeSymbol t = type; t != null; t = t.BaseType)
+                    foreach (IMethodSymbol m in t.GetMembers(name).OfType<IMethodSymbol>())
+                        yield return m;
+            }
+
+            private bool HasRenamedMethods(ITypeSymbol type)
+            {
+                if (type == null)
+                    return false;
+                InterfaceInfo info = AsTarget(type);
+                if (info != null)
+                    return info.Methods.Any(m => m.Symbol.Parameters.Length > 0);
+                for (ITypeSymbol t = type; t != null; t = t.BaseType)
+                    if (t.GetMembers().OfType<IMethodSymbol>().Any(m => RenamedName(m) != null))
+                        return true;
+                return false;
+            }
+
+            /// <summary>名前を固定化するメソッドなら、その Udon 上の名前。そうでなければ null</summary>
+            private string RenamedName(IMethodSymbol m)
+            {
+                m = m.OriginalDefinition;
+                if (m.MethodKind != MethodKind.Ordinary || m.Parameters.Length == 0)
+                    return null;   // 引数なしはシグネチャ名 = 元の名前
+                bool renamed = AsTarget(m.ContainingType) != null
+                    || InterfaceNaming.ImplementationKeys.Contains(InterfaceNaming.Key(m, _erase));
+                return renamed ? InterfaceNaming.SignatureName(m, _erase) : null;
+            }
+
+            /// <summary>
+            /// 候補（同名のメソッド群）から書き換え後の名前を決める。
+            /// 元の名前のまま呼べるメソッド（引数なし、固定化対象外の [NetworkCallable]）が候補にあれば書き換えない。
+            /// </summary>
+            private string ResolveRenamed(IEnumerable<IMethodSymbol> candidates, SyntaxNode where)
+            {
+                var list = candidates.ToList();
+                if (list.Any(m => RenamedName(m) == null && (m.Parameters.Length == 0 || IsNetworkCallable(m))))
+                    return null;
+
+                var names = list.Select(RenamedName).Where(n => n != null).Distinct().ToList();
+                if (names.Count > 1)
+                {
+                    Error(where, $"'{list[0].Name}' : 名前を固定化したメソッドが複数あり、どれを指すか決められません（{string.Join(", ", names)}）");
+                    return null;
+                }
+                return names.Count == 1 ? names[0] : null;
+            }
+
+            private static bool IsNetworkCallable(IMethodSymbol m) =>
+                m.GetAttributes().Any(a => a.AttributeClass?.Name == "NetworkCallableAttribute");
+
+            private static LiteralExpressionSyntax StringLiteral(string text) =>
+                SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(text));
 
             private bool IsSupported(IMethodSymbol m, SyntaxNode where)
             {
