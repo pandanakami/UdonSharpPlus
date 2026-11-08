@@ -21,7 +21,7 @@ namespace CustomUdonSharpTests.CollectionErrors
             foreach (var (k, value) in _dict)              // 分解
                 Debug.Log(k);
             foreach (var kv in _dict)
-                Debug.Log(kv);                             // kv をそのまま使う
+                Debug.Log(kv);                             // kv をそのまま使う（#61 から使える。object[] になる）
             int x2 = _list[0] = 5;                         // 代入を式として使う
             GetList()[0] += 1;                             // 複合代入の受け側がメソッド呼び出し
             Debug.Log(_dict.Keys);                         // Keys を foreach / .Count 以外で使う

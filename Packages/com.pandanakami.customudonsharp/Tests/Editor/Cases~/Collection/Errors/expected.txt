@@ -5,7 +5,6 @@ Error: Assets/CustomUdonSharpTests/User.cs(17,40): [CustomUdonSharp] '_list' : L
 Error: Assets/CustomUdonSharpTests/User.cs(18,20): [CustomUdonSharp] Dictionary.TryGetValue は、ループの条件やフィールドの初期化子の中では未対応です（前の文で呼んでください）
 Error: Assets/CustomUdonSharpTests/User.cs(20,21): [CustomUdonSharp] List / Dictionary への ?. は未対応です
 Error: Assets/CustomUdonSharpTests/User.cs(21,13): [CustomUdonSharp] List / Dictionary の foreach での分解（var (k, v)）は未対応です。kv.Key / kv.Value を使ってください
-Error: Assets/CustomUdonSharpTests/User.cs(24,27): [CustomUdonSharp] 'kv' : Dictionary の foreach の要素は、.Key と .Value でだけ使えます
 Error: Assets/CustomUdonSharpTests/User.cs(25,22): [CustomUdonSharp] List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）
 Error: Assets/CustomUdonSharpTests/User.cs(26,13): [CustomUdonSharp] List / Dictionary の要素への複合代入は、受け側と添字が変数・フィールド・定数のときだけ使えます（いったん変数に入れてください）
 Error: Assets/CustomUdonSharpTests/User.cs(27,23): [CustomUdonSharp] 'Dictionary.Keys' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）

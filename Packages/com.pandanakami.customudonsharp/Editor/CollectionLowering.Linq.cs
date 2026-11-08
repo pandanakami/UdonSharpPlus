@@ -93,12 +93,30 @@ namespace CustomUdonSharp
                 }
                 ExpressionSyntax source = current;
 
-                // 元：List・配列・LINQ の結果（var で受けたもの。中身は DataList）
+                // 元：List・配列・LINQ の結果（var で受けたもの。中身は DataList）・Dictionary・dict.Keys / dict.Values（#61）
                 ITypeSymbol sourceType = TypeOf(source);
                 ITypeSymbol element;
                 bool isArray = false;
+                bool pairMode = false;                   // Dictionary：kv をキーの DataToken として流している（#61 決めたこと 1）
+                ITypeSymbol pairKey = null, pairValue = null;
+                string sourceText = null, sourceParam = DataListType;
                 if (IsList(sourceType) || IsEnumerable(sourceType))
                     element = ((INamedTypeSymbol)sourceType).TypeArguments[0];
+                else if (IsDictionary(sourceType))
+                {
+                    pairMode = true;
+                    pairKey = KeyOf(sourceType);
+                    pairValue = ValueOf(sourceType);
+                    element = calls[0].Method.TypeArguments[0];   // KeyValuePair<K, V>
+                    sourceParam = DataDictionaryType;
+                }
+                else if ((IsKeys(sourceType) || IsValues(sourceType)) && source is MemberAccessExpressionSyntax keysAccess)
+                {
+                    // dict.Keys / dict.Values → GetKeys() / GetValues() の DataList
+                    ITypeSymbol dictionary = DictionaryOfCollection(sourceType);
+                    element = IsKeys(sourceType) ? KeyOf(dictionary) : ValueOf(dictionary);
+                    sourceText = $"({Text(Visit(keysAccess.Expression))}).{(IsKeys(sourceType) ? "GetKeys" : "GetValues")}()";
+                }
                 else if (sourceType is IArrayTypeSymbol array && array.Rank == 1)
                 {
                     element = array.ElementType;
@@ -106,7 +124,7 @@ namespace CustomUdonSharp
                 }
                 else
                 {
-                    Error(node, $"'{calls[0].Name}' : LINQ は List と配列にだけ使えます（{sourceType?.ToDisplayString() ?? "この型"} は未対応です）");
+                    Error(node, $"'{calls[0].Name}' : LINQ は List・配列・Dictionary にだけ使えます（{sourceType?.ToDisplayString() ?? "この型"} は未対応です）");
                     return node;
                 }
 
@@ -145,7 +163,15 @@ namespace CustomUdonSharp
                 // 元を回すループ
                 header = isArray
                     ? $"int __n0 = __src.Length; for (int __i0 = 0; __i0 < __n0{{STOP}}; __i0++) {{ {TypeText(element)} __v0 = __src[__i0]; "
-                    : $"int __n0 = __src.Count; for (int __i0 = 0; __i0 < __n0{{STOP}}; __i0++) {{ {TypeText(element)} __v0 = {Unwrap("__src[__i0]", element)}; ";
+                    : pairMode
+                        ? $"{DataListType} __keys = __src.GetKeys(); int __n0 = __keys.Count; for (int __i0 = 0; __i0 < __n0{{STOP}}; __i0++) {{ {DataTokenType} __v0 = __keys[__i0]; "
+                        : $"int __n0 = __src.Count; for (int __i0 = 0; __i0 < __n0{{STOP}}; __i0++) {{ {TypeText(element)} __v0 = {Unwrap("__src[__i0]", element)}; ";
+
+                // Dictionary の kv（キーとして流している今の値）
+                PairLoop CurrentPair() => new PairLoop { Dictionary = "__src", Key = $"__v{v}", KeyType = pairKey, ValueType = pairValue };
+
+                // 今の値（kv をキーとして流しているときは、外に出すために object[] にする。#61 決めたこと 2）
+                string ValueExpr() => pairMode ? PairObject(CurrentPair()) : $"__v{v}";
 
                 void CloseLoop(string tail)
                 {
@@ -178,8 +204,9 @@ namespace CustomUdonSharp
                 }
 
                 // ラムダを 1 つ準備して、外の変数をまとめる
-                PreparedLambda Lambda(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType)
+                PreparedLambda Lambda(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType, out bool pairBound)
                 {
+                    pairBound = false;
                     resultType = null;
                     if (!(_model.GetTypeInfo(fn).ConvertedType is INamedTypeSymbol delegateType) || delegateType.DelegateInvokeMethod == null
                         || delegateType.DelegateInvokeMethod.Parameters.Length != 1)
@@ -189,7 +216,30 @@ namespace CustomUdonSharp
                     }
                     resultType = delegateType.DelegateInvokeMethod.ReturnType;
                     bool conflict = fn is LambdaExpressionSyntax l && LambdaParameterNames(l).Any(captureNames.Contains);
-                    PreparedLambda prepared = PrepareLambda(fn, delegateType.DelegateInvokeMethod, $"{name}_body{stage}", modifiers, conflict);
+
+                    // kv をキーとして流しているときは、式の本体のラムダなら kv.Key / kv.Value をキーと dict[キー] に書き換える
+                    // （本体のメソッドにするものやメソッド名は、object[] にして渡す）
+                    ISymbol pairParameter = null;
+                    if (pairMode && !conflict && fn is LambdaExpressionSyntax pairLambda && !(pairLambda.Body is BlockSyntax))
+                    {
+                        ParameterSyntax parameter = pairLambda is SimpleLambdaExpressionSyntax simple
+                            ? simple.Parameter
+                            : ((ParenthesizedLambdaExpressionSyntax)pairLambda).ParameterList.Parameters.FirstOrDefault();
+                        pairParameter = parameter == null ? null : _model.GetDeclaredSymbol(parameter);
+                    }
+                    if (pairParameter != null)
+                        _pairs[pairParameter] = CurrentPair();
+                    PreparedLambda prepared;
+                    try
+                    {
+                        prepared = PrepareLambda(fn, delegateType.DelegateInvokeMethod, $"{name}_body{stage}", modifiers, conflict);
+                    }
+                    finally
+                    {
+                        if (pairParameter != null)
+                            _pairs.Remove(pairParameter);
+                    }
+                    pairBound = pairParameter != null;
                     if (prepared == null)
                         return null;
                     foreach (Capture c in prepared.Captures)
@@ -206,11 +256,12 @@ namespace CustomUdonSharp
                 // ラムダを今の値に当てはめて、結果を変数に入れる（ラムダの引数は、兄弟のブロックの中だけで宣言する）。結果の変数名を返す
                 string Apply(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType)
                 {
-                    PreparedLambda lambda = Lambda(call, fn, out resultType);
+                    PreparedLambda lambda = Lambda(call, fn, out resultType, out bool pairBound);
                     if (lambda == null)
                         return null;
                     string result = $"__r{stage++}";
-                    body.Append($"{TypeText(resultType)} {result}; {{ {TypeText(type)} {lambda.Names[0]} = __v{v}; {result} = ({lambda.Each}); }} ");
+                    string bind = pairBound ? "" : $"{TypeText(type)} {lambda.Names[0]} = {ValueExpr()}; ";
+                    body.Append($"{TypeText(resultType)} {result}; {{ {bind}{result} = ({lambda.Each}); }} ");
                     return result;
                 }
 
@@ -233,6 +284,7 @@ namespace CustomUdonSharp
                     body.Append($"{TypeText(resultType)} __v{v + 1} = {mapped}; ");
                     v++;
                     type = resultType;
+                    pairMode = false;
                     return true;
                 }
 
@@ -261,7 +313,7 @@ namespace CustomUdonSharp
                         body.Append($"{list}.Add({Wrap(key, keyType)}); ");
                         keyLists.Add((list, keyType, descending));
                     }
-                    body.Append($"{buffer}.Add({Wrap($"__v{v}", type)}); ");
+                    body.Append($"{buffer}.Add({(pairMode ? $"__v{v}" : Wrap($"__v{v}", type))}); ");   // kv はキーのまま
                     CloseLoop("");
 
                     // キーを順に比べる（同じなら次のキー）
@@ -291,7 +343,9 @@ namespace CustomUdonSharp
                     segment++;
                     int next = segment;
                     v++;
-                    header = $"for (int __i{next} = 0; __i{next} < __m{s}{{STOP}}; __i{next}++) {{ {TypeText(type)} __v{v} = {Unwrap($"{buffer}[__p{s}[__i{next}].Int]", type)}; ";
+                    header = pairMode
+                        ? $"for (int __i{next} = 0; __i{next} < __m{s}{{STOP}}; __i{next}++) {{ {DataTokenType} __v{v} = {buffer}[__p{s}[__i{next}].Int]; "
+                        : $"for (int __i{next} = 0; __i{next} < __m{s}{{STOP}}; __i{next}++) {{ {TypeText(type)} __v{v} = {Unwrap($"{buffer}[__p{s}[__i{next}].Int]", type)}; ";
                     return true;
                 }
 
@@ -332,11 +386,13 @@ namespace CustomUdonSharp
                             stage++;
                             continue;
                         }
+                        case "Distinct" when args.Count == 0 && pairMode:
+                            continue;   // KeyValuePair はキーが重ならないので、何もしない（#61 決めたこと 6）
                         case "Distinct" when args.Count == 0:
                         {
                             // 最初に出たものを残す（C# と同じ順）。値・文字列は DataDictionary、それ以外（参照）は DataList で調べる
                             string token = $"__d{stage}";
-                            body.Append($"{DataTokenType} {token} = {Wrap($"__v{v}", type)}; ");
+                            body.Append($"{DataTokenType} {token} = {Wrap(ValueExpr(), type)}; ");
                             if (Accessor(type) is string accessor && accessor != "DataList" && accessor != "DataDictionary" || type.TypeKind == TypeKind.Enum)
                             {
                                 string seen = Temp($"seen{stage}", DataDictionaryType);
@@ -398,6 +454,11 @@ namespace CustomUdonSharp
                     }
                     else if (call.Name == "Contains" && args.Count == 1)
                     {
+                        if (pairMode)
+                        {
+                            Error(call.Node, $"'{call.Name}' : Dictionary の要素（KeyValuePair）の Contains は未対応です（ContainsKey などを使ってください）");
+                            return node;
+                        }
                         Extra(TypeText(type), "__value", args[0]);
                     }
                     else if (call.Name == "ToDictionary" && (args.Count == 1 || args.Count == 2))
@@ -405,7 +466,7 @@ namespace CustomUdonSharp
                         string key = Apply(call, args[0], out ITypeSymbol keyType);
                         if (key == null)
                             return node;
-                        string value = $"__v{v}";
+                        string value = ValueExpr();
                         ITypeSymbol valueType = type;
                         if (args.Count == 2)
                         {
@@ -425,7 +486,7 @@ namespace CustomUdonSharp
                     }
                 }
 
-                string currentValue = $"__v{v}";
+                string currentValue = ValueExpr();
                 string valueText = TypeText(type);
                 LinqCallInfo terminal = calls[calls.Count - 1];
                 string each;
@@ -529,10 +590,11 @@ namespace CustomUdonSharp
                 }
                 CloseLoop(each);
 
-                string sourceParam = isArray ? TypeText(sourceType) : DataListType;
+                if (isArray)
+                    sourceParam = TypeText(sourceType);
                 _helpers[name] = $"{modifiers} {returnType} {name}({sourceParam} __src{extraParams}{CaptureParams(captures)}) "
                                  + $"{{ {marker}{preamble}{code}{post} }}";
-                return Parse($"{name}({Text(Visit(source))}{extraArgs}{CaptureArgs(captures)})", node);
+                return Parse($"{name}({sourceText ?? Text(Visit(source))}{extraArgs}{CaptureArgs(captures)})", node);
             }
 
             private const string NoElement = "要素がありません（C# では InvalidOperationException）";

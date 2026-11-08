@@ -3,5 +3,4 @@ Error: Assets/CustomUdonSharpTests/User.cs(11,33): [CustomUdonSharp] ラムダ�
 Error: Assets/CustomUdonSharpTests/User.cs(15,40): [CustomUdonSharp] ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます
 Error: Assets/CustomUdonSharpTests/User.cs(16,35): [CustomUdonSharp] delegate { ... } の形は未対応です。ラムダ（x => ...）で書いてください
 Error: Assets/CustomUdonSharpTests/User.cs(18,35): [CustomUdonSharp] デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）
-Error: Assets/CustomUdonSharpTests/User.cs(20,43): [CustomUdonSharp] 'kv' : Dictionary の foreach の要素をラムダの中で使うのは未対応です（kv.Key / kv.Value を変数に入れてから使ってください）
 ## Logs

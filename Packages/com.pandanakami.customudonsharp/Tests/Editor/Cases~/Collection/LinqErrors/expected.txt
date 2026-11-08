@@ -5,7 +5,6 @@ Error: Assets/CustomUdonSharpTests/User.cs(17,26): [CustomUdonSharp] 'GroupBy' :
 Error: Assets/CustomUdonSharpTests/User.cs(18,26): [CustomUdonSharp] 'OrderBy' : 比較子を渡す形は未対応です（キーを返すラムダだけ渡してください）
 Error: Assets/CustomUdonSharpTests/User.cs(19,67): [CustomUdonSharp] 'OrderBy' : この型のキー（object）での並べ替えは未対応です（数値・string・bool・char・enum が使えます）
 Error: Assets/CustomUdonSharpTests/User.cs(20,40): [CustomUdonSharp] 'Select' : この形のラムダは未対応です（引数 1 つのラムダかメソッド名を渡してください。添字付きの (x, i) => ... は未対応です）
-Error: Assets/CustomUdonSharpTests/User.cs(21,22): [CustomUdonSharp] 'Any' : LINQ は List と配列にだけ使えます（System.Collections.Generic.Dictionary<string, int> は未対応です）
 Error: Assets/CustomUdonSharpTests/User.cs(22,46): [CustomUdonSharp] '_list.Select(x => x.ToString())' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）
 Error: Assets/CustomUdonSharpTests/User.cs(24,30): [CustomUdonSharp] 'Max' : 数値（int / long / float / double など）以外には未対応です
 ## Logs

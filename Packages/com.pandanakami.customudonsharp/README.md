@@ -161,16 +161,17 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 - 作成：`new List<T>()`、コレクション初期化子（`{ 1, 2 }`、`{ { "a", 1 } }`、`{ ["a"] = 1 }`）、List・配列からのコピー
 - List：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Insert`、`Remove`、`RemoveAt`、`RemoveRange`、`Contains`、`IndexOf`、`LastIndexOf`、`Clear`、`Sort()`、`Reverse()`、`AddRange`、`InsertRange`、`GetRange`、`ToArray`
 - Dictionary：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Remove`、`ContainsKey`、`ContainsValue`、`TryGetValue`、`Clear`
-- `foreach`：List、Dictionary（`kv.Key`／`kv.Value`）、`dict.Keys`、`dict.Values`
+- `foreach`：List、Dictionary（`kv.Key`／`kv.Value`）、`dict.Keys`、`dict.Values`。`kv` は変数に入れる、メソッドに渡す、ラムダの中で使う、などもできます（下の「KeyValuePair」）
+- `KeyValuePair<K, V>`（変数・引数・戻り値・List の要素、`new KeyValuePair<K, V>(k, v)`、`.Key`／`.Value`）
 - フィールドの初期化子、メソッドの引数・戻り値（インタフェースのメソッドを含む）
 - ラムダを受け取る List のメソッド：`Find`、`FindLast`、`FindIndex`、`FindLastIndex`（どちらも開始・個数の指定を含む）、`FindAll`、`ConvertAll`、`Exists`、`TrueForAll`、`RemoveAll`、`ForEach`、`Sort(Comparison)`（下の「ラムダ」）
 
 未対応の書き方（コンパイルエラーになります）：
 
 - List / Dictionary 型のフィールドのシリアライズと同期（public、`[SerializeField]`、`[UdonSynced]`）。private にしてください
-- Dictionary への LINQ、未対応の LINQ のメソッド（下の「LINQ」）
+- 未対応の LINQ のメソッド（下の「LINQ」）
 - `IEnumerable<T>` などとして渡すこと（`string.Join(",", list)` など）、`?.`
-- `foreach (var (k, v) in dict)` の分解、`kv` を `.Key`／`.Value` 以外で使うこと、`Keys`／`Values` を `foreach` と `.Count` 以外で使うこと
+- `foreach (var (k, v) in dict)` の分解、`Keys`／`Values` を `foreach`、`.Count`、LINQ 以外で使うこと
 - 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、メソッド呼び出しを書くこと（`Get()[0] += 1`）
 - `TryGetValue` をループの条件の中で使うこと
 
@@ -179,7 +180,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 - `DataList` / `DataDictionary` を直接書いた場合は、UdonSharp のままです（`foreach` は使えません）
 - `foreach` の途中で List / Dictionary を書き換えないでください（C# では `InvalidOperationException` になる書き方です）。Udon では検出されず、回る回数は最初の要素数のままです。List に Add した要素は回らず、Remove / Clear すると範囲外を読んで Udon の実行時例外になります
 - 存在しないキーを添字で読んだときは、C# の `KeyNotFoundException` ではなく、Udon の実行時例外になります
-- `Dictionary` の `foreach` の順番は、`DataDictionary` の `GetKeys()` の順番です（C# の `Dictionary` と同じとは限りません）
+- `Dictionary` の `foreach` と LINQ の順番は、`DataDictionary` の `GetKeys()` の順番です（C# の `Dictionary` と同じとは限りません）
 
 #### ラムダ
 
@@ -203,12 +204,28 @@ _scores.Sort((a, b) => b - a);
 
 - 上記の List のメソッドと LINQ の引数以外のラムダ（`Func<int, bool> f = x => x > 0;` など）、`delegate { ... }`、デリゲートの変数を渡すこと
 - フィールドの初期化子の中で、ラムダを渡す List のメソッドを呼ぶこと
-- `foreach (var kv in dict)` の `kv` をラムダの中で使うこと（`kv.Key`／`kv.Value` をいったん変数に入れてください）
 - `[RecursiveMethod]` を付けたメソッドの中で、外のローカル変数・引数に書き込むラムダ。外の変数は `ref` 引数で生成メソッドに渡しますが、UdonSharp は `[RecursiveMethod]` の中での `ref` 引数のメソッドの呼び出しに対応していないため、UdonSharp のエラー（`U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod`）になります。読むだけのラムダは使えます
+
+#### KeyValuePair
+
+`KeyValuePair<K, V>` は、汎用クラスと同じ形の `object[]`（先頭に型の印、続けてキーと値）になります。`Key`／`Value` は読み取り専用なので、値型の `KeyValuePair` と同じように使えます。
+
+```csharp
+foreach (var kv in _scores)
+{
+    if (IsHigh(kv))            // KeyValuePair<string, int> を受け取るメソッドに渡す
+        _picked.Add(kv);       // List<KeyValuePair<string, int>> に入れる
+}
+var best = _scores.OrderByDescending(kv => kv.Value).First();   // LINQ から取り出す
+Debug.Log(best.Key + best.Value);
+```
+
+- `foreach (var kv in dict)` と LINQ の中では、`kv.Key`／`kv.Value` だけを使う間は `object[]` を作りません（キーと `dict[キー]` に書き換えます）。変数に入れる、メソッドに渡すなど、`kv` そのものを使うところでだけ作ります
+- `kv` そのものを使うたびに新しい `object[]` を作るので、`Equals` で比べると同じインスタンスかどうかの比較になります（`.Key`／`.Value` で比べてください）
 
 ### LINQ（実験的）
 
-List と配列に、LINQ のメソッドを使えます（`using System.Linq;`）。つないだ呼び出しは、1 つのループの生成メソッドにまとめます。
+List・配列・Dictionary（`dict.Keys`／`dict.Values` も）に、LINQ のメソッドを使えます（`using System.Linq;`）。つないだ呼び出しは、1 つのループの生成メソッドにまとめます。
 
 ```csharp
 List<string> alive = _enemies.Where(e => e.hp > 0).Select(e => e.name).ToList();
@@ -225,6 +242,7 @@ foreach (int s in big) { ... }
 - `Sum`、`Min`、`Max`、`Average`（`int`、`long`、`float`、`double`）
 - 条件・変換は、ラムダかメソッド名で渡せます（`Any(x => x > 0)`、`Where(IsOdd)`）。ラムダの中から外の変数を読み書きできます（上の「ラムダ」と同じ）
 - 結果を `var` で受けて、`foreach` やほかの LINQ につなげること
+- Dictionary の要素（`KeyValuePair`）：ラムダの中で `kv.Key`／`kv.Value` を使えます。`First()` や `ToList()` で `KeyValuePair` を取り出すこともできます（上の「KeyValuePair」）。`ToDictionary(kv => kv.Key, kv => kv.Value)` で Dictionary に戻せます
 - `Enumerable.Where(list, f)` の static の形
 
 遅延評価にはしません。呼んだ時点で結果を作ります：
@@ -247,8 +265,8 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 
 - `GroupBy`、`SelectMany`、`Reverse` など、上記以外のメソッド
 - 比較子（`IComparer`／`IEqualityComparer`）を渡す形、数値・string・bool・char・enum 以外のキーでの並べ替え
-- Dictionary への LINQ
 - 添字付きのラムダ（`Select((x, i) => ...)`）、`Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`
+- Dictionary の要素（`KeyValuePair`）の `Contains`（`ContainsKey` などを使ってください）
 - `IEnumerable<T>`／`IOrderedEnumerable<T>` 型の宣言（フィールド・変数・引数・戻り値）。`var` で受けるか、`ToList()`／`ToArray()` にしてください
 - LINQ の結果を、そのままメソッドに渡すこと（`string.Join(",", list.Select(...))`）。`ToArray()` にしてください
 - フィールドの初期化子の中の LINQ
@@ -256,7 +274,7 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 注意：
 
 - 要素がないときの `First`／`Last`／`Min`／`Max`／`Average` と、`ToDictionary` で同じキーがあったときは、C# の例外の代わりに、エラーのログを出して Udon の実行時例外になります
-- `Distinct` は、汎用クラスなどの参照は同じインスタンスかどうかで比べます（C# の既定と同じ）
+- `Distinct` は、汎用クラスなどの参照は同じインスタンスかどうかで比べます（C# の既定と同じ）。Dictionary の要素はキーが重ならないので、何もしません
 - `Contains` は `==` で比べます
 
 ## 仕組み

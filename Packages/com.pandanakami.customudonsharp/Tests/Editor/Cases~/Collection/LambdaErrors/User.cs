@@ -17,7 +17,7 @@ namespace CustomUdonSharpTests.CollectionLambdaErrors
             System.Predicate<int> p = null;
             bool c = _list.Exists(p);                                   // デリゲートの変数
             foreach (var kv in _dict)
-                _list.RemoveAll(x => x == kv.Value);                    // kv をラムダの中で使う
+                _list.RemoveAll(x => x == kv.Value);                    // kv をラムダの中で使う（#61 から使える）
         }
     }
 }

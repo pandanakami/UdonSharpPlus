@@ -35,6 +35,11 @@ namespace CustomUdonSharp
 
         internal static bool IsList(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == ListName;
         internal static bool IsDictionary(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == DictionaryName;
+        private const string KeyValuePairName = "System.Collections.Generic.KeyValuePair<TKey, TValue>";
+        internal static bool IsKeyValuePair(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == KeyValuePairName;
+
+        /// <summary>KeyValuePair を object[] にしたときの型の印（汎用クラスと同じく先頭に置く。#61）</summary>
+        private const string PairTag = "System.Collections.Generic.KeyValuePair";
         private static bool IsKeys(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == KeysName;
         private static bool IsValues(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == ValuesName;
 
@@ -143,6 +148,8 @@ namespace CustomUdonSharp
                         return replaced;
                     if (IsEnumerable(named))
                         return DataListType;   // LINQ の結果（#58）
+                    if (IsKeyValuePair(named))
+                        return "object[]";     // [型の印, キー, 値]（#61）
                     if (GenericText(named, TypeText) is string generic)
                         return generic;
                 }
@@ -216,6 +223,10 @@ namespace CustomUdonSharp
 
             /// <summary>Keys / Values の元の Dictionary の型</summary>
             private static ITypeSymbol DictionaryOfCollection(ITypeSymbol collection) => ((INamedTypeSymbol)collection).ContainingType;
+
+            /// <summary>foreach / LINQ の中でキーとして流している kv を、object[]（[型の印, キー, 値]）にする式（#61）</summary>
+            private static string PairObject(PairLoop pair) =>
+                $"new object[] {{ \"{PairTag}\", (object)({Unwrap(pair.Key, pair.KeyType)}), (object)({Unwrap($"({pair.Dictionary})[{pair.Key}]", pair.ValueType)}) }}";
 
             private static string Token(ITypeSymbol type) => InterfaceNaming.Sanitize(TypeText(type).Replace("global::", ""));
 
@@ -315,6 +326,11 @@ namespace CustomUdonSharp
             {
                 if (IEnumerableDeclaration(node))
                     return node;
+                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol pairType && IsKeyValuePair(pairType))
+                {
+                    Changed = true;
+                    return SyntaxFactory.ParseTypeName("object[]").WithTriviaFrom(node);
+                }
                 if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && ReplacementOf(t) is string replaced)
                 {
                     Changed = true;
@@ -325,8 +341,10 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && ReplacementOf(t) is string replaced)
+                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t
+                    && (ReplacementOf(t) ?? (IsKeyValuePair(t) ? "object[]" : null)) is string replaced)
                 {
+                    // 名前全体を置き換える（右側の KeyValuePair<K, V> だけを object[] にすると、名前の形でなくなる）
                     Changed = true;
                     return SyntaxFactory.ParseTypeName(replaced).WithTriviaFrom(node);
                 }
@@ -374,6 +392,11 @@ namespace CustomUdonSharp
             private SyntaxNode Creation(ExpressionSyntax node, ArgumentListSyntax arguments, InitializerExpressionSyntax initializer)
             {
                 ITypeSymbol type = TypeOf(node);
+                if (_helpers != null && IsKeyValuePair(type) && arguments != null && arguments.Arguments.Count == 2 && initializer == null)
+                {
+                    // new KeyValuePair<K, V>(k, v) → [型の印, キー, 値]（#61）
+                    return Parse($"new object[] {{ \"{PairTag}\", (object)({Text(Visit(arguments.Arguments[0].Expression))}), (object)({Text(Visit(arguments.Arguments[1].Expression))}) }}", node);
+                }
                 if (_helpers == null || !(IsList(type) || IsDictionary(type)))
                     return null;
 
@@ -683,7 +706,7 @@ namespace CustomUdonSharp
                     return base.VisitMemberAccessExpression(node);
 
                 // foreach (var kv in dict) の kv.Key / kv.Value
-                if (node.Expression is IdentifierNameSyntax id && _model.GetSymbolInfo(id).Symbol is ILocalSymbol local && _pairs.TryGetValue(local, out PairLoop pair))
+                if (node.Expression is IdentifierNameSyntax id && _model.GetSymbolInfo(id).Symbol is ISymbol local && _pairs.TryGetValue(local, out PairLoop pair))
                 {
                     switch (node.Name.Identifier.ValueText)
                     {
@@ -694,6 +717,14 @@ namespace CustomUdonSharp
 
                 ITypeSymbol receiverType = TypeOf(node.Expression);
                 string name = node.Name.Identifier.ValueText;
+
+                // KeyValuePair（object[]）の .Key / .Value（#61）
+                if (IsKeyValuePair(receiverType) && (name == "Key" || name == "Value"))
+                {
+                    var pairArgs = ((INamedTypeSymbol)receiverType).TypeArguments;
+                    ITypeSymbol part = name == "Key" ? pairArgs[0] : pairArgs[1];
+                    return Parse($"(({TypeText(part)})({Text(Visit(node.Expression))})[{(name == "Key" ? 1 : 2)}])", node);
+                }
 
                 // dict.Keys.Count / dict.Values.Count → dict.Count
                 if ((IsKeys(receiverType) || IsValues(receiverType)) && name == "Count" && node.Expression is MemberAccessExpressionSyntax inner)
@@ -716,13 +747,10 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
-                // kv を kv.Key / kv.Value 以外で使う（ループの外に持ち出すなど）のは未対応
-                if (_helpers != null && _pairs.Count > 0 && _model.GetSymbolInfo(node).Symbol is ILocalSymbol local && _pairs.ContainsKey(local)
+                // kv を kv.Key / kv.Value 以外で使う（変数に入れる、メソッドに渡すなど）：その場で object[] を作る（#61）
+                if (_helpers != null && _pairs.Count > 0 && _model.GetSymbolInfo(node).Symbol is ISymbol local && _pairs.TryGetValue(local, out PairLoop pair)
                     && !(node.Parent is MemberAccessExpressionSyntax m && m.Expression == node))
-                {
-                    Error(node, $"'{local.Name}' : Dictionary の foreach の要素は、.Key と .Value でだけ使えます");
-                    return node;
-                }
+                    return Parse($"({PairObject(pair)})", node);
                 return base.VisitIdentifierName(node);
             }
 
@@ -841,6 +869,8 @@ namespace CustomUdonSharp
                 public string Name;
                 public ITypeSymbol Type;
                 public bool Written;   // ラムダの中で書かれる → ref で渡す
+                public string Arg;     // 呼び出し側で渡す式（null なら Name）
+                public ISymbol Pair;   // foreach / LINQ の中の kv（キーとして流しているもの）。object[] にして渡す（#61）
             }
 
             private static readonly string[] LambdaMethods =
@@ -1014,7 +1044,7 @@ namespace CustomUdonSharp
                 string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{TypeText(c.Type)} {c.Name}"));
 
             private static string CaptureArgs(IEnumerable<Capture> captures) =>
-                string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{c.Name}"));
+                string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{c.Arg ?? c.Name}"));
 
             /// <summary>
             /// ラムダ（式・ブロック）かメソッド名を、生成メソッドに埋め込める形にする。だめなら null（エラーは出し済み）。
@@ -1056,6 +1086,27 @@ namespace CustomUdonSharp
                     return null;
 
                 var result = new PreparedLambda { Names = names, Captures = captures, Marker = SourceMap.MarkerFor(fn) };
+                // 外の kv は object[] の引数として渡すので、本体の中では普通の KeyValuePair として書き換える
+                var hidden = new List<KeyValuePair<ISymbol, PairLoop>>();
+                foreach (Capture c in captures.Where(c => c.Pair != null))
+                {
+                    hidden.Add(new KeyValuePair<ISymbol, PairLoop>(c.Pair, _pairs[c.Pair]));
+                    _pairs.Remove(c.Pair);
+                }
+                try
+                {
+                    return PrepareLambdaBody(result, fn, invoke, body, names, captures, bodyName, modifiers, bodyMethod);
+                }
+                finally
+                {
+                    foreach (var h in hidden)
+                        _pairs[h.Key] = h.Value;
+                }
+            }
+
+            private PreparedLambda PrepareLambdaBody(PreparedLambda result, ExpressionSyntax fn, IMethodSymbol invoke, CSharpSyntaxNode body,
+                string[] names, List<Capture> captures, string bodyName, string modifiers, bool bodyMethod)
+            {
                 string ret = invoke.ReturnsVoid ? "void" : TypeText(invoke.ReturnType);
                 string invokeText;
                 string blockText;
@@ -1133,10 +1184,10 @@ namespace CustomUdonSharp
                         continue;
                     if (!seen.Add(symbol))
                         continue;
-                    if (_pairs.ContainsKey(symbol))
+                    if (_pairs.TryGetValue(symbol, out PairLoop pair))
                     {
-                        Error(id, $"'{symbol.Name}' : Dictionary の foreach の要素をラムダの中で使うのは未対応です（kv.Key / kv.Value を変数に入れてから使ってください）");
-                        ok = false;
+                        // キーとして流している kv：object[] にして渡す（生成メソッドの中では KeyValuePair 型の引数として扱う）
+                        result.Add(new Capture { Name = symbol.Name, Type = type, Arg = PairObject(pair), Pair = symbol });
                         continue;
                     }
                     result.Add(new Capture { Name = symbol.Name, Type = type, Written = written.Contains(symbol) });
