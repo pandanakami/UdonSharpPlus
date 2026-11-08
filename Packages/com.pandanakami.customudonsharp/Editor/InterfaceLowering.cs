@@ -65,6 +65,7 @@ namespace CustomUdonSharp
         public static void Process(Array bindings, FieldInfo treeField, FieldInfo sourceTextField, object context)
         {
             InterfaceNaming.ImplementationKeys = new HashSet<string>();
+            SourceMap.Clear();
 
             var original = new List<SyntaxTree>(bindings.Length);
             foreach (object b in bindings)
@@ -72,13 +73,20 @@ namespace CustomUdonSharp
 
             var diagnostics = new LoweringDiagnostics();
             List<SyntaxTree> current = original;
+            SourceMap.RegisterTrees(current);
 
-            // 1) 汎用クラス（#49）→ 2) インタフェース の順に書き換える。どちらも行数を変えない
+            // 1) 汎用クラス（#49）→ 2) インタフェース の順に書き換える。どちらも行数を変えず、tree の並びも変えない
             if (ClassLowering.MayHaveClasses(current))
+            {
                 current = ClassLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
 
             if (current.Any(t => t.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Any()))
+            {
                 current = LowerInterfaces(current, diagnostics);
+                SourceMap.RegisterTrees(current);
+            }
 
             // エラーがあれば U# はこの直後でコンパイルを止めるので、書き換えた tree は使われない。
             // 元の tree のままにしておくと、U# が診断の位置からファイル名を引ける（binding.tree と照合するため）
@@ -148,7 +156,7 @@ namespace CustomUdonSharp
             public void Warning(Location location, string message) => _entries.Add((false, location, message));
 
             /// <param name="context">U# の CompilationContext（null ならログに出す）</param>
-            /// <param name="targets">U# に渡す tree。位置を同じファイルのこの tree に移す</param>
+            /// <param name="targets">U# に渡す tree（binding と同じ並び）。位置を同じ binding のこの tree に移す</param>
             public void Report(object context, IReadOnlyList<SyntaxTree> targets)
             {
                 System.Reflection.MethodInfo add = null;
@@ -163,15 +171,15 @@ namespace CustomUdonSharp
                         Debug.LogWarning(Prefix + "CompilationContext.AddDiagnostic が見つからないため、エラー・警告をログに出します。UdonSharp の内部が変わった可能性があります");
                 }
 
-                var byPath = new Dictionary<string, SyntaxTree>();
-                foreach (SyntaxTree tree in targets)
-                    byPath[tree.FilePath] = tree;
-
                 // 警告を先、エラーを後に（従来のログと同じ順）。同じ位置・内容の重複は 1 つにする
                 var seen = new HashSet<string>();
                 foreach (var entry in _entries.OrderBy(e => e.IsError))
                 {
-                    Location location = Remap(entry.Location, byPath);
+                    // 汎用クラスのコピーの中なら、元のクラスの位置に戻す（#52）
+                    SourceMap.Entry source = SourceMap.Find(entry.Location);
+                    Location location = source != null && source.TreeIndex >= 0 && source.TreeIndex < targets.Count
+                        ? SourceMap.ToLocation(source, targets[source.TreeIndex]) ?? Remap(entry.Location, targets)
+                        : Remap(entry.Location, targets);
                     if (!seen.Add($"{entry.IsError}|{At(location, entry.Message)}"))
                         continue;
 
@@ -188,15 +196,16 @@ namespace CustomUdonSharp
             }
 
             /// <summary>
-            /// 書き換えでは行数を変えないので、同じファイルの U# に渡す tree の、同じ行・列の位置にする
-            /// （途中の書き換えでできた tree の位置も、元の tree の位置も、この方法で移せる。列は書き換えでずれることがある）
+            /// 書き換えでは行数を変えないので、同じ binding の U# に渡す tree の、同じ行・列の位置にする
+            /// （途中の書き換えでできた tree の位置も、元の tree の位置も、この方法で移せる。列は書き換えでずれることがある）。
+            /// tree はファイルパスではなく binding の番号で対応付ける（U# の tree はパスを持たないため）
             /// </summary>
-            private static Location Remap(Location location, Dictionary<string, SyntaxTree> byPath)
+            private static Location Remap(Location location, IReadOnlyList<SyntaxTree> targets)
             {
-                if (location == null || !location.IsInSource
-                    || !byPath.TryGetValue(location.SourceTree.FilePath, out SyntaxTree target)
-                    || ReferenceEquals(location.SourceTree, target))
+                int index = location != null && location.IsInSource ? SourceMap.TreeIndex(location.SourceTree) : -1;
+                if (index < 0 || index >= targets.Count || ReferenceEquals(location.SourceTree, targets[index]))
                     return location;
+                SyntaxTree target = targets[index];
 
                 var start = location.GetLineSpan().StartLinePosition;
                 var lines = target.GetText().Lines;

@@ -373,6 +373,7 @@ namespace CustomUdonSharp
             private readonly Sink _sink;
             private readonly Dictionary<INamedTypeSymbol, (ClassDeclarationSyntax Host, List<ClassInfo> Used)> _hosts;
             private int _temp;
+            private string _member;   // コピー中のメンバー名（SourceMap に記録する）
 
             public bool Changed { get; private set; }
 
@@ -389,6 +390,18 @@ namespace CustomUdonSharp
             private void Error(SyntaxNode node, string message) => _context.Diagnostics.Error(node.GetLocation(), message);
 
             private ClassInfo Target(ITypeSymbol type) => _context.Target(type);
+
+            /// <summary>元の位置の印（#52）</summary>
+            private string Marker(SyntaxNode original) => SourceMap.Marker(original, _self?.Symbol.Name, _member);
+
+            /// <summary>コピー中の文には、先頭に元の位置の印のコメントを付ける（#52）</summary>
+            public override SyntaxNode Visit(SyntaxNode node)
+            {
+                SyntaxNode result = base.Visit(node);
+                if (_self != null && node is StatementSyntax && !(node is BlockSyntax) && result is StatementSyntax statement)
+                    result = statement.WithLeadingTrivia(statement.GetLeadingTrivia().Insert(0, SyntaxFactory.Comment(Marker(node))));
+                return result;
+            }
 
             // ---- 型の表記 --------------------------------------------------------
 
@@ -1044,7 +1057,7 @@ namespace CustomUdonSharp
                 if (implicitCtor != null && !s.IsStatic)
                 {
                     var decl = (ClassDeclarationSyntax)s.DeclaringSyntaxReferences.First().GetSyntax();
-                    var body = new Rewriter(_context, _context.Compilation.GetSemanticModel(decl.SyntaxTree), c, sink, null);
+                    var body = new Rewriter(_context, _context.Compilation.GetSemanticModel(decl.SyntaxTree), c, sink, null) { _member = ".ctor" };
                     result.Add(body.BuildInit(c, implicitCtor, "", null, null));
                     result.Add(body.BuildCtor(c, implicitCtor, ""));
                 }
@@ -1055,6 +1068,7 @@ namespace CustomUdonSharp
             private string CopyMethod(ClassInfo c, MethodDeclarationSyntax method)
             {
                 IMethodSymbol symbol = _model.GetDeclaredSymbol(method);
+                _member = symbol.Name;
                 var sb = new StringBuilder();
                 if (symbol.GetAttributes().Any(a => a.AttributeClass?.Name == "RecursiveMethodAttribute"))
                     sb.Append("[global::UdonSharp.RecursiveMethod] ");
@@ -1090,6 +1104,7 @@ namespace CustomUdonSharp
             private IEnumerable<string> CopyConstructor(ClassInfo c, ConstructorDeclarationSyntax ctor)
             {
                 IMethodSymbol symbol = _model.GetDeclaredSymbol(ctor);
+                _member = ".ctor";
                 string parameters = ParameterList(symbol, ctor.ParameterList, true);
                 yield return BuildInit(c, symbol, parameters, ctor.Initializer, ctor.Body != null ? (SyntaxNode)ctor.Body : ctor.ExpressionBody);
                 yield return BuildCtor(c, symbol, parameters);
@@ -1120,7 +1135,7 @@ namespace CustomUdonSharp
                         sb.Append(string.Join(" ", block.Statements.Select(st => Flatten(Visit(st)))));
                         break;
                     case ArrowExpressionClauseSyntax arrow:
-                        sb.Append(Flatten(Visit(arrow.Expression))).Append(';');
+                        sb.Append(Marker(arrow.Expression)).Append(Flatten(Visit(arrow.Expression))).Append(';');
                         break;
                 }
 
@@ -1170,7 +1185,7 @@ namespace CustomUdonSharp
                     var rewriter = value.SyntaxTree == _model.SyntaxTree
                         ? this
                         : new Rewriter(_context, _context.Compilation.GetSemanticModel(value.SyntaxTree), c, _sink, null);
-                    sb.Append($"{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({rewriter.Flatten(rewriter.Visit(value))}); ");
+                    sb.Append($"{rewriter.Marker(value)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({rewriter.Flatten(rewriter.Visit(value))}); ");
                 }
                 return sb.ToString();
             }
@@ -1180,13 +1195,14 @@ namespace CustomUdonSharp
                 IPropertySymbol symbol = _model.GetDeclaredSymbol(property);
                 if (symbol == null || c.Slots.ContainsKey(symbol) || IsAutoProperty(symbol))
                     yield break;
+                _member = symbol.Name;
 
                 string type = TypeText(symbol.Type);
                 string self = symbol.IsStatic ? "" : $"{InstanceType} {ThisName}";
 
                 if (property.ExpressionBody != null)
                 {
-                    yield return $"private static {type} {GetterName(c, symbol)}({self}) {{ return {Flatten(Visit(property.ExpressionBody.Expression))}; }}";
+                    yield return $"private static {type} {GetterName(c, symbol)}({self}) {{ {Marker(property.ExpressionBody.Expression)}return {Flatten(Visit(property.ExpressionBody.Expression))}; }}";
                     yield break;
                 }
 
@@ -1205,8 +1221,8 @@ namespace CustomUdonSharp
                     return Flatten(Visit(block));
                 if (arrow != null)
                     return returnsValue
-                        ? $"{{ return {Flatten(Visit(arrow.Expression))}; }}"
-                        : $"{{ {Flatten(Visit(arrow.Expression))}; }}";
+                        ? $"{{ {Marker(arrow.Expression)}return {Flatten(Visit(arrow.Expression))}; }}"
+                        : $"{{ {Marker(arrow.Expression)}{Flatten(Visit(arrow.Expression))}; }}";
                 return "{ }";
             }
 
@@ -1225,7 +1241,8 @@ namespace CustomUdonSharp
                 SyntaxNode flat = node.ReplaceTokens(
                     node.DescendantTokens().Where(t => t.IsKind(SyntaxKind.StringLiteralToken) && t.Text.Contains("\n")),
                     (o, _) => SyntaxFactory.Literal(o.ValueText).WithTriviaFrom(o));
-                flat = flat.ReplaceTrivia(flat.DescendantTrivia(descendIntoTrivia: false), (o, _) => SyntaxFactory.Space);
+                flat = flat.ReplaceTrivia(flat.DescendantTrivia(descendIntoTrivia: false),
+                    (o, _) => SourceMap.IsMarker(o) ? o : SyntaxFactory.Space);
 
                 string text = flat.ToFullString().Trim();
                 if (text.Contains("\n"))

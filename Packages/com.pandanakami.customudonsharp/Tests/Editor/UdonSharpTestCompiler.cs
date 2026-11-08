@@ -195,7 +195,8 @@ namespace CustomUdonSharp.Tests
             {
                 string path = SourceDir + sources[i].FileName;
                 object binding = Activator.CreateInstance(bindingType);
-                treeField.SetValue(binding, CSharpSyntaxTree.ParseText(sources[i].Text, parseOptions, path));
+                // U# と同じくパスなしでパースする（ファイル名は binding.filePath にだけ持つ）
+                treeField.SetValue(binding, CSharpSyntaxTree.ParseText(sources[i].Text, parseOptions));
                 filePathField.SetValue(binding, path);
                 sourceTextField.SetValue(binding, sources[i].Text);
                 bindings.SetValue(binding, i);
@@ -228,7 +229,7 @@ namespace CustomUdonSharp.Tests
                 {
                     result.Diagnostics.AddRange(emit.Diagnostics
                         .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                        .Select(d => Format("Error", d.Location, $"error {d.Id}: {d.GetMessage()}")));
+                        .Select(d => Format("Error", d.Location, $"error {d.Id}: {d.GetMessage()}", context, contextType)));
                     return Finish(result, context, contextType);
                 }
                 image = stream.ToArray();
@@ -302,7 +303,8 @@ namespace CustomUdonSharp.Tests
                 result.Diagnostics.Add(Format(
                     t.GetProperty("Severity").GetValue(diagnostic).ToString(),
                     (Location)t.GetProperty("Location").GetValue(diagnostic),
-                    (string)t.GetProperty("Message").GetValue(diagnostic)));
+                    (string)t.GetProperty("Message").GetValue(diagnostic),
+                    context, contextType));
             }
             result.Diagnostics.Sort(StringComparer.Ordinal);
 
@@ -409,12 +411,17 @@ namespace CustomUdonSharp.Tests
             return value.ToString();
         }
 
-        private static string Format(string severity, Location location, string message)
+        /// <summary>
+        /// U# のログと同じ書式。ファイル名は U# と同じく TranslateLocationToFileName（binding.tree との照合）で引く
+        /// （tree はパスを持たないので、照合できない位置は "Unknown File" になる）
+        /// </summary>
+        private static string Format(string severity, Location location, string message, object context, Type contextType)
         {
             if (location == null || location == Location.None)
                 return $"{severity}: {message}";
+            var path = (string)Method(contextType, "TranslateLocationToFileName", typeof(Location)).Invoke(context, new object[] { location });
             var span = location.GetLineSpan();
-            return $"{severity}: {span.Path}({span.StartLinePosition.Line + 1},{span.StartLinePosition.Character + 1}): {message}";
+            return $"{severity}: {path ?? "Unknown File"}({span.StartLinePosition.Line + 1},{span.StartLinePosition.Character + 1}): {message}";
         }
 
         private static void CaptureLogs(List<string> logs, Action action)

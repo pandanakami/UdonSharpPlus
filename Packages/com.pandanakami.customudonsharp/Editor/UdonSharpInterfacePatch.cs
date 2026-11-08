@@ -39,6 +39,7 @@ namespace CustomUdonSharp
                 harmony.UnpatchAll(HarmonyId);
                 harmony.Patch(target, postfix: new HarmonyMethod(typeof(UdonSharpInterfacePatch), nameof(Postfix)));
                 MethodExportLayoutPatch.Apply(harmony);
+                DiagnosticLocationPatch.Apply(harmony);
             }
             catch (Exception e)
             {
