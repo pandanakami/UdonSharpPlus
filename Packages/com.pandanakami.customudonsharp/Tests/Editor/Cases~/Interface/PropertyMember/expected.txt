@@ -22,8 +22,8 @@
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-    .export Heal__int
-    Heal__int:
+    .export Heal
+    Heal:
         PUSH, __const_SystemUInt32_0  ; 4294967295
 #
 # CustomUdonSharpTests.PropertyMember.Player.Heal(int)

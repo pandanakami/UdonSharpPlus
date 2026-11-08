@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace CustomUdonSharp.Tests
 {
-    /// <summary>[NetworkCallable] なインタフェース実装メソッド（Redmine #32, #47）</summary>
+    /// <summary>[NetworkCallable] なインタフェース実装メソッドと、Udon 上の名前（Redmine #32, #51）</summary>
     public class NetworkCallableInterfaceTests
     {
         private static readonly TestSource Receiver = new TestSource("IReceiver.cs", @"
@@ -48,69 +48,71 @@ namespace CustomUdonSharpTests.Network
 }");
 
         [Test]
-        public void ImplementationIsExportedWithSignatureName()
+        public void ImplementationIsExportedWithOriginalName()
         {
             var result = UdonSharpTestCompiler.Compile(Receiver, Target);
 
             Assert.That(result.Diagnostics, Is.Empty);
             ProgramResult target = result["NetworkTarget"];
-            Assert.That(target.EntryPoints, Is.EquivalentTo(new[] { "Receive__int__string" }));
+            Assert.That(target.EntryPoints, Is.EquivalentTo(new[] { "Receive" }));
 
+            // メソッド名は元の名前、引数は位置で決める固定名（#51）
             NetworkEventInfo networkEvent = target.NetworkEvents.Single();
-            Assert.That(networkEvent.Name, Is.EqualTo("Receive__int__string"));
+            Assert.That(networkEvent.Name, Is.EqualTo("Receive"));
             Assert.That(networkEvent.Parameters.Select(p => p.Name),
                 Is.EqualTo(new[] { "Receive__int__string__p0", "Receive__int__string__p1" }));
         }
 
+        // イベント名はどの書き方でも元の名前のまま届く（書き換えない）
         [TestCase("((UdonSharpBehaviour)(IReceiver)target).SendCustomNetworkEvent(NetworkEventTarget.All, nameof(IReceiver.Receive), 1, \"a\");", TestName = "Interface nameof")]
         [TestCase("((NetworkTarget)target).SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkTarget.Receive), 1, \"a\");", TestName = "Concrete nameof")]
         [TestCase("((NetworkTarget)target).SendCustomNetworkEvent(NetworkEventTarget.All, \"Receive\", 1, \"a\");", TestName = "Concrete literal")]
-        public void EventNameIsRewrittenToSignatureName(string call)
+        [TestCase("target.SendCustomNetworkEvent(NetworkEventTarget.All, \"Receive\", 1, \"a\");", TestName = "UdonSharpBehaviour literal")]
+        [TestCase("((IUdonEventReceiver)target).SendCustomNetworkEvent(NetworkEventTarget.All, \"Receive\", 1, \"a\");", TestName = "IUdonEventReceiver literal")]
+        [TestCase("string ev = \"Receive\"; target.SendCustomNetworkEvent(NetworkEventTarget.All, ev, 1, \"a\");", TestName = "Variable")]
+        public void EventNameIsOriginalName(string call)
         {
             var result = UdonSharpTestCompiler.Compile(Receiver, Target, Caller(call));
 
             Assert.That(result.Diagnostics, Is.Empty);
             Assert.That(result.Logs, Is.Empty);
             var strings = result["NetworkCaller"].HeapDefaults.Values.ToList();
-            Assert.That(strings, Does.Contain("\"Receive__int__string\""));
-            Assert.That(strings, Does.Not.Contain("\"Receive\""));
+            Assert.That(strings, Does.Contain("\"Receive\""));
+            Assert.That(strings, Does.Not.Contain("\"Receive__int__string\""));
         }
 
         [Test]
-        public void LocalCallThroughInterfaceUsesSignatureName()
+        public void LocalCallThroughInterfaceUsesOriginalName()
         {
             var result = UdonSharpTestCompiler.Compile(Receiver, Target, Caller("((IReceiver)target).Receive(1, \"a\");"));
 
             Assert.That(result.Diagnostics, Is.Empty);
             var strings = result["NetworkCaller"].HeapDefaults.Values.ToList();
-            Assert.That(strings, Does.Contain("\"Receive__int__string\""));
+            Assert.That(strings, Does.Contain("\"Receive\""));
             Assert.That(strings, Does.Contain("\"Receive__int__string__p0\""));
             Assert.That(strings, Does.Contain("\"Receive__int__string__p1\""));
         }
 
-        // #47
-        [Test]
-        public void NonConstantEventNameIsWarned()
+        // #51：インタフェース実装メソッドと同じ名前のメソッドは置けない（[NetworkCallable] と同じ制約）
+        [TestCase("public void Receive() { }", TestName = "Overload without parameters")]
+        [TestCase("public void Receive(int v) { }", TestName = "Overload with parameters")]
+        public void OverloadOfImplementationIsError(string member)
         {
-            var result = UdonSharpTestCompiler.Compile(Receiver, Target,
-                Caller("string ev = \"Receive\"; ((NetworkTarget)target).SendCustomNetworkEvent(NetworkEventTarget.All, ev, 1, \"a\");"));
+            var target = new TestSource("NetworkTarget.cs", @"
+using UdonSharp;
 
-            // 本パッケージの警告は U# の診断として登録される（#45）
-            Assert.That(result.HasErrors, Is.False);
-            Assert.That(result.Diagnostics, Has.Exactly(1).Matches<string>(l =>
-                l.StartsWith("Warning:") && l.Contains("NetworkCaller.cs") && l.Contains("イベント名が定数ではない")));
-            Assert.That(result.Logs, Is.Empty);
-        }
+namespace CustomUdonSharpTests.Network
+{
+    public class NetworkTarget : UdonSharpBehaviour, IReceiver
+    {
+        public void Receive(int v, string sender) { }
+        " + member + @"
+    }
+}");
+            var result = UdonSharpTestCompiler.Compile(Receiver, target);
 
-        // #47：受け手の型に改名対象のメソッドがなければ警告しない
-        [Test]
-        public void NonConstantEventNameOnPlainBehaviourIsNotWarned()
-        {
-            var result = UdonSharpTestCompiler.Compile(Receiver, Target,
-                Caller("string ev = \"Receive\"; target.SendCustomNetworkEvent(NetworkEventTarget.All, ev, 1, \"a\");"));
-
-            Assert.That(result.Diagnostics, Is.Empty);
-            Assert.That(result.Logs, Is.Empty);
+            Assert.That(result.Diagnostics, Has.Exactly(1).Matches<string>(d =>
+                d.StartsWith("Error:") && d.Contains("NetworkTarget.cs(9,") && d.Contains("同じ名前のメソッドは置けません")));
         }
     }
 }

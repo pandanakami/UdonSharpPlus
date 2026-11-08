@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis;
 namespace CustomUdonSharp
 {
     /// <summary>
-    /// インタフェース実装メソッドの Udon 上の名前（メソッド・引数・戻り値）をシグネチャから決める。
+    /// インタフェース実装メソッドの Udon 上の名前を決める。
     ///
     ///   int Damage(int amount, string attacker)
-    ///     メソッド : Damage__int__string        （引数なしメソッドは元の名前のまま）
+    ///     メソッド : Damage                     （元の名前。同じクラスでの同名メソッドとの共存は禁止。#51）
     ///     引数     : Damage__int__string__p0, __p1   （実装側で引数名を変えても揃うよう位置で付ける）
     ///     戻り値   : Damage__int__string__ret
     ///
@@ -39,9 +39,6 @@ namespace CustomUdonSharp
 
             return method.Name + "__" + string.Join("__", method.Parameters.Select(p => ParameterToken(p, isInterfaceToErase)));
         }
-
-        public static string MethodName(IMethodSymbol method, Func<INamedTypeSymbol, bool> isInterfaceToErase) =>
-            SignatureName(method, isInterfaceToErase);
 
         public static string ParameterName(string signatureName, int index) => $"{signatureName}__p{index}";
 

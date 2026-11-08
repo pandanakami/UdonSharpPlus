@@ -12,8 +12,8 @@ namespace CustomUdonSharpTests.Basic
         {
         }
 
-        // インタフェースの実装ではないオーバーロード（従来どおり __0_Damage のまま）
-        public void Damage(float amount)
+        // 同名の引数を持つ普通のメソッド（U# の通常の命名で __0_Chip のまま。#51 以降、Damage という名前は使えない）
+        public void Chip(float amount)
         {
             durability -= (int)amount;
         }

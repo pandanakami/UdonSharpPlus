@@ -36,20 +36,35 @@ if (target is IDamageable)
 - `is`、`as`、キャスト
 - `[NetworkCallable]` の実装メソッド（ローカル呼び出しと、`SendCustomNetworkEvent` でのネットワーク越しの呼び出しの両方）
 
-#### イベント名の渡し方
+#### メソッド名とオーバーロード
 
-引数のあるインタフェース実装メソッドは、Udon 上の名前が `Damage__int__string` のような固定名になります。`SendCustomNetworkEvent` などでイベント名を渡すときは、`nameof(...)` か文字列リテラルを使ってください。コンパイル時に固定名へ書き換えます。
+インタフェース実装メソッドは、Udon 上でも元の名前（`Receive`）のままです。`SendCustomEvent` や `SendCustomNetworkEvent` には、`nameof(...)`、文字列リテラル、変数のどれで名前を渡しても届きます。受け手の型が `UdonSharpBehaviour` や `IUdonEventReceiver` でも同じです。
 
 ```csharp
 // インタフェース型から呼ぶときは UdonSharpBehaviour にキャストする
 ((UdonSharpBehaviour)receiver).SendCustomNetworkEvent(NetworkEventTarget.All, nameof(INetworkReceiver.Receive), 1, "a");
-enemy.SendCustomNetworkEvent(NetworkEventTarget.All, nameof(Enemy.Receive), 1, "a");
 enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
+((IUdonEventReceiver)enemy).SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
 ```
 
-- 変数に入れた文字列は書き換えられません。該当しそうな場合は警告を出します。
-- 書き換え対象のメソッドを指す `nameof(...)` は、どこで使っても固定名になります（`string s = nameof(Enemy.Receive);` の `s` は `"Receive__int__string"`）。
-- `[NetworkCallable]` には UdonSharp の制約（戻り値なし、オーバーロード不可など）がそのまま掛かります。オーバーロードは元の名前で判定されるため、固定名が重ならなくても、同じクラスに `Receive(int)` を足すとエラーになります。
+その代わり、UdonSharp が `[NetworkCallable]` に課しているのと同じく、インタフェース実装メソッドはオーバーロードできません。次の書き方はコンパイルエラーになります。
+
+- インタフェース実装メソッドと同じ名前のメソッドを、同じクラス（基底の UdonSharpBehaviour を含む）に置く。引数のないメソッドも含みます
+- インタフェースの中でメソッドをオーバーロードする（`void Fire(int)` と `void Fire(int, float)`）
+- 同じ名前で引数の違うメソッドを持つ 2 つのインタフェースを、1 つのクラスで実装する。引数まで同じなら、1 つのメソッドで両方を実装できます
+
+`[NetworkCallable]` のそのほかの制約（戻り値なし、など）も、インタフェース実装メソッドにそのまま掛かります。
+
+<details>
+<summary>背景：UdonSharp のメソッド名の扱い</summary>
+
+- UdonSharp は、引数のあるメソッドを、オーバーロードがなくても `__0_Receive` のような名前に改名します。数字はクラスの中で同じ名前が宣言された順に振られるので、メソッドを足したり並べ替えたりすると変わります。引数も `__0_value__param` のように改名されます
+- 改名されないのは、引数のないメソッドと `[NetworkCallable]` のメソッドだけです
+- UdonSharp 同士の普通の呼び出し `obj.Receive(1, "a")` は、コンパイル時に相手の型がわかるので、`obj.SetProgramVariable("__0_value__param", 1)` … `obj.SendCustomEvent("__0_Receive")` に置き換えられます。そのため、`SendCustomEvent("Receive")` を直接呼んでも、引数のあるメソッドには届きません。`SendCustomEvent` で直接呼べるのは、引数のない public メソッドです
+- `[NetworkCallable]` のメソッドは改名されず、`SendCustomNetworkEvent(…, "Receive", p0, p1)` のように元の名前と引数で呼べます。名前を 1 つに決めるため、同じ名前のメソッドとの共存は禁止されています（`Duplicate network callable method name 'Receive'. Overloading of any kind is not supported.`）
+- インタフェース経由の呼び出しでは、相手のクラスがコンパイル時にわからないため、どの実装クラスでも同じ名前である必要があります。本パッケージは `[NetworkCallable]` と同じ考え方で、インタフェース実装メソッドの名前を元の名前に揃え、オーバーロードを禁止しています。引数と戻り値の変数名は、実装側で引数名が違っても揃うよう、位置で決めた名前（`Receive__int__string__p0`、`Receive__int__string__ret`）にします
+
+</details>
 
 未対応の書き方を使うと、コンパイルエラーになります（インタフェースのプロパティとイベントだけは警告を出して無視します）。
 
@@ -115,7 +130,7 @@ Bullet[] pool = new Bullet[8];
 ## 仕組み
 
 1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。インタフェース型を UdonSharpBehaviour に置き換え、呼び出しを `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由にし、`is`／`as` を型IDで判定する形にします。
-2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前をシグネチャ由来の固定名にします（例：`Damage__int__string`、引数は `__p0`、戻り値は `__ret`）。
+2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前を、どの実装クラスでも揃うものにします（メソッドは元の名前、引数は `Damage__int__string__p0`、戻り値は `Damage__int__string__ret`）。
 
 書き換え後のソースは、デバッグ用に `Library/CustomUdonSharp/` に出力されます。
 

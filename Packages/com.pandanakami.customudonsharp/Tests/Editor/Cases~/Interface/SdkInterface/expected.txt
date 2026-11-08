@@ -12,13 +12,12 @@
     __const_SystemString_1: %SystemString, null
     __const_SystemInt32_0: %SystemInt32, null
     __const_SystemString_2: %SystemString, null
-    __const_SystemString_3: %SystemString, null
     __const_SystemInt32_1: %SystemInt32, null
-    __const_SystemString_4: %SystemString, null
+    __const_SystemString_3: %SystemString, null
     __const_SystemInt32_2: %SystemInt32, null
-    __const_SystemString_5: %SystemString, null
+    __const_SystemString_4: %SystemString, null
     __const_SystemInt32_3: %SystemInt32, null
-    __const_SystemString_6: %SystemString, null
+    __const_SystemString_5: %SystemString, null
     __lcl_receiver_VRCUdonCommonInterfacesIUdonEventReceiver_0: %VRCUdonCommonInterfacesIUdonEventReceiver, null
     __intnl_VRCUdonCommonInterfacesIUdonEventReceiver_0: %VRCUdonCommonInterfacesIUdonEventReceiver, null
 .data_end
@@ -37,30 +36,30 @@
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
         PUSH, __lcl_receiver_VRCUdonCommonInterfacesIUdonEventReceiver_0
         PUSH, __const_VRCUdonCommonInterfacesNetworkEventTarget_0  ; All
-        PUSH, __const_SystemString_1  ; "Receive__int__string"
+        PUSH, __const_SystemString_1  ; "Receive"
         PUSH, __const_SystemInt32_0  ; 2
         PUSH, __const_SystemString_2  ; "b"
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomNetworkEvent__VRCUdonCommonInterfacesNetworkEventTarget_SystemString_SystemObject_SystemObject__SystemVoid"
         PUSH, __lcl_receiver_VRCUdonCommonInterfacesIUdonEventReceiver_0
         PUSH, __const_VRCUdonCommonInterfacesNetworkEventTarget_0  ; All
-        PUSH, __const_SystemString_3  ; "Receive"
+        PUSH, __const_SystemString_1  ; "Receive"
         PUSH, __const_SystemInt32_1  ; 3
-        PUSH, __const_SystemString_4  ; "c"
+        PUSH, __const_SystemString_3  ; "c"
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomNetworkEvent__VRCUdonCommonInterfacesNetworkEventTarget_SystemString_SystemObject_SystemObject__SystemVoid"
         PUSH, __lcl_receiver_VRCUdonCommonInterfacesIUdonEventReceiver_0
         PUSH, __const_VRCUdonCommonInterfacesNetworkEventTarget_0  ; All
-        PUSH, __const_SystemString_1  ; "Receive__int__string"
+        PUSH, __const_SystemString_1  ; "Receive"
         PUSH, __const_SystemInt32_2  ; 4
-        PUSH, __const_SystemString_5  ; "d"
+        PUSH, __const_SystemString_4  ; "d"
         EXTERN, "VRCSDK3UdonNetworkCallingNetworkCalling.__SendCustomNetworkEvent__VRCUdonCommonInterfacesIUdonEventReceiver_VRCUdonCommonInterfacesNetworkEventTarget_SystemString_SystemObject_SystemObject__SystemVoid"
         PUSH, target
         PUSH, __intnl_VRCUdonCommonInterfacesIUdonEventReceiver_0
         COPY
         PUSH, __intnl_VRCUdonCommonInterfacesIUdonEventReceiver_0
         PUSH, __const_VRCUdonCommonInterfacesNetworkEventTarget_0  ; All
-        PUSH, __const_SystemString_1  ; "Receive__int__string"
+        PUSH, __const_SystemString_1  ; "Receive"
         PUSH, __const_SystemInt32_3  ; 5
-        PUSH, __const_SystemString_6  ; "e"
+        PUSH, __const_SystemString_5  ; "e"
         EXTERN, "VRCSDK3UdonNetworkCallingNetworkCalling.__SendCustomNetworkEvent__VRCUdonCommonInterfacesIUdonEventReceiver_VRCUdonCommonInterfacesNetworkEventTarget_SystemString_SystemObject_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -73,12 +72,11 @@ __const_SystemInt32_1 = 3
 __const_SystemInt32_2 = 4
 __const_SystemInt32_3 = 5
 __const_SystemString_0 = "Ping"
-__const_SystemString_1 = "Receive__int__string"
+__const_SystemString_1 = "Receive"
 __const_SystemString_2 = "b"
-__const_SystemString_3 = "Receive"
-__const_SystemString_4 = "c"
-__const_SystemString_5 = "d"
-__const_SystemString_6 = "e"
+__const_SystemString_3 = "c"
+__const_SystemString_4 = "d"
+__const_SystemString_5 = "e"
 __const_SystemUInt32_0 = 4294967295
 __const_VRCUdonCommonInterfacesNetworkEventTarget_0 = All
 __refl_typeid = 6851780126172305970
@@ -97,8 +95,8 @@ __refl_typename = "CustomUdonSharpTests.SdkInterface.Caller"
     __const_SystemString_0: %SystemString, null
 .data_end
 .code_start
-    .export Receive__int__string
-    Receive__int__string:
+    .export Receive
+    Receive:
         PUSH, __const_SystemUInt32_0  ; 4294967295
 #
 # CustomUdonSharpTests.SdkInterface.Target.Receive(int, string)
@@ -127,7 +125,7 @@ __const_SystemUInt32_0 = 4294967295
 __refl_typeid = 1851827602172176519
 __refl_typename = "CustomUdonSharpTests.SdkInterface.Target"
 ### NetworkEvents
-Receive__int__string(Receive__int__string__p0:UdonInt, Receive__int__string__p1:UdonString)
+Receive(Receive__int__string__p0:UdonInt, Receive__int__string__p1:UdonString)
 
 ## Diagnostics
 ## Logs

@@ -36,7 +36,7 @@
         PUSH, __const_VRCUdonCommonInterfacesNetworkEventTarget_0  ; All
         PUSH, eventName
         PUSH, __const_SystemInt32_0  ; 1
-        PUSH, __const_SystemString_0  ; "warned"
+        PUSH, __const_SystemString_0  ; "typed"
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomNetworkEvent__VRCUdonCommonInterfacesNetworkEventTarget_SystemString_SystemObject_SystemObject__SystemVoid"
         PUSH, target
 # Cow dirty
@@ -46,7 +46,7 @@
         PUSH, __const_VRCUdonCommonInterfacesNetworkEventTarget_0  ; All
         PUSH, eventName
         PUSH, __const_SystemInt32_1  ; 2
-        PUSH, __const_SystemString_1  ; "not-warned"
+        PUSH, __const_SystemString_1  ; "plain"
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomNetworkEvent__VRCUdonCommonInterfacesNetworkEventTarget_SystemString_SystemObject_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -56,8 +56,8 @@
 ### HeapDefaults
 __const_SystemInt32_0 = 1
 __const_SystemInt32_1 = 2
-__const_SystemString_0 = "warned"
-__const_SystemString_1 = "not-warned"
+__const_SystemString_0 = "typed"
+__const_SystemString_1 = "plain"
 __const_SystemUInt32_0 = 4294967295
 __const_VRCUdonCommonInterfacesNetworkEventTarget_0 = All
 __refl_typeid = 2932326767688420488
@@ -76,8 +76,8 @@ eventName = ""
     __const_SystemUInt32_0: %SystemUInt32, null
 .data_end
 .code_start
-    .export Receive__int__string
-    Receive__int__string:
+    .export Receive
+    Receive:
         PUSH, __const_SystemUInt32_0  ; 4294967295
 #
 # CustomUdonSharpTests.NonConstantEventName.NetworkTarget.Receive(int, string)
@@ -94,8 +94,7 @@ __const_SystemUInt32_0 = 4294967295
 __refl_typeid = 9043219020105022825
 __refl_typename = "CustomUdonSharpTests.NonConstantEventName.NetworkTarget"
 ### NetworkEvents
-Receive__int__string(Receive__int__string__p0:UdonInt, Receive__int__string__p1:UdonString)
+Receive(Receive__int__string__p0:UdonInt, Receive__int__string__p1:UdonString)
 
 ## Diagnostics
-Warning: Assets/CustomUdonSharpTests/NetworkCaller.cs(14,84): [CustomUdonSharp] 'SendCustomNetworkEvent' のイベント名が定数ではないため、引数ありのインタフェース実装メソッドの名前に書き換えられません。nameof(...) か文字列リテラルで渡してください
 ## Logs

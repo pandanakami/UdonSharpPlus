@@ -10,11 +10,11 @@ namespace CustomUdonSharpTests.NonConstantEventName
 
         private void Start()
         {
-            // 受け手の型に改名対象のメソッドがある：書き換えられないので警告が出る（#47）
-            ((NetworkTarget)target).SendCustomNetworkEvent(NetworkEventTarget.All, eventName, 1, "warned");
+            // 変数で渡したイベント名もそのまま届く（#51 でメソッド名が元の名前になり、書き換えも警告も不要になった）
+            ((NetworkTarget)target).SendCustomNetworkEvent(NetworkEventTarget.All, eventName, 1, "typed");
 
-            // 受け手が UdonSharpBehaviour 型：対象が分からないので警告しない
-            target.SendCustomNetworkEvent(NetworkEventTarget.All, eventName, 2, "not-warned");
+            // 受け手が UdonSharpBehaviour 型でも同じ
+            target.SendCustomNetworkEvent(NetworkEventTarget.All, eventName, 2, "plain");
         }
     }
 }

@@ -3,7 +3,7 @@ using VRC.Udon.Common.Interfaces;
 
 namespace InterfacePoC
 {
-    // #46: 押したクライアントから、4 通りの呼び方で SendCustomNetworkEvent を送る
+    // #46, #51: 押したクライアントから、5 通りの呼び方で SendCustomNetworkEvent を送る
     public class NetworkSender : UdonSharpBehaviour
     {
         public UdonSharpBehaviour probe;
@@ -23,6 +23,9 @@ namespace InterfacePoC
 
             // 4. 自分以外にだけ送る（押した側には届かないのが正しい）
             ((UdonSharpBehaviour)receiver).SendCustomNetworkEvent(NetworkEventTarget.Others, nameof(INetworkReceiver.Receive), 4, "case4");
+
+            // 5. 受け手の型が IUdonEventReceiver（相手のクラスが不明）でも、元の名前の文字列で届く（#51）
+            ((IUdonEventReceiver)probe).SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 5, "case5");
         }
     }
 }

@@ -7,8 +7,12 @@ using Microsoft.CodeAnalysis;
 namespace CustomUdonSharp
 {
     /// <summary>
-    /// CompilationContext.MethodExportLayout のコンストラクタに Prefix を当て、
-    /// インタフェース実装メソッドだけ、メソッド名・引数名・戻り値名をシグネチャ由来の固定名に差し替える。
+    /// CompilationContext.MethodExportLayout のコンストラクタに Prefix を当て、インタフェース実装メソッドの
+    /// Udon 上の名前を、どの実装クラスでも揃うものに差し替える。
+    ///   メソッド名 : 元の名前（U# は引数のあるメソッドを "__0_Receive" のように改名するが、それをやめる）
+    ///   引数・戻り値 : シグネチャ由来の固定名（Receive__int__string__p0 / __ret。実装側で引数名が違っても揃うよう位置で付ける）
+    /// メソッド名を元の名前にする代わりに、同じクラスでの同名メソッドとの共存を禁止する（InterfaceLowering で検査。
+    /// 素の U# が [NetworkCallable] に課しているのと同じ制約。#51）
     ///
     /// MethodExportLayout は BuildMethodLayout で 1 か所だけ生成され、同じインスタンスが
     /// 呼ばれる側 (EmitContext.GetMethodLinkage) と呼ぶ側 (BoundUdonSharpBehaviourInvocationExpression) の
@@ -49,9 +53,8 @@ namespace CustomUdonSharp
                 return;
 
             // 組み込みイベント（"Interact" → "_interact" のように改名済み）は Udon 側と名前を取り決めているので触らない。
-            // [NetworkCallable] は対象にする：通信相手も同じソースからビルドされるので名前は揃い、
-            // 通信用メタデータ（UdonSharpCompilerV1.CollectNetworkMetadataFromAttributes）もこのレイアウトから作られる。
-            // ソース上の nameof(...) / 文字列リテラルでの呼び出しは InterfaceLowering 側で固定名に書き換える
+            // [NetworkCallable] も対象にする：メソッド名はもともと元の名前で、引数名だけが揃う。
+            // 通信用メタデータ（UdonSharpCompilerV1.CollectNetworkMetadataFromAttributes）もこのレイアウトから作られる
             bool isBuiltinEvent = exportMethodName != symbol.Name && !exportMethodName.StartsWith("__", StringComparison.Ordinal);
             if (isBuiltinEvent)
                 return;
@@ -62,7 +65,7 @@ namespace CustomUdonSharp
 
             string signature = InterfaceNaming.SignatureName(symbol, _ => false);
 
-            exportMethodName = signature;
+            exportMethodName = symbol.Name;
             if (returnExportName != null)
                 returnExportName = InterfaceNaming.ReturnName(signature);
             if (parameterExportNames != null)

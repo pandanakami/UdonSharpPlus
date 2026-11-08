@@ -11,13 +11,22 @@ namespace InterfacePoC
     {
         public Text display;
 
-        private const int CaseCount = 4;
+        private const int CaseCount = 5;
         private string[] _labels;
         private string[] _results;
         private int[] _counts;
 
         private void Start()
         {
+            Init();
+        }
+
+        // Start より先に呼ばれても使えるよう、最初の利用時に作る
+        private void Init()
+        {
+            if (_results != null)
+                return;
+
             _labels = new string[]
             {
                 "",
@@ -25,17 +34,19 @@ namespace InterfacePoC
                 "2 concrete  + nameof  (All)   ",
                 "3 concrete  + literal (All)   ",
                 "4 interface + nameof  (Others)",
+                "5 IUdonEventReceiver + literal (All)",
             };
             _results = new string[CaseCount + 1];
             _counts = new int[CaseCount + 1];
-            ResetResults();
+            for (int i = 0; i <= CaseCount; i++)
+                _results[i] = "";
+            Refresh();
         }
 
         [NetworkCallable]
         public void Receive(int value, string from)
         {
-            if (_results == null)
-                Start();   // Start より先に届いた場合
+            Init();
 
             VRCPlayerApi caller = NetworkCalling.CallingPlayer;
             string who = Utilities.IsValid(caller) ? caller.displayName : "?";
@@ -55,6 +66,7 @@ namespace InterfacePoC
 
         public void ResetResults()
         {
+            Init();
             for (int i = 0; i <= CaseCount; i++)
             {
                 _results[i] = "";
@@ -71,8 +83,8 @@ namespace InterfacePoC
             VRCPlayerApi local = Networking.LocalPlayer;
             string text = "#32 NetworkCallable interface test\n"
                           + $"this client: {(Utilities.IsValid(local) ? local.displayName : "?")}\n"
-                          + "client that pressed SEND: 1-3 OK, 4 = not received\n"
-                          + "other client:             1-4 OK (by the sender)\n"
+                          + "client that pressed SEND: 1-3,5 OK, 4 = not received\n"
+                          + "other client:             1-5 OK (by the sender)\n"
                           + "each count should be x1 per press\n\n";
 
             for (int i = 1; i <= CaseCount; i++)
