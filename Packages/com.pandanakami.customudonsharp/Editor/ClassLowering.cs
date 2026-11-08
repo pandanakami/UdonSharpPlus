@@ -53,11 +53,11 @@ namespace CustomUdonSharp
             public readonly HashSet<ClassInfo> AsHelpers = new HashSet<ClassInfo>();
         }
 
-        /// <summary>汎用クラスがありそうか（なければコンパイルを作らずに済ませる）</summary>
+        /// <summary>汎用クラス（とエラーにするユーザー定義の構造体。#54）がありそうか（なければコンパイルを作らずに済ませる）</summary>
         public static bool MayHaveClasses(IEnumerable<SyntaxTree> trees) =>
             trees.Any(t => t.GetRoot().DescendantNodes(n => !(n is BlockSyntax))
-                .OfType<ClassDeclarationSyntax>()
-                .Any(c => c.BaseList == null || c.Modifiers.Any(SyntaxKind.StaticKeyword)));
+                .Any(n => n is StructDeclarationSyntax
+                          || n is ClassDeclarationSyntax c && (c.BaseList == null || c.Modifiers.Any(SyntaxKind.StaticKeyword))));
 
         /// <summary>型タグ（完全名）。ClassInfo.Tag と同じ表記</summary>
         internal static string TagOf(INamedTypeSymbol symbol) => symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
@@ -74,9 +74,6 @@ namespace CustomUdonSharp
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var classes = CollectClasses(compilation, trees);
-            if (classes.Count == 0)
-                return trees;
-
             var context = new Context(compilation, classes, diagnostics);
 
             // UdonSharpBehaviour ごとに、使う汎用クラス（推移的に）を求める
@@ -105,6 +102,10 @@ namespace CustomUdonSharp
 
             foreach (ClassInfo c in hosts.Values.SelectMany(h => h.Used))
                 usedClasses?.Add(c.Tag);
+
+            // ユーザー定義の構造体は未対応（U# も対応しておらず、使うと内部の例外になる）。使われるものだけエラーにする（#54）
+            foreach (INamedTypeSymbol st in context.Structs.OrderBy(t => TagOf(t), StringComparer.Ordinal))
+                diagnostics.Error(st.Locations.FirstOrDefault(l => l.IsInSource), $"'{st.Name}' : ユーザー定義の構造体は未対応です");
 
             if (hosts.Values.All(h => h.Used.Count == 0))
                 return trees;
@@ -189,6 +190,9 @@ namespace CustomUdonSharp
             public readonly Dictionary<INamedTypeSymbol, ClassInfo> Classes;
             public readonly InterfaceLowering.LoweringDiagnostics Diagnostics;
 
+            /// <summary>UdonSharpBehaviour（と、そこから使われる汎用クラス）が使うユーザー定義の構造体（#54）</summary>
+            public readonly HashSet<INamedTypeSymbol> Structs = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+
             public Context(CSharpCompilation compilation, Dictionary<INamedTypeSymbol, ClassInfo> classes, InterfaceLowering.LoweringDiagnostics diagnostics)
             {
                 Compilation = compilation;
@@ -245,9 +249,23 @@ namespace CustomUdonSharp
             {
                 while (type is IArrayTypeSymbol array)
                     type = array.ElementType;
+                AddStruct(type);
                 ClassInfo c = Target(type);
                 if (c != null)
                     found.Add(c);
+            }
+
+            /// <summary>ユーザー定義の構造体を記録する（Point? や配列、型引数の中も見る）</summary>
+            private void AddStruct(ITypeSymbol type)
+            {
+                while (type is IArrayTypeSymbol array)
+                    type = array.ElementType;
+                if (!(type is INamedTypeSymbol named))
+                    return;
+                if (named.TypeKind == TypeKind.Struct && named.Locations.Any(l => l.IsInSource))
+                    Structs.Add(named.OriginalDefinition);
+                foreach (ITypeSymbol argument in named.TypeArguments)
+                    AddStruct(argument);
             }
 
             /// <summary>使うクラスから推移的にたどった一覧（決まった順）</summary>
