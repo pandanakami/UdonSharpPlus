@@ -9,7 +9,7 @@ namespace CustomUdonSharpTests.CollectionLinqErrors
     {
         private List<int> _list = new List<int>();
         private Dictionary<string, int> _dict = new Dictionary<string, int>();
-        private IEnumerable<int> _field;                                 // IEnumerable の宣言
+        private IEnumerable<int> _field = new List<int>();               // List を IEnumerable として扱う（#62）
         private int _initial = new List<int>().Count(x => x > 0);       // フィールドの初期化子の中
 
         private void Start()
@@ -22,6 +22,18 @@ namespace CustomUdonSharpTests.CollectionLinqErrors
             string joined = string.Join(",", _list.Select(x => x.ToString()));   // そのまま渡す
             var names = _list.Select(x => x.ToString()).ToList();
             string longest = names.Max();                                // 数値以外の Max
+            IEnumerable<int> local = _list.Where(x => x > 0);            // LINQ の結果を IEnumerable の変数に入れる（#62）
+            local = _list;                                               // 代入（#62）
+            var e = _list.GetEnumerator();                               // GetEnumerator
+            foreach (string key in VRC.SDK3.Persistence.PlayerData.GetKeys(VRC.SDKBase.Networking.LocalPlayer))   // 外部の IEnumerable を回す（#62）
+                Debug.Log(key);
+            int n = VRC.SDK3.Persistence.PlayerData.GetKeys(VRC.SDKBase.Networking.LocalPlayer).Count();         // 外部の IEnumerable に LINQ（#62）
+        }
+
+        private IEnumerable<int> Positive() { return _list.Where(x => x > 0); }   // 戻り値（#62）
+        private IList<int> AsList() => _list;                                       // 式の本体（#62）
+        private void Dummy()
+        {
         }
     }
 }

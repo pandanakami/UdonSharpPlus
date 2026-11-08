@@ -324,8 +324,6 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
-                if (IEnumerableDeclaration(node))
-                    return node;
                 if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol pairType && IsKeyValuePair(pairType))
                 {
                     Changed = true;
@@ -499,6 +497,8 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
+                if (node.IsKind(SyntaxKind.SimpleAssignmentExpression) && EnumerableConversion(node.Right))   // IEnumerable<int> 型の変数に List を代入（#62）
+                    return node;
                 if (!IsCollectionAccess(node.Left, out ITypeSymbol receiverType))
                     return base.VisitAssignmentExpression(node);
 
@@ -771,7 +771,7 @@ namespace CustomUdonSharp
                 if (_helpers != null && node.Expression != null)
                 {
                     TypeInfo info = _model.GetTypeInfo(node.Expression);
-                    if (IsEnumerable(info.Type))
+                    if (IsEnumerable(info.Type) && IsDataListBacked(node.Expression))
                     {
                         Error(node, $"'{Text(node.Expression)}' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）");
                         return node;
@@ -792,6 +792,11 @@ namespace CustomUdonSharp
             public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
             {
                 ITypeSymbol type = _helpers == null ? null : TypeOf(node.Expression);
+                if (IsEnumerable(type) && !IsDataListBacked(node.Expression))
+                {
+                    Error(node.Expression, $"'{Text(node.Expression)}' : {ForeignEnumerableMessage}");   // #62
+                    return node;
+                }
                 bool list = IsList(type) || IsEnumerable(type), dict = IsDictionary(type), keys = IsKeys(type), values = IsValues(type);   // IEnumerable は LINQ の結果（DataList）
                 if (!list && !dict && !keys && !values)
                     return base.VisitForEachStatement(node);
@@ -870,6 +875,7 @@ namespace CustomUdonSharp
                 public ITypeSymbol Type;
                 public bool Written;   // ラムダの中で書かれる → ref で渡す
                 public string Arg;     // 呼び出し側で渡す式（null なら Name）
+                public string TypeName;   // 生成メソッドの引数の型（null なら TypeText(Type)）
                 public ISymbol Pair;   // foreach / LINQ の中の kv（キーとして流しているもの）。object[] にして渡す（#61）
             }
 
@@ -1041,7 +1047,7 @@ namespace CustomUdonSharp
             }
 
             private static string CaptureParams(IEnumerable<Capture> captures) =>
-                string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{TypeText(c.Type)} {c.Name}"));
+                string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{c.TypeName ?? TypeText(c.Type)} {c.Name}"));
 
             private static string CaptureArgs(IEnumerable<Capture> captures) =>
                 string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{c.Arg ?? c.Name}"));
@@ -1190,7 +1196,11 @@ namespace CustomUdonSharp
                         result.Add(new Capture { Name = symbol.Name, Type = type, Arg = PairObject(pair), Pair = symbol });
                         continue;
                     }
-                    result.Add(new Capture { Name = symbol.Name, Type = type, Written = written.Contains(symbol) });
+                    // 外部の関数が返す IEnumerable（DataList でない）は、元の型のまま渡す（#62）
+                    string typeName = IsEnumerable(type) && !(symbol is ILocalSymbol && IsDataListBacked(id))
+                        ? type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                        : null;
+                    result.Add(new Capture { Name = symbol.Name, Type = type, TypeName = typeName, Written = written.Contains(symbol) });
                 }
                 return ok ? result : null;
             }

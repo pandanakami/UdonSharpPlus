@@ -170,7 +170,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 
 - List / Dictionary 型のフィールドのシリアライズと同期（public、`[SerializeField]`、`[UdonSynced]`）。private にしてください
 - 未対応の LINQ のメソッド（下の「LINQ」）
-- `IEnumerable<T>` などとして渡すこと（`string.Join(",", list)` など）、`?.`
+- `IEnumerable<T>` などとして扱うこと（`string.Join(",", list)` など。下の「IEnumerable」）、`GetEnumerator()`、`?.`
 - `foreach (var (k, v) in dict)` の分解、`Keys`／`Values` を `foreach`、`.Count`、LINQ 以外で使うこと
 - 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、メソッド呼び出しを書くこと（`Get()[0] += 1`）
 - `TryGetValue` をループの条件の中で使うこと
@@ -267,8 +267,7 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 - 比較子（`IComparer`／`IEqualityComparer`）を渡す形、数値・string・bool・char・enum 以外のキーでの並べ替え
 - 添字付きのラムダ（`Select((x, i) => ...)`）、`Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`
 - Dictionary の要素（`KeyValuePair`）の `Contains`（`ContainsKey` などを使ってください）
-- `IEnumerable<T>`／`IOrderedEnumerable<T>` 型の宣言（フィールド・変数・引数・戻り値）。`var` で受けるか、`ToList()`／`ToArray()` にしてください
-- LINQ の結果を、そのままメソッドに渡すこと（`string.Join(",", list.Select(...))`）。`ToArray()` にしてください
+- LINQ の結果を `IEnumerable<T>` 型の変数・フィールド・引数・戻り値に入れること、そのままメソッドに渡すこと（`string.Join(",", list.Select(...))`）。`var` で受けるか、`ToList()`／`ToArray()` にしてください（下の「IEnumerable」）
 - フィールドの初期化子の中の LINQ
 
 注意：
@@ -276,6 +275,21 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 - 要素がないときの `First`／`Last`／`Min`／`Max`／`Average` と、`ToDictionary` で同じキーがあったときは、C# の例外の代わりに、エラーのログを出して Udon の実行時例外になります
 - `Distinct` は、汎用クラスなどの参照は同じインスタンスかどうかで比べます（C# の既定と同じ）。Dictionary の要素はキーが重ならないので、何もしません
 - `Contains` は `==` で比べます
+
+### IEnumerable
+
+`IEnumerable<T>` には対応しません。Udon には `IEnumerable` の中を回す手段（`GetEnumerator`／`MoveNext`／`Current`）がなく、List・Dictionary は内部では `DataList`／`DataDictionary` になるためです。
+
+- List・Dictionary・LINQ の結果を `IEnumerable<T>` などのインタフェース型として扱うと、コンパイルエラーになります（変数・フィールドの初期化、代入、引数、戻り値）。`var` で受けるか、`ToList()`／`ToArray()` にしてください
+
+  ```csharp
+  IEnumerable<int> a = new List<int>();          // エラー
+  IEnumerable<int> b = list.Where(x => x > 0);   // エラー（var b = ... なら使える）
+  string s = string.Join(",", list);             // エラー（string.Join(",", list.ToArray()) なら使える）
+  ```
+
+- List・Dictionary の `GetEnumerator()` は、コンパイルエラーになります
+- 外部の関数が返す `IEnumerable`（`PlayerData.GetKeys()`、`ToggleGroup.ActiveToggles()` など）は、UdonSharp と同じく、変数・フィールド・引数・戻り値として受け渡しし、`string.Join`／`string.Concat` に渡せます。`foreach` や LINQ には使えず、コンパイルエラーになります（「外部の関数が返す IEnumerable は、Udon では中を回せません」）
 
 ## 仕組み
 

@@ -63,14 +63,63 @@ namespace CustomUdonSharp
                 return new LinqCallInfo { Node = node, Method = method, Receiver = args[0], Args = args.Skip(1).ToList() };
             }
 
-            /// <summary>IEnumerable&lt;T&gt; の宣言は未対応（決めたこと 6。var で受ければ DataList になる）</summary>
-            private bool IEnumerableDeclaration(GenericNameSyntax node)
+            /// <summary>
+            /// 中身が DataList / DataDictionary になる値か（List・Dictionary・LINQ の呼び出し・LINQ の結果を var で受けた変数）。
+            /// 外部の関数が返す IEnumerable（PlayerData.GetKeys など）は、Udon では本物の IEnumerable のまま（#62）
+            /// </summary>
+            private bool IsDataListBacked(ExpressionSyntax expression)
             {
-                if (_helpers == null || !(_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type) || !IsEnumerable(type))
+                switch (expression)
+                {
+                    case null:
+                        return false;
+                    case ParenthesizedExpressionSyntax p:
+                        return IsDataListBacked(p.Expression);
+                    case InvocationExpressionSyntax invocation when _model.GetSymbolInfo(invocation).Symbol is IMethodSymbol m && IsLinqMethod(m):
+                        return true;
+                }
+                ITypeSymbol type = TypeOf(expression);
+                if (IsList(type) || IsDictionary(type))
+                    return true;
+                // LINQ の結果を var で受けた変数
+                if (IsEnumerable(type) && _model.GetSymbolInfo(expression).Symbol is ILocalSymbol local
+                    && local.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is VariableDeclaratorSyntax declarator)
+                    return IsDataListBacked(declarator.Initializer?.Value);
+                return false;
+            }
+
+            private const string ForeignEnumerableMessage =
+                "外部の関数が返す IEnumerable は、Udon では中を回せません（foreach・LINQ は使えません）";
+
+            private const string EnumerableConversionMessage =
+                "List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）";
+
+            /// <summary>中身が DataList の値を、IEnumerable&lt;T&gt; などのインタフェース型の場所に入れていればエラー（#62）</summary>
+            private bool EnumerableConversion(ExpressionSyntax value)
+            {
+                if (_helpers == null || value == null || !IsDataListBacked(value))
                     return false;
-                Error(node, "IEnumerable<T> / IOrderedEnumerable<T> 型の宣言は未対応です（LINQ の結果は var で受けるか、ToList() / ToArray() にしてください）");
+                ITypeSymbol target = _model.GetTypeInfo(value).ConvertedType;
+                if (target == null || target.TypeKind != TypeKind.Interface)
+                    return false;
+                Error(value, $"'{Text(value)}' : {EnumerableConversionMessage}");
                 return true;
             }
+
+            public override SyntaxNode VisitVariableDeclarator(VariableDeclaratorSyntax node)
+            {
+                // IEnumerable<int> a = new List<int>(); など（var は DataList のまま受けるので対象外）
+                if (node.Initializer != null && node.Parent is VariableDeclarationSyntax declaration && !declaration.Type.IsVar
+                    && EnumerableConversion(node.Initializer.Value))
+                    return node;
+                return base.VisitVariableDeclarator(node);
+            }
+
+            public override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node) =>
+                EnumerableConversion(node.Expression) ? node : base.VisitReturnStatement(node);
+
+            public override SyntaxNode VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) =>
+                EnumerableConversion(node.Expression) ? node : base.VisitArrowExpressionClause(node);
 
             /// <summary>
             /// LINQ のつないだ呼び出し（一番外側）を、生成するメソッドの呼び出しにする。
@@ -100,6 +149,11 @@ namespace CustomUdonSharp
                 bool pairMode = false;                   // Dictionary：kv をキーの DataToken として流している（#61 決めたこと 1）
                 ITypeSymbol pairKey = null, pairValue = null;
                 string sourceText = null, sourceParam = DataListType;
+                if (IsEnumerable(sourceType) && !IsDataListBacked(source))
+                {
+                    Error(source, $"'{Text(source)}' : {ForeignEnumerableMessage}");
+                    return node;
+                }
                 if (IsList(sourceType) || IsEnumerable(sourceType))
                     element = ((INamedTypeSymbol)sourceType).TypeArguments[0];
                 else if (IsDictionary(sourceType))
