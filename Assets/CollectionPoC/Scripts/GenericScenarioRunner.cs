@@ -6,12 +6,12 @@ namespace CollectionPoC
 {
     // #59: GenericScenario を Udon 上で実行し、普通の C#（エディタ）で実行した結果と比べて OK/NG を表示する。
     // Start で 1 回実行し、ボタン（Interact）でもう一度実行できる。
-    public class GenericScenarioRunner : UdonSharpBehaviour
+    public class GenericScenarioRunner : GenericScenarioBase
     {
         // エディタで GenericScenario.Run() を普通の C# として実行した結果と、z（このクラスのジェネリックメソッド）
         private const string Expected =
             "a:3,5,4,0,True,False;b:xyTrue,bob2True;c:3z;d:9,plum,1.5,pear,9;e:b/2,3,1;f:2,1,0,True,3;g:3,3;h:5,1,0,5;" +
-            "z:2q7w;";
+            "z:2q7w;y:3b,2,1,9x;";
 
         public Text display;
 
@@ -35,7 +35,13 @@ namespace CollectionPoC
             string[] texts = { "p", "q" };
             Swap(numbers, 0, 1);
             Swap(texts, 0, 1);
-            return "z:" + numbers[0] + texts[0] + Echo(7) + Echo<string>("w") + ";";
+            string r = "z:" + numbers[0] + texts[0] + Echo(7) + Echo<string>("w") + ";";
+
+            // y: 基底クラスのジェネリックメソッドを、継承したクラスから呼ぶ
+            int[] more = { 1, 3, 1 };
+            string[] words = { "a", "b" };
+            r += "y:" + Pick(more, 1) + this.Pick(words, 1) + "," + CountOf(more, 1) + "," + CountOf(words, "a") + "," + PickBoth(new[] { 9 }, new[] { "x" }) + ";";
+            return r;
         }
 
         public void Run()
