@@ -168,7 +168,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 未対応の書き方（コンパイルエラーになります）：
 
 - List / Dictionary 型のフィールドのシリアライズと同期（public、`[SerializeField]`、`[UdonSynced]`）。private にしてください
-- Dictionary への LINQ、`OrderBy` などの未対応の LINQ のメソッド（下の「LINQ」）
+- Dictionary への LINQ、未対応の LINQ のメソッド（下の「LINQ」）
 - `IEnumerable<T>` などとして渡すこと（`string.Join(",", list)` など）、`?.`
 - `foreach (var (k, v) in dict)` の分解、`kv` を `.Key`／`.Value` 以外で使うこと、`Keys`／`Values` を `foreach` と `.Count` 以外で使うこと
 - 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、メソッド呼び出しを書くこと（`Get()[0] += 1`）
@@ -220,8 +220,8 @@ foreach (int s in big) { ... }
 
 対応している書き方：
 
-- `Where`、`Select`（つないで使えます）
-- `ToList`、`ToArray`、`Any`、`All`、`Count`、`First`、`FirstOrDefault`、`Last`、`LastOrDefault`、`Contains`
+- `Where`、`Select`、`OrderBy`／`OrderByDescending`／`ThenBy`／`ThenByDescending`、`Distinct`、`Skip`、`Take`（つないで使えます）
+- `ToList`、`ToArray`、`ToDictionary`、`Any`、`All`、`Count`、`First`、`FirstOrDefault`、`Last`、`LastOrDefault`、`Contains`
 - `Sum`、`Min`、`Max`、`Average`（`int`、`long`、`float`、`double`）
 - 条件・変換は、ラムダかメソッド名で渡せます（`Any(x => x > 0)`、`Where(IsOdd)`）。ラムダの中から外の変数を読み書きできます（上の「ラムダ」と同じ）
 - 結果を `var` で受けて、`foreach` やほかの LINQ につなげること
@@ -229,7 +229,9 @@ foreach (int s in big) { ... }
 
 遅延評価にはしません。呼んだ時点で結果を作ります：
 
-- `Where` / `Select` は要素を 1 つずつ次に渡すので、途中のリストは作りません。`First`／`Any` などは、C# と同じく見つかった時点で止まり、ラムダを呼ぶ回数も C# と同じです
+- `Where` / `Select` / `Distinct` / `Skip` / `Take` は要素を 1 つずつ次に渡すので、途中のリストは作りません。`First`／`Any`／`Take` などは、C# と同じく必要な分を取った時点で止まり、ラムダを呼ぶ回数も C# と同じです
+- `OrderBy` は、そこまでの値とキーをためてから並べ替えます。ためる場所（`Distinct` の見たことのある値も）は、呼び出し箇所ごとのフィールドを使い回します。汎用クラスのメソッドの中（UdonSharp は static フィールドを使えないため）では、毎回作ります
+- 並べ替えは安定です（C# の `OrderBy` と同じ）。キーは要素ごとに 1 回だけ計算します。string のキーは `string.Compare`（C# の既定と同じく、カルチャに従う比較）で比べます
 - 結果を `var` で受けたとき、`ToList()`、`ToArray()` は、毎回新しいリスト・配列を作ります
 - C# と結果が変わるのは、クエリを変数に入れておき、後で使う書き方だけです。1 つの式で書いてすぐ使うなら違いは出ません
   - 変数に入れてから使うまでの間に元の List を変えても、変更は結果に入りません（C# では入ります）
@@ -243,16 +245,18 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 
 未対応の書き方（コンパイルエラーになります）：
 
-- `OrderBy`／`OrderByDescending`／`ThenBy`、`Distinct`、`Skip`／`Take`、`ToDictionary` など、上記以外のメソッド
+- `GroupBy`、`SelectMany`、`Reverse` など、上記以外のメソッド
+- 比較子（`IComparer`／`IEqualityComparer`）を渡す形、数値・string・bool・char・enum 以外のキーでの並べ替え
 - Dictionary への LINQ
 - 添字付きのラムダ（`Select((x, i) => ...)`）、`Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`
-- `IEnumerable<T>` 型の宣言（フィールド・変数・引数・戻り値）。`var` で受けるか、`ToList()`／`ToArray()` にしてください
+- `IEnumerable<T>`／`IOrderedEnumerable<T>` 型の宣言（フィールド・変数・引数・戻り値）。`var` で受けるか、`ToList()`／`ToArray()` にしてください
 - LINQ の結果を、そのままメソッドに渡すこと（`string.Join(",", list.Select(...))`）。`ToArray()` にしてください
 - フィールドの初期化子の中の LINQ
 
 注意：
 
-- 要素がないときの `First`／`Last`／`Min`／`Max`／`Average` は、C# の `InvalidOperationException` の代わりに、エラーのログを出して Udon の実行時例外になります
+- 要素がないときの `First`／`Last`／`Min`／`Max`／`Average` と、`ToDictionary` で同じキーがあったときは、C# の例外の代わりに、エラーのログを出して Udon の実行時例外になります
+- `Distinct` は、汎用クラスなどの参照は同じインスタンスかどうかで比べます（C# の既定と同じ）
 - `Contains` は `==` で比べます
 
 ## 仕組み

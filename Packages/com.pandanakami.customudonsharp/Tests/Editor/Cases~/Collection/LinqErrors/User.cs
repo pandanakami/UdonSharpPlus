@@ -14,7 +14,9 @@ namespace CustomUdonSharpTests.CollectionLinqErrors
 
         private void Start()
         {
-            var sorted = _list.OrderBy(x => x).ToList();                 // 2 回目で対応するメソッド
+            var groups = _list.GroupBy(x => x % 2).ToList();             // 未対応のメソッド
+            var custom = _list.OrderBy(x => x, null).ToList();           // 比較子を渡す形
+            var objects = _list.Select(x => new object()).OrderBy(o => o).ToList();   // 並べ替えられない型のキー
             var indexed = _list.Select((x, i) => x + i).ToList();        // 添字付きのラムダ
             bool d = _dict.Any(kv => kv.Value > 0);                      // Dictionary（後で）
             string joined = string.Join(",", _list.Select(x => x.ToString()));   // そのまま渡す

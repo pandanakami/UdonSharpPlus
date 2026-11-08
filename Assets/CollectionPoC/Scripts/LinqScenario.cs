@@ -84,6 +84,37 @@ namespace CollectionPoC
             int matched = ints.Where(x => other.Any(y => y == x)).Select(x => { total += x; return x; }).Count();
             r += "h:" + shared + "," + matched + "," + total + ";";
 
+            // 並べ替え（安定・複数キー・降順）
+            List<int> asc = ints.OrderBy(x => x).ToList();
+            int[] desc = array.OrderByDescending(x => x).ToArray();
+            var words = new List<string> { "pear", "fig", "apple", "kiwi", "date" };
+            var byLength = words.OrderBy(w => w.Length).ThenByDescending(w => w);
+            string wordText = "";
+            foreach (string w in byLength)
+                wordText += w + " ";
+            List<string> byScore = players.OrderByDescending(p => p.score / 20).ThenBy(p => p.speed).Select(p => p.name).ToList();
+            r += "i:" + Join(asc) + "," + desc[0] + desc[3] + "," + wordText.TrimEnd() + "," + byScore[0] + byScore[1] + byScore[2] + ";";
+
+            // 並べ替えの後につなぐ・並べ替えの前に絞る（キーを計算する回数も C# と同じ）
+            int keyCalls = 0;
+            int smallestOver2 = ints.Where(x => x > 2).OrderBy(x => { keyCalls++; return x; }).First();
+            List<int> top3 = ints.OrderByDescending(x => x).Take(3).Select(x => x * 10).ToList();
+            r += "j:" + smallestOver2 + "," + keyCalls + "," + Join(top3) + ";";
+
+            // Distinct・Skip・Take（Take は取り終えたら次を取りに行かない）
+            List<int> unique = ints.Distinct().ToList();
+            List<string> uniqueWords = new List<string> { "a", "b", "a", "c", "b" }.Distinct().ToList();
+            List<int> page = ints.Skip(2).Take(3).ToList();
+            int pulled = 0;
+            int firstTwo = ints.Where(x => { pulled++; return true; }).Take(2).Sum();
+            int none = ints.Take(0).Count() + ints.Skip(100).Count();
+            r += "k:" + Join(unique) + "," + uniqueWords.Count + uniqueWords[2] + "," + Join(page) + "," + firstTwo + "," + pulled + "," + none + ";";
+
+            // ToDictionary
+            Dictionary<string, Player> byName = players.ToDictionary(p => p.name);
+            Dictionary<string, int> scoreByName = players.ToDictionary(p => p.name, p => p.score);
+            r += "l:" + byName["bob"].score + "," + scoreByName["cid"] + "," + scoreByName.Count + ";";
+
             return r;
         }
     }
