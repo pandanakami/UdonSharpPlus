@@ -119,7 +119,7 @@ Bullet[] pool = new Bullet[8];
 未対応の書き方（そのクラスを UdonSharpBehaviour から使うとコンパイルエラーになります）：
 
 - static フィールド（UdonSharp と同じく非対応）
-- 継承、abstract クラス、ジェネリッククラス・メソッド、入れ子のクラス。ScriptableObject・MonoBehaviour・Exception などを継承したクラスも、UdonSharpBehaviour から使うと「`'Settings' : 汎用クラスの継承は未対応です（ScriptableObject を継承しています）`」のエラーになります（UdonSharp も対応しておらず、そのままだと内部の例外になるため）
+- 継承、abstract クラス、入れ子のクラス。ScriptableObject・MonoBehaviour・Exception などを継承したクラスも、UdonSharpBehaviour から使うと「`'Settings' : 汎用クラスの継承は未対応です（ScriptableObject を継承しています）`」のエラーになります（UdonSharp も対応しておらず、そのままだと内部の例外になるため）
 - ユーザー定義の構造体（struct）。UdonSharp も対応していません。UdonSharpBehaviour から使うと「`'Point' : ユーザー定義の構造体は未対応です`」のエラーになります（UdonSharp のままだと内部の例外になり、原因が分かりにくいため）
 - 演算子のオーバーロード、インデクサー、イベント、`ToString` などの override
 - インスタンスのメソッドを、メソッド名だけで渡すこと（`list.Find(b.IsHit)`）。ラムダで書いてください（`list.Find(x => b.IsHit(x))`）
@@ -138,6 +138,52 @@ Bullet[] pool = new Bullet[8];
 
 - 汎用クラスのメソッドの中で起きた実行時例外（`Udon runtime exception detected!`）も、元のクラスのソースの位置（文の単位）に表示されます。表示の仕組みは UdonSharp のものなので、クライアントで確かめるときは、UdonSharp と同じく `--enable-udon-debug-logging` を付けて起動してください
 - UdonSharpBehaviour から使われていないクラスは書き換えず、検査もしません
+
+### ジェネリクス（実験的）
+
+ジェネリッククラスと、ジェネリックメソッドを宣言して使えます。
+
+```csharp
+public class Pool<T>
+{
+    private List<T> _items = new List<T>();
+    public void Add(T item) { _items.Add(item); }
+    public T Get(int i) => _items[i];
+    public T Empty() => default(T);
+}
+
+public static class Util
+{
+    public static T Max<T>(List<T> list) where T : IComparable<T> { ... }
+}
+
+// UdonSharpBehaviour の中
+var pool = new Pool<int>();
+int max = Util.Max(scores);   // 型引数の推論も使えます
+```
+
+使われる型引数ごとにコピーを作ります。`Pool<int>` は `Pool__int` という汎用クラスに、`Max<int>` は `Max__int` というメソッドになり、コピーの中では `T` が具体的な型（`default(T)`、`new T()` の中なども）に置き換わります。そのため、`List<T>` や LINQ など、ほかの機能もそのまま使えます。インスタンスは汎用クラスと同じく `object[]` です。
+
+対応している書き方：
+
+- ジェネリッククラス（型引数は複数でもよい）。中身は汎用クラスと同じ書き方ができます
+- 汎用クラス・static クラスのジェネリックメソッド（拡張メソッドを含む）、ジェネリッククラスの中のジェネリックメソッド
+- UdonSharpBehaviour のジェネリックメソッド（同じクラスの中から呼ぶもの）
+- ジェネリックが別のジェネリックを呼ぶこと
+- 制約（`where T : IComparable<T>` など）。`a.CompareTo(b)` などは、具体的な型のメソッドの呼び出しになります。Udon で `CompareTo` が使えるのは数値型・`bool`・`string` で、`Equals`・`GetHashCode` はどの型でも使えます
+
+未対応の書き方（コンパイルエラーになります）：
+
+- 別の UdonSharpBehaviour のジェネリックメソッドを呼ぶこと（`other.Echo(1)`）。static クラスに移すか、型を決めたメソッドを用意してください
+- ジェネリックな UdonSharpBehaviour、ジェネリックなインタフェース
+- 型が際限なく増える再帰（`Nest<T>` の中で `Nest<List<T>>` を呼ぶなど）
+- `EqualityComparer<T>.Default`・`Comparer<T>.Default`、型引数を省いた `typeof(Pool<>)`
+- そのほか、汎用クラスで未対応の書き方（ジェネリッククラスの static フィールド、継承など）
+
+注意：
+
+- コピーの中で出たコンパイルエラーは、元のジェネリックなソースの位置に表示され、末尾にどの型引数のコピーかが付きます（「（汎用クラス Pool<int> のメソッド Get の中）」）
+- どこからも使われないジェネリッククラス・メソッドは、コピーが作られず、検査もしません
 
 ### List / Dictionary（実験的）
 
@@ -294,9 +340,10 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 ## 仕組み
 
 1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。
-   1. インタフェース：インタフェース型を `object` に置き換えます。呼び出しは、汎用クラスならそのクラスのメソッドの呼び出しに、UdonSharpBehaviour なら `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由に振り分けます。`is`／`as` は型タグと型IDで判定する形にします。
-   2. 汎用クラス：インスタンスを `object[]` にし、コンストラクタ・メソッドのコピーを、使う UdonSharpBehaviour に生成します。
-   3. List / Dictionary：`DataList` / `DataDictionary` に置き換え、要素の出し入れを `DataToken` との変換にします。`foreach` は添字で回すループにします。ラムダを受け取るメソッドは、ループとラムダの本体を入れたメソッドを生成し、その呼び出しにします。外のローカル変数・引数は、読むだけなら値で、書き込むなら `ref` で渡します（書き込むかどうかは Roslyn のデータフロー解析で判定します）。LINQ は、つないだ呼び出しを 1 つのループの生成メソッドにまとめます。
+   1. ジェネリクス：使われる型引数ごとに、ジェネリッククラス・メソッドのコピーを作り、使う側をコピーの名前にします。後の段はジェネリクスのないコードとして扱います。
+   2. インタフェース：インタフェース型を `object` に置き換えます。呼び出しは、汎用クラスならそのクラスのメソッドの呼び出しに、UdonSharpBehaviour なら `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由に振り分けます。`is`／`as` は型タグと型IDで判定する形にします。
+   3. 汎用クラス：インスタンスを `object[]` にし、コンストラクタ・メソッドのコピーを、使う UdonSharpBehaviour に生成します。
+   4. List / Dictionary：`DataList` / `DataDictionary` に置き換え、要素の出し入れを `DataToken` との変換にします。`foreach` は添字で回すループにします。ラムダを受け取るメソッドは、ループとラムダの本体を入れたメソッドを生成し、その呼び出しにします。外のローカル変数・引数は、読むだけなら値で、書き込むなら `ref` で渡します（書き込むかどうかは Roslyn のデータフロー解析で判定します）。LINQ は、つないだ呼び出しを 1 つのループの生成メソッドにまとめます。
 2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前を、どの実装クラスでも揃うものにします（メソッドは元の名前、引数は `Damage__int__string__p0`、戻り値は `Damage__int__string__ret`）。
 3. `CompilationContext.AddDiagnostic` と `AssemblyDebugInfo`（実行時例外の位置を引くデバッグ情報）にパッチを当て、汎用クラスのコピーの中の位置を、元のクラスのソースの位置に戻します。
 

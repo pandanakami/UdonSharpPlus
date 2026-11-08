@@ -58,6 +58,24 @@ namespace CustomUdonSharp
         /// <summary>元の位置を記録し、生成コードに置く印のコメントを返す</summary>
         public static string Marker(SyntaxNode original, string className, string memberName)
         {
+            // 元のノードが前の段のコピーの中（ジェネリクスのコピー、#59）なら、その元の位置と名前を引き継ぐ
+            Entry inCopy = Find(original.GetLocation());
+            if (inCopy != null)
+            {
+                lock (Gate)
+                {
+                    _entries.Add(new Entry
+                    {
+                        TreeIndex = inCopy.TreeIndex,
+                        Line = inCopy.Line,
+                        Character = inCopy.Character,
+                        ClassName = inCopy.ClassName ?? className,
+                        MemberName = inCopy.MemberName ?? memberName,
+                    });
+                    return $"/*cus@{_entries.Count - 1}*/";
+                }
+            }
+
             FileLinePositionSpan span = original.GetLocation().GetLineSpan();
             lock (Gate)
             {

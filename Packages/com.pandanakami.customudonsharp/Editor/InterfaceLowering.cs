@@ -82,6 +82,13 @@ namespace CustomUdonSharp
             List<SyntaxTree> current = original;
             SourceMap.RegisterTrees(current);
 
+            // 0) ユーザー定義のジェネリクス → 型引数ごとのコピー（#59）。後の段はジェネリクスのないコードを見る
+            if (GenericLowering.MayHaveGenerics(current))
+            {
+                current = GenericLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // 1) インタフェース → 2) 汎用クラス（#49）の順に書き換える。どちらも行数を変えず、tree の並びも変えない。
             // インタフェースの段は、汎用クラスの実装への振り分けを普通の C#（((Bullet)x).M(a)）で書き、
             // 汎用クラスの段がそれをコピーの呼び出しにする（#50）
