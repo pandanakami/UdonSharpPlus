@@ -467,6 +467,9 @@ namespace CustomUdonSharp
                     return TypeText(array.ElementType) + "[" + new string(',', array.Rank - 1) + "]";
                 if (Target(type) != null)
                     return InstanceType;
+                // List<Bullet> → List<object[]>（型引数の中も置き換える。#56）
+                if (type is INamedTypeSymbol named && CollectionLowering.GenericText(named, TypeText) is string generic)
+                    return generic;
                 return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             }
 

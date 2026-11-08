@@ -104,6 +104,13 @@ namespace CustomUdonSharp
             diagnostics.DropUnusedOwners(usedClasses);
             current = RestoreUnusedClasses(current, rewrittenClasses, usedClasses);
 
+            // 3) List / Dictionary → DataList / DataDictionary（#56）。汎用クラスのコピーの中も含め、UdonSharpBehaviour の中を書き換える
+            if (CollectionLowering.MayHaveCollections(current))
+            {
+                current = CollectionLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // エラーがあれば U# はこの直後でコンパイルを止めるので、書き換えた tree は使われない。
             // 元の tree のままにしておくと、U# が診断の位置からファイル名を引ける（binding.tree と照合するため）
             if (diagnostics.HasErrors && context != null)
@@ -552,6 +559,9 @@ namespace CustomUdonSharp
                     return TypeName(array.ElementType) + "[]";
                 if (AsTarget(type) != null)
                     return ErasedType;
+                // List<IShape> → List<object>（型引数の中も置き換える。#56）
+                if (type is INamedTypeSymbol named && CollectionLowering.GenericText(named, TypeName) is string generic)
+                    return generic;
                 return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             }
 

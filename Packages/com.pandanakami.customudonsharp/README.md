@@ -138,11 +138,53 @@ Bullet[] pool = new Bullet[8];
 - 汎用クラスのメソッドの中で起きた実行時例外（`Udon runtime exception detected!`）も、元のクラスのソースの位置（文の単位）に表示されます。表示の仕組みは UdonSharp のものなので、クライアントで確かめるときは、UdonSharp と同じく `--enable-udon-debug-logging` を付けて起動してください
 - UdonSharpBehaviour から使われていないクラスは書き換えず、検査もしません
 
+### List / Dictionary（実験的）
+
+`List<T>` と `Dictionary<TKey, TValue>` を書くと、内部では Udon の `DataList` / `DataDictionary` で動きます。要素は、宣言した型で `DataToken` と変換されます。
+
+```csharp
+private List<int> _scores = new List<int> { 1, 2, 3 };
+private Dictionary<string, Bullet> _bullets = new Dictionary<string, Bullet>();
+
+_scores.Add(4);
+_scores[0] += 10;
+foreach (int s in _scores) { ... }
+
+if (_bullets.TryGetValue("a", out Bullet b)) { ... }
+foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
+```
+
+対応している書き方：
+
+- 要素の型：数値型、`bool`、`string`、enum、`Vector3` などの値型、UnityEngine.Object、汎用クラス、インタフェース、入れ子の List / Dictionary
+- 作成：`new List<T>()`、コレクション初期化子（`{ 1, 2 }`、`{ { "a", 1 } }`、`{ ["a"] = 1 }`）、List・配列からのコピー
+- List：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Insert`、`Remove`、`RemoveAt`、`RemoveRange`、`Contains`、`IndexOf`、`LastIndexOf`、`Clear`、`Sort()`、`Reverse()`、`AddRange`、`InsertRange`、`GetRange`、`ToArray`
+- Dictionary：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Remove`、`ContainsKey`、`ContainsValue`、`TryGetValue`、`Clear`
+- `foreach`：List、Dictionary（`kv.Key`／`kv.Value`）、`dict.Keys`、`dict.Values`
+- フィールドの初期化子、メソッドの引数・戻り値（インタフェースのメソッドを含む）
+
+未対応の書き方（コンパイルエラーになります）：
+
+- List / Dictionary 型のフィールドのシリアライズと同期（public、`[SerializeField]`、`[UdonSynced]`）。private にしてください
+- ラムダを使うメソッド（`Find`、`Exists`、`RemoveAll`、`Sort(Comparison)` など）と LINQ
+- `IEnumerable<T>` などとして渡すこと（`string.Join(",", list)` など）、`?.`
+- `foreach (var (k, v) in dict)` の分解、`kv` を `.Key`／`.Value` 以外で使うこと、`Keys`／`Values` を `foreach` と `.Count` 以外で使うこと
+- 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、メソッド呼び出しを書くこと（`Get()[0] += 1`）
+- `TryGetValue` をループの条件の中で使うこと
+
+注意：
+
+- `DataList` / `DataDictionary` を直接書いた場合は、UdonSharp のままです（`foreach` は使えません）
+- `foreach` の途中で List / Dictionary を書き換えないでください（C# では `InvalidOperationException` になる書き方です）。Udon では検出されず、回る回数は最初の要素数のままです。List に Add した要素は回らず、Remove / Clear すると範囲外を読んで Udon の実行時例外になります
+- 存在しないキーを添字で読んだときは、C# の `KeyNotFoundException` ではなく、Udon の実行時例外になります
+- `Dictionary` の `foreach` の順番は、`DataDictionary` の `GetKeys()` の順番です（C# の `Dictionary` と同じとは限りません）
+
 ## 仕組み
 
 1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。
    1. インタフェース：インタフェース型を `object` に置き換えます。呼び出しは、汎用クラスならそのクラスのメソッドの呼び出しに、UdonSharpBehaviour なら `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由に振り分けます。`is`／`as` は型タグと型IDで判定する形にします。
    2. 汎用クラス：インスタンスを `object[]` にし、コンストラクタ・メソッドのコピーを、使う UdonSharpBehaviour に生成します。
+   3. List / Dictionary：`DataList` / `DataDictionary` に置き換え、要素の出し入れを `DataToken` との変換にします。`foreach` は添字で回すループにします。
 2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前を、どの実装クラスでも揃うものにします（メソッドは元の名前、引数は `Damage__int__string__p0`、戻り値は `Damage__int__string__ret`）。
 3. `CompilationContext.AddDiagnostic` と `AssemblyDebugInfo`（実行時例外の位置を引くデバッグ情報）にパッチを当て、汎用クラスのコピーの中の位置を、元のクラスのソースの位置に戻します。
 

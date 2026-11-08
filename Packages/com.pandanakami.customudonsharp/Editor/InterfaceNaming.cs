@@ -62,6 +62,10 @@ namespace CustomUdonSharp
             if (type is INamedTypeSymbol named && isInterfaceToErase(named))
                 return "object";
 
+            // List / Dictionary は DataList / DataDictionary になる（#56）
+            if (type is INamedTypeSymbol collection && CollectionLowering.ReplacementOf(collection) is string replaced)
+                return Sanitize(replaced.Replace("global::", ""));
+
             // 汎用クラスは object[]（ClassLowering.InstanceType）になる
             if (type is INamedTypeSymbol cls && cls.Locations.Any(l => l.IsInSource) && ClassLowering.IsPlainClass(cls))
                 return "objectArray";
