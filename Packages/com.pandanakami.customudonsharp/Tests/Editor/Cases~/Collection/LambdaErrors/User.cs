@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UdonSharp;
 using UnityEngine;
 
@@ -14,7 +13,6 @@ namespace CustomUdonSharpTests.CollectionLambdaErrors
         private void Start()
         {
             System.Func<int, bool> f = x => x > 0;                      // List のメソッドの引数以外のラムダ
-            bool w = _list.Any(x => x > 0);                             // LINQ（#58）
             bool b = _list.Exists(delegate (int x) { return x > 0; });  // delegate { }
             System.Predicate<int> p = null;
             bool c = _list.Exists(p);                                   // デリゲートの変数

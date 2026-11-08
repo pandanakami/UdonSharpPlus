@@ -1,0 +1,9 @@
+## Diagnostics
+Error: Assets/CustomUdonSharpTests/User.cs(12,17): [CustomUdonSharp] IEnumerable<T> 型の宣言は未対応です（LINQ の結果は var で受けるか、ToList() / ToArray() にしてください）
+Error: Assets/CustomUdonSharpTests/User.cs(13,32): [CustomUdonSharp] LINQ は、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）
+Error: Assets/CustomUdonSharpTests/User.cs(17,26): [CustomUdonSharp] 'OrderBy' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select と、ToList / ToArray / Any / All / Count / First / FirstOrDefault / Last / LastOrDefault / Sum / Min / Max / Average / Contains が使えます）
+Error: Assets/CustomUdonSharpTests/User.cs(18,40): [CustomUdonSharp] 'Select' : この形のラムダは未対応です（引数 1 つのラムダかメソッド名を渡してください。添字付きの (x, i) => ... は未対応です）
+Error: Assets/CustomUdonSharpTests/User.cs(19,22): [CustomUdonSharp] 'Any' : LINQ は List と配列にだけ使えます（System.Collections.Generic.Dictionary<string, int> は未対応です）
+Error: Assets/CustomUdonSharpTests/User.cs(20,46): [CustomUdonSharp] '_list.Select(x => x.ToString())' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）
+Error: Assets/CustomUdonSharpTests/User.cs(22,30): [CustomUdonSharp] 'Max' : 数値（int / long / float / double など）以外には未対応です
+## Logs

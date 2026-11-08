@@ -1045,7 +1045,20 @@ namespace CustomUdonSharp
                 IMethodSymbol definition = (method.ReducedFrom ?? method).OriginalDefinition;
                 ClassInfo c = Target(definition.ContainingType);
                 if (c == null)
+                {
+                    // コピーの中の、外部の拡張メソッド（LINQ など）：コピー先のファイルには元の using がないので、static の形にする
+                    // list.Where(f) → global::System.Linq.Enumerable.Where(list, f)（#58）
+                    if (_self != null && method.ReducedFrom != null && node.Expression is MemberAccessExpressionSyntax ext
+                        && ext.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                    {
+                        string receiver = Text(Visit(ext.Expression));
+                        string methodName = Text(Visit(ext.Name));   // 型引数（Cast<int> など）も完全修飾にする
+                        var rest = node.ArgumentList.Arguments.Select(a => Text(Visit(a)));
+                        string container = definition.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        return Parse($"{container}.{methodName}({string.Join(", ", new[] { receiver }.Concat(rest))})", node);
+                    }
                     return base.VisitInvocationExpression(node);
+                }
 
                 var args = new List<string>();
                 if (method.ReducedFrom != null)

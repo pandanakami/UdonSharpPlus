@@ -22,7 +22,7 @@ namespace CustomUdonSharp
     /// 書き換えるのは UdonSharpBehaviour の中だけ（汎用クラスはこの時点で使う側にコピーされている）。
     /// 行を増やさない（生成メンバーはクラス末尾 '}' と同じ行、ループなどは元の行に収める）。
     /// </summary>
-    internal static class CollectionLowering
+    internal static partial class CollectionLowering
     {
         internal const string DataListType = "global::VRC.SDK3.Data.DataList";
         internal const string DataDictionaryType = "global::VRC.SDK3.Data.DataDictionary";
@@ -57,10 +57,11 @@ namespace CustomUdonSharp
             return definition.Substring(0, open) + "<" + string.Join(", ", type.TypeArguments.Select(map)) + ">";
         }
 
-        /// <summary>List / Dictionary がありそうか（なければコンパイルを作らずに済ませる）</summary>
+        /// <summary>List / Dictionary・LINQ がありそうか（なければコンパイルを作らずに済ませる）</summary>
         public static bool MayHaveCollections(IEnumerable<SyntaxTree> trees) =>
             trees.Any(t => t.GetRoot().DescendantNodes().OfType<GenericNameSyntax>()
-                .Any(g => g.Identifier.ValueText == "List" || g.Identifier.ValueText == "Dictionary"));
+                               .Any(g => g.Identifier.ValueText == "List" || g.Identifier.ValueText == "Dictionary")
+                           || t.ToString().Contains("System.Linq"));   // 配列への LINQ（#58）
 
         /// <summary>書き換えた tree の一覧を返す（変わらない tree はそのまま）</summary>
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics,
@@ -94,7 +95,7 @@ namespace CustomUdonSharp
             public ITypeSymbol KeyType, ValueType;
         }
 
-        private sealed class Rewriter : CSharpSyntaxRewriter
+        private sealed partial class Rewriter : CSharpSyntaxRewriter
         {
             private const string HoistAnnotation = "CustomUdonSharp.CollectionHoist";
 
@@ -140,6 +141,8 @@ namespace CustomUdonSharp
                 {
                     if (ReplacementOf(named) is string replaced)
                         return replaced;
+                    if (IsEnumerable(named))
+                        return DataListType;   // LINQ の結果（#58）
                     if (GenericText(named, TypeText) is string generic)
                         return generic;
                 }
@@ -310,6 +313,8 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
+                if (IEnumerableDeclaration(node))
+                    return node;
                 if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && ReplacementOf(t) is string replaced)
                 {
                     Changed = true;
@@ -528,6 +533,10 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
+                // LINQ（#58）：つないだ呼び出しの一番外側でまとめて書き換える
+                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is IMethodSymbol linq && IsLinqMethod(linq))
+                    return LinqCall(node);
+
                 if (_helpers == null || !(node.Expression is MemberAccessExpressionSyntax access) || !(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method))
                     return base.VisitInvocationExpression(node);
 
@@ -734,6 +743,11 @@ namespace CustomUdonSharp
                 if (_helpers != null && node.Expression != null)
                 {
                     TypeInfo info = _model.GetTypeInfo(node.Expression);
+                    if (IsEnumerable(info.Type))
+                    {
+                        Error(node, $"'{Text(node.Expression)}' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）");
+                        return node;
+                    }
                     if ((IsList(info.Type) || IsDictionary(info.Type)) && info.ConvertedType != null
                         && !SymbolEqualityComparer.Default.Equals(info.Type, info.ConvertedType)
                         && info.ConvertedType.SpecialType != SpecialType.System_Object)
@@ -750,7 +764,7 @@ namespace CustomUdonSharp
             public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
             {
                 ITypeSymbol type = _helpers == null ? null : TypeOf(node.Expression);
-                bool list = IsList(type), dict = IsDictionary(type), keys = IsKeys(type), values = IsValues(type);
+                bool list = IsList(type) || IsEnumerable(type), dict = IsDictionary(type), keys = IsKeys(type), values = IsValues(type);   // IEnumerable は LINQ の結果（DataList）
                 if (!list && !dict && !keys && !values)
                     return base.VisitForEachStatement(node);
 
@@ -848,7 +862,7 @@ namespace CustomUdonSharp
             {
                 if (_helpers == null)
                     return null;
-                Error(node, "ラムダは List のメソッド（Find / Exists / ForEach など）の引数としてだけ使えます");
+                Error(node, "ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます");
                 return node;
             }
 
@@ -890,87 +904,20 @@ namespace CustomUdonSharp
 
                 ExpressionSyntax fn = args[rangeCount].Expression;
                 IMethodSymbol invoke = delegateType.DelegateInvokeMethod;
-                int arity = invoke.Parameters.Length;
-                string[] names;
-                CSharpSyntaxNode body;
-                switch (fn)
-                {
-                    case SimpleLambdaExpressionSyntax s:
-                        names = new[] { s.Parameter.Identifier.ValueText };
-                        body = s.Body;
-                        break;
-                    case ParenthesizedLambdaExpressionSyntax p:
-                        names = p.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray();
-                        body = p.Body;
-                        break;
-                    case AnonymousMethodExpressionSyntax _:
-                        Error(fn, "delegate { ... } の形は未対応です。ラムダ（x => ...）で書いてください");
-                        return node;
-                    default:
-                        if (!(_model.GetSymbolInfo(fn).Symbol is IMethodSymbol))
-                        {
-                            Error(fn, "デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）");
-                            return node;
-                        }
-                        names = Enumerable.Range(0, arity).Select(i => $"__a{i}").ToArray();
-                        body = null;
-                        break;
-                }
-                if (names.Length != arity)
-                    return node;   // C# のエラーになる
-
-                List<Capture> captures = Captures(fn, body ?? fn);   // メソッド名なら、受け側（other.IsGood の other）
-                if (captures == null)
-                    return node;
-
                 string name = $"__lambda_{op}_{_lambdaCount++}";
                 string modifiers = enclosing.IsStatic ? "private static" : "private";
                 ITypeSymbol element = Element(receiverType);
                 string elementType = TypeText(element);
-                string marker = SourceMap.MarkerFor(fn);
 
-                string capParams = string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{TypeText(c.Type)} {c.Name}"));
-                string capArgs = string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{c.Name}"));
-
-                // 1 回分の評価：式（Invoke）か、ForEach のブロックをそのまま（Inline）
-                string invokeText = null, inlineText = null;
-                string ret = invoke.ReturnsVoid ? "void" : TypeText(invoke.ReturnType);
-                if (body == null)
-                {
-                    invokeText = $"{Text(Visit(fn))}({string.Join(", ", names)})";
-                }
-                else if (body is ExpressionSyntax expression)
-                {
-                    List<string> saved = _pending;
-                    _pending = null;   // 式の中の TryGetValue は前に出せない（エラーにする）
-                    string text = Flatten(Visit(expression), expression);
-                    _pending = saved;
-                    if (text == null)
-                        return node;
-                    invokeText = text;
-                }
-                else
-                {
-                    var block = (BlockSyntax)body;
-                    string blockText = BlockText(block);
-                    if (blockText == null)
-                        return node;
-                    bool hasReturn = block.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax)).OfType<ReturnStatementSyntax>().Any();
-                    if (invoke.ReturnsVoid && !hasReturn)
-                    {
-                        inlineText = blockText;
-                    }
-                    else
-                    {
-                        // return があるので、本体を要素ごとに呼ぶメソッドにする
-                        string bodyName = name + "_body";
-                        string bodyParams = string.Join(", ", names.Select(n => $"{elementType} {n}")) + capParams;
-                        _helpers[bodyName] = $"{modifiers} {ret} {bodyName}({bodyParams}) {marker}{blockText}";
-                        invokeText = $"{bodyName}({string.Join(", ", names)}{capArgs})";
-                    }
-                }
-
-                string each = invokeText != null ? $"{marker}{invokeText}" : null;
+                PreparedLambda lambda = PrepareLambda(fn, invoke, name + "_body", modifiers, false);
+                if (lambda == null)
+                    return node;
+                string[] names = lambda.Names;
+                string marker = lambda.Marker;
+                string capParams = CaptureParams(lambda.Captures);
+                string capArgs = CaptureArgs(lambda.Captures);
+                string inlineText = lambda.Inline;
+                string each = lambda.Each;
                 string item(string token, int i) => $"{elementType} {names[i]} = {Unwrap(token, element)}; ";
                 string forward = $"int __n = __l.Count; for (int __i = 0; __i < __n; __i++) {{ {item("__l[__i]", 0)}";
                 string backward = $"for (int __i = __l.Count - 1; __i >= 0; __i--) {{ {item("__l[__i]", 0)}";
@@ -1051,6 +998,107 @@ namespace CustomUdonSharp
 
                 _helpers[name] = $"{modifiers} {returnType} {name}({DataListType} __l{rangeParams}{capParams}) {{ {marker}{code} }}";
                 return Parse($"{name}({Text(Visit(access.Expression))}{rangeArgs}{capArgs})", node);
+            }
+
+            /// <summary>生成メソッドに埋め込むための、1 つのラムダ（またはメソッド名）の準備結果</summary>
+            private sealed class PreparedLambda
+            {
+                public string[] Names;           // ラムダの引数の名前（メソッド名なら __a0 など）
+                public List<Capture> Captures;   // ラムダの外の変数
+                public string Marker;            // 元の位置の印（#52）
+                public string Each;              // 1 回分を評価する式（印付き）。Inline のときは null
+                public string Inline;            // 戻り値のない、return のないブロックの本体（そのまま埋め込む）
+            }
+
+            private static string CaptureParams(IEnumerable<Capture> captures) =>
+                string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{TypeText(c.Type)} {c.Name}"));
+
+            private static string CaptureArgs(IEnumerable<Capture> captures) =>
+                string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{c.Name}"));
+
+            /// <summary>
+            /// ラムダ（式・ブロック）かメソッド名を、生成メソッドに埋め込める形にする。だめなら null（エラーは出し済み）。
+            /// return のあるブロック（と bodyMethod のとき）は、本体を bodyName のメソッドにして、その呼び出しを Each にする
+            /// </summary>
+            private PreparedLambda PrepareLambda(ExpressionSyntax fn, IMethodSymbol invoke, string bodyName, string modifiers, bool bodyMethod)
+            {
+                int arity = invoke.Parameters.Length;
+                string[] names;
+                CSharpSyntaxNode body;
+                switch (fn)
+                {
+                    case SimpleLambdaExpressionSyntax s:
+                        names = new[] { s.Parameter.Identifier.ValueText };
+                        body = s.Body;
+                        break;
+                    case ParenthesizedLambdaExpressionSyntax p:
+                        names = p.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray();
+                        body = p.Body;
+                        break;
+                    case AnonymousMethodExpressionSyntax _:
+                        Error(fn, "delegate { ... } の形は未対応です。ラムダ（x => ...）で書いてください");
+                        return null;
+                    default:
+                        if (!(_model.GetSymbolInfo(fn).Symbol is IMethodSymbol))
+                        {
+                            Error(fn, "デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）");
+                            return null;
+                        }
+                        names = Enumerable.Range(0, arity).Select(i => $"__a{i}").ToArray();
+                        body = null;
+                        break;
+                }
+                if (names.Length != arity)
+                    return null;   // C# のエラーになる
+
+                List<Capture> captures = Captures(fn, body ?? fn);   // メソッド名なら、受け側（other.IsGood の other）
+                if (captures == null)
+                    return null;
+
+                var result = new PreparedLambda { Names = names, Captures = captures, Marker = SourceMap.MarkerFor(fn) };
+                string ret = invoke.ReturnsVoid ? "void" : TypeText(invoke.ReturnType);
+                string invokeText;
+                string blockText;
+                if (body == null)
+                {
+                    invokeText = $"{Text(Visit(fn))}({string.Join(", ", names)})";
+                    blockText = null;
+                }
+                else if (body is ExpressionSyntax expression)
+                {
+                    List<string> saved = _pending;
+                    _pending = null;   // 式の中の TryGetValue は前に出せない（エラーにする）
+                    string text = Flatten(Visit(expression), expression);
+                    _pending = saved;
+                    if (text == null)
+                        return null;
+                    invokeText = text;
+                    blockText = invoke.ReturnsVoid ? $"{{ {text}; }}" : $"{{ return {text}; }}";
+                }
+                else
+                {
+                    var block = (BlockSyntax)body;
+                    blockText = BlockText(block);
+                    if (blockText == null)
+                        return null;
+                    bool hasReturn = block.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax)).OfType<ReturnStatementSyntax>().Any();
+                    if (invoke.ReturnsVoid && !hasReturn && !bodyMethod)
+                    {
+                        result.Inline = blockText;
+                        return result;
+                    }
+                    invokeText = null;
+                    bodyMethod = true;   // return があるので、本体を要素ごとに呼ぶメソッドにする
+                }
+
+                if (bodyMethod && blockText != null)
+                {
+                    string bodyParams = string.Join(", ", names.Select((n, i) => $"{TypeText(invoke.Parameters[i].Type)} {n}")) + CaptureParams(captures);
+                    _helpers[bodyName] = $"{modifiers} {ret} {bodyName}({bodyParams}) {result.Marker}{blockText}";
+                    invokeText = $"{bodyName}({string.Join(", ", names)}{CaptureArgs(captures)})";
+                }
+                result.Each = $"{result.Marker}{invokeText}";
+                return result;
             }
 
             /// <summary>ラムダの外の変数を、出てくる順に集める。書かれるかは Roslyn のデータフロー解析で判定する</summary>
@@ -1147,8 +1195,15 @@ namespace CustomUdonSharp
             {
                 string name = $"__col_ToArray__{Token(element)}";
                 string t = TypeText(element);
-                _helpers[name] = $"private static {t}[] {name}({DataListType} __l) {{ {t}[] __a = new {t}[__l.Count]; for (int __i = 0; __i < __a.Length; __i++) __a[__i] = {Unwrap("__l[__i]", element)}; return __a; }}";
+                _helpers[name] = $"private static {t}[] {name}({DataListType} __l) {{ {t}[] __a = {NewArray(t, "__l.Count")}; for (int __i = 0; __i < __a.Length; __i++) __a[__i] = {Unwrap("__l[__i]", element)}; return __a; }}";
                 return name;
+            }
+
+            /// <summary>要素の型が t の配列を作る式（t が object[] なら new object[n][]）</summary>
+            private static string NewArray(string t, string size)
+            {
+                int bracket = t.IndexOf('[');
+                return bracket < 0 ? $"new {t}[{size}]" : $"new {t.Substring(0, bracket)}[{size}]{t.Substring(bracket)}";
             }
 
             private string FromArrayHelper(ITypeSymbol element)

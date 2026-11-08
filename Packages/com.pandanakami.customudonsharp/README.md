@@ -168,7 +168,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 未対応の書き方（コンパイルエラーになります）：
 
 - List / Dictionary 型のフィールドのシリアライズと同期（public、`[SerializeField]`、`[UdonSynced]`）。private にしてください
-- LINQ（`Where`、`Select` など）
+- Dictionary への LINQ、`OrderBy` などの未対応の LINQ のメソッド（下の「LINQ」）
 - `IEnumerable<T>` などとして渡すこと（`string.Join(",", list)` など）、`?.`
 - `foreach (var (k, v) in dict)` の分解、`kv` を `.Key`／`.Value` 以外で使うこと、`Keys`／`Values` を `foreach` と `.Count` 以外で使うこと
 - 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、メソッド呼び出しを書くこと（`Get()[0] += 1`）
@@ -183,7 +183,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 
 #### ラムダ
 
-UdonSharp はラムダを扱えないので、ラムダは上記の List のメソッドの引数としてだけ使えます。ループとラムダの本体は、呼び出しごとに生成するメソッドの中に入ります（ラムダを変数に入れる、後で呼ぶ、などはできません）。
+UdonSharp はラムダを扱えないので、ラムダは上記の List のメソッドと LINQ の引数としてだけ使えます。ループとラムダの本体は、呼び出しごとに生成するメソッドの中に入ります（ラムダを変数に入れる、後で呼ぶ、などはできません）。
 
 ```csharp
 int limit = 4;
@@ -201,17 +201,66 @@ _scores.Sort((a, b) => b - a);
 
 未対応の書き方（コンパイルエラーになります）：
 
-- 上記の List のメソッドの引数以外のラムダ（`Func<int, bool> f = x => x > 0;` など）、`delegate { ... }`、デリゲートの変数を渡すこと
+- 上記の List のメソッドと LINQ の引数以外のラムダ（`Func<int, bool> f = x => x > 0;` など）、`delegate { ... }`、デリゲートの変数を渡すこと
 - フィールドの初期化子の中で、ラムダを渡す List のメソッドを呼ぶこと
 - `foreach (var kv in dict)` の `kv` をラムダの中で使うこと（`kv.Key`／`kv.Value` をいったん変数に入れてください）
 - `[RecursiveMethod]` を付けたメソッドの中で、外のローカル変数・引数に書き込むラムダ。外の変数は `ref` 引数で生成メソッドに渡しますが、UdonSharp は `[RecursiveMethod]` の中での `ref` 引数のメソッドの呼び出しに対応していないため、UdonSharp のエラー（`U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod`）になります。読むだけのラムダは使えます
+
+### LINQ（実験的）
+
+List と配列に、LINQ のメソッドを使えます（`using System.Linq;`）。つないだ呼び出しは、1 つのループの生成メソッドにまとめます。
+
+```csharp
+List<string> alive = _enemies.Where(e => e.hp > 0).Select(e => e.name).ToList();
+int total = _scores.Sum();
+bool any = _items.Any(i => i.price > limit);
+var big = _scores.Where(s => s >= 50);   // var で受けると DataList（中身は結果のリスト）
+foreach (int s in big) { ... }
+```
+
+対応している書き方：
+
+- `Where`、`Select`（つないで使えます）
+- `ToList`、`ToArray`、`Any`、`All`、`Count`、`First`、`FirstOrDefault`、`Last`、`LastOrDefault`、`Contains`
+- `Sum`、`Min`、`Max`、`Average`（`int`、`long`、`float`、`double`）
+- 条件・変換は、ラムダかメソッド名で渡せます（`Any(x => x > 0)`、`Where(IsOdd)`）。ラムダの中から外の変数を読み書きできます（上の「ラムダ」と同じ）
+- 結果を `var` で受けて、`foreach` やほかの LINQ につなげること
+- `Enumerable.Where(list, f)` の static の形
+
+遅延評価にはしません。呼んだ時点で結果を作ります：
+
+- `Where` / `Select` は要素を 1 つずつ次に渡すので、途中のリストは作りません。`First`／`Any` などは、C# と同じく見つかった時点で止まり、ラムダを呼ぶ回数も C# と同じです
+- 結果を `var` で受けたとき、`ToList()`、`ToArray()` は、毎回新しいリスト・配列を作ります
+- C# と結果が変わるのは、クエリを変数に入れておき、後で使う書き方だけです。1 つの式で書いてすぐ使うなら違いは出ません
+  - 変数に入れてから使うまでの間に元の List を変えても、変更は結果に入りません（C# では入ります）
+  - 同じクエリを 2 回使ったとき、2 回目も最初の結果のままです（C# では使うたびに計算し直します）
+
+```csharp
+var big = list.Where(x => x > 1);
+list.Add(10);
+int n = big.Count();   // C# では 10 も数える。ここでは Where を呼んだ時点の結果を数える
+```
+
+未対応の書き方（コンパイルエラーになります）：
+
+- `OrderBy`／`OrderByDescending`／`ThenBy`、`Distinct`、`Skip`／`Take`、`ToDictionary` など、上記以外のメソッド
+- Dictionary への LINQ
+- 添字付きのラムダ（`Select((x, i) => ...)`）、`Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`
+- `IEnumerable<T>` 型の宣言（フィールド・変数・引数・戻り値）。`var` で受けるか、`ToList()`／`ToArray()` にしてください
+- LINQ の結果を、そのままメソッドに渡すこと（`string.Join(",", list.Select(...))`）。`ToArray()` にしてください
+- フィールドの初期化子の中の LINQ
+
+注意：
+
+- 要素がないときの `First`／`Last`／`Min`／`Max`／`Average` は、C# の `InvalidOperationException` の代わりに、エラーのログを出して Udon の実行時例外になります
+- `Contains` は `==` で比べます
 
 ## 仕組み
 
 1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。
    1. インタフェース：インタフェース型を `object` に置き換えます。呼び出しは、汎用クラスならそのクラスのメソッドの呼び出しに、UdonSharpBehaviour なら `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由に振り分けます。`is`／`as` は型タグと型IDで判定する形にします。
    2. 汎用クラス：インスタンスを `object[]` にし、コンストラクタ・メソッドのコピーを、使う UdonSharpBehaviour に生成します。
-   3. List / Dictionary：`DataList` / `DataDictionary` に置き換え、要素の出し入れを `DataToken` との変換にします。`foreach` は添字で回すループにします。ラムダを受け取るメソッドは、ループとラムダの本体を入れたメソッドを生成し、その呼び出しにします。外のローカル変数・引数は、読むだけなら値で、書き込むなら `ref` で渡します（書き込むかどうかは Roslyn のデータフロー解析で判定します）。
+   3. List / Dictionary：`DataList` / `DataDictionary` に置き換え、要素の出し入れを `DataToken` との変換にします。`foreach` は添字で回すループにします。ラムダを受け取るメソッドは、ループとラムダの本体を入れたメソッドを生成し、その呼び出しにします。外のローカル変数・引数は、読むだけなら値で、書き込むなら `ref` で渡します（書き込むかどうかは Roslyn のデータフロー解析で判定します）。LINQ は、つないだ呼び出しを 1 つのループの生成メソッドにまとめます。
 2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前を、どの実装クラスでも揃うものにします（メソッドは元の名前、引数は `Damage__int__string__p0`、戻り値は `Damage__int__string__ret`）。
 3. `CompilationContext.AddDiagnostic` と `AssemblyDebugInfo`（実行時例外の位置を引くデバッグ情報）にパッチを当て、汎用クラスのコピーの中の位置を、元のクラスのソースの位置に戻します。
 
