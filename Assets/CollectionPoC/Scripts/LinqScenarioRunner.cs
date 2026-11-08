@@ -15,6 +15,7 @@ namespace CollectionPoC
             "a:10 16 12,242;b:3,586<5><8><6>;c:True,True,False,True,False,6,2,True,False;d:5,5,0,7,3,0;e:26,220,1,9,-1,5.5,2.75;" +
             "f:True3,15,1;g:annbob2,bob,4,2cid;h:3,3,12;" +
             "i:1 3 3 5 6 8,92,fig pear kiwi date apple,bobanncid;j:3,5,80 60 50;k:5 3 8 1 6,3c,8 1 6,8,2,0;l:50,10,3;" +
+            "n:faygus,eve,150,fayeve,True,3blue,2;" +
             "m:431,1;m:431,1;";
 
         public Text display;

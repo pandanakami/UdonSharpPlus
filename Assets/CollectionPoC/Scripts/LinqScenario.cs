@@ -115,6 +115,18 @@ namespace CollectionPoC
             Dictionary<string, int> scoreByName = players.ToDictionary(p => p.name, p => p.score);
             r += "l:" + byName["bob"].score + "," + scoreByName["cid"] + "," + scoreByName.Count + ";";
 
+            // 汎用クラス・string の配列を元にする
+            Player[] team = { new Player("eve", 20, 1f), new Player("fay", 80, 3f), new Player("gus", 50, 2f) };
+            List<string> fast = team.Where(p => p.speed >= 2f).OrderBy(p => p.name).Select(p => p.name).ToList();
+            Player slowest = team.OrderBy(p => p.speed).First();
+            int teamScore = team.Sum(p => p.score);
+            Player[] ranked = team.OrderByDescending(p => p.score).ToArray();
+            bool hasEve = team.Any(p => p.name == "eve");
+            string[] tags = { "red", "blue", "red", "green" };
+            List<string> uniqueTags = tags.Distinct().OrderBy(t => t).ToList();
+            r += "n:" + fast[0] + fast[1] + "," + slowest.name + "," + teamScore + "," + ranked[0].name + ranked[2].name + "," + hasEve + ","
+                 + uniqueTags.Count + uniqueTags[0] + "," + tags.Count(t => t == "red") + ";";
+
             return r;
         }
     }
