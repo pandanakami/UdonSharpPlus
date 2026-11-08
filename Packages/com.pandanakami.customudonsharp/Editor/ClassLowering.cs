@@ -573,8 +573,14 @@ namespace CustomUdonSharp
                 if (symbol is INamedTypeSymbol type && Target(type) != null)
                     return ParseInstanceType(node);
 
+                if (MethodGroup(node, symbol) is SyntaxNode group)
+                    return group;
+
                 if (_self != null)
                 {
+                    // コピー先のファイルには元のファイルの using がないので、型名は完全修飾にする
+                    if (symbol is INamedTypeSymbol other && !node.IsVar)
+                        return QualifiedType(other, node);
                     if (TrySlot(node, out ClassInfo c, out int index, out ITypeSymbol slotType, out _))
                         return Parse(SlotRead(ThisName, index, slotType), node);
                     if (TryBodiedProperty(node, out ClassInfo pc, out IPropertySymbol p, out _))
@@ -586,8 +592,13 @@ namespace CustomUdonSharp
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type && Target(type) != null)
-                    return ParseInstanceType(node);
+                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type)
+                {
+                    if (Target(type) != null)
+                        return ParseInstanceType(node);
+                    if (_self != null)
+                        return QualifiedType(type, node);
+                }
                 return base.VisitQualifiedName(node);
             }
 
@@ -596,6 +607,42 @@ namespace CustomUdonSharp
                 if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type && Target(type) != null)
                     return ParseInstanceType(node);
                 return base.VisitAliasQualifiedName(node);
+            }
+
+            // List<int> など：コピーの中では完全修飾にする（型引数の汎用クラスは object[] にする）
+            public override SyntaxNode VisitGenericName(GenericNameSyntax node)
+            {
+                if (_self != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type)
+                    return QualifiedType(type, node);
+                return base.VisitGenericName(node);
+            }
+
+            private SyntaxNode QualifiedType(INamedTypeSymbol type, SyntaxNode original)
+            {
+                if (type.IsTupleType || type.IsAnonymousType)
+                    return original;
+                Changed = true;
+                return SyntaxFactory.ParseTypeName(TypeText(type)).WithTriviaFrom(original);
+            }
+
+            /// <summary>
+            /// 汎用クラスのメソッドを、呼び出さずにメソッド名だけで使う（list.Find(IsOdd) など。#57）。
+            /// static ならコピーのメソッド名にする。インスタンスのメソッドは受け側を渡せないのでエラー。対象でなければ null
+            /// </summary>
+            private SyntaxNode MethodGroup(ExpressionSyntax node, ISymbol symbol)
+            {
+                if (!(symbol is IMethodSymbol method) || method.MethodKind != MethodKind.Ordinary)
+                    return null;
+                IMethodSymbol definition = method.OriginalDefinition;
+                ClassInfo c = Target(definition.ContainingType);
+                if (c == null)
+                    return null;
+                if (!definition.IsStatic)
+                {
+                    Error(node, $"'{method.Name}' : 汎用クラスのインスタンスのメソッドを、メソッド名だけで渡すのは未対応です（ラムダで書いてください）");
+                    return node;
+                }
+                return Parse(MethodName(c, definition), node);
             }
 
             public override SyntaxNode VisitThisExpression(ThisExpressionSyntax node)
@@ -749,8 +796,16 @@ namespace CustomUdonSharp
                 if (TryBodiedProperty(node, out ClassInfo c, out IPropertySymbol p, out ExpressionSyntax propReceiver))
                     return Parse(p.IsStatic ? $"{GetterName(c, p)}()" : $"{GetterName(c, p)}({ReceiverText(propReceiver)})", node);
 
-                if (symbol is INamedTypeSymbol t && Target(t) != null)
-                    return ParseInstanceType(node);
+                if (symbol is INamedTypeSymbol t)
+                {
+                    if (Target(t) != null)
+                        return ParseInstanceType(node);
+                    if (_self != null)
+                        return QualifiedType(t, node);   // System.Collections.Generic.List など（元のファイルの名前空間からの相対かもしれない）
+                }
+
+                if (MethodGroup(node, symbol) is SyntaxNode group)
+                    return group;
 
                 return base.VisitMemberAccessExpression(node);
             }

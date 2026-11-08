@@ -73,6 +73,29 @@ namespace CustomUdonSharp
             }
         }
 
+        /// <summary>
+        /// 生成メソッド（ラムダの本体など、#57）に置く印を返す。
+        /// 元のノードが汎用クラスのコピーの中なら、そのコピーの元の位置を引き継ぐ
+        /// </summary>
+        public static string MarkerFor(SyntaxNode original)
+        {
+            Entry inCopy = Find(original.GetLocation());
+            if (inCopy == null)
+                return Marker(original, null, null);
+            lock (Gate)
+            {
+                _entries.Add(new Entry
+                {
+                    TreeIndex = inCopy.TreeIndex,
+                    Line = inCopy.Line,
+                    Character = inCopy.Character,
+                    ClassName = inCopy.ClassName,
+                    MemberName = inCopy.MemberName,
+                });
+                return $"/*cus@{_entries.Count - 1}*/";
+            }
+        }
+
         /// <summary>エラーメッセージに付ける補足：「（汎用クラス Saver のメソッド Exists の中）」</summary>
         public static string Describe(Entry entry)
         {

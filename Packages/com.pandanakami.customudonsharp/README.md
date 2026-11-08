@@ -110,7 +110,7 @@ Bullet[] pool = new Bullet[8];
 
 - インスタンスのフィールド（初期化子を含む）、コンストラクタ（オーバーロード、`this(...)` を含む）、インスタンスメソッド
 - プロパティ（自動実装と、本体付きの get/set）
-- static メソッド、拡張メソッド、static クラス、const
+- static メソッド、拡張メソッド、static クラス、const。static メソッドは、メソッド名だけで List のメソッドに渡せます（`list.Find(IsOdd)`）
 - クラスの配列、`foreach`
 - `is`、`as`、キャスト、`nameof`
 - 再帰（`[RecursiveMethod]` を付けたメソッド）
@@ -122,6 +122,7 @@ Bullet[] pool = new Bullet[8];
 - 継承、abstract クラス、ジェネリッククラス・メソッド、入れ子のクラス。ScriptableObject・MonoBehaviour・Exception などを継承したクラスも、UdonSharpBehaviour から使うと「`'Settings' : 汎用クラスの継承は未対応です（ScriptableObject を継承しています）`」のエラーになります（UdonSharp も対応しておらず、そのままだと内部の例外になるため）
 - ユーザー定義の構造体（struct）。UdonSharp も対応していません。UdonSharpBehaviour から使うと「`'Point' : ユーザー定義の構造体は未対応です`」のエラーになります（UdonSharp のままだと内部の例外になり、原因が分かりにくいため）
 - 演算子のオーバーロード、インデクサー、イベント、`ToString` などの override
+- インスタンスのメソッドを、メソッド名だけで渡すこと（`list.Find(b.IsHit)`）。ラムダで書いてください（`list.Find(x => b.IsHit(x))`）
 - オブジェクト初期化子（`new Bullet { damage = 1 }`）、`?.`、型パターン（`x is Bullet b`）、`typeof(Bullet)`
 - 汎用クラス型のフィールドのシリアライズと同期（`[SerializeField]`、`[UdonSynced]`）。public フィールドもシリアライズされません
 - フィールド・プロパティへの代入の値を式として使うこと（`x = b.damage = 1`）。複合代入とインクリメントの受け側に、メソッド呼び出しを書くこと（`Get().damage += 1`）
@@ -129,10 +130,10 @@ Bullet[] pool = new Bullet[8];
 注意：
 
 - 値型のフィールドのメソッドで、そのフィールド自体を書き換えるもの（`b.pos.Normalize()` など）は、コピーに対して呼ばれるため反映されません。`b.pos = b.pos.normalized;` のように代入してください
-- 汎用クラスのメソッドの中で出たコンパイルエラーは、元のクラスのソースの位置（文の先頭）に表示され、末尾にどのクラスのどのメンバーかが付きます。メッセージの中の式は書き換え後のもの（フィールド `path` が `((string)(__this)[1])` など）になります。同じクラスを複数の UdonSharpBehaviour で使っていても、同じエラーは 1 つにまとめます
+- 汎用クラスのメソッドの中で出たコンパイルエラーは、元のクラスのソースの位置（文の先頭）に表示され、末尾にどのクラスのどのメンバーかが付きます。メッセージの中の式は書き換え後のもの（フィールド `path` が `((string)(__this)[1])`、型名が `global::` 付きの完全修飾になるなど）になります。同じクラスを複数の UdonSharpBehaviour で使っていても、同じエラーは 1 つにまとめます
 
   ```
-  Saver.cs(10,13): Method is not exposed to Udon: 'System.IO.File.Exists(((string)(__this)[1]))'（汎用クラス Saver のメソッド Exists の中）
+  Saver.cs(10,13): Method is not exposed to Udon: 'global::System.IO.File.Exists(((string)(__this)[1]))'（汎用クラス Saver のメソッド Exists の中）
   ```
 
 - 汎用クラスのメソッドの中で起きた実行時例外（`Udon runtime exception detected!`）も、元のクラスのソースの位置（文の単位）に表示されます。表示の仕組みは UdonSharp のものなので、クライアントで確かめるときは、UdonSharp と同じく `--enable-udon-debug-logging` を付けて起動してください
@@ -162,11 +163,12 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 - Dictionary：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Remove`、`ContainsKey`、`ContainsValue`、`TryGetValue`、`Clear`
 - `foreach`：List、Dictionary（`kv.Key`／`kv.Value`）、`dict.Keys`、`dict.Values`
 - フィールドの初期化子、メソッドの引数・戻り値（インタフェースのメソッドを含む）
+- ラムダを受け取る List のメソッド：`Find`、`FindLast`、`FindIndex`、`FindLastIndex`（どちらも開始・個数の指定を含む）、`FindAll`、`ConvertAll`、`Exists`、`TrueForAll`、`RemoveAll`、`ForEach`、`Sort(Comparison)`（下の「ラムダ」）
 
 未対応の書き方（コンパイルエラーになります）：
 
 - List / Dictionary 型のフィールドのシリアライズと同期（public、`[SerializeField]`、`[UdonSynced]`）。private にしてください
-- ラムダを使うメソッド（`Find`、`Exists`、`RemoveAll`、`Sort(Comparison)` など）と LINQ
+- LINQ（`Where`、`Select` など）
 - `IEnumerable<T>` などとして渡すこと（`string.Join(",", list)` など）、`?.`
 - `foreach (var (k, v) in dict)` の分解、`kv` を `.Key`／`.Value` 以外で使うこと、`Keys`／`Values` を `foreach` と `.Count` 以外で使うこと
 - 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、メソッド呼び出しを書くこと（`Get()[0] += 1`）
@@ -179,12 +181,37 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 - 存在しないキーを添字で読んだときは、C# の `KeyNotFoundException` ではなく、Udon の実行時例外になります
 - `Dictionary` の `foreach` の順番は、`DataDictionary` の `GetKeys()` の順番です（C# の `Dictionary` と同じとは限りません）
 
+#### ラムダ
+
+UdonSharp はラムダを扱えないので、ラムダは上記の List のメソッドの引数としてだけ使えます。ループとラムダの本体は、呼び出しごとに生成するメソッドの中に入ります（ラムダを変数に入れる、後で呼ぶ、などはできません）。
+
+```csharp
+int limit = 4;
+Bullet hit = _bullets.Find(b => b.damage > limit);
+int total = 0;
+_scores.ForEach(s => total += s);
+_scores.Sort((a, b) => b - a);
+```
+
+- ラムダの中から、外のローカル変数・引数を読み書きできます。書き込みも C# と同じく、呼び出しの直後から外の変数に反映されます。フィールドもそのまま読み書きできます
+- 本体は式（`x => x > 0`）とブロック（`x => { ... }`）のどちらでも書けます。メソッド名を渡すこともできます（`_scores.Exists(IsOdd)`）
+- `Sort(Comparison)` は安定な並べ替え（マージソート）です（C# の `List.Sort` は安定とは限りません）
+- `FindIndex(start, count, match)` などで範囲外を指定したときは、C# の `ArgumentOutOfRangeException` ではなく、Udon の実行時例外か、見つからない結果（-1）になります
+- ラムダの中で起きたコンパイルエラーと実行時例外は、元のラムダの位置に表示されます
+
+未対応の書き方（コンパイルエラーになります）：
+
+- 上記の List のメソッドの引数以外のラムダ（`Func<int, bool> f = x => x > 0;` など）、`delegate { ... }`、デリゲートの変数を渡すこと
+- フィールドの初期化子の中で、ラムダを渡す List のメソッドを呼ぶこと
+- `foreach (var kv in dict)` の `kv` をラムダの中で使うこと（`kv.Key`／`kv.Value` をいったん変数に入れてください）
+- `[RecursiveMethod]` を付けたメソッドの中で、外のローカル変数・引数に書き込むラムダ。外の変数は `ref` 引数で生成メソッドに渡しますが、UdonSharp は `[RecursiveMethod]` の中での `ref` 引数のメソッドの呼び出しに対応していないため、UdonSharp のエラー（`U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod`）になります。読むだけのラムダは使えます
+
 ## 仕組み
 
 1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。
    1. インタフェース：インタフェース型を `object` に置き換えます。呼び出しは、汎用クラスならそのクラスのメソッドの呼び出しに、UdonSharpBehaviour なら `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由に振り分けます。`is`／`as` は型タグと型IDで判定する形にします。
    2. 汎用クラス：インスタンスを `object[]` にし、コンストラクタ・メソッドのコピーを、使う UdonSharpBehaviour に生成します。
-   3. List / Dictionary：`DataList` / `DataDictionary` に置き換え、要素の出し入れを `DataToken` との変換にします。`foreach` は添字で回すループにします。
+   3. List / Dictionary：`DataList` / `DataDictionary` に置き換え、要素の出し入れを `DataToken` との変換にします。`foreach` は添字で回すループにします。ラムダを受け取るメソッドは、ループとラムダの本体を入れたメソッドを生成し、その呼び出しにします。外のローカル変数・引数は、読むだけなら値で、書き込むなら `ref` で渡します（書き込むかどうかは Roslyn のデータフロー解析で判定します）。
 2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前を、どの実装クラスでも揃うものにします（メソッドは元の名前、引数は `Damage__int__string__p0`、戻り値は `Damage__int__string__ret`）。
 3. `CompilationContext.AddDiagnostic` と `AssemblyDebugInfo`（実行時例外の位置を引くデバッグ情報）にパッチを当て、汎用クラスのコピーの中の位置を、元のクラスのソースの位置に戻します。
 

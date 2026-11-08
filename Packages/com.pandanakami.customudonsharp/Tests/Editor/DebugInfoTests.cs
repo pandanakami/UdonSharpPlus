@@ -78,5 +78,52 @@ namespace CustomUdonSharpTests.DebugInfo
             Assert.That(start.FilePath, Does.EndWith("User.cs"), start.ToString());
             Assert.That(start.Positions.Select(p => p.Line + 1), Is.All.InRange(10, 13), start.ToString());
         }
+
+        // ラムダ（#57）：生成メソッドが、元のラムダの行を指す
+        private const string LambdaUser = @"
+using System.Collections.Generic;
+using UdonSharp;
+using UnityEngine;
+
+namespace CustomUdonSharpTests.DebugInfoLambda
+{
+    public class User : UdonSharpBehaviour
+    {
+        private List<int> _list = new List<int>();
+
+        void Start()
+        {
+            int[] table = new int[2];
+            int hit = _list.Find(x => table[x] > 0);
+            _list.ForEach(x =>
+            {
+                int v = table[x];
+                Debug.Log(v);
+            });
+        }
+    }
+}";
+
+        [Test]
+        public void LambdaMethodsPointToLambda()
+        {
+            var result = UdonSharpTestCompiler.Compile(new TestSource("User.cs", LambdaUser));
+            Assert.That(result.Diagnostics, Is.Empty);
+            ProgramResult program = result["User"];
+            string dump = string.Join(" / ", program.DebugMethods);
+
+            // Find のラムダ（15 行目）
+            DebugMethodInfo find = program.DebugMethods.FirstOrDefault(m => m.MethodName.Contains("__lambda_Find"));
+            Assert.That(find, Is.Not.Null, dump);
+            Assert.That(find.FilePath, Does.EndWith("User.cs"), find.ToString());
+            Assert.That(find.Positions.Select(p => p.Line + 1), Is.All.EqualTo(15), find.ToString());
+
+            // ForEach のブロックのラムダ（16〜20 行目）。中の 2 つの文（18・19 行目）を両方含む
+            DebugMethodInfo forEach = program.DebugMethods.FirstOrDefault(m => m.MethodName.Contains("__lambda_ForEach"));
+            Assert.That(forEach, Is.Not.Null, dump);
+            Assert.That(forEach.Positions.Select(p => p.Line + 1), Is.All.InRange(16, 20), forEach.ToString());
+            Assert.That(forEach.Positions.Select(p => p.Line + 1), Does.Contain(18), forEach.ToString());
+            Assert.That(forEach.Positions.Select(p => p.Line + 1), Does.Contain(19), forEach.ToString());
+        }
     }
 }

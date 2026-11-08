@@ -105,6 +105,7 @@ namespace CustomUdonSharp
             private SortedDictionary<string, string> _helpers;   // 生成する補助メソッド（名前 → コード）。UdonSharpBehaviour の中だけ
             private List<string> _pending;                        // 今の文の前に出す文（TryGetValue）
             private int _temp;
+            private int _lambdaCount;                             // 生成するラムダのメソッドの番号（クラスごと）
 
             public bool Changed { get; private set; }
 
@@ -226,6 +227,7 @@ namespace CustomUdonSharp
                     return node;
 
                 _helpers = new SortedDictionary<string, string>(StringComparer.Ordinal);
+                _lambdaCount = 0;
                 var visited = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
                 var helpers = _helpers;
                 _helpers = null;
@@ -540,8 +542,11 @@ namespace CustomUdonSharp
                     return node;
                 }
 
-                string receiver = Text(Visit(access.Expression));
                 var args = node.ArgumentList.Arguments;
+                if (list && args.Any(a => IsDelegate(a.Expression)))
+                    return LambdaCall(node, method, access, receiverType);
+
+                string receiver = Text(Visit(access.Expression));
                 string Arg(int i) => Text(Visit(args[i].Expression));
 
                 if (list)
@@ -812,6 +817,328 @@ namespace CustomUdonSharp
                     return node;
                 }
                 return base.VisitForEachVariableStatement(node);
+            }
+
+            // ---- ラムダ（#57） ------------------------------------------------------
+
+            /// <summary>ラムダの外の変数（ラムダを含むメソッドのローカル変数・引数）</summary>
+            private sealed class Capture
+            {
+                public string Name;
+                public ITypeSymbol Type;
+                public bool Written;   // ラムダの中で書かれる → ref で渡す
+            }
+
+            private static readonly string[] LambdaMethods =
+                { "Find", "FindLast", "FindIndex", "FindLastIndex", "FindAll", "ConvertAll", "Exists", "TrueForAll", "RemoveAll", "ForEach", "Sort" };
+
+            /// <summary>範囲（開始・個数）の引数も受け取るメソッド：FindIndex(start, match)、FindIndex(start, count, match)</summary>
+            private static bool TakesRange(string op) => op == "FindIndex" || op == "FindLastIndex";
+
+            private bool IsDelegate(ExpressionSyntax e) =>
+                e is LambdaExpressionSyntax || e is AnonymousMethodExpressionSyntax
+                || _model.GetTypeInfo(e).ConvertedType?.TypeKind == TypeKind.Delegate;
+
+            public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => LambdaElsewhere(node) ?? base.VisitSimpleLambdaExpression(node);
+            public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => LambdaElsewhere(node) ?? base.VisitParenthesizedLambdaExpression(node);
+            public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => LambdaElsewhere(node) ?? base.VisitAnonymousMethodExpression(node);
+
+            /// <summary>List のメソッドの引数以外のラムダ（書き換えるラムダは、本体だけを Visit するのでここには来ない）</summary>
+            private SyntaxNode LambdaElsewhere(ExpressionSyntax node)
+            {
+                if (_helpers == null)
+                    return null;
+                Error(node, "ラムダは List のメソッド（Find / Exists / ForEach など）の引数としてだけ使えます");
+                return node;
+            }
+
+            /// <summary>ラムダを含む本当のメソッド（ラムダの中のラムダなら外側をたどる）。フィールドの初期化子などなら null</summary>
+            private IMethodSymbol EnclosingMethod(SyntaxNode node)
+            {
+                ISymbol s = _model.GetEnclosingSymbol(node.SpanStart);
+                while (s is IMethodSymbol m && m.MethodKind == MethodKind.AnonymousFunction)
+                    s = s.ContainingSymbol;
+                return s as IMethodSymbol;
+            }
+
+            /// <summary>
+            /// list.Find(x => 式) などを、生成するメソッドの呼び出しにする：
+            ///   __lambda_Find_0(list, 読むだけの外の変数, ref 書かれる外の変数)
+            /// ループとラムダの本体は生成するメソッドの中に入れる（式の本体はループの中に直接書く。
+            /// return のあるブロックの本体は、要素ごとに呼ぶ本体のメソッドにする）
+            /// </summary>
+            private SyntaxNode LambdaCall(InvocationExpressionSyntax node, IMethodSymbol method, MemberAccessExpressionSyntax access, ITypeSymbol receiverType)
+            {
+                string op = method.Name;
+                var args = node.ArgumentList.Arguments;
+                int rangeCount = args.Count - 1;   // ラムダの前の引数（FindIndex の開始・個数）
+                if (!LambdaMethods.Contains(op) || rangeCount < 0 || rangeCount > (TakesRange(op) ? 2 : 0)
+                    || args.Take(rangeCount).Any(a => IsDelegate(a.Expression))
+                    || !(_model.GetTypeInfo(args[rangeCount].Expression).ConvertedType is INamedTypeSymbol delegateType) || delegateType.DelegateInvokeMethod == null)
+                {
+                    Error(node, $"'List.{op}' : ラムダを渡すこの形は未対応です（{string.Join(" / ", LambdaMethods)} に、ラムダかメソッド名を渡す形が使えます。"
+                                + "FindIndex / FindLastIndex は開始・個数の指定も使えます）");
+                    return node;
+                }
+
+                IMethodSymbol enclosing = EnclosingMethod(node);
+                if (enclosing == null)
+                {
+                    Error(node, "ラムダを渡す List のメソッドは、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）");
+                    return node;
+                }
+
+                ExpressionSyntax fn = args[rangeCount].Expression;
+                IMethodSymbol invoke = delegateType.DelegateInvokeMethod;
+                int arity = invoke.Parameters.Length;
+                string[] names;
+                CSharpSyntaxNode body;
+                switch (fn)
+                {
+                    case SimpleLambdaExpressionSyntax s:
+                        names = new[] { s.Parameter.Identifier.ValueText };
+                        body = s.Body;
+                        break;
+                    case ParenthesizedLambdaExpressionSyntax p:
+                        names = p.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray();
+                        body = p.Body;
+                        break;
+                    case AnonymousMethodExpressionSyntax _:
+                        Error(fn, "delegate { ... } の形は未対応です。ラムダ（x => ...）で書いてください");
+                        return node;
+                    default:
+                        if (!(_model.GetSymbolInfo(fn).Symbol is IMethodSymbol))
+                        {
+                            Error(fn, "デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）");
+                            return node;
+                        }
+                        names = Enumerable.Range(0, arity).Select(i => $"__a{i}").ToArray();
+                        body = null;
+                        break;
+                }
+                if (names.Length != arity)
+                    return node;   // C# のエラーになる
+
+                List<Capture> captures = Captures(fn, body ?? fn);   // メソッド名なら、受け側（other.IsGood の other）
+                if (captures == null)
+                    return node;
+
+                string name = $"__lambda_{op}_{_lambdaCount++}";
+                string modifiers = enclosing.IsStatic ? "private static" : "private";
+                ITypeSymbol element = Element(receiverType);
+                string elementType = TypeText(element);
+                string marker = SourceMap.MarkerFor(fn);
+
+                string capParams = string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{TypeText(c.Type)} {c.Name}"));
+                string capArgs = string.Concat(captures.Select(c => $", {(c.Written ? "ref " : "")}{c.Name}"));
+
+                // 1 回分の評価：式（Invoke）か、ForEach のブロックをそのまま（Inline）
+                string invokeText = null, inlineText = null;
+                string ret = invoke.ReturnsVoid ? "void" : TypeText(invoke.ReturnType);
+                if (body == null)
+                {
+                    invokeText = $"{Text(Visit(fn))}({string.Join(", ", names)})";
+                }
+                else if (body is ExpressionSyntax expression)
+                {
+                    List<string> saved = _pending;
+                    _pending = null;   // 式の中の TryGetValue は前に出せない（エラーにする）
+                    string text = Flatten(Visit(expression), expression);
+                    _pending = saved;
+                    if (text == null)
+                        return node;
+                    invokeText = text;
+                }
+                else
+                {
+                    var block = (BlockSyntax)body;
+                    string blockText = BlockText(block);
+                    if (blockText == null)
+                        return node;
+                    bool hasReturn = block.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax)).OfType<ReturnStatementSyntax>().Any();
+                    if (invoke.ReturnsVoid && !hasReturn)
+                    {
+                        inlineText = blockText;
+                    }
+                    else
+                    {
+                        // return があるので、本体を要素ごとに呼ぶメソッドにする
+                        string bodyName = name + "_body";
+                        string bodyParams = string.Join(", ", names.Select(n => $"{elementType} {n}")) + capParams;
+                        _helpers[bodyName] = $"{modifiers} {ret} {bodyName}({bodyParams}) {marker}{blockText}";
+                        invokeText = $"{bodyName}({string.Join(", ", names)}{capArgs})";
+                    }
+                }
+
+                string each = invokeText != null ? $"{marker}{invokeText}" : null;
+                string item(string token, int i) => $"{elementType} {names[i]} = {Unwrap(token, element)}; ";
+                string forward = $"int __n = __l.Count; for (int __i = 0; __i < __n; __i++) {{ {item("__l[__i]", 0)}";
+                string backward = $"for (int __i = __l.Count - 1; __i >= 0; __i--) {{ {item("__l[__i]", 0)}";
+                // 範囲の指定（C# と同じ範囲を調べる。範囲外の指定は、C# の ArgumentOutOfRangeException ではなく、Udon の実行時例外か結果なしになる）
+                string rangeParams = rangeCount == 0 ? "" : rangeCount == 1 ? ", int __start" : ", int __start, int __count";
+                string rangeArgs = string.Concat(args.Take(rangeCount).Select(a => ", " + Text(Visit(a.Expression))));
+                if (rangeCount == 1)
+                {
+                    forward = $"int __n = __l.Count; for (int __i = __start; __i < __n; __i++) {{ {item("__l[__i]", 0)}";
+                    backward = $"for (int __i = __start; __i >= 0; __i--) {{ {item("__l[__i]", 0)}";
+                }
+                else if (rangeCount == 2)
+                {
+                    forward = $"int __n = __start + __count; for (int __i = __start; __i < __n; __i++) {{ {item("__l[__i]", 0)}";
+                    backward = $"int __end = __start - __count; for (int __i = __start; __i > __end; __i--) {{ {item("__l[__i]", 0)}";
+                }
+
+                string returnType, code;
+                switch (op)
+                {
+                    case "Find":
+                    case "FindLast":
+                        returnType = elementType;
+                        code = (op == "Find" ? forward : backward) + $"if ({each}) return {names[0]}; }} return default({elementType});";
+                        break;
+                    case "FindIndex":
+                    case "FindLastIndex":
+                        returnType = "int";
+                        code = (op == "FindIndex" ? forward : backward) + $"if ({each}) return __i; }} return -1;";
+                        break;
+                    case "Exists":
+                        returnType = "bool";
+                        code = forward + $"if ({each}) return true; }} return false;";
+                        break;
+                    case "TrueForAll":
+                        returnType = "bool";
+                        code = forward + $"if (!({each})) return false; }} return true;";
+                        break;
+                    case "FindAll":
+                        returnType = DataListType;
+                        code = $"{DataListType} __r = new {DataListType}(); " + forward + $"if ({each}) __r.Add(__l[__i]); }} return __r;";
+                        break;
+                    case "ConvertAll":
+                        // 変換後の型（TOutput）で DataToken にして、新しい DataList に入れる
+                        returnType = DataListType;
+                        code = $"{DataListType} __r = new {DataListType}(); " + forward + $"__r.Add({Wrap(each, invoke.ReturnType)}); }} return __r;";
+                        break;
+                    case "RemoveAll":
+                        // 残すものを前に詰めてから、末尾をまとめて消す（判定は C# と同じく前から 1 回ずつ）
+                        returnType = "int";
+                        code = forward + $"if (!({each})) {{ if (__j != __i) __l[__j] = __l[__i]; __j++; }} }} if (__j < __n) __l.RemoveRange(__j, __n - __j); return __n - __j;";
+                        code = "int __j = 0; " + code;
+                        break;
+                    case "ForEach":
+                        returnType = "void";
+                        code = forward + (inlineText != null ? $"{marker}{inlineText}" : $"{each};") + " }";
+                        break;
+                    case "Sort":
+                        // 安定なマージソート（ボトムアップ）。比較は 1 か所なので、ラムダの本体も 1 回だけ書く
+                        returnType = "void";
+                        code = $"int __n = __l.Count; if (__n < 2) return; "
+                               + $"{DataTokenType}[] __a = new {DataTokenType}[__n]; {DataTokenType}[] __b = new {DataTokenType}[__n]; "
+                               + "for (int __i = 0; __i < __n; __i++) __a[__i] = __l[__i]; "
+                               + "for (int __w = 1; __w < __n; __w *= 2) { "
+                               + "for (int __lo = 0; __lo < __n; __lo += 2 * __w) { "
+                               + "int __mid = __lo + __w; if (__mid > __n) __mid = __n; int __hi = __lo + 2 * __w; if (__hi > __n) __hi = __n; "
+                               + "int __p = __lo; int __q = __mid; "
+                               + "for (int __k = __lo; __k < __hi; __k++) { bool __left; "
+                               + "if (__p >= __mid) __left = false; else if (__q >= __hi) __left = true; "
+                               + $"else {{ {item("__a[__p]", 0)}{item("__a[__q]", 1)}__left = ({each}) <= 0; }} "
+                               + "if (__left) { __b[__k] = __a[__p]; __p++; } else { __b[__k] = __a[__q]; __q++; } } } "
+                               + $"{DataTokenType}[] __s = __a; __a = __b; __b = __s; }} "
+                               + "for (int __i = 0; __i < __n; __i++) __l[__i] = __a[__i];";
+                        break;
+                    default:
+                        return node;
+                }
+
+                _helpers[name] = $"{modifiers} {returnType} {name}({DataListType} __l{rangeParams}{capParams}) {{ {marker}{code} }}";
+                return Parse($"{name}({Text(Visit(access.Expression))}{rangeArgs}{capArgs})", node);
+            }
+
+            /// <summary>ラムダの外の変数を、出てくる順に集める。書かれるかは Roslyn のデータフロー解析で判定する</summary>
+            private List<Capture> Captures(ExpressionSyntax lambda, CSharpSyntaxNode body)
+            {
+                var result = new List<Capture>();
+                if (body == null)
+                    return result;
+
+                DataFlowAnalysis flow = null;
+                try
+                {
+                    flow = body is ExpressionSyntax e ? _model.AnalyzeDataFlow(e) : _model.AnalyzeDataFlow((StatementSyntax)body);
+                }
+                catch (ArgumentException)
+                {
+                    // メソッド名など、値でない式は解析できない（書き込みはない）
+                }
+                var written = new HashSet<ISymbol>(flow != null && flow.Succeeded ? flow.WrittenInside : Enumerable.Empty<ISymbol>(), SymbolEqualityComparer.Default);
+                var seen = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+                bool ok = true;
+                foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+                {
+                    ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                    ITypeSymbol type = symbol is ILocalSymbol local ? local.Type
+                        : symbol is IParameterSymbol parameter && !parameter.IsThis ? parameter.Type
+                        : null;
+                    if (type == null)
+                        continue;
+                    // ラムダの中で宣言したもの（ラムダの引数も）は外の変数ではない
+                    if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == lambda.SyntaxTree && lambda.Span.Contains(r.Span)))
+                        continue;
+                    if (!seen.Add(symbol))
+                        continue;
+                    if (_pairs.ContainsKey(symbol))
+                    {
+                        Error(id, $"'{symbol.Name}' : Dictionary の foreach の要素をラムダの中で使うのは未対応です（kv.Key / kv.Value を変数に入れてから使ってください）");
+                        ok = false;
+                        continue;
+                    }
+                    result.Add(new Capture { Name = symbol.Name, Type = type, Written = written.Contains(symbol) });
+                }
+                return ok ? result : null;
+            }
+
+            /// <summary>ブロックの本体を 1 行にする。文ごとに元の位置の印を付ける（実行時のエラーの位置を元の行に戻すため）</summary>
+            private string BlockText(BlockSyntax block)
+            {
+                var statements = new List<StatementSyntax>();
+                foreach (StatementSyntax statement in block.Statements)
+                {
+                    var visited = (StatementSyntax)Visit(statement);
+                    statements.Add(visited.WithLeadingTrivia(SyntaxFactory.Comment(SourceMap.MarkerFor(statement))));
+                }
+                var parts = new List<string>();
+                foreach (StatementSyntax statement in ExpandHoisted(SyntaxFactory.List(statements)))
+                {
+                    string text = Flatten(statement, block);
+                    if (text == null)
+                        return null;
+                    parts.Add(text);
+                }
+                return "{ " + string.Join(" ", parts) + " }";
+            }
+
+            /// <summary>
+            /// 生成メソッドに入れるため 1 行にする（生成メンバーはクラス末尾の '}' の行に置くので、改行があると後ろの行がずれる）。
+            /// 位置の印（#52）は残す。だめなときは null
+            /// </summary>
+            private string Flatten(SyntaxNode node, SyntaxNode original)
+            {
+                if (node.DescendantTrivia(descendIntoTrivia: true).Any(t => t.IsDirective))
+                {
+                    Error(original, "ラムダの中のプリプロセッサ指令（#if など）は未対応です");
+                    return null;
+                }
+                SyntaxNode flat = node.ReplaceTokens(
+                    node.DescendantTokens().Where(t => t.IsKind(SyntaxKind.StringLiteralToken) && t.Text.Contains("\n")),
+                    (o, _) => SyntaxFactory.Literal(o.ValueText).WithTriviaFrom(o));
+                flat = flat.ReplaceTrivia(flat.DescendantTrivia(descendIntoTrivia: false),
+                    (o, _) => SourceMap.IsMarker(o) ? o : SyntaxFactory.Space);
+                string text = flat.ToFullString().Trim();
+                if (text.Contains("\n"))
+                {
+                    Error(original, "ラムダの中の、改行を含む補間文字列は未対応です");
+                    return null;
+                }
+                return text;
             }
 
             // ---- 補助メソッド ------------------------------------------------------

@@ -1,6 +1,6 @@
 ## Diagnostics
 Error: Assets/CustomUdonSharpTests/User.cs(10,58): [CustomUdonSharp] 'serialized' : List / Dictionary 型のフィールドはシリアライズ・同期できません（public・[SerializeField]・[UdonSynced] は未対応です。private にしてください）
-Error: Assets/CustomUdonSharpTests/User.cs(16,24): [CustomUdonSharp] 'List.Exists' : List / Dictionary のこのメソッド（この引数の形）は未対応です
+Error: Assets/CustomUdonSharpTests/User.cs(16,13): [CustomUdonSharp] 'List.CopyTo' : List / Dictionary のこのメソッド（この引数の形）は未対応です
 Error: Assets/CustomUdonSharpTests/User.cs(17,40): [CustomUdonSharp] '_list' : List / Dictionary を System.Collections.Generic.IEnumerable<int> として渡すのは未対応です
 Error: Assets/CustomUdonSharpTests/User.cs(18,20): [CustomUdonSharp] Dictionary.TryGetValue は、ループの条件やフィールドの初期化子の中では未対応です（前の文で呼んでください）
 Error: Assets/CustomUdonSharpTests/User.cs(20,21): [CustomUdonSharp] List / Dictionary への ?. は未対応です

@@ -1,0 +1,8 @@
+## Diagnostics
+Error: Assets/CustomUdonSharpTests/User.cs(12,33): [CustomUdonSharp] ラムダを渡す List のメソッドは、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）
+Error: Assets/CustomUdonSharpTests/User.cs(16,40): [CustomUdonSharp] ラムダは List のメソッド（Find / Exists / ForEach など）の引数としてだけ使えます
+Error: Assets/CustomUdonSharpTests/User.cs(17,22): [CustomUdonSharp] 'Any' : List / Dictionary に対する拡張メソッド（LINQ など）は未対応です
+Error: Assets/CustomUdonSharpTests/User.cs(18,35): [CustomUdonSharp] delegate { ... } の形は未対応です。ラムダ（x => ...）で書いてください
+Error: Assets/CustomUdonSharpTests/User.cs(20,35): [CustomUdonSharp] デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）
+Error: Assets/CustomUdonSharpTests/User.cs(22,43): [CustomUdonSharp] 'kv' : Dictionary の foreach の要素をラムダの中で使うのは未対応です（kv.Key / kv.Value を変数に入れてから使ってください）
+## Logs

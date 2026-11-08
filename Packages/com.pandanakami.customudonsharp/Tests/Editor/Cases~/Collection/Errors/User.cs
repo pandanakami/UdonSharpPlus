@@ -13,7 +13,7 @@ namespace CustomUdonSharpTests.CollectionErrors
 
         private void Start()
         {
-            bool any = _list.Exists(x => x > 0);           // 未対応のメソッド（ラムダは #57）
+            _list.CopyTo(new int[1]);                      // 未対応のメソッド
             Debug.Log(string.Join(",", _list));            // IEnumerable として渡す
             while (_dict.TryGetValue("a", out int v))      // ループの条件の中の TryGetValue
                 _dict.Remove("a");
