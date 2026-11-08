@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ClassPoC
+namespace CollectionPoC
 {
     // #56: List / Dictionary のシナリオ。普通の C# でも Udon でも同じ結果になることを確かめる
     // （Dictionary の列挙順に頼らない形にしている）

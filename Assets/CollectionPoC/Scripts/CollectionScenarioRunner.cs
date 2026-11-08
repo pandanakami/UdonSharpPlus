@@ -3,7 +3,7 @@ using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ClassPoC
+namespace CollectionPoC
 {
     // #56: CollectionScenario を Udon 上で実行し、普通の C#（エディタ）で実行した結果と比べて OK/NG を表示する。
     // あわせて、UdonSharpBehaviour のフィールドの初期化子（List / Dictionary）が使えることも確かめる。
@@ -47,7 +47,7 @@ namespace ClassPoC
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
-            Debug.Log("[ClassPoC] #56 " + (ok ? "OK " : "NG ") + fieldText + " | " + actual);
+            Debug.Log("[CollectionPoC] #56 " + (ok ? "OK " : "NG ") + fieldText + " | " + actual);
             if (display != null)
                 display.text = text;
         }
