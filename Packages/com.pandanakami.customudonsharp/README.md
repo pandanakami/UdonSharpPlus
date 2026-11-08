@@ -124,7 +124,13 @@ Bullet[] pool = new Bullet[8];
 注意：
 
 - 値型のフィールドのメソッドで、そのフィールド自体を書き換えるもの（`b.pos.Normalize()` など）は、コピーに対して呼ばれるため反映されません。`b.pos = b.pos.normalized;` のように代入してください
-- 汎用クラスのメソッドの中で Udon が対応していない API を使うと、エラーの位置が、そのクラスを使っている UdonSharpBehaviour の閉じ括弧の行になります
+- 汎用クラスのメソッドの中で出たコンパイルエラーは、元のクラスのソースの位置（文の先頭）に表示され、末尾にどのクラスのどのメンバーかが付きます。メッセージの中の式は書き換え後のもの（フィールド `path` が `((string)(__this)[1])` など）になります。同じクラスを複数の UdonSharpBehaviour で使っていても、同じエラーは 1 つにまとめます
+
+  ```
+  Saver.cs(10,13): Method is not exposed to Udon: 'System.IO.File.Exists(((string)(__this)[1]))'（汎用クラス Saver のメソッド Exists の中）
+  ```
+
+- 汎用クラスのメソッドの中で起きた実行時例外（`Udon runtime exception detected!`）の位置は、そのクラスを使っている UdonSharpBehaviour の閉じ括弧の行になります
 - UdonSharpBehaviour から使われていないクラスは書き換えず、検査もしません
 
 ## 仕組み

@@ -16,6 +16,8 @@ namespace CustomUdonSharp
     /// - 位置は、そのとき U# が持っている同じファイルの tree（ModuleBindings）の Location にする
     ///   （U# は binding.tree と照合してファイル名を引くため）
     /// - 同じクラスのメソッドが複数の UdonSharpBehaviour にコピーされて同じエラーが出る場合は、1 つにまとめる
+    /// - メッセージの末尾に「（汎用クラス Saver のメソッド Exists の中）」の補足を付ける
+    ///   （メッセージの中の式は書き換え後のもの（((string)(__this)[1]) など）なので、どこのコードかを示す）
     /// </summary>
     internal static class DiagnosticLocationPatch
     {
@@ -46,11 +48,11 @@ namespace CustomUdonSharp
         }
 
         // 引数名は元のメソッドと一致させる（Harmony は名前で対応づける）
-        private static bool PrefixLocation(object __instance, object severity, ref Location location, string message)
+        private static bool PrefixLocation(object __instance, object severity, ref Location location, ref string message)
         {
             try
             {
-                Location mapped = Map(__instance, location);
+                Location mapped = Map(__instance, location, ref message);
                 if (mapped == null)
                     return true;
                 if (!FirstTime(__instance, severity, mapped, message))
@@ -68,7 +70,7 @@ namespace CustomUdonSharp
         {
             try
             {
-                Location mapped = Map(__instance, node?.GetLocation());
+                Location mapped = Map(__instance, node?.GetLocation(), ref message);
                 if (mapped == null)
                     return true;
                 if (FirstTime(__instance, severity, mapped, message))
@@ -81,8 +83,8 @@ namespace CustomUdonSharp
             }
         }
 
-        /// <summary>生成コードの中の位置なら、元のファイルの位置。そうでなければ null</summary>
-        private static Location Map(object context, Location location)
+        /// <summary>生成コードの中の位置なら、元のファイルの位置（メッセージには補足を付ける）。そうでなければ null</summary>
+        private static Location Map(object context, Location location, ref string message)
         {
             SourceMap.Entry entry = SourceMap.Find(location);
             if (entry == null)
@@ -92,7 +94,10 @@ namespace CustomUdonSharp
             if (!(_bindingsProperty.GetValue(context) is Array bindings) || entry.TreeIndex < 0 || entry.TreeIndex >= bindings.Length)
                 return null;
             var tree = (SyntaxTree)_treeField.GetValue(bindings.GetValue(entry.TreeIndex));
-            return tree == null ? null : SourceMap.ToLocation(entry, tree);
+            Location mapped = tree == null ? null : SourceMap.ToLocation(entry, tree);
+            if (mapped != null)
+                message += SourceMap.Describe(entry);
+            return mapped;
         }
 
         private static bool FirstTime(object context, object severity, Location location, string message)

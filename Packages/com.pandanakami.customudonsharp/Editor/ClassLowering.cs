@@ -373,7 +373,7 @@ namespace CustomUdonSharp
             private readonly Sink _sink;
             private readonly Dictionary<INamedTypeSymbol, (ClassDeclarationSyntax Host, List<ClassInfo> Used)> _hosts;
             private int _temp;
-            private string _member;   // コピー中のメンバー名（SourceMap に記録する）
+            private string _member;   // コピー中のメンバー（「メソッド Exists」など。SourceMap に記録し、エラーの補足に使う）
 
             public bool Changed { get; private set; }
 
@@ -392,7 +392,7 @@ namespace CustomUdonSharp
             private ClassInfo Target(ITypeSymbol type) => _context.Target(type);
 
             /// <summary>元の位置の印（#52）</summary>
-            private string Marker(SyntaxNode original) => SourceMap.Marker(original, _self?.Symbol.Name, _member);
+            private string Marker(SyntaxNode original, string member = null) => SourceMap.Marker(original, _self?.Symbol.Name, member ?? _member);
 
             /// <summary>コピー中の文には、先頭に元の位置の印のコメントを付ける（#52）</summary>
             public override SyntaxNode Visit(SyntaxNode node)
@@ -1057,7 +1057,7 @@ namespace CustomUdonSharp
                 if (implicitCtor != null && !s.IsStatic)
                 {
                     var decl = (ClassDeclarationSyntax)s.DeclaringSyntaxReferences.First().GetSyntax();
-                    var body = new Rewriter(_context, _context.Compilation.GetSemanticModel(decl.SyntaxTree), c, sink, null) { _member = ".ctor" };
+                    var body = new Rewriter(_context, _context.Compilation.GetSemanticModel(decl.SyntaxTree), c, sink, null) { _member = "コンストラクタ" };
                     result.Add(body.BuildInit(c, implicitCtor, "", null, null));
                     result.Add(body.BuildCtor(c, implicitCtor, ""));
                 }
@@ -1068,7 +1068,7 @@ namespace CustomUdonSharp
             private string CopyMethod(ClassInfo c, MethodDeclarationSyntax method)
             {
                 IMethodSymbol symbol = _model.GetDeclaredSymbol(method);
-                _member = symbol.Name;
+                _member = $"メソッド {symbol.Name}";
                 var sb = new StringBuilder();
                 if (symbol.GetAttributes().Any(a => a.AttributeClass?.Name == "RecursiveMethodAttribute"))
                     sb.Append("[global::UdonSharp.RecursiveMethod] ");
@@ -1104,7 +1104,7 @@ namespace CustomUdonSharp
             private IEnumerable<string> CopyConstructor(ClassInfo c, ConstructorDeclarationSyntax ctor)
             {
                 IMethodSymbol symbol = _model.GetDeclaredSymbol(ctor);
-                _member = ".ctor";
+                _member = "コンストラクタ";
                 string parameters = ParameterList(symbol, ctor.ParameterList, true);
                 yield return BuildInit(c, symbol, parameters, ctor.Initializer, ctor.Body != null ? (SyntaxNode)ctor.Body : ctor.ExpressionBody);
                 yield return BuildCtor(c, symbol, parameters);
@@ -1185,7 +1185,8 @@ namespace CustomUdonSharp
                     var rewriter = value.SyntaxTree == _model.SyntaxTree
                         ? this
                         : new Rewriter(_context, _context.Compilation.GetSemanticModel(value.SyntaxTree), c, _sink, null);
-                    sb.Append($"{rewriter.Marker(value)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({rewriter.Flatten(rewriter.Visit(value))}); ");
+                    string member = $"{(slot is IFieldSymbol ? "フィールド" : "プロパティ")} {slot.Name} の初期化子";
+                    sb.Append($"{rewriter.Marker(value, member)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({rewriter.Flatten(rewriter.Visit(value))}); ");
                 }
                 return sb.ToString();
             }
@@ -1195,7 +1196,7 @@ namespace CustomUdonSharp
                 IPropertySymbol symbol = _model.GetDeclaredSymbol(property);
                 if (symbol == null || c.Slots.ContainsKey(symbol) || IsAutoProperty(symbol))
                     yield break;
-                _member = symbol.Name;
+                _member = $"プロパティ {symbol.Name}";
 
                 string type = TypeText(symbol.Type);
                 string self = symbol.IsStatic ? "" : $"{InstanceType} {ThisName}";

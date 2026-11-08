@@ -180,18 +180,21 @@ namespace CustomUdonSharp
                     Location location = source != null && source.TreeIndex >= 0 && source.TreeIndex < targets.Count
                         ? SourceMap.ToLocation(source, targets[source.TreeIndex]) ?? Remap(entry.Location, targets)
                         : Remap(entry.Location, targets);
-                    if (!seen.Add($"{entry.IsError}|{At(location, entry.Message)}"))
+                    string message = source != null && !ReferenceEquals(location, entry.Location)
+                        ? entry.Message + SourceMap.Describe(source)
+                        : entry.Message;
+                    if (!seen.Add($"{entry.IsError}|{At(location, message)}"))
                         continue;
 
                     if (add != null)
                     {
                         object severity = Enum.Parse(severityType, entry.IsError ? "Error" : "Warning");
-                        add.Invoke(context, new[] { severity, location, Prefix + entry.Message });
+                        add.Invoke(context, new[] { severity, location, Prefix + message });
                     }
                     else if (entry.IsError)
-                        Debug.LogError(Prefix + At(location, entry.Message));
+                        Debug.LogError(Prefix + At(location, message));
                     else
-                        Debug.LogWarning(Prefix + At(location, entry.Message));
+                        Debug.LogWarning(Prefix + At(location, message));
                 }
             }
 
@@ -588,8 +591,12 @@ namespace CustomUdonSharp
                 var classSymbol = _model.GetDeclaredSymbol(node);
                 var state = new ClassState();
 
+                // UdonSharpBehaviour 以外のクラスの中身は書き換えない。U# がコンパイルするのは UdonSharpBehaviour だけで、
+                // 汎用クラス（#49）は使う側にコピーされたものが書き換えられる（元の宣言でエラーを重ねて出さないため）
+                bool rewriteMembers = classSymbol == null || IsUdonSharpBehaviour(classSymbol);
+
                 _states.Push(state);
-                var visited = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
+                var visited = rewriteMembers ? (ClassDeclarationSyntax)base.VisitClassDeclaration(node) : node;
                 _states.Pop();
 
                 if (classSymbol == null)
