@@ -1,0 +1,3 @@
+## Diagnostics
+Error: Assets/CustomUdonSharpTests/User.cs(12,148): Method is not exposed to Udon: 'System.IO.File.Exists(((string)(__this)[1]))'
+## Logs

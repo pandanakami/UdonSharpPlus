@@ -66,66 +66,71 @@ namespace CustomUdonSharp
         {
             InterfaceNaming.ImplementationKeys = new HashSet<string>();
 
-            var trees = new List<SyntaxTree>(bindings.Length);
+            var original = new List<SyntaxTree>(bindings.Length);
             foreach (object b in bindings)
-                trees.Add((SyntaxTree)treeField.GetValue(b));
-
-            // インタフェース宣言が無ければ何もしない（通常ケースのコストをゼロに近づける）
-            if (!trees.Any(t => t.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Any()))
-                return;
-
-            var compilation = CSharpCompilation.Create(
-                "CustomUdonSharp_InterfacePrepass",
-                trees,
-                GetMetadataReferences(),
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                original.Add((SyntaxTree)treeField.GetValue(b));
 
             var diagnostics = new LoweringDiagnostics();
-            var interfaces = CollectInterfaces(compilation, trees, diagnostics);
-            if (interfaces.Count == 0)
-            {
-                diagnostics.Report(context, null);
-                return;
-            }
+            List<SyntaxTree> current = original;
 
-            CollectImplementers(compilation, trees, interfaces, diagnostics);
+            // 1) 汎用クラス（#49）→ 2) インタフェース の順に書き換える。どちらも行数を変えない
+            if (ClassLowering.MayHaveClasses(current))
+                current = ClassLowering.Run(current, diagnostics, GetMetadataReferences());
 
-            var rewritten = new List<(int Index, SyntaxTree Tree, string Text)>();
-            for (int i = 0; i < bindings.Length; i++)
-            {
-                SyntaxTree tree = trees[i];
-                SemanticModel model = compilation.GetSemanticModel(tree);
-                var rewriter = new Rewriter(model, interfaces, diagnostics);
-                SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
-
-                if (!rewriter.Changed)
-                    continue;
-
-                string newText = newRoot.ToFullString();
-                rewritten.Add((i, CSharpSyntaxTree.ParseText(newText, (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8), newText));
-            }
+            if (current.Any(t => t.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Any()))
+                current = LowerInterfaces(current, diagnostics);
 
             // エラーがあれば U# はこの直後でコンパイルを止めるので、書き換えた tree は使われない。
             // 元の tree のままにしておくと、U# が診断の位置からファイル名を引ける（binding.tree と照合するため）
             if (diagnostics.HasErrors && context != null)
             {
-                diagnostics.Report(context, null);
+                diagnostics.Report(context, original);
                 return;
             }
 
-            var replaced = new Dictionary<SyntaxTree, SyntaxTree>();
-            foreach (var (index, newTree, newText) in rewritten)
+            for (int i = 0; i < bindings.Length; i++)
             {
-                object binding = bindings.GetValue(index);
-                replaced[trees[index]] = newTree;
-                treeField.SetValue(binding, newTree);
+                if (ReferenceEquals(current[i], original[i]))
+                    continue;
+
+                object binding = bindings.GetValue(i);
+                string newText = current[i].GetText().ToString();
+                treeField.SetValue(binding, current[i]);
                 sourceTextField?.SetValue(binding, newText);
 
                 if (DumpEnabled)
                     Dump(binding, newText);
             }
 
-            diagnostics.Report(context, replaced);
+            diagnostics.Report(context, current);
+        }
+
+        /// <summary>インタフェースの書き換え。書き換えた tree の一覧を返す（変わらない tree はそのまま）</summary>
+        private static List<SyntaxTree> LowerInterfaces(List<SyntaxTree> trees, LoweringDiagnostics diagnostics)
+        {
+            var compilation = CSharpCompilation.Create(
+                "CustomUdonSharp_InterfacePrepass",
+                trees,
+                GetMetadataReferences(),
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var interfaces = CollectInterfaces(compilation, trees, diagnostics);
+            if (interfaces.Count == 0)
+                return trees;
+
+            CollectImplementers(compilation, trees, interfaces, diagnostics);
+
+            var result = new List<SyntaxTree>(trees.Count);
+            foreach (SyntaxTree tree in trees)
+            {
+                SemanticModel model = compilation.GetSemanticModel(tree);
+                var rewriter = new Rewriter(model, interfaces, diagnostics);
+                SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
+                result.Add(rewriter.Changed
+                    ? CSharpSyntaxTree.ParseText(newRoot.ToFullString(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8)
+                    : tree);
+            }
+            return result;
         }
 
         /// <summary>本パッケージが出すエラー・警告</summary>
@@ -143,8 +148,8 @@ namespace CustomUdonSharp
             public void Warning(Location location, string message) => _entries.Add((false, location, message));
 
             /// <param name="context">U# の CompilationContext（null ならログに出す）</param>
-            /// <param name="replaced">差し替えた tree（元 → 新）。位置を新しい tree に移す</param>
-            public void Report(object context, Dictionary<SyntaxTree, SyntaxTree> replaced)
+            /// <param name="targets">U# に渡す tree。位置を同じファイルのこの tree に移す</param>
+            public void Report(object context, IReadOnlyList<SyntaxTree> targets)
             {
                 System.Reflection.MethodInfo add = null;
                 Type severityType = null;
@@ -158,10 +163,18 @@ namespace CustomUdonSharp
                         Debug.LogWarning(Prefix + "CompilationContext.AddDiagnostic が見つからないため、エラー・警告をログに出します。UdonSharp の内部が変わった可能性があります");
                 }
 
-                // 警告を先、エラーを後に（従来のログと同じ順）
+                var byPath = new Dictionary<string, SyntaxTree>();
+                foreach (SyntaxTree tree in targets)
+                    byPath[tree.FilePath] = tree;
+
+                // 警告を先、エラーを後に（従来のログと同じ順）。同じ位置・内容の重複は 1 つにする
+                var seen = new HashSet<string>();
                 foreach (var entry in _entries.OrderBy(e => e.IsError))
                 {
-                    Location location = Remap(entry.Location, replaced);
+                    Location location = Remap(entry.Location, byPath);
+                    if (!seen.Add($"{entry.IsError}|{At(location, entry.Message)}"))
+                        continue;
+
                     if (add != null)
                     {
                         object severity = Enum.Parse(severityType, entry.IsError ? "Error" : "Warning");
@@ -174,21 +187,25 @@ namespace CustomUdonSharp
                 }
             }
 
-            /// <summary>書き換えでは行数を変えないので、同じ行・列を新しい tree の位置にする（列は書き換えでずれることがある）</summary>
-            private static Location Remap(Location location, Dictionary<SyntaxTree, SyntaxTree> replaced)
+            /// <summary>
+            /// 書き換えでは行数を変えないので、同じファイルの U# に渡す tree の、同じ行・列の位置にする
+            /// （途中の書き換えでできた tree の位置も、元の tree の位置も、この方法で移せる。列は書き換えでずれることがある）
+            /// </summary>
+            private static Location Remap(Location location, Dictionary<string, SyntaxTree> byPath)
             {
-                if (location == null || !location.IsInSource || replaced == null
-                    || !replaced.TryGetValue(location.SourceTree, out SyntaxTree newTree))
+                if (location == null || !location.IsInSource
+                    || !byPath.TryGetValue(location.SourceTree.FilePath, out SyntaxTree target)
+                    || ReferenceEquals(location.SourceTree, target))
                     return location;
 
                 var start = location.GetLineSpan().StartLinePosition;
-                var lines = newTree.GetText().Lines;
+                var lines = target.GetText().Lines;
                 if (start.Line >= lines.Count)
                     return location;
 
                 var line = lines[start.Line];
                 int position = line.Start + Math.Min(start.Character, line.End - line.Start);
-                return Location.Create(newTree, new Microsoft.CodeAnalysis.Text.TextSpan(position, 0));
+                return Location.Create(target, new Microsoft.CodeAnalysis.Text.TextSpan(position, 0));
             }
         }
 
@@ -535,7 +552,7 @@ namespace CustomUdonSharp
                     return visited;
 
                 ExpressionSyntax arg = args[index].Expression;
-                ITypeSymbol receiverType = ReceiverType(node);
+                ITypeSymbol receiverType = ReceiverType(node, method);
                 Optional<object> constant = _model.GetConstantValue(arg);
 
                 if (!constant.HasValue)
@@ -558,11 +575,62 @@ namespace CustomUdonSharp
                 return visited.WithArgumentList(visited.ArgumentList.WithArguments(visited.ArgumentList.Arguments.Replace(oldArg, newArg)));
             }
 
-            private ITypeSymbol ReceiverType(InvocationExpressionSyntax node)
+            private ITypeSymbol ReceiverType(InvocationExpressionSyntax node, IMethodSymbol method)
             {
+                // NetworkCalling.SendCustomNetworkEvent(IUdonEventReceiver udonBehaviour, ...) のように、受け手を引数で渡す API
+                ExpressionSyntax receiverArg = ReceiverArgument(node, method);
+                if (receiverArg != null)
+                    return _model.GetTypeInfo(StripReceiverCast(receiverArg)).Type;
+
                 if (node.Expression is MemberAccessExpressionSyntax access)
-                    return _model.GetTypeInfo(access.Expression).Type;
+                    return _model.GetTypeInfo(StripReceiverCast(access.Expression)).Type;
                 return _model.GetEnclosingSymbol(node.SpanStart)?.ContainingType;   // SendCustomEvent(...) を自分に対して呼ぶ場合
+            }
+
+            private const string EventReceiverType = "VRC.Udon.Common.Interfaces.IUdonEventReceiver";
+
+            /// <summary>受け手（IUdonEventReceiver）を引数で渡すメソッドなら、その引数の式</summary>
+            private static ExpressionSyntax ReceiverArgument(InvocationExpressionSyntax node, IMethodSymbol method)
+            {
+                if (!method.IsStatic)
+                    return null;
+                IParameterSymbol parameter = method.Parameters.FirstOrDefault(p => p.Type.ToDisplayString() == EventReceiverType);
+                if (parameter == null)
+                    return null;
+
+                SeparatedSyntaxList<ArgumentSyntax> args = node.ArgumentList.Arguments;
+                for (int i = 0; i < args.Count; i++)
+                {
+                    string name = args[i].NameColon != null
+                        ? args[i].NameColon.Name.Identifier.ValueText
+                        : (i < method.Parameters.Length ? method.Parameters[i].Name : null);
+                    if (name == parameter.Name)
+                        return args[i].Expression;
+                }
+                return null;
+            }
+
+            /// <summary>(IUdonEventReceiver)x や (UdonSharpBehaviour)x のキャストを外し、元の式にする（元の型から対象メソッドを探すため）</summary>
+            private ExpressionSyntax StripReceiverCast(ExpressionSyntax expr)
+            {
+                while (true)
+                {
+                    if (expr is ParenthesizedExpressionSyntax paren)
+                    {
+                        expr = paren.Expression;
+                        continue;
+                    }
+                    if (expr is CastExpressionSyntax cast)
+                    {
+                        string type = _model.GetTypeInfo(cast.Type).Type?.ToDisplayString();
+                        if (type == EventReceiverType || type == "UdonSharp.UdonSharpBehaviour")
+                        {
+                            expr = cast.Expression;
+                            continue;
+                        }
+                    }
+                    return expr;
+                }
             }
 
             private IEnumerable<IMethodSymbol> LookupMethods(ITypeSymbol type, string name)

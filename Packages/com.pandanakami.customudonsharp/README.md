@@ -62,6 +62,56 @@ enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
 - インタフェース型のシリアライズフィールド（Unity がシリアライズしないため。`UdonSharpBehaviour` 型で受けてキャストしてください）
 - `GetComponent<IFoo>()`
 
+### 汎用クラス（実験的）
+
+UdonSharpBehaviour 以外の普通のクラスを、UdonSharpBehaviour の中で使えます。
+
+```csharp
+public class Bullet
+{
+    public Vector3 pos;
+    public int damage = 10;
+    public string Name { get; set; } = "bullet";
+
+    public Bullet(Vector3 p) { pos = p; }
+
+    public bool IsAlive => damage > 0;
+
+    public void Move(Vector3 d) { pos += d; }
+}
+
+// UdonSharpBehaviour の中
+Bullet b = new Bullet(Vector3.zero);
+b.Move(Vector3.up);
+Bullet[] pool = new Bullet[8];
+```
+
+インスタンスは `object[]`（先頭に型名、続けてフィールド）になり、コンストラクタやメソッドは、そのクラスを使う UdonSharpBehaviour ごとにコピーされます。状態は `object[]` の中にあるので、インスタンスを別の UdonSharpBehaviour に渡しても、同じインスタンスとして扱えます。
+
+対応している書き方：
+
+- インスタンスのフィールド（初期化子を含む）、コンストラクタ（オーバーロード、`this(...)` を含む）、インスタンスメソッド
+- プロパティ（自動実装と、本体付きの get/set）
+- static メソッド、拡張メソッド、static クラス、const
+- クラスの配列、`foreach`
+- `is`、`as`、キャスト、`nameof`
+- 再帰（`[RecursiveMethod]` を付けたメソッド）
+
+未対応の書き方（そのクラスを UdonSharpBehaviour から使うとコンパイルエラーになります）：
+
+- static フィールド（UdonSharp と同じく非対応）
+- 継承、abstract クラス、ジェネリッククラス・メソッド、入れ子のクラス、struct
+- 演算子のオーバーロード、インデクサー、イベント、`ToString` などの override
+- オブジェクト初期化子（`new Bullet { damage = 1 }`）、`?.`、型パターン（`x is Bullet b`）、`typeof(Bullet)`
+- 汎用クラス型のフィールドのシリアライズと同期（`[SerializeField]`、`[UdonSynced]`）。public フィールドもシリアライズされません
+- フィールド・プロパティへの代入の値を式として使うこと（`x = b.damage = 1`）。複合代入とインクリメントの受け側に、メソッド呼び出しを書くこと（`Get().damage += 1`）
+
+注意：
+
+- 値型のフィールドのメソッドで、そのフィールド自体を書き換えるもの（`b.pos.Normalize()` など）は、コピーに対して呼ばれるため反映されません。`b.pos = b.pos.normalized;` のように代入してください
+- 汎用クラスのメソッドの中で Udon が対応していない API を使うと、エラーの位置が、そのクラスを使っている UdonSharpBehaviour の閉じ括弧の行になります
+- UdonSharpBehaviour から使われていないクラスは書き換えず、検査もしません
+
 ## 仕組み
 
 1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。インタフェース型を UdonSharpBehaviour に置き換え、呼び出しを `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由にし、`is`／`as` を型IDで判定する形にします。
