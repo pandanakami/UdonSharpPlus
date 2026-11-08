@@ -204,7 +204,11 @@ namespace CustomUdonSharp.Tests
             Property(contextType, "ModuleBindings").SetValue(context, bindings);
 
             // 本パッケージの書き換え（通常は LoadSyntaxTreesAndCreateModules の Postfix で行われる）
-            CaptureLogs(result.Logs, () => InterfaceLowering.Process(bindings, treeField, sourceTextField));
+            CaptureLogs(result.Logs, () => InterfaceLowering.Process(bindings, treeField, sourceTextField, context));
+
+            // U# と同じく、ここでエラーがあれば止める（UdonSharpCompilerV1.Compile）
+            if ((int)Property(contextType, "ErrorCount").GetValue(context) > 0)
+                return Finish(result, context, contextType);
 
             var trees = bindings.Cast<object>().Select(b => (SyntaxTree)treeField.GetValue(b)).ToList();
 
@@ -224,9 +228,8 @@ namespace CustomUdonSharp.Tests
                 {
                     result.Diagnostics.AddRange(emit.Diagnostics
                         .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                        .Select(d => Format("Error", d.Location, $"error {d.Id}: {d.GetMessage()}"))
-                        .OrderBy(s => s, StringComparer.Ordinal));
-                    return result;
+                        .Select(d => Format("Error", d.Location, $"error {d.Id}: {d.GetMessage()}")));
+                    return Finish(result, context, contextType);
                 }
                 image = stream.ToArray();
             }
@@ -286,6 +289,12 @@ namespace CustomUdonSharp.Tests
                 assembliesField.SetValue(null, savedAssemblies);
             }
 
+            return Finish(result, context, contextType);
+        }
+
+        /// <summary>U# の診断を結果に加えて、並べ替える</summary>
+        private static CompileResult Finish(CompileResult result, object context, Type contextType)
+        {
             var diagnostics = (System.Collections.IEnumerable)Property(contextType, "Diagnostics").GetValue(context);
             foreach (object diagnostic in diagnostics)
             {

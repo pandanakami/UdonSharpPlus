@@ -95,9 +95,11 @@ namespace CustomUdonSharpTests.Network
             var result = UdonSharpTestCompiler.Compile(Receiver, Target,
                 Caller("string ev = \"Receive\"; ((NetworkTarget)target).SendCustomNetworkEvent(NetworkEventTarget.All, ev, 1, \"a\");"));
 
-            Assert.That(result.Diagnostics, Is.Empty);
-            Assert.That(result.Logs, Has.Exactly(1).Matches<string>(l =>
+            // 本パッケージの警告は U# の診断として登録される（#45）
+            Assert.That(result.HasErrors, Is.False);
+            Assert.That(result.Diagnostics, Has.Exactly(1).Matches<string>(l =>
                 l.StartsWith("Warning:") && l.Contains("NetworkCaller.cs") && l.Contains("イベント名が定数ではない")));
+            Assert.That(result.Logs, Is.Empty);
         }
 
         // #47：受け手の型に改名対象のメソッドがなければ警告しない

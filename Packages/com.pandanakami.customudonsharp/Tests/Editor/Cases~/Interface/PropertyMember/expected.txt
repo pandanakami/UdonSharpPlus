@@ -1,0 +1,48 @@
+## Program: CustomUdonSharpTests.PropertyMember.Player
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    _hp: %SystemInt32, null
+    __0_get_Hp__ret: %SystemInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    Heal__int__p0: %SystemInt32, null
+.data_end
+.code_start
+    .export get_Hp
+    get_Hp:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# CustomUdonSharpTests.PropertyMember.Player.Hp.get
+#
+        PUSH, _hp
+        PUSH, __0_get_Hp__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    .export Heal__int
+    Heal__int:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# CustomUdonSharpTests.PropertyMember.Player.Heal(int)
+#
+        PUSH, _hp
+        PUSH, Heal__int__p0
+        PUSH, _hp
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemUInt32_0 = 4294967295
+__refl_typeid = -7509852905205517194
+__refl_typename = "CustomUdonSharpTests.PropertyMember.Player"
+### NetworkEvents
+
+## Diagnostics
+Warning: Assets/CustomUdonSharpTests/IHealth.cs(6,13): [CustomUdonSharp] 'CustomUdonSharpTests.PropertyMember.IHealth.Hp' : インタフェースはメソッドのみ対応しています（プロパティ/イベントは未対応）
+## Logs

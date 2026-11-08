@@ -46,12 +46,12 @@ namespace CustomUdonSharp
             }
         }
 
-        private static void Postfix(object __result)
+        private static void Postfix(object __instance, object __result)
         {
             try
             {
                 if (__result is Array bindings)
-                    InterfaceLowering.Process(bindings, _treeField, _sourceTextField);
+                    InterfaceLowering.Process(bindings, _treeField, _sourceTextField, __instance);
             }
             catch (Exception e)
             {

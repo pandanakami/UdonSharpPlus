@@ -1,0 +1,3 @@
+## Diagnostics
+Error: Assets/CustomUdonSharpTests/Attacker.cs(12,20): [CustomUdonSharp] 'Damage' : クラス内の x.Method(...) 形式以外のインタフェース呼び出しは未対応です（?. など）
+## Logs

@@ -97,5 +97,5 @@ __refl_typename = "CustomUdonSharpTests.NonConstantEventName.NetworkTarget"
 Receive__int__string(Receive__int__string__p0:UdonInt, Receive__int__string__p1:UdonString)
 
 ## Diagnostics
+Warning: Assets/CustomUdonSharpTests/NetworkCaller.cs(14,84): [CustomUdonSharp] 'SendCustomNetworkEvent' のイベント名が定数ではないため、引数ありのインタフェース実装メソッドの名前に書き換えられません。nameof(...) か文字列リテラルで渡してください
 ## Logs
-Warning: [CustomUdonSharp] Assets/CustomUdonSharpTests/NetworkCaller.cs(14,84): 'SendCustomNetworkEvent' のイベント名が定数ではないため、引数ありのインタフェース実装メソッドの名前に書き換えられません。nameof(...) か文字列リテラルで渡してください

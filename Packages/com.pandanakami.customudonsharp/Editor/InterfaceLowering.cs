@@ -58,7 +58,11 @@ namespace CustomUdonSharp
             public bool HasReturn => !Symbol.ReturnsVoid;
         }
 
-        public static void Process(Array bindings, FieldInfo treeField, FieldInfo sourceTextField)
+        /// <param name="context">
+        /// U# の CompilationContext。本パッケージのエラー・警告を U# の診断として登録する
+        /// （エラーがあれば U# はこの直後でコンパイルを止める）。null ならログに出すだけ。
+        /// </param>
+        public static void Process(Array bindings, FieldInfo treeField, FieldInfo sourceTextField, object context)
         {
             InterfaceNaming.ImplementationKeys = new HashSet<string>();
 
@@ -76,41 +80,128 @@ namespace CustomUdonSharp
                 GetMetadataReferences(),
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var interfaces = CollectInterfaces(compilation, trees);
+            var diagnostics = new LoweringDiagnostics();
+            var interfaces = CollectInterfaces(compilation, trees, diagnostics);
             if (interfaces.Count == 0)
+            {
+                diagnostics.Report(context, null);
                 return;
+            }
 
-            var errors = new List<string>();
-            var warnings = new List<string>();
-            CollectImplementers(compilation, trees, interfaces, errors);
+            CollectImplementers(compilation, trees, interfaces, diagnostics);
 
+            var rewritten = new List<(int Index, SyntaxTree Tree, string Text)>();
             for (int i = 0; i < bindings.Length; i++)
             {
                 SyntaxTree tree = trees[i];
                 SemanticModel model = compilation.GetSemanticModel(tree);
-                var rewriter = new Rewriter(model, interfaces, errors, warnings);
+                var rewriter = new Rewriter(model, interfaces, diagnostics);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
 
                 if (!rewriter.Changed)
                     continue;
 
                 string newText = newRoot.ToFullString();
-                SyntaxTree newTree = CSharpSyntaxTree.ParseText(newText, (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8);
-
-                treeField.SetValue(bindings.GetValue(i), newTree);
-                sourceTextField?.SetValue(bindings.GetValue(i), newText);
-
-                if (DumpEnabled)
-                    Dump(bindings.GetValue(i), newText);
+                rewritten.Add((i, CSharpSyntaxTree.ParseText(newText, (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8), newText));
             }
 
-            foreach (string warning in warnings)
-                Debug.LogWarning("[CustomUdonSharp] " + warning);
-            foreach (string error in errors)
-                Debug.LogError("[CustomUdonSharp] " + error);
+            // エラーがあれば U# はこの直後でコンパイルを止めるので、書き換えた tree は使われない。
+            // 元の tree のままにしておくと、U# が診断の位置からファイル名を引ける（binding.tree と照合するため）
+            if (diagnostics.HasErrors && context != null)
+            {
+                diagnostics.Report(context, null);
+                return;
+            }
+
+            var replaced = new Dictionary<SyntaxTree, SyntaxTree>();
+            foreach (var (index, newTree, newText) in rewritten)
+            {
+                object binding = bindings.GetValue(index);
+                replaced[trees[index]] = newTree;
+                treeField.SetValue(binding, newTree);
+                sourceTextField?.SetValue(binding, newText);
+
+                if (DumpEnabled)
+                    Dump(binding, newText);
+            }
+
+            diagnostics.Report(context, replaced);
         }
 
-        private static Dictionary<INamedTypeSymbol, InterfaceInfo> CollectInterfaces(CSharpCompilation compilation, List<SyntaxTree> trees)
+        /// <summary>本パッケージが出すエラー・警告</summary>
+        internal sealed class LoweringDiagnostics
+        {
+            private const string Prefix = "[CustomUdonSharp] ";
+
+            private readonly List<(bool IsError, Location Location, string Message)> _entries =
+                new List<(bool IsError, Location Location, string Message)>();
+
+            public bool HasErrors => _entries.Any(e => e.IsError);
+
+            public void Error(Location location, string message) => _entries.Add((true, location, message));
+
+            public void Warning(Location location, string message) => _entries.Add((false, location, message));
+
+            /// <param name="context">U# の CompilationContext（null ならログに出す）</param>
+            /// <param name="replaced">差し替えた tree（元 → 新）。位置を新しい tree に移す</param>
+            public void Report(object context, Dictionary<SyntaxTree, SyntaxTree> replaced)
+            {
+                System.Reflection.MethodInfo add = null;
+                Type severityType = null;
+                if (context != null && _entries.Count > 0)
+                {
+                    severityType = AccessTools.TypeByName("UdonSharp.Compiler.DiagnosticSeverity");
+                    add = severityType == null
+                        ? null
+                        : AccessTools.Method(context.GetType(), "AddDiagnostic", new[] { severityType, typeof(Location), typeof(string) });
+                    if (add == null)
+                        Debug.LogWarning(Prefix + "CompilationContext.AddDiagnostic が見つからないため、エラー・警告をログに出します。UdonSharp の内部が変わった可能性があります");
+                }
+
+                // 警告を先、エラーを後に（従来のログと同じ順）
+                foreach (var entry in _entries.OrderBy(e => e.IsError))
+                {
+                    Location location = Remap(entry.Location, replaced);
+                    if (add != null)
+                    {
+                        object severity = Enum.Parse(severityType, entry.IsError ? "Error" : "Warning");
+                        add.Invoke(context, new[] { severity, location, Prefix + entry.Message });
+                    }
+                    else if (entry.IsError)
+                        Debug.LogError(Prefix + At(location, entry.Message));
+                    else
+                        Debug.LogWarning(Prefix + At(location, entry.Message));
+                }
+            }
+
+            /// <summary>書き換えでは行数を変えないので、同じ行・列を新しい tree の位置にする（列は書き換えでずれることがある）</summary>
+            private static Location Remap(Location location, Dictionary<SyntaxTree, SyntaxTree> replaced)
+            {
+                if (location == null || !location.IsInSource || replaced == null
+                    || !replaced.TryGetValue(location.SourceTree, out SyntaxTree newTree))
+                    return location;
+
+                var start = location.GetLineSpan().StartLinePosition;
+                var lines = newTree.GetText().Lines;
+                if (start.Line >= lines.Count)
+                    return location;
+
+                var line = lines[start.Line];
+                int position = line.Start + Math.Min(start.Character, line.End - line.Start);
+                return Location.Create(newTree, new Microsoft.CodeAnalysis.Text.TextSpan(position, 0));
+            }
+        }
+
+        /// <summary>"path(line,col): message" の形にする（U# や Roslyn の診断と同じ書式）</summary>
+        internal static string At(Location location, string message)
+        {
+            if (location == null || !location.IsInSource)
+                return message;
+            var span = location.GetLineSpan();
+            return $"{span.Path}({span.StartLinePosition.Line + 1},{span.StartLinePosition.Character + 1}): {message}";
+        }
+
+        private static Dictionary<INamedTypeSymbol, InterfaceInfo> CollectInterfaces(CSharpCompilation compilation, List<SyntaxTree> trees, LoweringDiagnostics diagnostics)
         {
             var result = new Dictionary<INamedTypeSymbol, InterfaceInfo>(SymbolEqualityComparer.Default);
 
@@ -139,7 +230,7 @@ namespace CustomUdonSharp
                     if (member is IMethodSymbol m && m.MethodKind == MethodKind.Ordinary)
                         info.Methods.Add(new MethodInfo { Symbol = m, Signature = InterfaceNaming.SignatureName(m, erase) });
                     else if (!(member is IMethodSymbol))
-                        Debug.LogWarning($"[CustomUdonSharp] '{member}' : PoC はインタフェースのメソッドのみ対応しています（プロパティ/イベントは未対応）");
+                        diagnostics.Warning(member.Locations.FirstOrDefault(), $"'{member}' : インタフェースはメソッドのみ対応しています（プロパティ/イベントは未対応）");
                 }
             }
 
@@ -153,7 +244,7 @@ namespace CustomUdonSharp
         ///    オーバーライド元もたどって登録する。
         /// </summary>
         private static void CollectImplementers(CSharpCompilation compilation, List<SyntaxTree> trees,
-            Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, List<string> errors)
+            Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, LoweringDiagnostics diagnostics)
         {
             Type typeSymbolType = AccessTools.TypeByName("UdonSharp.Compiler.Symbols.TypeSymbol");
             var fullTypeFormat = (SymbolDisplayFormat)AccessTools.Field(typeSymbolType, "_fullTypeFormat").GetValue(null);
@@ -187,7 +278,7 @@ namespace CustomUdonSharp
 
                             if (impl.ExplicitInterfaceImplementations.Length > 0)
                             {
-                                errors.Add($"{cls.Name}.{impl.Name} : 明示的インタフェース実装は未対応です。public メソッドとして実装してください");
+                                diagnostics.Error(impl.Locations.FirstOrDefault(), $"'{cls.Name}.{m.Symbol.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください");
                                 continue;
                             }
 
@@ -243,31 +334,23 @@ namespace CustomUdonSharp
         {
             private readonly SemanticModel _model;
             private readonly Dictionary<INamedTypeSymbol, InterfaceInfo> _interfaces;
-            private readonly List<string> _errors;
-            private readonly List<string> _warnings;
+            private readonly LoweringDiagnostics _diagnostics;
             private readonly Func<INamedTypeSymbol, bool> _erase;
             private readonly Stack<ClassState> _states = new Stack<ClassState>();
 
             public bool Changed { get; private set; }
 
-            public Rewriter(SemanticModel model, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, List<string> errors, List<string> warnings)
+            public Rewriter(SemanticModel model, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, LoweringDiagnostics diagnostics)
             {
                 _model = model;
                 _interfaces = interfaces;
-                _errors = errors;
-                _warnings = warnings;
+                _diagnostics = diagnostics;
                 _erase = t => interfaces.ContainsKey(t.OriginalDefinition);
             }
 
-            private static string At(SyntaxNode node, string message)
-            {
-                var span = node.GetLocation().GetLineSpan();
-                return $"{span.Path}({span.StartLinePosition.Line + 1},{span.StartLinePosition.Character + 1}): {message}";
-            }
+            private void Error(SyntaxNode node, string message) => _diagnostics.Error(node.GetLocation(), message);
 
-            private void Error(SyntaxNode node, string message) => _errors.Add(At(node, message));
-
-            private void Warning(SyntaxNode node, string message) => _warnings.Add(At(node, message));
+            private void Warning(SyntaxNode node, string message) => _diagnostics.Warning(node.GetLocation(), message);
 
             private InterfaceInfo AsTarget(ITypeSymbol type)
             {

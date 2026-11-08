@@ -49,6 +49,9 @@ enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
 
 - 変数に入れた文字列は書き換えられません。該当しそうな場合は警告を出します。
 - 書き換え対象のメソッドを指す `nameof(...)` は、どこで使っても固定名になります（`string s = nameof(Enemy.Receive);` の `s` は `"Receive__int__string"`）。
+- `[NetworkCallable]` には UdonSharp の制約（戻り値なし、オーバーロード不可など）がそのまま掛かります。オーバーロードは元の名前で判定されるため、固定名が重ならなくても、同じクラスに `Receive(int)` を足すとエラーになります。
+
+未対応の書き方を使うと、コンパイルエラーになります（インタフェースのプロパティとイベントだけは警告を出して無視します）。
 
 未対応の書き方：
 

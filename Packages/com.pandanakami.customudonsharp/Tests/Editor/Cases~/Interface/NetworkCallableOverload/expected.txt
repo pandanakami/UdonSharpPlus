@@ -1,0 +1,42 @@
+## Program: CustomUdonSharpTests.NetworkCallableOverload.Target
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    Receive__int__string__p0: %SystemInt32, null
+    Receive__int__string__p1: %SystemString, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __1_value__param: %SystemInt32, null
+.data_end
+.code_start
+    .export Receive__int__string
+    Receive__int__string:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# CustomUdonSharpTests.NetworkCallableOverload.Target.Receive(int, string)
+#
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    .export __0_Receive
+    __0_Receive:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# CustomUdonSharpTests.NetworkCallableOverload.Target.Receive(int)
+#
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemUInt32_0 = 4294967295
+__refl_typeid = 8364319304323165503
+__refl_typename = "CustomUdonSharpTests.NetworkCallableOverload.Target"
+### NetworkEvents
+Receive__int__string(Receive__int__string__p0:UdonInt, Receive__int__string__p1:UdonString)
+
+## Diagnostics
+Error: Assets/CustomUdonSharpTests/Target.cs(14,9): Duplicate network callable method name 'Receive'. Overloading of any kind is not supported.
+## Logs
