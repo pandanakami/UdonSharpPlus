@@ -1,0 +1,77 @@
+# EditMode テスト（Redmine #48）
+#
+# 必要なリポジトリの Secrets（Settings > Secrets and variables > Actions > Secrets）
+#   UNITY_LICENSE   Unity Personal ライセンスの .ulf ファイルの中身
+#   UNITY_EMAIL     Unity アカウントのメールアドレス
+#   UNITY_PASSWORD  Unity アカウントのパスワード
+# 手順：https://game.ci/docs/github/activation
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write   # テスト結果のチェック（githubToken）
+
+jobs:
+  editmode:
+    name: EditMode tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # Packages/com.vrchat.* は git に含めていないので、vpm-manifest.json から復元する
+      - name: Resolve VPM packages
+        uses: anatawa12/sh-actions/resolve-vpm-packages@1d155c7a26bcd0a54ffd9cb38fd66ab0d32d23cd # master
+
+      # 開発用の Unity MCP（git の main を参照）は CI では不要なので外す
+      - name: Remove development-only packages
+        run: |
+          for f in Packages/manifest.json Packages/packages-lock.json; do
+            jq 'del(.dependencies["com.coplaydev.unity-mcp"])' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+          done
+
+      - name: Cache Library
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: Library
+          key: Library-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/manifest.json', 'Packages/vpm-manifest.json') }}
+          restore-keys: |
+            Library-
+
+      # ローカル（VRChat の PC 向け）と同じく StandaloneWindows64 をビルドターゲットにする
+      - name: Run EditMode tests
+        id: tests
+        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          testMode: EditMode
+          customImage: unityci/editor:ubuntu-2022.3.22f1-windows-mono-3
+          customParameters: -buildTarget StandaloneWindows64 -assemblyNames CustomUdonSharp.Editor.Tests
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: EditMode Test Results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-results
+          path: ${{ steps.tests.outputs.artifactsPath }}
+
+      # 期待値と一致しなかったケースの実際の出力（GoldenCases.ActualDir の既定）
+      - name: Upload actual outputs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: actual-outputs
+          path: Temp/CustomUdonSharpTests/actual/
+          if-no-files-found: ignore
