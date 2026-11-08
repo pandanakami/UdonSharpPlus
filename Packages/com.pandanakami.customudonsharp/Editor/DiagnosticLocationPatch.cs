@@ -90,14 +90,31 @@ namespace CustomUdonSharp
             if (entry == null)
                 return null;
 
-            // tree はパスを持たない（U# はパスなしでパースする）ので、binding の番号で引く
-            if (!(_bindingsProperty.GetValue(context) is Array bindings) || entry.TreeIndex < 0 || entry.TreeIndex >= bindings.Length)
-                return null;
-            var tree = (SyntaxTree)_treeField.GetValue(bindings.GetValue(entry.TreeIndex));
-            Location mapped = tree == null ? null : SourceMap.ToLocation(entry, tree);
+            Location mapped = OriginalLocation(context, entry);
             if (mapped != null)
                 message += SourceMap.Describe(entry);
             return mapped;
+        }
+
+        /// <summary>元の位置の、U# の表記でのファイル名（TranslateLocationToFileName）。引けなければ null（#53）</summary>
+        internal static string FileNameOf(object context, SourceMap.Entry entry)
+        {
+            Location location = OriginalLocation(context, entry);
+            if (location == null)
+                return null;
+            _translateLocation = _translateLocation ?? AccessTools.Method(context.GetType(), "TranslateLocationToFileName", new[] { typeof(Location) });
+            return _translateLocation?.Invoke(context, new object[] { location }) as string;
+        }
+
+        private static MethodInfo _translateLocation;
+
+        private static Location OriginalLocation(object context, SourceMap.Entry entry)
+        {
+            // tree はパスを持たない（U# はパスなしでパースする）ので、binding の番号で引く
+            if (_bindingsProperty == null || !(_bindingsProperty.GetValue(context) is Array bindings) || entry.TreeIndex < 0 || entry.TreeIndex >= bindings.Length)
+                return null;
+            var tree = (SyntaxTree)_treeField.GetValue(bindings.GetValue(entry.TreeIndex));
+            return tree == null ? null : SourceMap.ToLocation(entry, tree);
         }
 
         private static bool FirstTime(object context, object severity, Location location, string message)

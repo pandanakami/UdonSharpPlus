@@ -33,6 +33,15 @@ namespace CustomUdonSharp.Tests
         public override string ToString() => $"{Name}({string.Join(", ", Parameters.Select(p => $"{p.Name}:{p.Type}"))})";
     }
 
+    internal sealed class DebugMethodInfo
+    {
+        public string MethodName;
+        public string FilePath;
+        public List<(int Line, int Character)> Positions = new List<(int, int)>();
+
+        public override string ToString() => $"{MethodName} {FilePath} [{string.Join(", ", Positions.Select(p => $"{p.Line + 1}:{p.Character + 1}"))}]";
+    }
+
     /// <summary>1 つの UdonSharpBehaviour から生成された Udon プログラム</summary>
     internal sealed class ProgramResult
     {
@@ -46,6 +55,9 @@ namespace CustomUdonSharp.Tests
 
         /// <summary>[NetworkCallable] の通信用メタデータ</summary>
         public List<NetworkEventInfo> NetworkEvents = new List<NetworkEventInfo>();
+
+        /// <summary>デバッグ情報（AssemblyDebugInfo）：メソッドごとのファイルと、記録された位置（行・列は 0 始まり）</summary>
+        public List<DebugMethodInfo> DebugMethods = new List<DebugMethodInfo>();
 
         /// <summary>コードのエクスポート（エントリポイント）</summary>
         public IEnumerable<string> EntryPoints => Exports(".code_start", ".code_end");
@@ -375,6 +387,28 @@ namespace CustomUdonSharp.Tests
                 TypeName = typeName,
                 Uasm = (string)Method(assemblyModuleType, "BuildUasmStr").Invoke(assemblyModule, null),
             };
+
+            // デバッグ情報（実行時例外の位置を引くためのもの）
+            object debugInfo = Property(emitContextType, "DebugInfo").GetValue(emitContext);
+            if (debugInfo?.GetType().GetField("_methodDebugInfos", All)?.GetValue(debugInfo) is System.Collections.IEnumerable methods)
+            {
+                foreach (object method in methods)
+                {
+                    Type mt = method.GetType();
+                    var info = new DebugMethodInfo
+                    {
+                        MethodName = (string)mt.GetField("methodName").GetValue(method),
+                        FilePath = (string)mt.GetField("containingFilePath").GetValue(method),
+                    };
+                    if (mt.GetField("debugMarkers").GetValue(method) is System.Collections.IEnumerable markers)
+                        foreach (object marker in markers)
+                        {
+                            Type kt = marker.GetType();
+                            info.Positions.Add(((int)kt.GetField("startLine").GetValue(marker), (int)kt.GetField("startChar").GetValue(marker)));
+                        }
+                    program.DebugMethods.Add(info);
+                }
+            }
 
             // ヒープの初期値（AssembleProgram で heap に設定される値）
             object moduleRootTable = Property(assemblyModuleType, "RootTable").GetValue(assemblyModule);

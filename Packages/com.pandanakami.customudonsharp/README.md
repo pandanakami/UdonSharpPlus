@@ -130,13 +130,14 @@ Bullet[] pool = new Bullet[8];
   Saver.cs(10,13): Method is not exposed to Udon: 'System.IO.File.Exists(((string)(__this)[1]))'（汎用クラス Saver のメソッド Exists の中）
   ```
 
-- 汎用クラスのメソッドの中で起きた実行時例外（`Udon runtime exception detected!`）の位置は、そのクラスを使っている UdonSharpBehaviour の閉じ括弧の行になります
+- 汎用クラスのメソッドの中で起きた実行時例外（`Udon runtime exception detected!`）も、元のクラスのソースの位置（文の単位）に表示されます。表示の仕組みは UdonSharp のものなので、クライアントで確かめるときは、UdonSharp と同じく `--enable-udon-debug-logging` を付けて起動してください
 - UdonSharpBehaviour から使われていないクラスは書き換えず、検査もしません
 
 ## 仕組み
 
 1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。インタフェース型を UdonSharpBehaviour に置き換え、呼び出しを `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由にし、`is`／`as` を型IDで判定する形にします。
 2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前を、どの実装クラスでも揃うものにします（メソッドは元の名前、引数は `Damage__int__string__p0`、戻り値は `Damage__int__string__ret`）。
+3. `CompilationContext.AddDiagnostic` と `AssemblyDebugInfo`（実行時例外の位置を引くデバッグ情報）にパッチを当て、汎用クラスのコピーの中の位置を、元のクラスのソースの位置に戻します。
 
 書き換え後のソースは、デバッグ用に `Library/CustomUdonSharp/` に出力されます。
 

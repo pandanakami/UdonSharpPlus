@@ -112,6 +112,20 @@ namespace CustomUdonSharp
             return null;
         }
 
+        /// <summary>ノードの中の最初の印（生成コードでなければ null）</summary>
+        public static Entry FirstIn(SyntaxNode node)
+        {
+            foreach (SyntaxTrivia trivia in node.DescendantTrivia())
+            {
+                if (!IsMarker(trivia))
+                    continue;
+                int id = int.Parse(MarkerPattern.Match(trivia.ToString()).Groups[1].Value);
+                lock (Gate)
+                    return id < _entries.Count ? _entries[id] : null;
+            }
+            return null;
+        }
+
         private static Entry LastMarker(SyntaxTriviaList trivia)
         {
             for (int i = trivia.Count - 1; i >= 0; i--)
