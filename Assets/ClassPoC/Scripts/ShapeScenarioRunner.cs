@@ -9,7 +9,7 @@ namespace ClassPoC
     public class ShapeScenarioRunner : UdonSharpBehaviour
     {
         private const string Expected =
-            "a circle:12;a square:9;a triangle:7;sum:28;is:True,True,False,False,False;as:as circle;cross:9;";
+            "a circle:12;a square:9;a triangle:7;sum:28;is:True,True,False,False,False;as:as circle;cross:9;init:12,7,27,9;";
 
         public ShapeTriangle triangle;
         public Text display;
@@ -46,6 +46,13 @@ namespace ClassPoC
 
             // 汎用クラスのインスタンスを別のプログラムに渡し、そちらのコピーで呼ぶ
             actual += "cross:" + triangle.MeasureOther(shapes[1]) + ";";
+
+            // 配列の初期化子で汎用クラスと UdonSharpBehaviour を混ぜ、添字で呼ぶ
+            IShape[] init = new IShape[] { new Circle(2), triangle };
+            actual += "init:" + init[0].Area() + "," + init[1].Area() + ",";
+            init[0].Grow(1);
+            init[1].Grow(1);
+            actual += init[0].Area() + "," + init[1].Area() + ";";
 
             bool ok = actual == Expected;
             Debug.Log("[ClassPoC] #50 " + (ok ? "OK " : "NG ") + actual);
