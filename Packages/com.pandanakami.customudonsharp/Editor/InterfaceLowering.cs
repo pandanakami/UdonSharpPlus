@@ -15,16 +15,19 @@ namespace CustomUdonSharp
     /// <summary>
     /// ソース上で宣言されたインタフェースを、UdonSharp が扱える形へ書き換える。
     ///
-    /// 実装側 (UdonSharpBehaviour : IFoo):
+    /// 実装側 (UdonSharpBehaviour : IFoo、汎用クラス : IFoo):
     ///   - 基底リストから IFoo を除去するだけ。
-    ///   - 実装メソッドの Udon 上の名前は MethodExportLayout のコンストラクタパッチ
+    ///   - UdonSharpBehaviour の実装メソッドの Udon 上の名前は MethodExportLayout のコンストラクタパッチ
     ///     (<see cref="MethodExportLayoutPatch"/>) でシグネチャ由来の固定名に揃える。
     ///     そのため、ここでは対象メソッドのキー一覧 (<see cref="InterfaceNaming.ImplementationKeys"/>) を作る。
     /// 呼び出し側:
-    ///   - 型 IFoo → UdonSharpBehaviour
-    ///   - x.M(a)  → M__sig__call(x, a)   (SetProgramVariable / SendCustomEvent / GetProgramVariable)
+    ///   - 型 IFoo → object（実体は UdonSharpBehaviour か、汎用クラスのインスタンス object[]。#50）
+    ///   - x.M(a)  → __if_M__sig__call(x, a)
+    ///     汎用クラスなら if (x is Bullet) return ((Bullet)x).M(a); のように普通の C# で振り分ける
+    ///     （この後の汎用クラスの段（ClassLowering）が、コピーの呼び出しに書き換え、実装クラスのコピーを入れる）。
+    ///     それ以外は UdonSharpBehaviour として SetProgramVariable / SendCustomEvent / GetProgramVariable
     ///   - x is IFoo → __if_K__is(x),  x as IFoo → __if_K__as(x)
-    ///     （U# の型ID "__refl_typeid" を、コンパイル時に列挙した実装クラスの型IDと照合）
+    ///     （汎用クラスは is で、UdonSharpBehaviour は U# の型ID "__refl_typeid" を実装クラスの型IDと照合）
     ///
     /// 書き換えは「行を増やさない」ようにしている（生成メンバーはクラス末尾 '}' と同じ行に置く）ので、
     /// U# のエラー行番号は元ソースと一致する。
@@ -32,6 +35,9 @@ namespace CustomUdonSharp
     internal static class InterfaceLowering
     {
         internal const string UsbType = "global::UdonSharp.UdonSharpBehaviour";
+
+        /// <summary>インタフェース型の置き換え先（UdonSharpBehaviour と汎用クラスの object[] の両方を入れられるもの。#50）</summary>
+        internal const string ErasedType = "object";
         private static readonly string DumpDir = Path.Combine("Library", "CustomUdonSharp");
 
         /// <summary>書き換え後のソースを Library/CustomUdonSharp/ に出すか（テストでは止める）</summary>
@@ -42,6 +48,7 @@ namespace CustomUdonSharp
             public INamedTypeSymbol Symbol;
             public string Key;
             public readonly List<long> ImplTypeIds = new List<long>();   // 実装クラス (具象) の U# 型ID
+            public readonly List<INamedTypeSymbol> ImplClasses = new List<INamedTypeSymbol>();   // 実装する汎用クラス（#50）
             public string IsHelper => $"__if_{Key}__is";
             public string AsHelper => $"__if_{Key}__as";
             public readonly List<MethodInfo> Methods = new List<MethodInfo>();
@@ -75,18 +82,27 @@ namespace CustomUdonSharp
             List<SyntaxTree> current = original;
             SourceMap.RegisterTrees(current);
 
-            // 1) 汎用クラス（#49）→ 2) インタフェース の順に書き換える。どちらも行数を変えず、tree の並びも変えない
-            if (ClassLowering.MayHaveClasses(current))
+            // 1) インタフェース → 2) 汎用クラス（#49）の順に書き換える。どちらも行数を変えず、tree の並びも変えない。
+            // インタフェースの段は、汎用クラスの実装への振り分けを普通の C#（((Bullet)x).M(a)）で書き、
+            // 汎用クラスの段がそれをコピーの呼び出しにする（#50）
+            var rewrittenClasses = new List<RewrittenClass>();
+            if (current.Any(t => t.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Any()))
             {
-                current = ClassLowering.Run(current, diagnostics, GetMetadataReferences());
+                current = LowerInterfaces(current, diagnostics, rewrittenClasses);
                 SourceMap.RegisterTrees(current);
             }
 
-            if (current.Any(t => t.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Any()))
+            var usedClasses = new HashSet<string>();
+            if (ClassLowering.MayHaveClasses(current))
             {
-                current = LowerInterfaces(current, diagnostics);
+                current = ClassLowering.Run(current, diagnostics, GetMetadataReferences(), usedClasses);
                 SourceMap.RegisterTrees(current);
             }
+
+            // 汎用クラスの中で出たインタフェースのエラーは、UdonSharpBehaviour から使われるクラスのものだけ残す
+            // （使われないクラスは書き換えず、検査もしない。#49 と同じ）
+            diagnostics.DropUnusedOwners(usedClasses);
+            current = RestoreUnusedClasses(current, rewrittenClasses, usedClasses);
 
             // エラーがあれば U# はこの直後でコンパイルを止めるので、書き換えた tree は使われない。
             // 元の tree のままにしておくと、U# が診断の位置からファイル名を引ける（binding.tree と照合するため）
@@ -113,8 +129,46 @@ namespace CustomUdonSharp
             diagnostics.Report(context, current);
         }
 
+        /// <summary>インタフェースの段で中身を書き換えた汎用クラス（使われなければ元に戻す）</summary>
+        private sealed class RewrittenClass
+        {
+            public int TreeIndex;
+            public string Tag;
+            public ClassDeclarationSyntax Original;
+        }
+
+        /// <summary>
+        /// UdonSharpBehaviour から使われなかった汎用クラスの宣言を、書き換え前に戻す。
+        /// 使われないクラスは汎用クラスの段で書き換えないので、インタフェースの段の書き換え（型を object にする、など）だけが残り、
+        /// 書き換えられなかった書き方（?. など）が C# として通らなくなるため。インタフェースの宣言は残しているので、元のままで通る
+        /// </summary>
+        private static List<SyntaxTree> RestoreUnusedClasses(List<SyntaxTree> trees, List<RewrittenClass> rewritten, HashSet<string> used)
+        {
+            var result = new List<SyntaxTree>(trees);
+            foreach (var group in rewritten.Where(c => !used.Contains(c.Tag)).GroupBy(c => c.TreeIndex))
+            {
+                SyntaxTree tree = result[group.Key];
+                SyntaxNode root = tree.GetRoot();
+                var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
+                foreach (RewrittenClass c in group)
+                {
+                    int line = c.Original.GetLocation().GetLineSpan().StartLinePosition.Line;
+                    ClassDeclarationSyntax target = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault(d =>
+                        d.Identifier.ValueText == c.Original.Identifier.ValueText && d.GetLocation().GetLineSpan().StartLinePosition.Line == line);
+                    if (target != null)
+                        replacements[target] = c.Original;
+                }
+                if (replacements.Count == 0)
+                    continue;
+                SyntaxNode newRoot = root.ReplaceNodes(replacements.Keys, (o, _) => replacements[o]);
+                result[group.Key] = CSharpSyntaxTree.ParseText(newRoot.ToFullString(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8);
+            }
+            SourceMap.RegisterTrees(result);
+            return result;
+        }
+
         /// <summary>インタフェースの書き換え。書き換えた tree の一覧を返す（変わらない tree はそのまま）</summary>
-        private static List<SyntaxTree> LowerInterfaces(List<SyntaxTree> trees, LoweringDiagnostics diagnostics)
+        private static List<SyntaxTree> LowerInterfaces(List<SyntaxTree> trees, LoweringDiagnostics diagnostics, List<RewrittenClass> rewrittenClasses)
         {
             var compilation = CSharpCompilation.Create(
                 "CustomUdonSharp_InterfacePrepass",
@@ -128,12 +182,29 @@ namespace CustomUdonSharp
 
             CollectImplementers(compilation, trees, interfaces, diagnostics);
 
+            // 呼び出しの補助メソッドは、同じシグネチャなら別のインタフェースのメソッドとも共有するので、
+            // 汎用クラスへの振り分けは、そのシグネチャのメソッドを持つインタフェースを実装する全クラスにする
+            var classImpls = new Dictionary<string, List<INamedTypeSymbol>>();
+            foreach (InterfaceInfo info in interfaces.Values)
+                foreach (MethodInfo m in info.Methods)
+                {
+                    if (!classImpls.TryGetValue(m.Signature, out var list))
+                        classImpls[m.Signature] = list = new List<INamedTypeSymbol>();
+                    foreach (INamedTypeSymbol c in info.ImplClasses)
+                        if (!list.Contains(c, SymbolEqualityComparer.Default))
+                            list.Add(c);
+                }
+            foreach (var list in classImpls.Values)
+                list.Sort((a, b) => string.CompareOrdinal(a.ToDisplayString(), b.ToDisplayString()));
+
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.GetSemanticModel(tree);
-                var rewriter = new Rewriter(model, interfaces, diagnostics);
+                var rewriter = new Rewriter(model, interfaces, classImpls, diagnostics);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
+                foreach (var (tag, decl) in rewriter.RewrittenClasses)
+                    rewrittenClasses.Add(new RewrittenClass { TreeIndex = result.Count, Tag = tag, Original = decl });
                 result.Add(rewriter.Changed
                     ? CSharpSyntaxTree.ParseText(newRoot.ToFullString(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8)
                     : tree);
@@ -146,14 +217,19 @@ namespace CustomUdonSharp
         {
             private const string Prefix = "[CustomUdonSharp] ";
 
-            private readonly List<(bool IsError, Location Location, string Message)> _entries =
-                new List<(bool IsError, Location Location, string Message)>();
+            private readonly List<(bool IsError, Location Location, string Message, string Owner)> _entries =
+                new List<(bool IsError, Location Location, string Message, string Owner)>();
 
             public bool HasErrors => _entries.Any(e => e.IsError);
 
-            public void Error(Location location, string message) => _entries.Add((true, location, message));
+            /// <param name="owner">汎用クラスの中で出たものなら、そのクラスの名前（ClassLowering.ClassInfo.Tag と同じ表記）</param>
+            public void Error(Location location, string message, string owner = null) => _entries.Add((true, location, message, owner));
 
-            public void Warning(Location location, string message) => _entries.Add((false, location, message));
+            public void Warning(Location location, string message) => _entries.Add((false, location, message, null));
+
+            /// <summary>汎用クラスの中で出たもののうち、使われないクラスのものを捨てる</summary>
+            public void DropUnusedOwners(HashSet<string> usedClasses) =>
+                _entries.RemoveAll(e => e.Owner != null && !usedClasses.Contains(e.Owner));
 
             /// <param name="context">U# の CompilationContext（null ならログに出す）</param>
             /// <param name="targets">U# に渡す tree（binding と同じ並び）。位置を同じ binding のこの tree に移す</param>
@@ -301,8 +377,15 @@ namespace CustomUdonSharp
                 SemanticModel model = compilation.GetSemanticModel(tree);
                 foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
-                    if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol cls) || !IsUdonSharpBehaviour(cls))
+                    if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol cls))
                         continue;
+
+                    if (!IsUdonSharpBehaviour(cls))
+                    {
+                        if (ClassLowering.IsPlainClass(cls))
+                            CollectClassImplementer(cls, interfaces, diagnostics, reported);
+                        continue;
+                    }
 
                     long id = (long)getTypeId.Invoke(null, new object[] { cls.ToDisplayString(fullTypeFormat) });
 
@@ -335,6 +418,31 @@ namespace CustomUdonSharp
             }
 
             InterfaceNaming.ImplementationKeys = keys;
+        }
+
+        /// <summary>
+        /// インタフェースを実装する汎用クラス（#50）。呼び出しは普通の C# の呼び出しにする（Udon 上の名前は関係ない）ので、
+        /// オーバーロードの制約はない。明示的インタフェース実装だけは、((Bullet)x).M(a) で呼べないので未対応
+        /// </summary>
+        private static void CollectClassImplementer(INamedTypeSymbol cls, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces,
+            LoweringDiagnostics diagnostics, HashSet<ISymbol> reported)
+        {
+            foreach (INamedTypeSymbol implemented in cls.AllInterfaces)
+            {
+                if (!interfaces.TryGetValue(implemented.OriginalDefinition, out var info))
+                    continue;
+
+                if (!cls.IsAbstract && !cls.IsStatic && !info.ImplClasses.Contains(cls, SymbolEqualityComparer.Default))
+                    info.ImplClasses.Add(cls);
+
+                foreach (MethodInfo m in info.Methods)
+                {
+                    if (cls.FindImplementationForInterfaceMember(m.Symbol) is IMethodSymbol impl
+                        && impl.ExplicitInterfaceImplementations.Length > 0 && reported.Add(impl))
+                        diagnostics.Error(impl.Locations.FirstOrDefault(), $"'{cls.Name}.{m.Symbol.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください",
+                            ClassLowering.TagOf(cls));
+                }
+            }
         }
 
         /// <summary>
@@ -408,21 +516,30 @@ namespace CustomUdonSharp
         {
             private readonly SemanticModel _model;
             private readonly Dictionary<INamedTypeSymbol, InterfaceInfo> _interfaces;
+            private readonly Dictionary<string, List<INamedTypeSymbol>> _classImpls;   // シグネチャ → 実装する汎用クラス
             private readonly LoweringDiagnostics _diagnostics;
             private readonly Func<INamedTypeSymbol, bool> _erase;
             private readonly Stack<ClassState> _states = new Stack<ClassState>();
 
             public bool Changed { get; private set; }
 
-            public Rewriter(SemanticModel model, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, LoweringDiagnostics diagnostics)
+            /// <summary>中身を書き換えた汎用クラス（型タグ、元の宣言）</summary>
+            public readonly List<(string Tag, ClassDeclarationSyntax Original)> RewrittenClasses = new List<(string, ClassDeclarationSyntax)>();
+
+            public Rewriter(SemanticModel model, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces,
+                Dictionary<string, List<INamedTypeSymbol>> classImpls, LoweringDiagnostics diagnostics)
             {
                 _model = model;
                 _interfaces = interfaces;
+                _classImpls = classImpls;
                 _diagnostics = diagnostics;
                 _erase = t => interfaces.ContainsKey(t.OriginalDefinition);
             }
 
-            private void Error(SyntaxNode node, string message) => _diagnostics.Error(node.GetLocation(), message);
+            private readonly Stack<string> _owners = new Stack<string>();   // 書き換え中の汎用クラス（UdonSharpBehaviour の中なら null）
+
+            private void Error(SyntaxNode node, string message) =>
+                _diagnostics.Error(node.GetLocation(), message, _owners.Count > 0 ? _owners.Peek() : null);
 
             private InterfaceInfo AsTarget(ITypeSymbol type)
             {
@@ -434,12 +551,15 @@ namespace CustomUdonSharp
                 if (type is IArrayTypeSymbol array)
                     return TypeName(array.ElementType) + "[]";
                 if (AsTarget(type) != null)
-                    return UsbType;
+                    return ErasedType;
                 return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             }
 
             // インタフェース宣言自体には手を入れない
             public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => node;
+
+            // 明示的インタフェース実装（void IFoo.M()）の IFoo は、名前の位置なので object に置き換えられない（エラーは別に出す）
+            public override SyntaxNode VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => node;
 
             // ---- 型参照の置換 -------------------------------------------------
 
@@ -460,7 +580,7 @@ namespace CustomUdonSharp
             private SyntaxNode ReplaceType(SyntaxNode node)
             {
                 Changed = true;
-                return SyntaxFactory.ParseTypeName(UsbType).WithTriviaFrom(node);
+                return SyntaxFactory.ParseTypeName(ErasedType).WithTriviaFrom(node);
             }
 
             // ---- is / as ------------------------------------------------------
@@ -591,12 +711,15 @@ namespace CustomUdonSharp
                 var classSymbol = _model.GetDeclaredSymbol(node);
                 var state = new ClassState();
 
-                // UdonSharpBehaviour 以外のクラスの中身は書き換えない。U# がコンパイルするのは UdonSharpBehaviour だけで、
-                // 汎用クラス（#49）は使う側にコピーされたものが書き換えられる（元の宣言でエラーを重ねて出さないため）
-                bool rewriteMembers = classSymbol == null || IsUdonSharpBehaviour(classSymbol);
+                // 書き換えるのは UdonSharpBehaviour と汎用クラス（#49）の中身。汎用クラスはこの後の段で、
+                // 書き換え後の中身が使う側にコピーされる。それ以外のクラス（UdonSharp と関係ないもの）には手を入れない
+                bool plainClass = classSymbol != null && ClassLowering.IsPlainClass(classSymbol);
+                bool rewriteMembers = classSymbol == null || IsUdonSharpBehaviour(classSymbol) || plainClass;
 
                 _states.Push(state);
+                _owners.Push(plainClass ? ClassLowering.TagOf(classSymbol) : null);
                 var visited = rewriteMembers ? (ClassDeclarationSyntax)base.VisitClassDeclaration(node) : node;
+                _owners.Pop();
                 _states.Pop();
 
                 if (classSymbol == null)
@@ -620,8 +743,8 @@ namespace CustomUdonSharp
                     if (removed)
                     {
                         Changed = true;
-                        if (!IsUdonSharpBehaviour(classSymbol))
-                            Error(node, $"'{classSymbol.Name}' : UdonSharpBehaviour 以外でのインタフェース実装は未対応です");
+                        if (!IsUdonSharpBehaviour(classSymbol) && !plainClass)
+                            Error(node, $"'{classSymbol.Name}' : UdonSharpBehaviour と汎用クラス以外でのインタフェース実装は未対応です");
 
                         // 行数を変えないよう、元の最後の型の後ろのトリビア（改行など）を引き継ぐ
                         SyntaxTriviaList trailing = node.BaseList.Types.Last().GetTrailingTrivia();
@@ -646,14 +769,18 @@ namespace CustomUdonSharp
                 foreach (InterfaceInfo i in state.IsHelpers)
                     members.Add(BuildIsHelper(i));
                 foreach (InterfaceInfo i in state.AsHelpers)
-                    members.Add($"private static {UsbType} {i.AsHelper}(object __o) {{ return {i.IsHelper}(__o) ? ({UsbType})__o : null; }}");
-
-                if (members.Count == 0)
-                    return visited;
+                    members.Add($"private static {ErasedType} {i.AsHelper}(object __o) {{ return {i.IsHelper}(__o) ? __o : null; }}");
 
                 // 生成メンバーは閉じ括弧 '}' と同じ行に置き、行番号を一切ずらさない
-                var parsed = members.Select(code => SyntaxFactory.ParseMemberDeclaration(code + " ")).Where(d => d != null);
-                return visited.WithMembers(visited.Members.AddRange(parsed));
+                if (members.Count > 0)
+                {
+                    var parsed = members.Select(code => SyntaxFactory.ParseMemberDeclaration(code + " ")).Where(d => d != null);
+                    visited = visited.WithMembers(visited.Members.AddRange(parsed));
+                }
+
+                if (plainClass && visited != node)
+                    RewrittenClasses.Add((ClassLowering.TagOf(classSymbol), node));
+                return visited;
             }
 
             private string BuildCallHelper(MethodInfo m)
@@ -662,7 +789,7 @@ namespace CustomUdonSharp
                 var sb = new StringBuilder();
                 string ret = m.HasReturn ? TypeName(m.Symbol.ReturnType) : "void";
 
-                sb.Append($"private static {ret} {m.CallHelper}({UsbType} __t");
+                sb.Append($"private static {ret} {m.CallHelper}({ErasedType} __t");
                 for (int i = 0; i < ps.Length; i++)
                 {
                     sb.Append($", {TypeName(ps[i].Type)} {ps[i].Name}");
@@ -671,22 +798,47 @@ namespace CustomUdonSharp
                 }
 
                 sb.Append(") { ");
+
+                // 汎用クラス（#50）：普通の C# で呼ぶ。この後の段で、そのクラスのメソッドのコピーの呼び出しになる
+                string args = string.Join(", ", ps.Select(p => p.Name));
+                if (_classImpls.TryGetValue(m.Signature, out var classes))
+                {
+                    foreach (INamedTypeSymbol c in classes)
+                    {
+                        string name = c.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        string call = $"(({name})__t).{m.Symbol.Name}({args})";
+                        sb.Append(m.HasReturn
+                            ? $"if (__t is {name}) return {call}; "
+                            : $"if (__t is {name}) {{ {call}; return; }} ");
+                    }
+                }
+
+                // UdonSharpBehaviour：プログラム変数とイベントで呼ぶ
+                sb.Append($"{UsbType} __u = ({UsbType})__t; ");
                 for (int i = 0; i < ps.Length; i++)
-                    sb.Append($"__t.SetProgramVariable(\"{m.ParamField(i)}\", {ps[i].Name}); ");
-                sb.Append($"__t.SendCustomEvent(\"{m.Export}\"); ");
+                    sb.Append($"__u.SetProgramVariable(\"{m.ParamField(i)}\", {ps[i].Name}); ");
+                sb.Append($"__u.SendCustomEvent(\"{m.Export}\"); ");
                 if (m.HasReturn)
-                    sb.Append($"return ({ret})__t.GetProgramVariable(\"{m.RetField}\"); ");
+                    sb.Append($"return ({ret})__u.GetProgramVariable(\"{m.RetField}\"); ");
                 sb.Append('}');
                 return sb.ToString();
             }
 
-            // U# は is 演算子非対応のため GetType() で UdonBehaviour か確認し、U# の型ID (__refl_typeid) を実装クラス一覧と照合
+            // 汎用クラス（#50）は is で見る（この後の段で、型タグを見る判定になる）。
+            // UdonSharpBehaviour は、U# が is 演算子非対応のため GetType() で UdonBehaviour か確認し、
+            // U# の型ID (__refl_typeid) を実装クラス一覧と照合
             private static string BuildIsHelper(InterfaceInfo i)
             {
-                string cond = i.ImplTypeIds.Count == 0
-                    ? "false"
-                    : string.Join(" || ", i.ImplTypeIds.Select(id => $"__id == {id}L"));
-                return $"private static bool {i.IsHelper}(object __o) {{ if (__o == null) return false; if (!__o.GetType().Equals(typeof(global::VRC.Udon.UdonBehaviour))) return false; object __v = (({UsbType})__o).GetProgramVariable(\"__refl_typeid\"); if (__v == null) return false; long __id = (long)__v; return {cond}; }}";
+                var sb = new StringBuilder();
+                sb.Append($"private static bool {i.IsHelper}(object __o) {{ if (__o == null) return false; ");
+                foreach (INamedTypeSymbol c in i.ImplClasses.OrderBy(c => c.ToDisplayString(), StringComparer.Ordinal))
+                    sb.Append($"if (__o is {c.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}) return true; ");
+                if (i.ImplTypeIds.Count == 0)
+                    return sb.Append("return false; }").ToString();
+
+                string cond = string.Join(" || ", i.ImplTypeIds.Select(id => $"__id == {id}L"));
+                sb.Append($"if (!__o.GetType().Equals(typeof(global::VRC.Udon.UdonBehaviour))) return false; object __v = (({UsbType})__o).GetProgramVariable(\"__refl_typeid\"); if (__v == null) return false; long __id = (long)__v; return {cond}; }}");
+                return sb.ToString();
             }
         }
     }

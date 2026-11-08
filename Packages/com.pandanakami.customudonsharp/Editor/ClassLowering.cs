@@ -59,9 +59,13 @@ namespace CustomUdonSharp
                 .OfType<ClassDeclarationSyntax>()
                 .Any(c => c.BaseList == null || c.Modifiers.Any(SyntaxKind.StaticKeyword)));
 
+        /// <summary>型タグ（完全名）。ClassInfo.Tag と同じ表記</summary>
+        internal static string TagOf(INamedTypeSymbol symbol) => symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+
         /// <summary>書き換えた tree の一覧を返す（変わらない tree はそのまま）</summary>
+        /// <param name="usedClasses">UdonSharpBehaviour から使われる汎用クラスの型タグを入れて返す</param>
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics,
-            IEnumerable<MetadataReference> references)
+            IEnumerable<MetadataReference> references, HashSet<string> usedClasses = null)
         {
             var compilation = CSharpCompilation.Create(
                 "CustomUdonSharp_ClassPrepass",
@@ -99,6 +103,9 @@ namespace CustomUdonSharp
                 }
             }
 
+            foreach (ClassInfo c in hosts.Values.SelectMany(h => h.Used))
+                usedClasses?.Add(c.Tag);
+
             if (hosts.Values.All(h => h.Used.Count == 0))
                 return trees;
 
@@ -135,7 +142,7 @@ namespace CustomUdonSharp
                     if (!IsPlainClass(symbol))
                         continue;
 
-                    string fullName = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+                    string fullName = TagOf(symbol);
                     result.Add(symbol, new ClassInfo
                     {
                         Symbol = symbol,
@@ -152,7 +159,7 @@ namespace CustomUdonSharp
         /// 汎用クラスの候補か：基底をたどって、object までソース上の普通のクラスだけが続くもの。
         /// （UdonSharpBehaviour・MonoBehaviour・Attribute などの派生は対象外）
         /// </summary>
-        private static bool IsPlainClass(INamedTypeSymbol symbol)
+        internal static bool IsPlainClass(INamedTypeSymbol symbol)
         {
             if (symbol.TypeKind != TypeKind.Class || InterfaceLowering.IsUdonSharpBehaviour(symbol))
                 return false;

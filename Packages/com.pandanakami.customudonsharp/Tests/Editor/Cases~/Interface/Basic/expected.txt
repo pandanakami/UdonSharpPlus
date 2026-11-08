@@ -13,20 +13,20 @@
     __1__intnlparam: %SystemObject, null
     __gintnl_SystemUInt32_1: %SystemUInt32, null
     __0___0_Hit__ret: %SystemInt32, null
-    __0_damageable__param: %VRCUdonUdonBehaviour, null
+    __0_damageable__param: %SystemObject, null
     __0_amount__param: %SystemInt32, null
     __const_SystemInt32_1: %SystemInt32, null
     __const_SystemInt32_2: %SystemInt32, null
     __gintnl_SystemUInt32_2: %SystemUInt32, null
-    __2__intnlparam: %VRCUdonUdonBehaviour, null
+    __2__intnlparam: %SystemObject, null
     __3__intnlparam: %SystemObject, null
     __const_SystemObject_0: %SystemObject, null
     __gintnl_SystemUInt32_3: %SystemUInt32, null
-    __4__intnlparam: %VRCUdonUdonBehaviour, null
+    __4__intnlparam: %SystemObject, null
     __const_SystemInt32_3: %SystemInt32, null
     __gintnl_SystemUInt32_4: %SystemUInt32, null
     __5__intnlparam: %SystemInt32, null
-    __6__intnlparam: %VRCUdonUdonBehaviour, null
+    __6__intnlparam: %SystemObject, null
     __7__intnlparam: %SystemInt32, null
     __8__intnlparam: %SystemString, null
     __const_SystemInt32_4: %SystemInt32, null
@@ -45,19 +45,17 @@
     __const_SystemString_5: %SystemString, null
     __const_SystemString_6: %SystemString, null
     __lcl_total_SystemInt32_0: %SystemInt32, null
-    __lcl_first_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
+    __lcl_first_SystemObject_0: %SystemObject, null
     __intnl_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
-    __intnl_UnityEngineObject_0: %UnityEngineObject, null
-    __intnl_UnityEngineObject_1: %UnityEngineObject, null
     __intnl_SystemBoolean_0: %SystemBoolean, null
-    __lcl_list_UnityEngineComponentArray_0: %UnityEngineComponentArray, null
+    __lcl_list_SystemObjectArray_0: %SystemObjectArray, null
     __intnl_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
     __intnl_VRCUdonUdonBehaviour_2: %VRCUdonUdonBehaviour, null
     __lcl_i_SystemInt32_0: %SystemInt32, null
     __intnl_SystemInt32_0: %SystemInt32, null
     __intnl_SystemInt32_1: %SystemInt32, null
     __intnl_SystemBoolean_1: %SystemBoolean, null
-    __lcl_d_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
+    __lcl_d_SystemObject_0: %SystemObject, null
     __intnl_SystemString_0: %SystemString, null
     __intnl_SystemBoolean_2: %SystemBoolean, null
     __intnl_SystemType_0: %SystemType, null
@@ -67,6 +65,8 @@
     __intnl_SystemBoolean_4: %SystemBoolean, null
     __lcl___id_SystemInt64_0: %SystemInt64, null
     __intnl_SystemBoolean_5: %SystemBoolean, null
+    __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
+    __lcl___u_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
     __intnl_SystemObject_0: %SystemObject, null
 .data_end
 .code_start
@@ -116,8 +116,8 @@
         PUSH, __const_SystemInt32_1  ; 10
         PUSH, __0_amount__param
         COPY
-# Calling CustomUdonSharpTests.Basic.Attacker.Hit(UdonSharp.UdonSharpBehaviour, int)
-        JUMP, <Hit(UdonSharp.UdonSharpBehaviour, int)>
+# Calling CustomUdonSharpTests.Basic.Attacker.Hit(object, int)
+        JUMP, <Hit(object, int)>
     L2:
         PUSH, __lcl_total_SystemInt32_0
         PUSH, __0___0_Hit__ret
@@ -142,35 +142,29 @@
         JUMP, <__if_CustomUdonSharpTests_Basic_IDamageable__as(object)>
     L5:
         PUSH, __2__intnlparam
-        PUSH, __lcl_first_VRCUdonUdonBehaviour_0
+        PUSH, __lcl_first_SystemObject_0
         COPY
-        PUSH, __lcl_first_VRCUdonUdonBehaviour_0
-        PUSH, __intnl_UnityEngineObject_0
-        COPY
+        PUSH, __lcl_first_SystemObject_0
         PUSH, __const_SystemObject_0
-        PUSH, __intnl_UnityEngineObject_1
-        COPY
-        PUSH, __intnl_UnityEngineObject_0
-        PUSH, __intnl_UnityEngineObject_1
         PUSH, __intnl_SystemBoolean_0
-        EXTERN, "UnityEngineObject.__op_Inequality__UnityEngineObject_UnityEngineObject__SystemBoolean"
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
         PUSH, __intnl_SystemBoolean_0
         JUMP_IF_FALSE, L6
         PUSH, __gintnl_SystemUInt32_3  ; -> L6
-        PUSH, __lcl_first_VRCUdonUdonBehaviour_0
+        PUSH, __lcl_first_SystemObject_0
         PUSH, __4__intnlparam
         COPY
-# Calling CustomUdonSharpTests.Basic.Attacker.__if_ResetState__call(UdonSharp.UdonSharpBehaviour)
-        JUMP, <__if_ResetState__call(UdonSharp.UdonSharpBehaviour)>
+# Calling CustomUdonSharpTests.Basic.Attacker.__if_ResetState__call(object)
+        JUMP, <__if_ResetState__call(object)>
     L6:
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __lcl_list_UnityEngineComponentArray_0
-        EXTERN, "UnityEngineComponentArray.__ctor__SystemInt32__UnityEngineComponentArray"
+        PUSH, __lcl_list_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, targets
         PUSH, __const_SystemInt32_0  ; 0
         PUSH, __intnl_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __lcl_list_UnityEngineComponentArray_0
+        PUSH, __lcl_list_SystemObjectArray_0
         PUSH, __const_SystemInt32_0  ; 0
         PUSH, __intnl_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
@@ -178,11 +172,11 @@
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __intnl_VRCUdonUdonBehaviour_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __lcl_list_UnityEngineComponentArray_0
+        PUSH, __lcl_list_SystemObjectArray_0
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __intnl_VRCUdonUdonBehaviour_2
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
-        PUSH, __lcl_list_UnityEngineComponentArray_0
+        PUSH, __lcl_list_SystemObjectArray_0
         PUSH, __intnl_SystemInt32_0
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __const_SystemInt32_0  ; 0
@@ -195,12 +189,12 @@
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
         PUSH, __intnl_SystemBoolean_1
         JUMP_IF_FALSE, L9
-        PUSH, __lcl_list_UnityEngineComponentArray_0
+        PUSH, __lcl_list_SystemObjectArray_0
         PUSH, __intnl_SystemInt32_1
-        PUSH, __lcl_d_VRCUdonUdonBehaviour_0
+        PUSH, __lcl_d_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemUInt32_4  ; -> L8
-        PUSH, __lcl_d_VRCUdonUdonBehaviour_0
+        PUSH, __lcl_d_SystemObject_0
         PUSH, __6__intnlparam
         COPY
         PUSH, __const_SystemInt32_4  ; 5
@@ -209,8 +203,8 @@
         PUSH, __const_SystemString_0  ; "loop"
         PUSH, __8__intnlparam
         COPY
-# Calling CustomUdonSharpTests.Basic.Attacker.__if_Damage__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)
-        JUMP, <__if_Damage__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)>
+# Calling CustomUdonSharpTests.Basic.Attacker.__if_Damage__int__string__call(object, int, string)
+        JUMP, <__if_Damage__int__string__call(object, int, string)>
     L8:
         PUSH, __lcl_total_SystemInt32_0
         PUSH, __5__intnlparam
@@ -229,7 +223,7 @@
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
         PUSH, __const_SystemUInt32_0  ; 4294967295
 #
-# CustomUdonSharpTests.Basic.Attacker.Hit(UdonSharp.UdonSharpBehaviour, int)
+# CustomUdonSharpTests.Basic.Attacker.Hit(object, int)
 #
         PUSH, __gintnl_SystemUInt32_5  ; -> L0
         PUSH, __this_VRCUdonUdonBehaviour_0
@@ -244,8 +238,8 @@
         PUSH, __intnl_SystemString_0
         PUSH, __8__intnlparam
         COPY
-# Calling CustomUdonSharpTests.Basic.Attacker.__if_Damage__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)
-        JUMP, <__if_Damage__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)>
+# Calling CustomUdonSharpTests.Basic.Attacker.__if_Damage__int__string__call(object, int, string)
+        JUMP, <__if_Damage__int__string__call(object, int, string)>
     L0:
         PUSH, __5__intnlparam
         PUSH, __0___0_Hit__ret
@@ -363,29 +357,35 @@
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
 #
-# CustomUdonSharpTests.Basic.Attacker.__if_ResetState__call(UdonSharp.UdonSharpBehaviour)
+# CustomUdonSharpTests.Basic.Attacker.__if_ResetState__call(object)
 #
         PUSH, __4__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
         PUSH, __const_SystemString_2  ; "ResetState"
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
 #
-# CustomUdonSharpTests.Basic.Attacker.__if_Damage__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)
+# CustomUdonSharpTests.Basic.Attacker.__if_Damage__int__string__call(object, int, string)
 #
         PUSH, __6__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_3  ; "Damage__int__string__p0"
         PUSH, __7__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
-        PUSH, __6__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_4  ; "Damage__int__string__p1"
         PUSH, __8__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
-        PUSH, __6__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_5  ; "Damage"
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
-        PUSH, __6__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_6  ; "Damage__int__string__ret"
         PUSH, __intnl_SystemObject_0
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
@@ -423,7 +423,7 @@ __gintnl_SystemUInt32_1 = -> Start():L2
 __gintnl_SystemUInt32_2 = -> Start():L5
 __gintnl_SystemUInt32_3 = -> Start():L6
 __gintnl_SystemUInt32_4 = -> Start():L8
-__gintnl_SystemUInt32_5 = -> Hit(UdonSharp.UdonSharpBehaviour, int):L0
+__gintnl_SystemUInt32_5 = -> Hit(object, int):L0
 __gintnl_SystemUInt32_6 = -> __if_CustomUdonSharpTests_Basic_IDamageable__as(object):L0
 __refl_typeid = -6810665598224429798
 __refl_typename = "CustomUdonSharpTests.Basic.Attacker"

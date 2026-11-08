@@ -8,7 +8,7 @@
     target: %VRCUdonUdonBehaviour, null
     __const_SystemUInt32_0: %SystemUInt32, null
     __gintnl_SystemUInt32_0: %SystemUInt32, null
-    __0__intnlparam: %VRCUdonUdonBehaviour, null
+    __0__intnlparam: %SystemObject, null
     __1__intnlparam: %SystemInt32, null
     __2__intnlparam: %SystemString, null
     __const_SystemInt32_0: %SystemInt32, null
@@ -23,8 +23,10 @@
     __const_SystemString_4: %SystemString, null
     __const_SystemString_5: %SystemString, null
     __const_SystemString_6: %SystemString, null
-    __lcl_receiver_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
+    __lcl_receiver_SystemObject_0: %SystemObject, null
+    __intnl_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
     __lcl_concrete_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
+    __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
 .data_end
 .code_start
     .export _start
@@ -34,10 +36,10 @@
 # CustomUdonSharpTests.NetworkCallable.NetworkCaller.Start()
 #
         PUSH, target
-        PUSH, __lcl_receiver_VRCUdonUdonBehaviour_0
+        PUSH, __lcl_receiver_SystemObject_0
         COPY
         PUSH, __gintnl_SystemUInt32_0  ; -> L0
-        PUSH, __lcl_receiver_VRCUdonUdonBehaviour_0
+        PUSH, __lcl_receiver_SystemObject_0
         PUSH, __0__intnlparam
         COPY
         PUSH, __const_SystemInt32_0  ; 1
@@ -46,10 +48,13 @@
         PUSH, __const_SystemString_0  ; "local"
         PUSH, __2__intnlparam
         COPY
-# Calling CustomUdonSharpTests.NetworkCallable.NetworkCaller.__if_Receive__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)
-        JUMP, <__if_Receive__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)>
+# Calling CustomUdonSharpTests.NetworkCallable.NetworkCaller.__if_Receive__int__string__call(object, int, string)
+        JUMP, <__if_Receive__int__string__call(object, int, string)>
     L0:
-        PUSH, __lcl_receiver_VRCUdonUdonBehaviour_0
+        PUSH, __lcl_receiver_SystemObject_0
+        PUSH, __intnl_VRCUdonUdonBehaviour_0
+        COPY
+        PUSH, __intnl_VRCUdonUdonBehaviour_0
         PUSH, __const_VRCUdonCommonInterfacesNetworkEventTarget_0  ; All
         PUSH, __const_SystemString_1  ; "Receive"
         PUSH, __const_SystemInt32_1  ; 2
@@ -74,17 +79,20 @@
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
 #
-# CustomUdonSharpTests.NetworkCallable.NetworkCaller.__if_Receive__int__string__call(UdonSharp.UdonSharpBehaviour, int, string)
+# CustomUdonSharpTests.NetworkCallable.NetworkCaller.__if_Receive__int__string__call(object, int, string)
 #
         PUSH, __0__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
         PUSH, __const_SystemString_5  ; "Receive__int__string__p0"
         PUSH, __1__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
-        PUSH, __0__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
         PUSH, __const_SystemString_6  ; "Receive__int__string__p1"
         PUSH, __2__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
-        PUSH, __0__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
         PUSH, __const_SystemString_1  ; "Receive"
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0

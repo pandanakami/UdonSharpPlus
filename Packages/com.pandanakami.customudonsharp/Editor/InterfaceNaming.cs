@@ -30,8 +30,9 @@ namespace CustomUdonSharp
             set => _implementationKeys = value ?? new HashSet<string>();
         }
 
-        /// <param name="isInterfaceToErase">U# 用に UdonSharpBehaviour へ置き換えられるインタフェースかどうか。
-        /// 書き換え前のシンボルから名前を作るときも、書き換え後と同じ名前になるようにするため。</param>
+        /// <param name="isInterfaceToErase">U# 用に object へ置き換えられるインタフェースかどうか。
+        /// 書き換え前のシンボルから名前を作るときも、書き換え後と同じ名前になるようにするため。
+        /// 汎用クラス（#49）は、いつも object[] として名前を作る（インタフェースの段の後で object[] に置き換わるため。#50）</param>
         public static string SignatureName(IMethodSymbol method, Func<INamedTypeSymbol, bool> isInterfaceToErase)
         {
             if (method.Parameters.Length == 0)
@@ -59,7 +60,11 @@ namespace CustomUdonSharp
                 return TypeToken(array.ElementType, isInterfaceToErase) + "Array" + (array.Rank > 1 ? array.Rank.ToString() : "");
 
             if (type is INamedTypeSymbol named && isInterfaceToErase(named))
-                return "UdonSharp_UdonSharpBehaviour";
+                return "object";
+
+            // 汎用クラスは object[]（ClassLowering.InstanceType）になる
+            if (type is INamedTypeSymbol cls && cls.Locations.Any(l => l.IsInSource) && ClassLowering.IsPlainClass(cls))
+                return "objectArray";
 
             // 完全修飾名（int/string 等は C# キーワード表記）を識別子に使える文字へ
             string name = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Replace("global::", "");

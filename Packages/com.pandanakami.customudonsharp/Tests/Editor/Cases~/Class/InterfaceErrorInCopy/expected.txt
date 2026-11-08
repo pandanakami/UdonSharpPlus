@@ -1,3 +1,3 @@
 ## Diagnostics
-Error: Assets/CustomUdonSharpTests/Notifier.cs(15,13): [CustomUdonSharp] 'Notify' : クラス内の x.Method(...) 形式以外のインタフェース呼び出しは未対応です（?. など）（汎用クラス Notifier のメソッド Send の中）
+Error: Assets/CustomUdonSharpTests/Notifier.cs(15,22): [CustomUdonSharp] 'Notify' : クラス内の x.Method(...) 形式以外のインタフェース呼び出しは未対応です（?. など）
 ## Logs

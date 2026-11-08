@@ -59,7 +59,7 @@ namespace CustomUdonSharp
             if (isBuiltinEvent)
                 return;
 
-            // ここに来る時点で U# 用ツリーはインタフェース型→UdonSharpBehaviour 置換済みなので、置換は不要
+            // ここに来る時点で U# 用ツリーはインタフェース型→object、汎用クラス→object[] の置換済みなので、置換は不要
             if (!keys.Contains(InterfaceNaming.Key(symbol, _ => false)))
                 return;
 

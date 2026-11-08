@@ -35,6 +35,9 @@ if (target is IDamageable)
 - メソッドの呼び出し（戻り値ありとなしの両方）
 - `is`、`as`、キャスト
 - `[NetworkCallable]` の実装メソッド（ローカル呼び出しと、`SendCustomNetworkEvent` でのネットワーク越しの呼び出しの両方）
+- 汎用クラス（後述）による実装。UdonSharpBehaviour による実装と混ぜて、同じインタフェース型の変数や配列に入れられます
+
+インタフェース型の変数は、`object` として扱われます（中身は UdonSharpBehaviour か、汎用クラスのインスタンス）。そのため `x != null` は、普通の C# のインタフェースと同じく参照の比較になり、Unity の比較（破棄済みのオブジェクトを null とみなす）にはなりません。
 
 #### メソッド名とオーバーロード
 
@@ -111,6 +114,7 @@ Bullet[] pool = new Bullet[8];
 - クラスの配列、`foreach`
 - `is`、`as`、キャスト、`nameof`
 - 再帰（`[RecursiveMethod]` を付けたメソッド）
+- インタフェースの実装。インタフェース経由の呼び出しは、型タグを見てそのクラスのメソッドのコピーを呼びます。インタフェースを使う UdonSharpBehaviour には、それを実装する全クラスのメソッドのコピーが入ります
 
 未対応の書き方（そのクラスを UdonSharpBehaviour から使うとコンパイルエラーになります）：
 
@@ -135,7 +139,9 @@ Bullet[] pool = new Bullet[8];
 
 ## 仕組み
 
-1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。インタフェース型を UdonSharpBehaviour に置き換え、呼び出しを `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由にし、`is`／`as` を型IDで判定する形にします。
+1. `CompilationContext.LoadSyntaxTreesAndCreateModules` にPostfixを当て、UdonSharp に渡す SyntaxTree を書き換えます。
+   1. インタフェース：インタフェース型を `object` に置き換えます。呼び出しは、汎用クラスならそのクラスのメソッドの呼び出しに、UdonSharpBehaviour なら `SetProgramVariable`／`SendCustomEvent`／`GetProgramVariable` 経由に振り分けます。`is`／`as` は型タグと型IDで判定する形にします。
+   2. 汎用クラス：インスタンスを `object[]` にし、コンストラクタ・メソッドのコピーを、使う UdonSharpBehaviour に生成します。
 2. `CompilationContext.MethodExportLayout` のコンストラクタにPrefixを当て、インタフェース実装メソッドの Udon 上の名前を、どの実装クラスでも揃うものにします（メソッドは元の名前、引数は `Damage__int__string__p0`、戻り値は `Damage__int__string__ret`）。
 3. `CompilationContext.AddDiagnostic` と `AssemblyDebugInfo`（実行時例外の位置を引くデバッグ情報）にパッチを当て、汎用クラスのコピーの中の位置を、元のクラスのソースの位置に戻します。
 

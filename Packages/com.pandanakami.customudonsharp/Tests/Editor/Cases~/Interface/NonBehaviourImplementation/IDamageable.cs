@@ -5,8 +5,8 @@ namespace CustomUdonSharpTests.NonBehaviourImplementation
         void Damage(int amount);
     }
 
-    // UdonSharpBehaviour 以外でのインタフェース実装は未対応（エラーになる）
-    public class Plain : IDamageable
+    // UdonSharpBehaviour と汎用クラス以外（MonoBehaviour など）でのインタフェース実装は未対応（エラーになる）
+    public class Plain : UnityEngine.MonoBehaviour, IDamageable
     {
         public void Damage(int amount)
         {
