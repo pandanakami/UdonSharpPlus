@@ -1,0 +1,6 @@
+## Diagnostics
+Error: Assets/CustomUdonSharpTests/Types.cs(11,18): [CustomUdonSharp] 'Helper' : 汎用クラスの継承は未対応です（MonoBehaviour を継承しています）
+Error: Assets/CustomUdonSharpTests/Types.cs(16,18): [CustomUdonSharp] 'GameError' : 汎用クラスの継承は未対応です（Exception を継承しています）
+Error: Assets/CustomUdonSharpTests/Types.cs(27,18): [CustomUdonSharp] 'Box' : 汎用クラスの継承は未対応です
+Error: Assets/CustomUdonSharpTests/Types.cs(6,18): [CustomUdonSharp] 'Settings' : 汎用クラスの継承は未対応です（ScriptableObject を継承しています）
+## Logs

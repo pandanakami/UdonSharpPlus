@@ -53,11 +53,15 @@ namespace CustomUdonSharp
             public readonly HashSet<ClassInfo> AsHelpers = new HashSet<ClassInfo>();
         }
 
-        /// <summary>汎用クラス（とエラーにするユーザー定義の構造体。#54）がありそうか（なければコンパイルを作らずに済ませる）</summary>
+        /// <summary>
+        /// 汎用クラス（とエラーにする構造体・外部のクラスの派生。#54, #55）がありそうか（なければコンパイルを作らずに済ませる）。
+        /// 基底が UdonSharpBehaviour と書かれていないクラス（ScriptableObject の派生や、自前の基底 Behaviour の派生など）があれば調べる
+        /// </summary>
         public static bool MayHaveClasses(IEnumerable<SyntaxTree> trees) =>
             trees.Any(t => t.GetRoot().DescendantNodes(n => !(n is BlockSyntax))
                 .Any(n => n is StructDeclarationSyntax
-                          || n is ClassDeclarationSyntax c && (c.BaseList == null || c.Modifiers.Any(SyntaxKind.StaticKeyword))));
+                          || n is ClassDeclarationSyntax c && (c.BaseList == null || c.Modifiers.Any(SyntaxKind.StaticKeyword)
+                                                               || !c.BaseList.Types.Any(b => b.Type.ToString().EndsWith("UdonSharpBehaviour", StringComparison.Ordinal)))));
 
         /// <summary>型タグ（完全名）。ClassInfo.Tag と同じ表記</summary>
         internal static string TagOf(INamedTypeSymbol symbol) => symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
@@ -106,6 +110,12 @@ namespace CustomUdonSharp
             // ユーザー定義の構造体は未対応（U# も対応しておらず、使うと内部の例外になる）。使われるものだけエラーにする（#54）
             foreach (INamedTypeSymbol st in context.Structs.OrderBy(t => TagOf(t), StringComparer.Ordinal))
                 diagnostics.Error(st.Locations.FirstOrDefault(l => l.IsInSource), $"'{st.Name}' : ユーザー定義の構造体は未対応です");
+
+            // 外部のクラス（ScriptableObject・MonoBehaviour・Exception など）を継承したクラスも、U# では内部の例外になるのでエラーにする（#55）。
+            // ソース上の普通のクラスを継承したものは、汎用クラスの検査（Validate）でエラーにしている
+            foreach (INamedTypeSymbol cls in context.ExternalDerived.OrderBy(t => TagOf(t), StringComparer.Ordinal))
+                diagnostics.Error(cls.Locations.FirstOrDefault(l => l.IsInSource),
+                    $"'{cls.Name}' : 汎用クラスの継承は未対応です（{cls.BaseType?.Name} を継承しています）");
 
             if (hosts.Values.All(h => h.Used.Count == 0))
                 return trees;
@@ -193,6 +203,9 @@ namespace CustomUdonSharp
             /// <summary>UdonSharpBehaviour（と、そこから使われる汎用クラス）が使うユーザー定義の構造体（#54）</summary>
             public readonly HashSet<INamedTypeSymbol> Structs = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
+            /// <summary>同じく、外部のクラスを継承したユーザー定義クラス（#55）</summary>
+            public readonly HashSet<INamedTypeSymbol> ExternalDerived = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+
             public Context(CSharpCompilation compilation, Dictionary<INamedTypeSymbol, ClassInfo> classes, InterfaceLowering.LoweringDiagnostics diagnostics)
             {
                 Compilation = compilation;
@@ -249,23 +262,40 @@ namespace CustomUdonSharp
             {
                 while (type is IArrayTypeSymbol array)
                     type = array.ElementType;
-                AddStruct(type);
+                AddUnsupported(type);
                 ClassInfo c = Target(type);
                 if (c != null)
                     found.Add(c);
             }
 
-            /// <summary>ユーザー定義の構造体を記録する（Point? や配列、型引数の中も見る）</summary>
-            private void AddStruct(ITypeSymbol type)
+            /// <summary>
+            /// 未対応のユーザー定義の型（構造体、外部のクラスを継承したクラス）を記録する（Point? や配列、型引数の中も見る）
+            /// </summary>
+            private void AddUnsupported(ITypeSymbol type)
             {
                 while (type is IArrayTypeSymbol array)
                     type = array.ElementType;
                 if (!(type is INamedTypeSymbol named))
                     return;
-                if (named.TypeKind == TypeKind.Struct && named.Locations.Any(l => l.IsInSource))
-                    Structs.Add(named.OriginalDefinition);
+                if (named.Locations.Any(l => l.IsInSource))
+                {
+                    if (named.TypeKind == TypeKind.Struct)
+                        Structs.Add(named.OriginalDefinition);
+                    else if (named.TypeKind == TypeKind.Class && !named.IsStatic && !IsPlainClass(named)
+                             && !InterfaceLowering.IsUdonSharpBehaviour(named) && !IsAttribute(named))
+                        ExternalDerived.Add(named.OriginalDefinition);
+                }
                 foreach (ITypeSymbol argument in named.TypeArguments)
-                    AddStruct(argument);
+                    AddUnsupported(argument);
+            }
+
+            /// <summary>属性（System.Attribute の派生）。属性として付けるだけなので対象外</summary>
+            private static bool IsAttribute(INamedTypeSymbol type)
+            {
+                for (INamedTypeSymbol t = type.BaseType; t != null; t = t.BaseType)
+                    if (t.ToDisplayString() == "System.Attribute")
+                        return true;
+                return false;
             }
 
             /// <summary>使うクラスから推移的にたどった一覧（決まった順）</summary>
