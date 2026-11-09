@@ -69,7 +69,9 @@ The rewrite happens only in the editor. What the Udon VM runs on the VRChat clie
 
 ## Installation
 
-1. In VCC (VRChat Creator Companion), open **Settings** → **Packages** → **Add Repository** and add this URL:
+1. Open the [listing page](https://pandanakami.github.io/UdonSharpPlus/) and click **Add to VCC**. VCC (VRChat Creator Companion) opens and asks you to add the repository.
+
+   Or, in VCC, open **Settings** → **Packages** → **Add Repository** and add this URL:
 
    ```
    https://pandanakami.github.io/UdonSharpPlus/index.json

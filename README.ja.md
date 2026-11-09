@@ -69,7 +69,9 @@ UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、
 
 ## 導入方法
 
-1. VCC（VRChat Creator Companion）の **Settings** → **Packages** → **Add Repository** で、次の URL を追加します。
+1. [リスティングのページ](https://pandanakami.github.io/UdonSharpPlus/)で **Add to VCC** を押します。VCC（VRChat Creator Companion）が開き、リポジトリを追加する画面になります。
+
+   または、VCC の **Settings** → **Packages** → **Add Repository** で、次の URL を追加します。
 
    ```
    https://pandanakami.github.io/UdonSharpPlus/index.json
