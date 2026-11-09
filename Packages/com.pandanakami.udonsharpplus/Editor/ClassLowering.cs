@@ -332,6 +332,18 @@ namespace UdonSharpPlus
                 return seen.OrderBy(c => c.Tag, StringComparer.Ordinal).ToList();
             }
 
+            // エラーにした入れ子の型（外側と内側の両方を検査しても、1 つの型につきエラーは 1 つにする。#77）
+            private readonly HashSet<INamedTypeSymbol> _nestedReported = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+
+            private void ReportNested(INamedTypeSymbol nested)
+            {
+                if (!_nestedReported.Add(nested.OriginalDefinition))
+                    return;
+                Diagnostics.Error(nested.Locations.FirstOrDefault(), nested.TypeKind == TypeKind.Class
+                    ? $"'{nested.Name}' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください"
+                    : $"'{nested.ContainingType.Name}.{nested.Name}' : クラスの中の型宣言は未対応です");
+            }
+
             /// <summary>未対応の書き方を調べ、フィールドの並びを決める（使われるクラスだけ、1 回だけ）</summary>
             public void Validate(ClassInfo c)
             {
@@ -353,7 +365,10 @@ namespace UdonSharpPlus
                 if (s.IsGenericType)
                     Fail(at, $"'{s.Name}' : ジェネリッククラスは未対応です");
                 if (s.ContainingType != null)
-                    Fail(at, $"'{s.Name}' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください");
+                {
+                    ReportNested(s);
+                    c.Valid = false;
+                }
                 if (s.IsAbstract && !s.IsStatic)
                     Fail(at, $"'{s.Name}' : abstract クラスは未対応です");
 
@@ -418,7 +433,8 @@ namespace UdonSharpPlus
                             Fail(loc, $"'{s.Name}.{e.Name}' : イベントは未対応です");
                             break;
                         case INamedTypeSymbol t:
-                            Fail(t.Locations.FirstOrDefault(), $"'{s.Name}.{t.Name}' : クラスの中の型宣言は未対応です");
+                            ReportNested(t);
+                            c.Valid = false;
                             break;
                     }
                 }

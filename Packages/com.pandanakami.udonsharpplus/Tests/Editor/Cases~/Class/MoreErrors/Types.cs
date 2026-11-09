@@ -46,4 +46,12 @@ namespace UdonSharpPlusTests.ClassMoreErrors
         public int damage;
         public bool IsHit(int armor) { return damage > armor; }
     }
+
+    // 外側だけを使う：中の型宣言ごとにエラーは 1 つ（#77）
+    public class Holder
+    {
+        public int v;
+        public enum Mode { A, B }
+        public class Unused { }
+    }
 }

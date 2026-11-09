@@ -1,10 +1,11 @@
 ## Diagnostics
 Error: Assets/UdonSharpPlusTests/Types.cs(15,22): [UdonSharpPlus] 'Inner' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください
-Error: Assets/UdonSharpPlusTests/Types.cs(15,22): [UdonSharpPlus] 'Outer.Inner' : クラスの中の型宣言は未対応です
 Error: Assets/UdonSharpPlusTests/Types.cs(24,36): [UdonSharpPlus] 'Vec' : 演算子のオーバーロードは未対応です
 Error: Assets/UdonSharpPlusTests/Types.cs(30,20): [UdonSharpPlus] 'Grid' : インデクサーは未対応です
 Error: Assets/UdonSharpPlusTests/Types.cs(35,36): [UdonSharpPlus] 'Button.Clicked' : イベントは未対応です
 Error: Assets/UdonSharpPlusTests/Types.cs(41,32): [UdonSharpPlus] 'Named.ToString' : ToString の override は未対応です（インスタンスは object[] なので呼ばれません）
+Error: Assets/UdonSharpPlusTests/Types.cs(54,21): [UdonSharpPlus] 'Holder.Mode' : クラスの中の型宣言は未対応です
+Error: Assets/UdonSharpPlusTests/Types.cs(55,22): [UdonSharpPlus] 'Unused' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください
 Error: Assets/UdonSharpPlusTests/Types.cs(8,27): [UdonSharpPlus] 'Shape' : abstract クラスは未対応です
 Error: Assets/UdonSharpPlusTests/User.cs(10,9): [UdonSharpPlus] 普通のクラスの型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）
 Error: Assets/UdonSharpPlusTests/User.cs(23,21): [UdonSharpPlus] 普通のクラスのオブジェクト初期化子（new X { a = 1 }）は未対応です

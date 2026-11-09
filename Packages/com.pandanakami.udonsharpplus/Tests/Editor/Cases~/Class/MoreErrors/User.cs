@@ -27,6 +27,7 @@ namespace UdonSharpPlusTests.ClassMoreErrors
                 Debug.Log(typed.damage);
             Debug.Log(typeof(Bullet));                        // typeof
             Debug.Log(found);
+            Debug.Log(new Holder().v);                       // 外側だけを使う（#77）
         }
     }
 }
