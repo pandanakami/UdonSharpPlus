@@ -24,22 +24,10 @@ namespace CustomUdonSharp
 
         public static void Apply(Harmony harmony)
         {
-            Type contextType = AccessTools.TypeByName("UdonSharp.Compiler.CompilationContext");
-            Type layoutType = contextType == null ? null : AccessTools.Inner(contextType, "MethodExportLayout");
-            Type methodSymbolType = AccessTools.TypeByName("UdonSharp.Compiler.Symbols.MethodSymbol");
-            ConstructorInfo ctor = layoutType == null || methodSymbolType == null
-                ? null
-                : AccessTools.Constructor(layoutType, new[] { methodSymbolType, typeof(string), typeof(string), typeof(string[]) });
-
             // MethodSymbol は RoslynSymbol を new で再定義しているため、MethodSymbol から引くと AmbiguousMatchException になる。
             // 基底 Symbol の virtual プロパティ (ISymbol) を使う
-            Type symbolType = AccessTools.TypeByName("UdonSharp.Compiler.Symbols.Symbol");
-            _roslynSymbolProperty = symbolType == null ? null : symbolType.GetProperty("RoslynSymbol", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-
-            if (ctor == null || _roslynSymbolProperty == null)
-                throw new MissingMemberException("MethodExportLayout constructor not found. UdonSharp internals may have changed.");
-
-            harmony.Patch(ctor, prefix: new HarmonyMethod(typeof(MethodExportLayoutPatch), nameof(Prefix)));
+            _roslynSymbolProperty = UdonSharpInternals.SymbolRoslynSymbol;
+            harmony.Patch(UdonSharpInternals.MethodExportLayoutCtor, prefix: new HarmonyMethod(typeof(MethodExportLayoutPatch), nameof(Prefix)));
         }
 
         // 引数名は元のコンストラクタと一致させる（Harmony は名前で対応づける）。MethodSymbol は internal なので object で受ける

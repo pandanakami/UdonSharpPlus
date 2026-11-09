@@ -30,21 +30,12 @@ namespace CustomUdonSharp
 
         public static void Apply(Harmony harmony)
         {
-            Type contextType = AccessTools.TypeByName("UdonSharp.Compiler.CompilationContext");
-            Type severityType = AccessTools.TypeByName("UdonSharp.Compiler.DiagnosticSeverity");
-            Type bindingType = AccessTools.TypeByName("UdonSharp.Compiler.ModuleBinding");
-            if (contextType == null || severityType == null || bindingType == null)
-                throw new MissingMemberException("CompilationContext.AddDiagnostic not found. UdonSharp internals may have changed.");
-
-            _treeField = AccessTools.Field(bindingType, "tree");
-            _bindingsProperty = AccessTools.Property(contextType, "ModuleBindings");
-            _addWithLocation = AccessTools.Method(contextType, "AddDiagnostic", new[] { severityType, typeof(Location), typeof(string) });
-            MethodInfo addWithNode = AccessTools.Method(contextType, "AddDiagnostic", new[] { severityType, typeof(SyntaxNode), typeof(string) });
-            if (_treeField == null || _bindingsProperty == null || _addWithLocation == null || addWithNode == null)
-                throw new MissingMemberException("CompilationContext.AddDiagnostic not found. UdonSharp internals may have changed.");
+            _treeField = UdonSharpInternals.BindingTree;
+            _bindingsProperty = UdonSharpInternals.ModuleBindings;
+            _addWithLocation = UdonSharpInternals.AddDiagnosticWithLocation;
 
             harmony.Patch(_addWithLocation, prefix: new HarmonyMethod(typeof(DiagnosticLocationPatch), nameof(PrefixLocation)));
-            harmony.Patch(addWithNode, prefix: new HarmonyMethod(typeof(DiagnosticLocationPatch), nameof(PrefixNode)));
+            harmony.Patch(UdonSharpInternals.AddDiagnosticWithNode, prefix: new HarmonyMethod(typeof(DiagnosticLocationPatch), nameof(PrefixNode)));
         }
 
         // 引数名は元のメソッドと一致させる（Harmony は名前で対応づける）
@@ -102,11 +93,8 @@ namespace CustomUdonSharp
             Location location = OriginalLocation(context, entry);
             if (location == null)
                 return null;
-            _translateLocation = _translateLocation ?? AccessTools.Method(context.GetType(), "TranslateLocationToFileName", new[] { typeof(Location) });
-            return _translateLocation?.Invoke(context, new object[] { location }) as string;
+            return UdonSharpInternals.TranslateLocationToFileName?.Invoke(context, new object[] { location }) as string;
         }
-
-        private static MethodInfo _translateLocation;
 
         private static Location OriginalLocation(object context, SourceMap.Entry entry)
         {

@@ -41,40 +41,23 @@ namespace CustomUdonSharp
 
         public static void Apply(Harmony harmony)
         {
-            Type debugInfoType = AccessTools.TypeByName("UdonSharp.Compiler.AssemblyDebugInfo");
-            Type methodInfoType = AccessTools.TypeByName("UdonSharp.Compiler.MethodDebugInfo");
-            _markerType = AccessTools.TypeByName("UdonSharp.Compiler.MethodDebugMarker");
-            Type emitContextType = AccessTools.TypeByName("UdonSharp.Compiler.Emit.EmitContext");
-            Type moduleType = AccessTools.TypeByName("UdonSharp.Compiler.Assembly.AssemblyModule");
-            Type methodSymbolType = AccessTools.TypeByName("UdonSharp.Compiler.Symbols.MethodSymbol");
-            if (debugInfoType == null || methodInfoType == null || _markerType == null || emitContextType == null || moduleType == null || methodSymbolType == null)
-                throw new MissingMemberException("AssemblyDebugInfo not found. UdonSharp internals may have changed.");
-
-            _currentSpan = AccessTools.Field(debugInfoType, "_currentSpan");
-            _currentDebugInfo = AccessTools.Field(debugInfoType, "_currentDebugInfo");
-            _debugMarkers = AccessTools.Field(methodInfoType, "debugMarkers");
-            _containingFilePath = AccessTools.Field(methodInfoType, "containingFilePath");
-            _startInstruction = AccessTools.Field(_markerType, "startInstruction");
-            _startLine = AccessTools.Field(_markerType, "startLine");
-            _startChar = AccessTools.Field(_markerType, "startChar");
-            _compileContext = AccessTools.Property(emitContextType, "CompileContext");
-            _module = AccessTools.Property(emitContextType, "Module");
-            _currentAddress = AccessTools.Property(moduleType, "CurrentAddress");
+            _markerType = UdonSharpInternals.MethodDebugMarker;
+            _currentSpan = UdonSharpInternals.CurrentSpan;
+            _currentDebugInfo = UdonSharpInternals.CurrentDebugInfo;
+            _debugMarkers = UdonSharpInternals.DebugMarkers;
+            _containingFilePath = UdonSharpInternals.ContainingFilePath;
+            _startInstruction = UdonSharpInternals.MarkerStartInstruction;
+            _startLine = UdonSharpInternals.MarkerStartLine;
+            _startChar = UdonSharpInternals.MarkerStartChar;
+            _compileContext = UdonSharpInternals.EmitCompileContext;
+            _module = UdonSharpInternals.EmitModule;
+            _currentAddress = UdonSharpInternals.ModuleCurrentAddress;
             // MethodSymbol は基底の RoslynSymbol を new で隠しているので、宣言されている方を引く（名前だけだと曖昧になる）
-            _roslynSymbol = AccessTools.DeclaredProperty(methodSymbolType, "RoslynSymbol");
+            _roslynSymbol = UdonSharpInternals.MethodSymbolRoslynSymbol;
 
-            MethodInfo start = AccessTools.Method(debugInfoType, "StartMethodEmit");
-            MethodInfo update = AccessTools.Method(debugInfoType, "UpdateSyntaxNode");
-            MethodInfo finish = AccessTools.Method(debugInfoType, "FinalizeMethodEmit");
-            if (_currentSpan == null || _currentDebugInfo == null || _debugMarkers == null || _containingFilePath == null
-                || _startInstruction == null || _startLine == null || _startChar == null
-                || _compileContext == null || _module == null || _currentAddress == null || _roslynSymbol == null
-                || start == null || update == null || finish == null)
-                throw new MissingMemberException("AssemblyDebugInfo members not found. UdonSharp internals may have changed.");
-
-            harmony.Patch(start, postfix: new HarmonyMethod(typeof(DebugInfoPatch), nameof(PostfixStart)));
-            harmony.Patch(update, prefix: new HarmonyMethod(typeof(DebugInfoPatch), nameof(PrefixUpdate)));
-            harmony.Patch(finish, prefix: new HarmonyMethod(typeof(DebugInfoPatch), nameof(PrefixFinish)));
+            harmony.Patch(UdonSharpInternals.StartMethodEmit, postfix: new HarmonyMethod(typeof(DebugInfoPatch), nameof(PostfixStart)));
+            harmony.Patch(UdonSharpInternals.UpdateSyntaxNode, prefix: new HarmonyMethod(typeof(DebugInfoPatch), nameof(PrefixUpdate)));
+            harmony.Patch(UdonSharpInternals.FinalizeMethodEmit, prefix: new HarmonyMethod(typeof(DebugInfoPatch), nameof(PrefixFinish)));
         }
 
         // 引数名は元のメソッドと一致させる（Harmony は名前で対応づける）

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using UdonSharp.Serialization;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,43 +10,60 @@ namespace CustomUdonSharp
     /// <summary>
     /// UdonSharp の CompilationContext.LoadSyntaxTreesAndCreateModules に Postfix を当て、
     /// パース済み SyntaxTree をインタフェース対応のコードへ書き換える。
+    /// ほかのパッチもここでまとめて当てる。必要な内部 API（UdonSharpInternals）が 1 つでも見つからないとき、
+    /// または当てる途中で失敗したときは、どのパッチも当てない（素の UdonSharp と同じ動きになる。#39）
     /// </summary>
     [InitializeOnLoad]
     internal static class UdonSharpInterfacePatch
     {
         private const string HarmonyId = "com.pandanakami.customudonsharp";
 
-        private static FieldInfo _treeField;
-        private static FieldInfo _sourceTextField;
+        /// <summary>パッチが当たっているか</summary>
+        internal static bool Enabled { get; private set; }
 
         static UdonSharpInterfacePatch()
         {
+            if (!UdonSharpInternals.Resolve())
+            {
+                ReportDisabled("見つからないもの：" + string.Join("、", UdonSharpInternals.Missing));
+                return;
+            }
+
+            var harmony = new Harmony(HarmonyId);
+            harmony.UnpatchAll(HarmonyId);
             try
             {
-                Type contextType = AccessTools.TypeByName("UdonSharp.Compiler.CompilationContext");
-                Type bindingType = AccessTools.TypeByName("UdonSharp.Compiler.ModuleBinding");
-                MethodInfo target = contextType == null ? null : AccessTools.Method(contextType, "LoadSyntaxTreesAndCreateModules");
-
-                if (target == null || bindingType == null)
-                {
-                    Debug.LogError("[CustomUdonSharp] Patch target not found. UdonSharp internals may have changed.");
-                    return;
-                }
-
-                _treeField = AccessTools.Field(bindingType, "tree");
-                _sourceTextField = AccessTools.Field(bindingType, "sourceText");
-
-                var harmony = new Harmony(HarmonyId);
-                harmony.UnpatchAll(HarmonyId);
-                harmony.Patch(target, postfix: new HarmonyMethod(typeof(UdonSharpInterfacePatch), nameof(Postfix)));
+                harmony.Patch(UdonSharpInternals.LoadSyntaxTreesAndCreateModules,
+                    postfix: new HarmonyMethod(typeof(UdonSharpInterfacePatch), nameof(Postfix)));
                 MethodExportLayoutPatch.Apply(harmony);
                 DiagnosticLocationPatch.Apply(harmony);
                 DebugInfoPatch.Apply(harmony);
                 LoweredFieldSerializerPatch.Apply(harmony);
+                Enabled = true;
             }
             catch (Exception e)
             {
-                Debug.LogError($"[CustomUdonSharp] Failed to apply patch: {e}");
+                // 引数名が変わった場合などは、当てるときに失敗する。当てた分も外して、中途半端な状態にしない
+                harmony.UnpatchAll(HarmonyId);
+                ReportDisabled("パッチを当てられませんでした：" + e.Message);
+            }
+        }
+
+        private static void ReportDisabled(string detail)
+        {
+            Debug.LogError($"[CustomUdonSharp] この VRChat SDK（{SdkVersion()}）では UdonSharp の内部が変わっているため、無効にしました（{detail}）。CustomUdonSharp を更新してください");
+        }
+
+        /// <summary>UdonSharp を含む VRChat SDK（com.vrchat.worlds）のバージョン</summary>
+        internal static string SdkVersion()
+        {
+            try
+            {
+                return UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(Serializer).Assembly)?.version ?? "不明";
+            }
+            catch (Exception)
+            {
+                return "不明";
             }
         }
 
@@ -54,7 +72,7 @@ namespace CustomUdonSharp
             try
             {
                 if (__result is Array bindings)
-                    InterfaceLowering.Process(bindings, _treeField, _sourceTextField, __instance);
+                    InterfaceLowering.Process(bindings, UdonSharpInternals.BindingTree, UdonSharpInternals.BindingSourceText, __instance);
             }
             catch (Exception e)
             {

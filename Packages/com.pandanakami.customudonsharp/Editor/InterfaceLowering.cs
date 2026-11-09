@@ -291,10 +291,8 @@ namespace CustomUdonSharp
                 Type severityType = null;
                 if (context != null && _entries.Count > 0)
                 {
-                    severityType = AccessTools.TypeByName("UdonSharp.Compiler.DiagnosticSeverity");
-                    add = severityType == null
-                        ? null
-                        : AccessTools.Method(context.GetType(), "AddDiagnostic", new[] { severityType, typeof(Location), typeof(string) });
+                    severityType = UdonSharpInternals.DiagnosticSeverity;
+                    add = UdonSharpInternals.AddDiagnosticWithLocation;
                     if (add == null)
                         Debug.LogWarning(Prefix + "CompilationContext.AddDiagnostic が見つからないため、エラー・警告をログに出します。UdonSharp の内部が変わった可能性があります");
                 }
@@ -416,9 +414,8 @@ namespace CustomUdonSharp
         private static void CollectImplementers(CSharpCompilation compilation, List<SyntaxTree> trees,
             Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces, LoweringDiagnostics diagnostics)
         {
-            Type typeSymbolType = AccessTools.TypeByName("UdonSharp.Compiler.Symbols.TypeSymbol");
-            var fullTypeFormat = (SymbolDisplayFormat)AccessTools.Field(typeSymbolType, "_fullTypeFormat").GetValue(null);
-            var getTypeId = AccessTools.Method(AccessTools.TypeByName("UdonSharp.Internal.UdonSharpInternalUtility"), "GetTypeID", new[] { typeof(string) });
+            var fullTypeFormat = (SymbolDisplayFormat)UdonSharpInternals.FullTypeFormat.GetValue(null);
+            var getTypeId = UdonSharpInternals.GetTypeId;
 
             Func<INamedTypeSymbol, bool> erase = t => interfaces.ContainsKey(t.OriginalDefinition);
             var keys = new HashSet<string>();
@@ -536,16 +533,14 @@ namespace CustomUdonSharp
 
         private static IEnumerable<MetadataReference> GetMetadataReferences()
         {
-            Type contextType = AccessTools.TypeByName("UdonSharp.Compiler.CompilationContext");
-            var method = AccessTools.Method(contextType, "GetMetadataReferences");
-            return (IEnumerable<MetadataReference>)method.Invoke(null, null);
+            return (IEnumerable<MetadataReference>)UdonSharpInternals.GetMetadataReferences.Invoke(null, null);
         }
 
         private static void Dump(object binding, string text)
         {
             try
             {
-                string filePath = (string)AccessTools.Field(binding.GetType(), "filePath").GetValue(binding);
+                string filePath = (string)UdonSharpInternals.BindingFilePath.GetValue(binding);
                 Directory.CreateDirectory(DumpDir);
                 File.WriteAllText(Path.Combine(DumpDir, Path.GetFileName(filePath)), text);
             }

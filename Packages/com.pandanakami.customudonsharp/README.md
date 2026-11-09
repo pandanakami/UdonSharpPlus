@@ -3,7 +3,7 @@
 UdonSharp のコンパイラをエディタ上で拡張するパッケージです。
 Harmony（VRChat SDK 同梱）でコンパイラの内部処理にパッチを当てます。出力されるのは通常の Udon プログラムなので、VRChat クライアント側には何も追加しなくて済みます。
 
-> **実験段階です。** UdonSharp の内部 API に依存しているため、SDK のバージョンが変わると動かなくなる可能性があります。動作対象は VRChat Worlds SDK 3.10.x です。
+> **実験段階です。** UdonSharp の内部 API に依存しているため、SDK のバージョンが変わると動かなくなる可能性があります。動作対象は VRChat Worlds SDK 3.10.x です。対応していない SDK では自動で無効になり、コンソールに `[CustomUdonSharp] この VRChat SDK（…）では UdonSharp の内部が変わっているため、無効にしました` のエラーが出ます（素の UdonSharp と同じ動きになります）。そのときは CustomUdonSharp を更新してください。
 
 ## 機能
 

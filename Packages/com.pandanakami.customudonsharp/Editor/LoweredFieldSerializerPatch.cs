@@ -24,13 +24,7 @@ namespace CustomUdonSharp
 
         public static void Apply(Harmony harmony)
         {
-            MethodInfo target = AccessTools.Method(typeof(Serializer), "Create", new[] { typeof(TypeSerializationMetadata) });
-            if (target == null)
-            {
-                Debug.LogError("[CustomUdonSharp] Serializer.Create not found. UdonSharp internals may have changed.");
-                return;
-            }
-            harmony.Patch(target, prefix: new HarmonyMethod(typeof(LoweredFieldSerializerPatch), nameof(Prefix)));
+            harmony.Patch(UdonSharpInternals.SerializerCreate, prefix: new HarmonyMethod(typeof(LoweredFieldSerializerPatch), nameof(Prefix)));
         }
 
         private static bool Prefix(TypeSerializationMetadata typeMetadata, ref Serializer __result)
@@ -56,9 +50,9 @@ namespace CustomUdonSharp
             {
                 Type definition = type.GetGenericTypeDefinition();
                 if (definition == typeof(List<>))
-                    return AccessTools.TypeByName("VRC.SDK3.Data.DataList");
+                    return UdonSharpInternals.DataList;
                 if (definition == typeof(Dictionary<,>))
-                    return AccessTools.TypeByName("VRC.SDK3.Data.DataDictionary");
+                    return UdonSharpInternals.DataDictionary;
                 if (definition == typeof(KeyValuePair<,>))
                     return typeof(object[]);
             }
