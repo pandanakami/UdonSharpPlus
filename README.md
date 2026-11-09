@@ -54,6 +54,14 @@ public class Attacker : UdonSharpBehaviour
 
 Anything a feature does not support is reported as a compile error. For exactly what you can write, see the [documentation](Packages/com.pandanakami.customudonsharp/Documentation~/README.md) (in Japanese).
 
+## How it works
+
+![Diagram: the U# compiler parses the U# source code, a rewrite step that CustomUdonSharp inserts with Harmony rewrites it, and the compiler then generates Udon Assembly, which the Udon VM on the VRChat client runs](Packages/com.pandanakami.customudonsharp/Documentation~/images/how-it-works.en.svg)
+
+The UdonSharp (U#) compiler parses your C# source and generates Udon Assembly. CustomUdonSharp uses Harmony to insert a "rewrite" step (orange in the diagram) in between. That step rewrites interfaces, plain classes, List and so on into code U# can handle (`object`, `object[]`, `DataList`, and so on).
+
+The rewrite happens only in the editor. What the Udon VM runs on the VRChat client is a regular Udon program. For details, see [How it works](Packages/com.pandanakami.customudonsharp/Documentation~/how-it-works.md) (in Japanese).
+
 ## Requirements
 
 - Unity 2022.3

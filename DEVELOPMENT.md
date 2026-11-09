@@ -20,3 +20,11 @@ CustomUdonSharp は、Harmony で UdonSharp（VRChat Worlds SDK に同梱）の�
 4. `Assets/FeatureTests/FeatureTests.unity` を ClientSim で実行し、全パネルが `RESULT: OK` になることを見る。#32（ネットワーク）は 2 クライアント、#53（実行時エラー）は手で操作して確かめる。
 5. VRChat のクライアントでも、同じパネルを確かめる。
 6. `package.json` の `vpmDependencies` の範囲を広げ（例：`>=3.10.6 <3.12`）、README の「動作対象」も直して、パッケージのバージョンを上げてリリースする。
+
+## 仕組みの図
+
+README とドキュメントの仕組みの図（`Packages/com.pandanakami.customudonsharp/Documentation~/images/how-it-works.*.svg`）は、同じフォルダの `.mmd`（mermaid）から作っています。直すときは `.mmd` を直し、mermaid-cli で SVG を作り直します。GitHub で `<img>` として表示しても崩れないよう、ラベルは HTML ではなく SVG の文字にしています（`.mmd` の先頭の `htmlLabels: false`）。
+
+```sh
+npx -p @mermaid-js/mermaid-cli@11.4.2 mmdc -b white -i how-it-works.ja.mmd -o how-it-works.ja.svg
+```

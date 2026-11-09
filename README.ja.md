@@ -54,6 +54,14 @@ public class Attacker : UdonSharpBehaviour
 
 どの機能も、対応していない書き方はコンパイルエラーになります。何がどこまで書けるかは、[ドキュメント](Packages/com.pandanakami.customudonsharp/Documentation~/README.md)を見てください。
 
+## 仕組み
+
+![仕組みの図：U# ソースコードを U# コンパイラが構文解析し、CustomUdonSharp が Harmony で差し込んだ段で書き換えてから、Udon Assembly を生成する。VRChat クライアントの Udon VM はそれを動かす](Packages/com.pandanakami.customudonsharp/Documentation~/images/how-it-works.ja.svg)
+
+UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、Udon Assembly を生成します。CustomUdonSharp は Harmony を使って、その途中に「書き換え」の段（図のオレンジ）を差し込みます。そこで、インタフェース・普通のクラス・List などを、U# が扱える書き方（`object`、`object[]`、`DataList` など）に書き換えます。
+
+書き換えはエディタの中だけで行われます。VRChat クライアントの Udon VM が動かすのは、通常の Udon プログラムです。詳しくは[仕組み](Packages/com.pandanakami.customudonsharp/Documentation~/how-it-works.md)を見てください。
+
 ## 必要なもの
 
 - Unity 2022.3
