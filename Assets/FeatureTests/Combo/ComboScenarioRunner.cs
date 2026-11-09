@@ -11,7 +11,7 @@ namespace FeatureTests.Combo
         // エディタで ComboScenario.Run() を普通の C# として実行した結果
         private const string Expected =
             "a:4,mage,52,2,7,Truemage,hired:x thief;b:2,-1,True,8 6 2 8 7 5,19;c:archer golem hired:x knight thief,6,8,7;" +
-            "d:3,golem,hired:74,True,False,13,8;e:2,3 1 2,TrueFalse,yan,5 7,b c,7none;f:3,3,2,a,8,8;g:1 1 0,1,2,8;";
+            "d:3,golem,hired:74,True,False,13,8;e:2,3 1 2,TrueFalse,yan,5 7,b c,7none;f:3,3,2,a,8,8;g:1 1 0,1,2,8;h:12,5,tb,33,21;";
 
         public ComboGolem golem;
         public Text display;

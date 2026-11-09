@@ -111,6 +111,12 @@ namespace FeatureTests.Combo
     {
         public string name;
         public int hp;
+        public string Title { get; set; } = "";
+        public int Health
+        {
+            get { return hp; }
+            set { hp = value; }
+        }
         public Soldier(string name, int hp)
         {
             this.name = name;
@@ -145,7 +151,7 @@ namespace FeatureTests.Combo
         }
 
         // 引数を読み、要素のフィールドに書くラムダ
-        public void HitAll(int damage) { members.ForEach(s => { s.hp -= damage; }); }   // TEMP: 式形式だとエラー（不具合 1）
+        public void HitAll(int damage) { members.ForEach(s => s.hp -= damage); }
     }
 
     public static class ComboExt
@@ -272,6 +278,19 @@ namespace FeatureTests.Combo
             int containing = ComboExt.CountContaining(grid, 2);
             int evenSum = grid.Sum(l => l.Where(x => x % 2 == 0).Sum());
             r += "g:" + JoinInts(aliveCounts) + "," + withStrong + "," + containing + "," + evenSum + ";";
+
+            // h: 戻り値が void のラムダの式の本体での代入・インクリメント（#73）
+            var tally = new Dictionary<int, int>();
+            var nums = new List<int> { 1, 2, 2 };
+            nums.ForEach(x => tally[x] = 0);
+            nums.ForEach(x => tally[x]++);
+            var acc = new List<int> { 0 };
+            nums.ForEach(x => acc[0] += x);
+            all.ForEach(s => s.Title = "t" + s.name);
+            all.ForEach(s => s.Health += 10);
+            all.ForEach(s => s.hp = s.hp * 2);
+            all.ForEach(s => s.hp++);
+            r += "h:" + tally[1] + tally[2] + "," + acc[0] + "," + all[1].Title + "," + all[0].hp + "," + all[3].Health + ";";
 
             return r;
         }

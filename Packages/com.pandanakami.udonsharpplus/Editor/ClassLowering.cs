@@ -834,9 +834,7 @@ namespace UdonSharpPlus
 
             // ---- 代入・インクリメント -------------------------------------------
 
-            private static bool IsStatementContext(ExpressionSyntax node) =>
-                node.Parent is ExpressionStatementSyntax
-                || (node.Parent is ForStatementSyntax f && f.Incrementors.Contains(node));
+            private bool IsStatementContext(ExpressionSyntax node) => InterfaceLowering.IsStatementExpression(node, _model);
 
             /// <summary>何度評価しても結果と副作用が変わらない式か（複合代入で受け側を 2 回書くため）</summary>
             private static bool IsSimple(ExpressionSyntax e)

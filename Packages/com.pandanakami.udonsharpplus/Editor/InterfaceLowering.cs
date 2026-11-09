@@ -531,6 +531,25 @@ namespace UdonSharpPlus
             return false;
         }
 
+        /// <summary>
+        /// 値が使われない位置に書かれた式か（代入・インクリメントを文に書き換えてよいか）。
+        /// 式文、for の増分、戻り値が void のラムダの式の本体（ForEach(x => a.b = x) など。C# では文と同じ意味。#73）
+        /// </summary>
+        internal static bool IsStatementExpression(ExpressionSyntax node, SemanticModel model)
+        {
+            switch (node.Parent)
+            {
+                case ExpressionStatementSyntax _:
+                    return true;
+                case ForStatementSyntax f:
+                    return f.Incrementors.Contains(node);
+                case LambdaExpressionSyntax lambda when lambda.Body == node:
+                    return model.GetTypeInfo(lambda).ConvertedType is INamedTypeSymbol d && d.DelegateInvokeMethod != null && d.DelegateInvokeMethod.ReturnsVoid;
+                default:
+                    return false;
+            }
+        }
+
         private static IEnumerable<MetadataReference> GetMetadataReferences()
         {
             return (IEnumerable<MetadataReference>)UdonSharpInternals.GetMetadataReferences.Invoke(null, null);

@@ -59,6 +59,7 @@ _scores.Sort((a, b) => b - a);
 
 - ラムダの中から、外のローカル変数・引数を読み書きできます。書き込みも C# と同じく、呼び出しの直後から外の変数に反映されます。フィールドもそのまま読み書きできます
 - 本体は式（`x => x > 0`）とブロック（`x => { ... }`）のどちらでも書けます。メソッド名を渡すこともできます（`_scores.Exists(IsOdd)`）
+- 戻り値のないラムダ（`ForEach` など）の式の本体には、普通のクラスのフィールド・プロパティや、List / Dictionary の要素への代入・インクリメントも書けます（`_enemies.ForEach(e => e.hp -= 1)`、`_names.ForEach(n => _counts[n]++)`）
 - `Sort(Comparison)` は安定な並べ替え（マージソート）です（C# の `List.Sort` は安定とは限りません）
 - `FindIndex(start, count, match)` などで範囲外を指定したときは、C# の `ArgumentOutOfRangeException` ではなく、Udon の実行時例外か、見つからない結果（-1）になります
 - ラムダの中で起きたコンパイルエラーと実行時例外は、元のラムダの位置に表示されます

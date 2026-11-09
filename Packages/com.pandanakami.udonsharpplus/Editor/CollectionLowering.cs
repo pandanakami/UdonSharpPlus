@@ -503,7 +503,7 @@ namespace UdonSharpPlus
                     return base.VisitAssignmentExpression(node);
 
                 var target = (ElementAccessExpressionSyntax)node.Left;
-                if (!(node.Parent is ExpressionStatementSyntax))
+                if (!InterfaceLowering.IsStatementExpression(node, _model))
                 {
                     Error(node, "List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）");
                     return node;
@@ -536,7 +536,7 @@ namespace UdonSharpPlus
                     return null;
 
                 var target = (ElementAccessExpressionSyntax)operand;
-                if (!(node.Parent is ExpressionStatementSyntax) || !IsSimple(target.Expression) || !IsSimple(target.ArgumentList.Arguments[0].Expression))
+                if (!InterfaceLowering.IsStatementExpression(node, _model) || !IsSimple(target.Expression) || !IsSimple(target.ArgumentList.Arguments[0].Expression))
                 {
                     Error(node, "List / Dictionary の要素の ++ / -- は、文として、受け側と添字が変数・フィールド・定数のときだけ使えます");
                     return node;

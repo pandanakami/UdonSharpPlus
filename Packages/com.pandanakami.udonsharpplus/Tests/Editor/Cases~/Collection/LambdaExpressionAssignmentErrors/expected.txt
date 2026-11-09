@@ -1,0 +1,7 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(22,29): [UdonSharpPlus] 'List.Select' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）
+Error: Assets/UdonSharpPlusTests/User.cs(22,43): [UdonSharpPlus] ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます
+Error: Assets/UdonSharpPlusTests/User.cs(22,48): [UdonSharpPlus] 普通のクラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）
+Error: Assets/UdonSharpPlusTests/User.cs(23,48): [UdonSharpPlus] List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）
+Error: Assets/UdonSharpPlusTests/User.cs(24,48): [UdonSharpPlus] List / Dictionary の要素の ++ / -- は、文として、受け側と添字が変数・フィールド・定数のときだけ使えます
+## Logs
