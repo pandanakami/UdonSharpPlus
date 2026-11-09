@@ -550,7 +550,20 @@ namespace UdonSharpPlus
             private static bool IsSimple(ExpressionSyntax e) =>
                 e is IdentifierNameSyntax || e is LiteralExpressionSyntax || e is ThisExpressionSyntax
                 || e is MemberAccessExpressionSyntax m && (m.Expression is ThisExpressionSyntax || m.Expression is IdentifierNameSyntax)
-                || e is ParenthesizedExpressionSyntax p && IsSimple(p.Expression);
+                || e is ParenthesizedExpressionSyntax p && IsSimple(p.Expression)
+                || IsClassSlotRead(e);
+
+            /// <summary>
+            /// 普通のクラスのフィールドの読み出し（ClassLowering が u.hits を ((T)(u)[3]) にしたもの）。
+            /// 中が単純なら、2 回読んでも結果と副作用が変わらない（#74）
+            /// </summary>
+            private static bool IsClassSlotRead(ExpressionSyntax e) =>
+                e is CastExpressionSyntax cast
+                && cast.Expression is ElementAccessExpressionSyntax slot
+                && slot.Expression is ParenthesizedExpressionSyntax
+                && slot.ArgumentList.Arguments.Count == 1
+                && slot.ArgumentList.Arguments[0].Expression is LiteralExpressionSyntax
+                && IsSimple(slot.Expression);
 
             // ---- メンバー ----------------------------------------------------------
 

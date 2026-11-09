@@ -124,6 +124,19 @@ namespace FeatureTests.Combo
         }
     }
 
+    // i: 普通のクラスのフィールドにある List / Dictionary の要素への複合代入・インクリメント（#74）
+    public class Tally
+    {
+        public List<int> hits = new List<int> { 0, 0 };
+        public Dictionary<string, int> counts = new Dictionary<string, int> { { "a", 0 } };
+        public Tally inner;
+        public void Hit(int i)
+        {
+            hits[i] += 2;
+            counts["a"]++;
+        }
+    }
+
     // f: 普通のクラスの各メンバーの中のラムダ・LINQ
     public class Squad
     {
@@ -291,6 +304,21 @@ namespace FeatureTests.Combo
             all.ForEach(s => s.hp = s.hp * 2);
             all.ForEach(s => s.hp++);
             r += "h:" + tally[1] + tally[2] + "," + acc[0] + "," + all[1].Title + "," + all[0].hp + "," + all[3].Health + ";";
+
+            // i: 普通のクラスのフィールドにある List / Dictionary の要素への複合代入・インクリメント（#74）
+            var tl = new Tally();
+            tl.inner = new Tally();
+            tl.hits[0] += 5;
+            tl.hits[0]++;
+            --tl.hits[1];
+            tl.counts["a"] += 3;
+            tl.counts["a"]--;
+            tl.inner.hits[1] += 7;
+            tl.Hit(1);
+            var tallies = new List<Tally> { tl, tl.inner };
+            tallies.ForEach(x => x.hits[0] += 10);
+            tallies.ForEach(x => x.counts["a"]++);
+            r += "i:" + tl.hits[0] + "," + tl.hits[1] + "," + tl.counts["a"] + "," + tl.inner.hits[0] + tl.inner.hits[1] + "," + tl.inner.counts["a"] + ";";
 
             return r;
         }
