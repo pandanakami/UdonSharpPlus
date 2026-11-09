@@ -22,22 +22,35 @@ UdonSharp のコンパイラに Harmony でパッチを当て、UdonSharp がコ
 using System.Collections.Generic;
 using System.Linq;
 using UdonSharp;
+using UnityEngine;
 
 public interface IDamageable
 {
-    int Damage(int amount);
+    void Damage(int amount);
+}
+
+public class Slime : IDamageable
+{
+    public int hp = 30;
+    public void Damage(int amount) { hp -= amount; Debug.Log($"Slime HP: {hp}"); }
+}
+
+public class Golem : IDamageable
+{
+    public int hp = 100;
+    public void Damage(int amount) { hp -= amount / 2; Debug.Log($"Golem HP: {hp}"); }
 }
 
 public class Bullet
 {
-    public int damage = 10;
+    public int damage;
     public Bullet(int damage) { this.damage = damage; }
 }
 
 public class Attacker : UdonSharpBehaviour
 {
-    public UdonSharpBehaviour[] targets;
     private List<Bullet> _bullets = new List<Bullet>();
+    private List<IDamageable> _enemies = new List<IDamageable>();
 
     private void Start()
     {
@@ -45,9 +58,10 @@ public class Attacker : UdonSharpBehaviour
         _bullets.Add(new Bullet(20));
         int total = _bullets.Where(b => b.damage > 10).Sum(b => b.damage);
 
-        foreach (UdonSharpBehaviour t in targets)
-            if (t is IDamageable)
-                ((IDamageable)t).Damage(total);
+        _enemies.Add(new Slime());
+        _enemies.Add(new Golem());
+        foreach (IDamageable e in _enemies)
+            e.Damage(total);
     }
 }
 ```
