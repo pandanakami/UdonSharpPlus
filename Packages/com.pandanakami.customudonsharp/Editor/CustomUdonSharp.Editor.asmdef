@@ -1,7 +1,9 @@
 {
     "name": "CustomUdonSharp.Editor",
     "rootNamespace": "CustomUdonSharp",
-    "references": [],
+    "references": [
+        "UdonSharp.Editor"
+    ],
     "includePlatforms": [
         "Editor"
     ],

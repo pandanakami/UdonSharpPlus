@@ -41,6 +41,7 @@ namespace CustomUdonSharp
                 MethodExportLayoutPatch.Apply(harmony);
                 DiagnosticLocationPatch.Apply(harmony);
                 DebugInfoPatch.Apply(harmony);
+                LoweredFieldSerializerPatch.Apply(harmony);
             }
             catch (Exception e)
             {
