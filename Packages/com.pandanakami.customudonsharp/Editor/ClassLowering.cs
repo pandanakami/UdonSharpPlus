@@ -119,7 +119,7 @@ namespace CustomUdonSharp
             // ソース上の普通のクラスを継承したものは、汎用クラスの検査（Validate）でエラーにしている
             foreach (INamedTypeSymbol cls in context.ExternalDerived.OrderBy(t => TagOf(t), StringComparer.Ordinal))
                 diagnostics.Error(cls.Locations.FirstOrDefault(l => l.IsInSource),
-                    $"'{cls.Name}' : 汎用クラスの継承は未対応です（{cls.BaseType?.Name} を継承しています）");
+                    $"'{cls.Name}' : {cls.BaseType?.Name} を継承したクラスは、UdonSharpBehaviour の中で使えません");
 
             if (hosts.Values.All(h => h.Used.Count == 0))
                 return trees;
@@ -348,7 +348,7 @@ namespace CustomUdonSharp
                 }
 
                 if (s.BaseType != null && s.BaseType.SpecialType != SpecialType.System_Object)
-                    Fail(at, $"'{s.Name}' : 汎用クラスの継承は未対応です");
+                    Fail(at, $"'{s.Name}' : 普通のクラスの継承は未対応です");
                 if (s.IsGenericType)
                     Fail(at, $"'{s.Name}' : ジェネリッククラスは未対応です");
                 if (s.ContainingType != null)
@@ -552,7 +552,7 @@ namespace CustomUdonSharp
                     .Select(a => _model.GetSymbolInfo(a).Symbol?.ContainingType?.Name).ToList();
                 if (attributes.Contains("SerializeField") || attributes.Contains("UdonSyncedAttribute") || attributes.Contains("SerializeReference"))
                 {
-                    Error(node, "汎用クラス型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）");
+                    Error(node, "普通のクラスの型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）");
                     return base.VisitFieldDeclaration(node);
                 }
 
@@ -651,7 +651,7 @@ namespace CustomUdonSharp
                     return null;
                 if (!definition.IsStatic)
                 {
-                    Error(node, $"'{method.Name}' : 汎用クラスのインスタンスのメソッドを、メソッド名だけで渡すのは未対応です（ラムダで書いてください）");
+                    Error(node, $"'{method.Name}' : 普通のクラスのインスタンスのメソッドを、メソッド名だけで渡すのは未対応です（ラムダで書いてください）");
                     return node;
                 }
                 return Parse(MethodName(c, definition), node);
@@ -668,7 +668,7 @@ namespace CustomUdonSharp
             {
                 if (_context.InvolvesTarget(_model.GetTypeInfo(node.Type).Type))
                 {
-                    Error(node, "汎用クラスの typeof は未対応です");
+                    Error(node, "普通のクラスの typeof は未対応です");
                     return node;
                 }
                 return base.VisitTypeOfExpression(node);
@@ -826,7 +826,7 @@ namespace CustomUdonSharp
             {
                 if (_context.InvolvesTarget(_model.GetTypeInfo(node.Expression).Type))
                 {
-                    Error(node, "汎用クラスへの ?. は未対応です");
+                    Error(node, "普通のクラスへの ?. は未対応です");
                     return node;
                 }
                 return base.VisitConditionalAccessExpression(node);
@@ -954,12 +954,12 @@ namespace CustomUdonSharp
             {
                 if (!IsStatementContext(node))
                 {
-                    Error(node, "汎用クラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）");
+                    Error(node, "普通のクラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）");
                     return false;
                 }
                 if (readsReceiverTwice && !IsSimple(receiver))
                 {
-                    Error(node, "汎用クラスのフィールド・プロパティへの複合代入・インクリメントは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）");
+                    Error(node, "普通のクラスのフィールド・プロパティへの複合代入・インクリメントは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）");
                     return false;
                 }
                 return true;
@@ -1036,7 +1036,7 @@ namespace CustomUdonSharp
 
                 if (initializer != null)
                 {
-                    Error(node, "汎用クラスのオブジェクト初期化子（new X { a = 1 }）は未対応です");
+                    Error(node, "普通のクラスのオブジェクト初期化子（new X { a = 1 }）は未対応です");
                     return node;
                 }
 
@@ -1090,7 +1090,7 @@ namespace CustomUdonSharp
                             args.Add(ThisName);
                             break;
                         default:
-                            Error(node, $"'{method.Name}' : この形の汎用クラスのメソッド呼び出しは未対応です（?. など）");
+                            Error(node, $"'{method.Name}' : この形の普通のクラスのメソッド呼び出しは未対応です（?. など）");
                             return node;
                     }
                 }
@@ -1122,7 +1122,7 @@ namespace CustomUdonSharp
             {
                 if (ReferencesTarget(node.Pattern))
                 {
-                    Error(node, "汎用クラスの型パターン（x is Bullet b など）は未対応です。is と キャストに分けてください");
+                    Error(node, "普通のクラスの型パターン（x is Bullet b など）は未対応です。is と キャストに分けてください");
                     return node;
                 }
                 return base.VisitIsPatternExpression(node);
@@ -1377,7 +1377,7 @@ namespace CustomUdonSharp
             {
                 if (node.DescendantTrivia(descendIntoTrivia: true).Any(t => t.IsDirective))
                 {
-                    Error(node, "汎用クラスのメソッドの中のプリプロセッサ指令（#if など）は未対応です");
+                    Error(node, "普通のクラスのメソッドの中のプリプロセッサ指令（#if など）は未対応です");
                     return "";
                 }
 
@@ -1390,7 +1390,7 @@ namespace CustomUdonSharp
                 string text = flat.ToFullString().Trim();
                 if (text.Contains("\n"))
                 {
-                    Error(node, "汎用クラスのメソッドの中の、改行を含む補間文字列は未対応です");
+                    Error(node, "普通のクラスのメソッドの中の、改行を含む補間文字列は未対応です");
                     return "";
                 }
                 return text;

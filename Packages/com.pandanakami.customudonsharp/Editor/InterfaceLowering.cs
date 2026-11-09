@@ -796,7 +796,7 @@ namespace CustomUdonSharp
                     {
                         Changed = true;
                         if (!IsUdonSharpBehaviour(classSymbol) && !plainClass)
-                            Error(node, $"'{classSymbol.Name}' : UdonSharpBehaviour と汎用クラス以外でのインタフェース実装は未対応です");
+                            Error(node, $"'{classSymbol.Name}' : UdonSharpBehaviour と普通のクラス以外でのインタフェース実装は未対応です");
 
                         // 行数を変えないよう、元の最後の型の後ろのトリビア（改行など）を引き継ぐ
                         SyntaxTriviaList trailing = node.BaseList.Types.Last().GetTrailingTrivia();

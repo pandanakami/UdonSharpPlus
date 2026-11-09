@@ -120,11 +120,11 @@ namespace CustomUdonSharp
             if (entry?.ClassName == null)
                 return "";
             if (string.IsNullOrEmpty(entry.MemberName))
-                return $"（汎用クラス {entry.ClassName} の中）";
+                return $"（クラス {entry.ClassName} の中）";
             // 「メソッド Exists の中」のように英数字で終わるときだけ空白を入れる
             char last = entry.MemberName[entry.MemberName.Length - 1];
             string gap = last < 0x80 && char.IsLetterOrDigit(last) ? " " : "";
-            return $"（汎用クラス {entry.ClassName} の{entry.MemberName}{gap}の中）";
+            return $"（クラス {entry.ClassName} の{entry.MemberName}{gap}の中）";
         }
 
         public static bool IsMarker(SyntaxTrivia trivia) =>

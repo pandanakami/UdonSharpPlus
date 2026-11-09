@@ -26,9 +26,9 @@ if (target is IDamageable)
 - メソッドの呼び出し（戻り値ありとなしの両方）
 - `is`、`as`、キャスト
 - `[NetworkCallable]` の実装メソッド（ローカル呼び出しと、`SendCustomNetworkEvent` でのネットワーク越しの呼び出しの両方）
-- [汎用クラス](class.md)による実装。UdonSharpBehaviour による実装と混ぜて、同じインタフェース型の変数や配列に入れられます
+- [普通のクラス](class.md)による実装。UdonSharpBehaviour による実装と混ぜて、同じインタフェース型の変数や配列に入れられます
 
-インタフェース型の変数は、`object` として扱われます（中身は UdonSharpBehaviour か、汎用クラスのインスタンス）。そのため `x != null` は、普通の C# のインタフェースと同じく参照の比較になり、Unity の比較（破棄済みのオブジェクトを null とみなす）にはなりません。
+インタフェース型の変数は、`object` として扱われます（中身は UdonSharpBehaviour か、普通のクラスのインスタンス）。そのため `x != null` は、普通の C# のインタフェースと同じく参照の比較になり、Unity の比較（破棄済みのオブジェクトを null とみなす）にはなりません。
 
 ## メソッド名とオーバーロード
 

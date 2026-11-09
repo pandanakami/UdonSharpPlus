@@ -20,7 +20,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 
 対応している書き方：
 
-- 要素の型：数値型、`bool`、`string`、enum、`Vector3` などの値型、UnityEngine.Object、汎用クラス、インタフェース、入れ子の List / Dictionary
+- 要素の型：数値型、`bool`、`string`、enum、`Vector3` などの値型、UnityEngine.Object、普通のクラス、インタフェース、入れ子の List / Dictionary
 - 作成：`new List<T>()`、コレクション初期化子（`{ 1, 2 }`、`{ { "a", 1 } }`、`{ ["a"] = 1 }`）、List・配列からのコピー
 - List：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Insert`、`Remove`、`RemoveAt`、`RemoveRange`、`Contains`、`IndexOf`、`LastIndexOf`、`Clear`、`Sort()`、`Reverse()`、`AddRange`、`InsertRange`、`GetRange`、`ToArray`
 - Dictionary：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Remove`、`ContainsKey`、`ContainsValue`、`TryGetValue`、`Clear`
@@ -71,7 +71,7 @@ _scores.Sort((a, b) => b - a);
 
 ### KeyValuePair
 
-`KeyValuePair<K, V>` は、汎用クラスと同じ形の `object[]`（先頭に型の印、続けてキーと値）になります。`Key`／`Value` は読み取り専用なので、値型の `KeyValuePair` と同じように使えます。
+`KeyValuePair<K, V>` は、普通のクラスと同じ形の `object[]`（先頭に型の印、続けてキーと値）になります。`Key`／`Value` は読み取り専用なので、値型の `KeyValuePair` と同じように使えます。
 
 ```csharp
 foreach (var kv in _scores)
@@ -111,7 +111,7 @@ foreach (int s in big) { ... }
 遅延評価にはしません。呼んだ時点で結果を作ります：
 
 - `Where` / `Select` / `Distinct` / `Skip` / `Take` は要素を 1 つずつ次に渡すので、途中のリストは作りません。`First`／`Any`／`Take` などは、C# と同じく必要な分を取った時点で止まり、ラムダを呼ぶ回数も C# と同じです
-- `OrderBy` は、そこまでの値とキーをためてから並べ替えます。ためる場所（`Distinct` の見たことのある値も）は、呼び出し箇所ごとのフィールドを使い回します。汎用クラスのメソッドの中（UdonSharp は static フィールドを使えないため）では、毎回作ります
+- `OrderBy` は、そこまでの値とキーをためてから並べ替えます。ためる場所（`Distinct` の見たことのある値も）は、呼び出し箇所ごとのフィールドを使い回します。普通のクラスのメソッドの中（UdonSharp は static フィールドを使えないため）では、毎回作ります
 - 並べ替えは安定です（C# の `OrderBy` と同じ）。キーは要素ごとに 1 回だけ計算します。string のキーは `string.Compare`（C# の既定と同じく、カルチャに従う比較）で比べます
 - 結果を `var` で受けたとき、`ToList()`、`ToArray()` は、毎回新しいリスト・配列を作ります
 - C# と結果が変わるのは、クエリを変数に入れておき、後で使う書き方だけです。1 つの式で書いてすぐ使うなら違いは出ません
@@ -136,7 +136,7 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 注意：
 
 - 要素がないときの `First`／`Last`／`Min`／`Max`／`Average` と、`ToDictionary` で同じキーがあったときは、C# の例外の代わりに、エラーのログを出して Udon の実行時例外になります
-- `Distinct` は、汎用クラスなどの参照は同じインスタンスかどうかで比べます（C# の既定と同じ）。Dictionary の要素はキーが重ならないので、何もしません
+- `Distinct` は、普通のクラスなどの参照は同じインスタンスかどうかで比べます（C# の既定と同じ）。Dictionary の要素はキーが重ならないので、何もしません
 - `Contains` は `==` で比べます
 
 ## IEnumerable

@@ -1,6 +1,6 @@
 ## Diagnostics
 Error: Assets/CustomUdonSharpTests/Box.cs(14,39): [CustomUdonSharp] 'EqualityComparer<T>.Default' : EqualityComparer<T>.Default / Comparer<T>.Default は未対応です（CompareTo・Equals を直接呼んでください）
-Error: Assets/CustomUdonSharpTests/Box.cs(17,31): [CustomUdonSharp] 汎用クラスへの ?. は未対応です（汎用クラス Box<int> のメソッド Value の中）
+Error: Assets/CustomUdonSharpTests/Box.cs(17,31): [CustomUdonSharp] 普通のクラスへの ?. は未対応です（クラス Box<int> のメソッド Value の中）
 Error: Assets/CustomUdonSharpTests/Box.cs(26,20): [CustomUdonSharp] ジェネリックの型引数の入れ子が深すぎます（型が際限なく増える再帰は未対応です）
 Error: Assets/CustomUdonSharpTests/Other.cs(20,24): [CustomUdonSharp] 'Holder' : ジェネリックな UdonSharpBehaviour は未対応です
 Error: Assets/CustomUdonSharpTests/Other.cs(24,26): [CustomUdonSharp] 'IBox' : ジェネリックなインタフェースは未対応です
