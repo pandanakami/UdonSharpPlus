@@ -176,7 +176,7 @@ namespace UdonSharpPlus
         /// </summary>
         internal static bool IsPlainClass(INamedTypeSymbol symbol)
         {
-            if (symbol.TypeKind != TypeKind.Class || InterfaceLowering.IsUdonSharpBehaviour(symbol))
+            if (symbol.TypeKind != TypeKind.Class || InterfaceLowering.IsUdonSharpBehaviour(symbol) || InterfaceLowering.IsUdonSharpLibrary(symbol))
                 return false;
 
             for (INamedTypeSymbol t = symbol.BaseType; t != null; t = t.BaseType)
@@ -289,7 +289,8 @@ namespace UdonSharpPlus
                     type = array.ElementType;
                 if (!(type is INamedTypeSymbol named))
                     return;
-                if (named.Locations.Any(l => l.IsInSource))
+                // タプル（(string, int) など）は ValueTuple だが、位置にソースの中のタプルの書き方を持つので、ユーザー定義の構造体と取り違えない（#78 で発覚）
+                if (named.Locations.Any(l => l.IsInSource) && !named.IsTupleType)
                 {
                     if (named.TypeKind == TypeKind.Struct)
                         Structs.Add(named.OriginalDefinition);
@@ -1051,6 +1052,12 @@ namespace UdonSharpPlus
 
                 if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method))
                     return base.VisitInvocationExpression(node);
+
+                if (InterfaceLowering.GetComponentTypeArgument(method) is ITypeSymbol component && _context.Target(component) != null)
+                {
+                    Error(node, InterfaceLowering.GetComponentError(method, component));
+                    return node;
+                }
 
                 IMethodSymbol definition = (method.ReducedFrom ?? method).OriginalDefinition;
                 ClassInfo c = Target(definition.ContainingType);

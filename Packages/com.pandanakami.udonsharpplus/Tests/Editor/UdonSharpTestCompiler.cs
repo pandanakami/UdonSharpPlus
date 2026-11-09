@@ -150,6 +150,23 @@ namespace UdonSharpPlus.Tests
         private static FieldInfo Field(Type type, string name) =>
             type.GetField(name, All) ?? throw new MissingMemberException(type.FullName, name);
 
+        /// <summary>
+        /// U# 自身のライブラリ（UdonSharp.Lib.Internal.GetComponentShim など）のソース。
+        /// 本物の U# は、ユーザーのスクリプトと一緒にこれもコンパイル対象に入れ、GetComponent&lt;ユーザーの UdonSharpBehaviour&gt;() などで名前で探して呼ぶ。
+        /// 入れないと、その書き方が U# の内部の例外になり、本パッケージがライブラリを書き換えてしまう不具合（#78）も見つからない
+        /// </summary>
+        private static IEnumerable<(string Path, string Text)> LibrarySources()
+        {
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(RuntimeAssembly)
+                          ?? throw new InvalidOperationException("package of UdonSharp.Runtime not found");
+            string root = Path.Combine(package.resolvedPath, "Integrations", "UdonSharp", "Runtime", "Libraries");
+            if (!Directory.Exists(root))
+                throw new DirectoryNotFoundException($"UdonSharp libraries not found: {root}. UdonSharp internals may have changed.");
+            return Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories)
+                .OrderBy(p => p, StringComparer.Ordinal)
+                .Select(p => (package.assetPath + "/" + p.Substring(package.resolvedPath.Length + 1).Replace('\\', '/'), File.ReadAllText(p)));
+        }
+
         public static CompileResult Compile(params TestSource[] sources)
         {
             lock (CompileLock)
@@ -202,15 +219,16 @@ namespace UdonSharpPlus.Tests
                 .WithDocumentationMode(DocumentationMode.None)
                 .WithLanguageVersion(LanguageVersion.CSharp9);
 
-            Array bindings = Array.CreateInstance(bindingType, sources.Length);
-            for (int i = 0; i < sources.Length; i++)
+            // テストのソースのあとに、U# 自身のライブラリのソースを足す（本物の U# と同じ。#78）
+            var files = sources.Select(s => (Path: SourceDir + s.FileName, s.Text)).Concat(LibrarySources()).ToArray();
+            Array bindings = Array.CreateInstance(bindingType, files.Length);
+            for (int i = 0; i < files.Length; i++)
             {
-                string path = SourceDir + sources[i].FileName;
                 object binding = Activator.CreateInstance(bindingType);
                 // U# と同じくパスなしでパースする（ファイル名は binding.filePath にだけ持つ）
-                treeField.SetValue(binding, CSharpSyntaxTree.ParseText(sources[i].Text, parseOptions));
-                filePathField.SetValue(binding, path);
-                sourceTextField.SetValue(binding, sources[i].Text);
+                treeField.SetValue(binding, CSharpSyntaxTree.ParseText(files[i].Text, parseOptions));
+                filePathField.SetValue(binding, files[i].Path);
+                sourceTextField.SetValue(binding, files[i].Text);
                 bindings.SetValue(binding, i);
             }
 

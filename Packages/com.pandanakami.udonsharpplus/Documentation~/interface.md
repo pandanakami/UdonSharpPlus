@@ -69,4 +69,16 @@ enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
 - ref/out/in/params 引数、ジェネリックメソッド
 - 明示的インタフェース実装
 - インタフェース型のシリアライズフィールド（Unity がシリアライズしないため。`UdonSharpBehaviour` 型で受けてキャストしてください）
-- `GetComponent<IFoo>()`
+- `GetComponent<IFoo>()` などの GetComponent 系（`GetComponents`・`GetComponentInChildren`・`GetComponentInParent` など、GameObject から呼ぶものも）。インタフェース型は `object` に書き換わるので、そのままだと実行時に例外で止まります。[普通のクラス](class.md)の型も同じです。次のように、具体的な UdonSharpBehaviour の型で取得するか、`UdonSharpBehaviour` で受けて `is`／`as` してください
+
+  ```csharp
+  Enemy enemy = GetComponent<Enemy>();           // 具体的な型で取得する
+  IDamageable d = enemy;
+
+  foreach (UdonSharpBehaviour b in GetComponents<UdonSharpBehaviour>())
+  {
+      IDamageable target = b as IDamageable;     // UdonSharpBehaviour で受けて as
+      if (target != null)
+          target.Damage(10, name);
+  }
+  ```

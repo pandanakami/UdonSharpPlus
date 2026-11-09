@@ -550,6 +550,39 @@ namespace UdonSharpPlus
             }
         }
 
+        /// <summary>
+        /// UdonSharp 自身のライブラリ（UdonSharp.Lib.Internal.GetComponentShim など）の型か。
+        /// ユーザーのスクリプトと一緒にコンパイル対象に入るが、UdonSharp が名前で探して呼ぶので、書き換えてはいけない（#78）
+        /// </summary>
+        internal static bool IsUdonSharpLibrary(ISymbol symbol)
+        {
+            string ns = symbol.ContainingNamespace?.ToDisplayString();
+            return ns == "UdonSharp.Lib" || ns != null && ns.StartsWith("UdonSharp.Lib.", StringComparison.Ordinal);
+        }
+
+        private static readonly HashSet<string> GetComponentNames = new HashSet<string>
+        {
+            "GetComponent", "GetComponents", "GetComponentInChildren", "GetComponentsInChildren", "GetComponentInParent", "GetComponentsInParent",
+        };
+
+        /// <summary>
+        /// Component・GameObject の GetComponent 系（型引数で取得するもの）なら、その型引数。違えば null。
+        /// インタフェース・普通のクラスを渡すと、書き換えで GetComponent&lt;object&gt; などになり、実行時に例外で止まる（#76）
+        /// </summary>
+        internal static ITypeSymbol GetComponentTypeArgument(IMethodSymbol method)
+        {
+            if (!method.IsGenericMethod || method.TypeArguments.Length != 1 || !GetComponentNames.Contains(method.Name))
+                return null;
+            string container = method.ContainingType?.ToDisplayString();
+            return container == "UnityEngine.Component" || container == "UnityEngine.GameObject" || container == "UdonSharp.UdonSharpBehaviour"
+                ? method.TypeArguments[0]
+                : null;
+        }
+
+        internal static string GetComponentError(IMethodSymbol method, ITypeSymbol type) =>
+            $"'{method.Name}<{type.Name}>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。" +
+            "GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください";
+
         private static IEnumerable<MetadataReference> GetMetadataReferences()
         {
             return (IEnumerable<MetadataReference>)UdonSharpInternals.GetMetadataReferences.Invoke(null, null);
@@ -696,6 +729,12 @@ namespace UdonSharpPlus
 
                 if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method))
                     return base.VisitInvocationExpression(node);
+
+                if (GetComponentTypeArgument(method) is ITypeSymbol component && AsTarget(component) != null)
+                {
+                    Error(node, GetComponentError(method, component));
+                    return base.VisitInvocationExpression(node);
+                }
 
                 if (AsTarget(method.ContainingType) == null)
                     return base.VisitInvocationExpression(node);

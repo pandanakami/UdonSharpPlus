@@ -45,6 +45,7 @@ Bullet[] pool = new Bullet[8];
 - 演算子のオーバーロード、インデクサー、イベント、`ToString` などの override
 - インスタンスのメソッドを、メソッド名だけで渡すこと（`list.Find(b.IsHit)`）。ラムダで書いてください（`list.Find(x => b.IsHit(x))`）
 - オブジェクト初期化子（`new Bullet { damage = 1 }`）、`?.`、型パターン（`x is Bullet b`）、`typeof(Bullet)`
+- `GetComponent<Bullet>()` などの GetComponent 系（普通のクラスはコンポーネントではなく、書き換えると実行時に例外で止まるため）
 - 普通のクラスの型のフィールドのシリアライズと同期（`[SerializeField]`、`[UdonSynced]`）。public フィールドもシリアライズされません
 - フィールド・プロパティへの代入の値を式として使うこと（`x = b.damage = 1`）。複合代入とインクリメントの受け側に、メソッド呼び出しを書くこと（`Get().damage += 1`）
 

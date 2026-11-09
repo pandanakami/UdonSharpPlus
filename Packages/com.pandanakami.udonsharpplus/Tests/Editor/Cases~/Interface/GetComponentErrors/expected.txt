@@ -1,0 +1,10 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(11,27): [UdonSharpPlus] 'GetComponent<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(12,29): [UdonSharpPlus] 'GetComponents<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(13,27): [UdonSharpPlus] 'GetComponentInChildren<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(14,29): [UdonSharpPlus] 'GetComponentsInChildren<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(15,27): [UdonSharpPlus] 'GetComponentInParent<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(16,29): [UdonSharpPlus] 'GetComponentsInParent<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(17,27): [UdonSharpPlus] 'GetComponent<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(18,24): [UdonSharpPlus] 'GetComponent<Bullet>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください
+## Logs
