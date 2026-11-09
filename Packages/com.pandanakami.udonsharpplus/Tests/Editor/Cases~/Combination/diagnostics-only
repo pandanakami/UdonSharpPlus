@@ -1,0 +1,2 @@
+このファイルがあると、期待値はプログラム名・Diagnostics・Logs だけになる（GoldenCases.DiagnosticsOnlyFileName）。
+このケースは、エラーなくコンパイルできることだけを確かめる。実行結果は Assets/FeatureTests/Combo のシナリオで確かめる。

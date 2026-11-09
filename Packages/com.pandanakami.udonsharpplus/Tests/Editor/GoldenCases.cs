@@ -26,6 +26,12 @@ namespace UdonSharpPlus.Tests
         public const string ActualDirEnvironmentVariable = "UDONSHARPPLUS_ACTUAL_DIR";
         private const string ExpectedFileName = "expected.txt";
 
+        /// <summary>
+        /// ケースのフォルダにこの名前のファイルがあると、期待値はプログラム名・Diagnostics・Logs だけにする（Uasm などは比べない）。
+        /// エラーなくコンパイルできることだけを確かめたい大きなケース用（#63。実行結果は FeatureTests のシナリオで確かめる）
+        /// </summary>
+        private const string DiagnosticsOnlyFileName = "diagnostics-only";
+
         public static string CasesRoot
         {
             get
@@ -67,7 +73,8 @@ namespace UdonSharpPlus.Tests
                 .Select(p => new TestSource(Path.GetFileName(p), File.ReadAllText(p)))
                 .ToArray();
 
-            return Render(UdonSharpTestCompiler.Compile(sources));
+            bool diagnosticsOnly = File.Exists(Path.Combine(dir, DiagnosticsOnlyFileName));
+            return Render(UdonSharpTestCompiler.Compile(sources), diagnosticsOnly);
         }
 
         public static void Verify(string caseName)
@@ -119,12 +126,18 @@ namespace UdonSharpPlus.Tests
         // ------------------------------------------------------------------
 
         /// <summary>期待値ファイルの中身を作る</summary>
-        public static string Render(CompileResult result)
+        public static string Render(CompileResult result, bool diagnosticsOnly = false)
         {
             var sb = new StringBuilder();
 
             foreach (ProgramResult program in result.Programs)
             {
+                if (diagnosticsOnly)
+                {
+                    sb.Append("## Program: ").Append(program.TypeName).Append('\n');
+                    continue;
+                }
+
                 UasmNormalizer.Result normalized = UasmNormalizer.Normalize(program.Uasm, program.HeapDefaults);
 
                 sb.Append("## Program: ").Append(program.TypeName).Append('\n');
