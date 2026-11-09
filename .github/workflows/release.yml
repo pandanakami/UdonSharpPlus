@@ -58,13 +58,14 @@ jobs:
           echo "version=${{ steps.version.outputs.value }}" >> $GITHUB_ENV
 
       # Zip the Package for release
+      # テスト（Tests/、Cases~ を含む）は配布物に入れない（#36）
       - name: Create Package Zip
         working-directory: "${{ env.packagePath }}"
-        run: zip -r "${{ github.workspace }}/${{ env.zipFile }}" .
+        run: zip -r "${{ github.workspace }}/${{ env.zipFile }}" . -x "Tests/*" "Tests.meta"
 
-      # Build a list of .meta files for future use
+      # Build a list of .meta files for future use（テストは除く）
       - name: Track Package Meta Files
-        run: find "${{ env.packagePath }}/" -name \*.meta >> metaList
+        run: find "${{ env.packagePath }}/" -name \*.meta -not -path "${{ env.packagePath }}/Tests/*" -not -path "${{ env.packagePath }}/Tests.meta" >> metaList
 
       # Make a UnityPackage version of the Package for release
       - name: Create UnityPackage
