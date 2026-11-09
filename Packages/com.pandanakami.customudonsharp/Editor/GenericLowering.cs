@@ -158,10 +158,34 @@ namespace CustomUdonSharp
                                 if (model.GetDeclaredSymbol(m) is IMethodSymbol method && method.ContainingType.TypeKind == TypeKind.Class
                                     && (InterfaceLowering.IsUdonSharpBehaviour(method.ContainingType) || ClassLowering.IsPlainClass(method.ContainingType))
                                     && (!method.ContainingType.IsGenericType || _classes.ContainsKey(method.ContainingType)))
+                                {
                                     _methods[method] = m;
+                                    WarnIfVisible(method, m);
+                                }
                                 break;
                         }
                     }
+                }
+            }
+
+            /// <summary>
+            /// UdonSharpBehaviour のジェネリックメソッドで、別のクラスから見えるもの（public・internal・protected internal）に警告を出す（#64）。
+            /// 別の UdonSharpBehaviour からの呼び出しはエラーにしている（CheckCaller）ので、見えても呼べない。
+            /// private・protected・private protected は、同じクラスと継承したクラスの中からだけ呼べるので、対応範囲と一致する
+            /// </summary>
+            private void WarnIfVisible(IMethodSymbol method, MethodDeclarationSyntax declaration)
+            {
+                if (!InterfaceLowering.IsUdonSharpBehaviour(method.ContainingType))
+                    return;
+                switch (method.DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                    case Accessibility.Internal:
+                    case Accessibility.ProtectedOrInternal:
+                        _diagnostics.Warning(declaration.Identifier.GetLocation(),
+                            $"'{method.Name}' : UdonSharpBehaviour のジェネリックメソッドは、別の UdonSharpBehaviour からは呼べません" +
+                            "（同じクラスと継承したクラスの中からだけ呼べます）。private か protected にしてください");
+                        break;
                 }
             }
 

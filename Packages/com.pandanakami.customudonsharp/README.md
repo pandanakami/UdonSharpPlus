@@ -169,7 +169,7 @@ int max = Util.Max(scores);   // 型引数の推論も使えます
 
 - ジェネリッククラス（型引数は複数でもよい）。中身は汎用クラスと同じ書き方ができます
 - 汎用クラス・static クラスのジェネリックメソッド（拡張メソッドを含む）、ジェネリッククラスの中のジェネリックメソッド
-- UdonSharpBehaviour のジェネリックメソッド（同じクラスの中から呼ぶもの）
+- UdonSharpBehaviour のジェネリックメソッド（同じクラスと、継承したクラスの中から呼ぶもの）。別のクラスから見えるもの（`public`・`internal`・`protected internal`）は、別の UdonSharpBehaviour からは呼べないので、宣言に警告が出ます。`private` か `protected` にしてください
 - ジェネリックが別のジェネリックを呼ぶこと
 - 制約（`where T : IComparable<T>` など）。`a.CompareTo(b)` などは、具体的な型のメソッドの呼び出しになります。Udon で `CompareTo` が使えるのは数値型・`bool`・`string` で、`Equals`・`GetHashCode` はどの型でも使えます
 
