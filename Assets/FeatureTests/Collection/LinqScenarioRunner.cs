@@ -16,6 +16,7 @@ namespace FeatureTests.Collection
             "f:True3,15,1;g:annbob2,bob,4,2cid;h:3,3,12;" +
             "i:1 3 3 5 6 8,92,fig pear kiwi date apple,bobanncid;j:3,5,80 60 50;k:5 3 8 1 6,3c,8 1 6,8,2,0;l:50,10,3;" +
             "n:faygus,eve,150,fayeve,True,3blue,2;" +
+            "o:3000000003,-2,3000000000,1000000001,3.25,-0.5,2.25,1.08333333333333,90,30,3,22;" +
             "m:431,1;m:431,1;";
 
         public Text display;

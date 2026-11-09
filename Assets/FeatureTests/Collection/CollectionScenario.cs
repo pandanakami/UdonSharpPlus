@@ -102,6 +102,21 @@ namespace FeatureTests.Collection
             r += "j:" + grid[0][2] + "," + names[0] + names[2] + "," + floats[0] + "," + vectors[1].y + "," + (int)kinds[0] + (int)kinds[1]
                  + "," + byKind[ItemKind.Weapon].Count + byKind[ItemKind.Weapon][1] + ";";
 
+            // k: #63 で足したもの（RemoveRange・LastIndexOf・InsertRange・GetRange・Dictionary の Clear・bool の要素）
+            var seq = new List<int> { 1, 2, 3, 2, 1 };
+            int lastTwo = seq.LastIndexOf(2);
+            seq.InsertRange(1, new[] { 8, 9 });
+            List<int> mid = seq.GetRange(2, 3);
+            seq.RemoveRange(0, 2);
+            var flags = new List<bool> { true, false };
+            flags.Add(!flags[1]);
+            flags[0] = false;
+            var temp = new Dictionary<string, int> { { "x", 1 }, { "y", 2 } };
+            temp.Clear();
+            temp["z"] = 3;
+            r += "k:" + lastTwo + "," + Join(mid) + "," + Join(seq) + "," + flags.Count + flags[0] + flags[2] + flags.Contains(false) + ","
+                 + temp.Count + temp.ContainsKey("x") + temp["z"] + ";";
+
             return r;
         }
     }

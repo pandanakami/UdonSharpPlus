@@ -1,0 +1,4 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Types.cs(10,47): [UdonSharpPlus] 'Comparer<T>.Default' : EqualityComparer<T>.Default / Comparer<T>.Default は未対応です（CompareTo・Equals を直接呼んでください）
+Error: Assets/UdonSharpPlusTests/Types.cs(15,9): [UdonSharpPlus] 'Registry__int.count' : static フィールドは非対応です（UdonSharp と同じ）（クラス Registry<int> のフィールド count の中）
+## Logs

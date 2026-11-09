@@ -127,6 +127,13 @@ namespace FeatureTests.Collection
             r += "n:" + fast[0] + fast[1] + "," + slowest.name + "," + teamScore + "," + ranked[0].name + ranked[2].name + "," + hasEve + ","
                  + uniqueTags.Count + uniqueTags[0] + "," + tags.Count(t => t == "red") + ";";
 
+            // o: #63 で足したもの（long・double の集計、Enumerable の static の形）
+            var longs = new List<long> { 3000000000L, 5L, -2L };
+            double[] doubles = { 1.5, 2.25, -0.5 };
+            r += "o:" + longs.Sum() + "," + longs.Min() + "," + longs.Max() + "," + longs.Average() + "," + doubles.Sum() + "," + doubles.Min() + ","
+                 + doubles.Max() + "," + doubles.Average() + "," + players.Sum(p => (long)p.score) + "," + players.Average(p => (double)p.score) + ","
+                 + Enumerable.Where(ints, x => x > 4).Count() + "," + Enumerable.Sum(array) + ";";
+
             return r;
         }
     }

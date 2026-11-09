@@ -13,7 +13,7 @@ namespace FeatureTests.Collection
         // エディタで CollectionScenario.Run() を普通の C# として実行した結果
         private const string Expected =
             "a:10 7 9 1,True,True,2,4;b:1 7 9 10;c:10 9 7 1;d:4,9 7 1 7,9 7 1 7;e0:2two;e:2,False,True,11;f:11;g:0;" +
-            "h:14,2,14,2;i:sword4/0 herb2/2;j:3,ac,3,5,21,2axe;";
+            "h:14,2,14,2;i:sword4/0 herb2/2;j:3,ac,3,5,21,2axe;k:3,9 2 3,9 2 3 2 1,3FalseTrueTrue,1False3;";
 
         public Text display;
 
@@ -29,6 +29,13 @@ namespace FeatureTests.Collection
             _runs.Add("run" + _counts["runs"]);
             string fieldText = "fields:" + _runs[0] + "," + _runs.Count + "," + _counts["runs"];
             bool fieldOk = _runs[0] == "init" && _runs.Count == _counts["runs"] + 1;
+
+            // #63: UnityEngine.Object の要素（C# の静的なシナリオでは作れないので、ここで確かめる）
+            var objects = new List<GameObject> { gameObject };
+            objects.Add(null);
+            bool objectOk = objects.Count == 2 && objects.Contains(gameObject) && objects.IndexOf(gameObject) == 0 && objects[1] == null;
+            fieldText += ",objects:" + objectOk;
+            fieldOk = fieldOk && objectOk;
 
             string actual = CollectionScenario.Run();
             bool ok = actual == Expected && fieldOk;

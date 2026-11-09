@@ -1,0 +1,4 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(16,22): [UdonSharpPlus] 'Contains' : この引数の形は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(17,22): [UdonSharpPlus] 'Contains' : Dictionary の要素（KeyValuePair）の Contains は未対応です（ContainsKey などを使ってください）
+## Logs
