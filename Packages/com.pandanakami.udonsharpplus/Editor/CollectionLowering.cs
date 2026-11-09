@@ -123,6 +123,13 @@ namespace UdonSharpPlus
 
             private void Error(SyntaxNode node, string message) => _diagnostics.Error(node.GetLocation(), message);
 
+            /// <summary>
+            /// C# としてコンパイルできない箇所か。前の段（ClassLowering など）がエラーにした式は書き換えずに残るので、
+            /// 型が合わずにメソッドやラムダを解決できない。そこで「未対応」のエラーを出すと巻き添えになるので出さない（#75）
+            /// </summary>
+            private bool HasCompileError(SyntaxNode node) =>
+                _model.GetDiagnostics(node.Span).Any(d => d.Severity == DiagnosticSeverity.Error);
+
             private string Temp(string name) => $"__col_{name}{_temp++}";
 
             private static string Text(SyntaxNode node) => node.WithoutTrivia().ToFullString();
@@ -751,6 +758,8 @@ namespace UdonSharpPlus
                         return base.VisitMemberAccessExpression(node);
                     if ((name == "Keys" || name == "Values") && node.Parent is ForEachStatementSyntax)
                         return base.VisitMemberAccessExpression(node);
+                    if (HasCompileError(node.Parent ?? node))
+                        return base.VisitMemberAccessExpression(node);
                     Error(node, $"'{receiverType.Name}.{name}' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）");
                     return node;
                 }
@@ -910,6 +919,8 @@ namespace UdonSharpPlus
             private SyntaxNode LambdaElsewhere(ExpressionSyntax node)
             {
                 if (_helpers == null)
+                    return null;
+                if (HasCompileError(node))
                     return null;
                 Error(node, "ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます");
                 return node;

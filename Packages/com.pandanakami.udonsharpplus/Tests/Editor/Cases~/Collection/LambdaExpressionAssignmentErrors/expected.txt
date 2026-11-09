@@ -1,7 +1,8 @@
 ## Diagnostics
-Error: Assets/UdonSharpPlusTests/User.cs(22,29): [UdonSharpPlus] 'List.Select' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）
-Error: Assets/UdonSharpPlusTests/User.cs(22,43): [UdonSharpPlus] ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます
-Error: Assets/UdonSharpPlusTests/User.cs(22,48): [UdonSharpPlus] 普通のクラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）
-Error: Assets/UdonSharpPlusTests/User.cs(23,48): [UdonSharpPlus] List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）
-Error: Assets/UdonSharpPlusTests/User.cs(24,48): [UdonSharpPlus] List / Dictionary の要素の ++ / -- は、文として、受け側と添字が変数・フィールド・定数のときだけ使えます
+Error: Assets/UdonSharpPlusTests/User.cs(23,48): [UdonSharpPlus] 普通のクラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）
+Error: Assets/UdonSharpPlusTests/User.cs(24,48): [UdonSharpPlus] List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）
+Error: Assets/UdonSharpPlusTests/User.cs(25,48): [UdonSharpPlus] List / Dictionary の要素の ++ / -- は、文として、受け側と添字が変数・フィールド・定数のときだけ使えます
+Error: Assets/UdonSharpPlusTests/User.cs(29,40): [UdonSharpPlus] 普通のクラスへの ?. は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(30,43): [UdonSharpPlus] 普通のクラスの型パターン（x is Bullet b など）は未対応です。is と キャストに分けてください
+Error: Assets/UdonSharpPlusTests/User.cs(31,33): [UdonSharpPlus] 普通のクラスのフィールド・プロパティへの複合代入・インクリメントは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）
 ## Logs
