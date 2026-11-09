@@ -6388,7 +6388,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 2
   serializedProgramAsset: {fileID: 11400000, guid: 17b54fb83922a1c4cb6a0f2b414f7656,
     type: 2}
   programSource: {fileID: 11400000, guid: 27e60ae65fd067841818a2b2f03395d3, type: 2}
@@ -8082,6 +8082,7 @@ MonoBehaviour:
   - gameObject: {fileID: 1831732184}
     ID: 18
     SerializedTypeNames:
+    - VRC.Udon.UdonBehaviour
     - VRC.Udon.UdonBehaviour
     - VRC.Udon.UdonBehaviour
   portraitCameraPositionOffset: {x: 0, y: 0, z: 0}
