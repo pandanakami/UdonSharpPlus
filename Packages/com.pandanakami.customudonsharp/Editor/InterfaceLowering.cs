@@ -25,6 +25,7 @@ namespace CustomUdonSharp
     ///   - x.M(a)  → __if_M__sig__call(x, a)
     ///     汎用クラスなら if (x is Bullet) return ((Bullet)x).M(a); のように普通の C# で振り分ける
     ///     （この後の汎用クラスの段（ClassLowering）が、コピーの呼び出しに書き換え、実装クラスのコピーを入れる）。
+    ///     実装クラスが 4 個以上なら、インスタンスの型番号（[1]）の switch（ジャンプテーブル）で振り分ける（#65）。
     ///     それ以外は UdonSharpBehaviour として SetProgramVariable / SendCustomEvent / GetProgramVariable
     ///   - x is IFoo → __if_K__is(x),  x as IFoo → __if_K__as(x)
     ///     （汎用クラスは is で、UdonSharpBehaviour は U# の型ID "__refl_typeid" を実装クラスの型IDと照合）
@@ -93,16 +94,17 @@ namespace CustomUdonSharp
             // インタフェースの段は、汎用クラスの実装への振り分けを普通の C#（((Bullet)x).M(a)）で書き、
             // 汎用クラスの段がそれをコピーの呼び出しにする（#50）
             var rewrittenClasses = new List<RewrittenClass>();
+            var classNumbers = new Dictionary<string, int>();
             if (current.Any(t => t.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Any()))
             {
-                current = LowerInterfaces(current, diagnostics, rewrittenClasses);
+                current = LowerInterfaces(current, diagnostics, rewrittenClasses, classNumbers);
                 SourceMap.RegisterTrees(current);
             }
 
             var usedClasses = new HashSet<string>();
             if (ClassLowering.MayHaveClasses(current))
             {
-                current = ClassLowering.Run(current, diagnostics, GetMetadataReferences(), usedClasses);
+                current = ClassLowering.Run(current, diagnostics, GetMetadataReferences(), usedClasses, classNumbers);
                 SourceMap.RegisterTrees(current);
             }
 
@@ -181,8 +183,42 @@ namespace CustomUdonSharp
             return result;
         }
 
+        /// <summary>
+        /// 汎用クラスの型番号（インスタンスの [1]。#65）を振る。呼び出しヘルパーは型番号の switch で実装クラスへ振り分けるので、
+        /// 同じヘルパーで振り分けるクラス（groups の 1 つ）の中では重ならないようにする。
+        /// クラスに番号は 1 つだけで、完全名の順に、重ならない最小の番号を選ぶ（複数のグループに入るクラスも 1 つ）。
+        /// 番号が小さいほど U# の switch がジャンプテーブルになりやすい（0〜256）。どこのグループにも入らないクラスは 0（表に入れない）
+        /// </summary>
+        private static void AssignClassNumbers(IEnumerable<List<INamedTypeSymbol>> groups, Dictionary<string, int> numbers)
+        {
+            var groupsOf = new Dictionary<string, List<List<INamedTypeSymbol>>>();
+            foreach (List<INamedTypeSymbol> group in groups)
+                foreach (INamedTypeSymbol c in group)
+                {
+                    string tag = ClassLowering.TagOf(c);
+                    if (!groupsOf.TryGetValue(tag, out var list))
+                        groupsOf[tag] = list = new List<List<INamedTypeSymbol>>();
+                    list.Add(group);
+                }
+
+            foreach (string tag in groupsOf.Keys.OrderBy(t => t, StringComparer.Ordinal))
+            {
+                var taken = new HashSet<int>();
+                foreach (List<INamedTypeSymbol> group in groupsOf[tag])
+                    foreach (INamedTypeSymbol other in group)
+                        if (numbers.TryGetValue(ClassLowering.TagOf(other), out int n))
+                            taken.Add(n);
+                int number = 0;
+                while (taken.Contains(number))
+                    number++;
+                numbers[tag] = number;
+            }
+        }
+
         /// <summary>インタフェースの書き換え。書き換えた tree の一覧を返す（変わらない tree はそのまま）</summary>
-        private static List<SyntaxTree> LowerInterfaces(List<SyntaxTree> trees, LoweringDiagnostics diagnostics, List<RewrittenClass> rewrittenClasses)
+        /// <param name="classNumbers">汎用クラスの型番号（型タグ → 番号）を入れて返す（#65）</param>
+        private static List<SyntaxTree> LowerInterfaces(List<SyntaxTree> trees, LoweringDiagnostics diagnostics, List<RewrittenClass> rewrittenClasses,
+            Dictionary<string, int> classNumbers)
         {
             var compilation = CSharpCompilation.Create(
                 "CustomUdonSharp_InterfacePrepass",
@@ -211,11 +247,13 @@ namespace CustomUdonSharp
             foreach (var list in classImpls.Values)
                 list.Sort((a, b) => string.CompareOrdinal(a.ToDisplayString(), b.ToDisplayString()));
 
+            AssignClassNumbers(classImpls.Values, classNumbers);
+
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.GetSemanticModel(tree);
-                var rewriter = new Rewriter(model, interfaces, classImpls, diagnostics);
+                var rewriter = new Rewriter(model, interfaces, classImpls, classNumbers, diagnostics);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
                 foreach (var (tag, decl) in rewriter.RewrittenClasses)
                     rewrittenClasses.Add(new RewrittenClass { TreeIndex = result.Count, Tag = tag, Original = decl });
@@ -531,6 +569,7 @@ namespace CustomUdonSharp
             private readonly SemanticModel _model;
             private readonly Dictionary<INamedTypeSymbol, InterfaceInfo> _interfaces;
             private readonly Dictionary<string, List<INamedTypeSymbol>> _classImpls;   // シグネチャ → 実装する汎用クラス
+            private readonly Dictionary<string, int> _classNumbers;                    // 型タグ → 型番号（#65）
             private readonly LoweringDiagnostics _diagnostics;
             private readonly Func<INamedTypeSymbol, bool> _erase;
             private readonly Stack<ClassState> _states = new Stack<ClassState>();
@@ -541,11 +580,12 @@ namespace CustomUdonSharp
             public readonly List<(string Tag, ClassDeclarationSyntax Original)> RewrittenClasses = new List<(string, ClassDeclarationSyntax)>();
 
             public Rewriter(SemanticModel model, Dictionary<INamedTypeSymbol, InterfaceInfo> interfaces,
-                Dictionary<string, List<INamedTypeSymbol>> classImpls, LoweringDiagnostics diagnostics)
+                Dictionary<string, List<INamedTypeSymbol>> classImpls, Dictionary<string, int> classNumbers, LoweringDiagnostics diagnostics)
             {
                 _model = model;
                 _interfaces = interfaces;
                 _classImpls = classImpls;
+                _classNumbers = classNumbers;
                 _diagnostics = diagnostics;
                 _erase = t => interfaces.ContainsKey(t.OriginalDefinition);
             }
@@ -818,7 +858,22 @@ namespace CustomUdonSharp
 
                 // 汎用クラス（#50）：普通の C# で呼ぶ。この後の段で、そのクラスのメソッドのコピーの呼び出しになる
                 string args = string.Join(", ", ps.Select(p => p.Name));
-                if (_classImpls.TryGetValue(m.Signature, out var classes))
+                if (_classImpls.TryGetValue(m.Signature, out var classes) && UseSwitch(classes))
+                {
+                    // 実装クラスが多いとき（#65）：汎用クラスのインスタンスかを 1 回だけ確かめ、型番号（[1]）の switch で振り分ける。
+                    // U# は case が 0〜256 の定数で 4 個以上の switch をジャンプテーブル（JUMP_INDIRECT）にするので、クラスの数によらない
+                    sb.Append("if (__t != null && __t.GetType().Equals(typeof(object[]))) { object[] __a = (object[])__t; ");
+                    sb.Append("if (__a.Length > 1 && __a[0] != null && __a[0].GetType().Equals(typeof(string))) { switch ((int)__a[1]) { ");
+                    foreach (INamedTypeSymbol c in classes)
+                    {
+                        string name = c.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        string call = $"(({name})__t).{m.Symbol.Name}({args})";
+                        sb.Append($"case {_classNumbers[ClassLowering.TagOf(c)]}: ");
+                        sb.Append(m.HasReturn ? $"return {call}; " : $"{call}; return; ");
+                    }
+                    sb.Append("} } } ");
+                }
+                else if (classes != null)
                 {
                     foreach (INamedTypeSymbol c in classes)
                     {
@@ -840,6 +895,13 @@ namespace CustomUdonSharp
                 sb.Append('}');
                 return sb.ToString();
             }
+
+            /// <summary>
+            /// 型番号の switch で振り分けるか（#65）。U# がジャンプテーブルにする条件（case が 4 個以上、0〜256）を満たすときだけ。
+            /// 満たさなければ is を並べる形のまま（3 個以下なら比べる回数も少ない）
+            /// </summary>
+            private bool UseSwitch(List<INamedTypeSymbol> classes) =>
+                classes.Count >= 4 && classes.All(c => _classNumbers.TryGetValue(ClassLowering.TagOf(c), out int n) && n <= 256);
 
             // 汎用クラス（#50）は is で見る（この後の段で、型タグを見る判定になる）。
             // UdonSharpBehaviour は、U# が is 演算子非対応のため GetType() で UdonBehaviour か確認し、

@@ -21,16 +21,16 @@
     __const_SystemInt32_1: %SystemInt32, null
     __const_SystemInt32_2: %SystemInt32, null
     __const_SystemSingle_1: %SystemSingle, null
-    __const_SystemInt32_3: %SystemInt32, null
     __const_SystemString_0: %SystemString, null
     __gintnl_SystemUInt32_2: %SystemUInt32, null
     __5__intnlparam: %SystemObjectArray, null
     __6__intnlparam: %SystemInt32, null
-    __const_SystemInt32_4: %SystemInt32, null
+    __const_SystemInt32_3: %SystemInt32, null
     __gintnl_SystemUInt32_3: %SystemUInt32, null
     __gintnl_SystemUInt32_4: %SystemUInt32, null
     __7__intnlparam: %SystemInt32, null
     __8__intnlparam: %SystemObjectArray, null
+    __const_SystemInt32_4: %SystemInt32, null
     __gintnl_SystemUInt32_5: %SystemUInt32, null
     __9__intnlparam: %SystemInt32, null
     __10__intnlparam: %SystemObjectArray, null
@@ -41,7 +41,6 @@
     __12__intnlparam: %SystemBoolean, null
     __13__intnlparam: %SystemObjectArray, null
     __const_SystemInt32_6: %SystemInt32, null
-    __const_SystemInt32_7: %SystemInt32, null
     __const_SystemString_1: %SystemString, null
     __gintnl_SystemUInt32_7: %SystemUInt32, null
     __14__intnlparam: %SystemObjectArray, null
@@ -62,6 +61,7 @@
     __gintnl_SystemUInt32_12: %SystemUInt32, null
     __24__intnlparam: %SystemInt32, null
     __25__intnlparam: %SystemInt32, null
+    __const_SystemInt32_7: %SystemInt32, null
     __const_SystemString_2: %SystemString, null
     __const_SystemInt32_8: %SystemInt32, null
     __const_SystemString_3: %SystemString, null
@@ -72,6 +72,7 @@
     __28__intnlparam: %SystemSingle, null
     __const_SystemSingle_4: %SystemSingle, null
     __gintnl_SystemUInt32_14: %SystemUInt32, null
+    __const_SystemInt32_9: %SystemInt32, null
     __gintnl_SystemUInt32_15: %SystemUInt32, null
     __29__intnlparam: %SystemObjectArray, null
     __30__intnlparam: %UnityEngineVector3, null
@@ -80,7 +81,7 @@
     __const_SystemBoolean_0: %SystemBoolean, null
     __const_SystemType_1: %SystemType, null
     __gintnl_SystemUInt32_16: %SystemUInt32, null
-    __const_SystemInt32_9: %SystemInt32, null
+    __const_SystemInt32_10: %SystemInt32, null
     __const_SystemString_4: %SystemString, null
     __gintnl_SystemUInt32_17: %SystemUInt32, null
     __31__intnlparam: %SystemObjectArray, null
@@ -186,7 +187,7 @@
         JUMP, <__cls_CustomUdonSharpTests_ClassBasic_Bullet__Move__UnityEngine_Vector3(object[], UnityEngine.Vector3)>
     L1:
         PUSH, __lcl_b_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_0
@@ -197,11 +198,11 @@
         PUSH, __intnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __lcl_b_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemInt32_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl_b_SystemObjectArray_0
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __intnl_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_1
@@ -215,18 +216,18 @@
         PUSH, __intnl_UnityEngineVector3_0
         COPY
         PUSH, __lcl_b_SystemObjectArray_0
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __lcl___cls_tmp0_UnityEngineVector3_0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl_b_SystemObjectArray_0
-        PUSH, __const_SystemInt32_3  ; 4
+        PUSH, __const_SystemInt32_1  ; 5
         PUSH, __const_SystemString_0  ; "first"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_2  ; -> L2
         PUSH, __lcl_b_SystemObjectArray_0
         PUSH, __5__intnlparam
         COPY
-        PUSH, __const_SystemInt32_4  ; 40
+        PUSH, __const_SystemInt32_3  ; 40
         PUSH, __6__intnlparam
         COPY
 # Calling CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__set_Power(object[], int)
@@ -241,7 +242,7 @@
         JUMP, <__cls_CustomUdonSharpTests_ClassBasic_Bullet__get_Power(object[])>
     L3:
         PUSH, __7__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __intnl_SystemInt32_2
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __lcl_b_SystemObjectArray_0
@@ -257,7 +258,7 @@
         PUSH, __lcl_b_SystemObjectArray_0
         PUSH, __10__intnlparam
         COPY
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __11__intnlparam
         COPY
 # Calling CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__Hit__int(object[], int)
@@ -267,7 +268,7 @@
         PUSH, __lcl_dealt_SystemInt32_0
         COPY
         PUSH, __lcl_b_SystemObjectArray_0
-        PUSH, __const_SystemInt32_3  ; 4
+        PUSH, __const_SystemInt32_1  ; 5
         PUSH, __intnl_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_1
@@ -278,7 +279,7 @@
         PUSH, __intnl_SystemString_0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __lcl_dealt_SystemInt32_0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_6  ; -> L6
@@ -289,12 +290,12 @@
         JUMP, <__cls_CustomUdonSharpTests_ClassBasic_Bullet__get_IsFast(object[])>
     L6:
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __12__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_6  ; 3
-        PUSH, __const_SystemInt32_7  ; 99
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __const_SystemInt32_6  ; 99
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __const_SystemString_1  ; "{0} dealt={1} fast={2} max={3}"
         PUSH, __gintnl_SystemObjectArray_0
@@ -302,7 +303,7 @@
         EXTERN, "SystemString.__Format__SystemString_SystemObjectArray__SystemString"
         PUSH, __intnl_SystemString_1
         EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, _pool
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, _pool
@@ -321,7 +322,7 @@
         JUMP, <__cls_CustomUdonSharpTests_ClassBasic_Bullet__Split(object[])>
     L7:
         PUSH, __intnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __14__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_8  ; -> L8
@@ -336,7 +337,7 @@
         JUMP, <__cls_CustomUdonSharpTests_ClassBasic_Bullet__Create__float(float)>
     L8:
         PUSH, __intnl_SystemObjectArray_1
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __16__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, _pool
@@ -357,7 +358,7 @@
         PUSH, __lcl_p_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __lcl_p_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_2
@@ -366,13 +367,13 @@
         PUSH, __intnl_SystemInt32_5
         EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
         PUSH, __intnl_SystemInt32_4
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         JUMP, L9
     L10:
         PUSH, _pool
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __lcl_o_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemUInt32_9  ; -> L11
@@ -396,14 +397,14 @@
         COPY
     L13:
         PUSH, __gintnl_SystemUInt32_11  ; -> L14
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __23__intnlparam
         COPY
 # Calling CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_MathUtil__Square__int(int)
         JUMP, <__cls_CustomUdonSharpTests_ClassBasic_MathUtil__Square__int(int)>
     L14:
         PUSH, __gintnl_SystemUInt32_12  ; -> L15
-        PUSH, __const_SystemInt32_3  ; 4
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __25__intnlparam
         COPY
 # Cow dirty
@@ -427,7 +428,7 @@
 #
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__ctor__UnityEngine_Vector3__float(UnityEngine.Vector3, float)
 #
-        PUSH, __const_SystemInt32_8  ; 6
+        PUSH, __const_SystemInt32_8  ; 7
         PUSH, __lcl___this_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_0
@@ -435,15 +436,19 @@
         PUSH, __const_SystemString_3  ; "CustomUdonSharpTests.ClassBasic.Bullet"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
-        PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __const_UnityEngineVector3_0  ; (0.00, 0.00, 0.00)
-        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
-        PUSH, __lcl___this_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __const_SystemInt32_5  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __const_UnityEngineVector3_0  ; (0.00, 0.00, 0.00)
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __const_SystemInt32_5  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __const_SystemSingle_3  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_13  ; -> L0
@@ -472,14 +477,14 @@
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__Move__UnityEngine_Vector3(object[], UnityEngine.Vector3)
 #
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __intnl_SystemObject_3
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_3
         PUSH, __intnl_UnityEngineVector3_1
         COPY
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __intnl_SystemObject_4
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_4
@@ -494,11 +499,11 @@
         PUSH, __intnl_UnityEngineVector3_3
         EXTERN, "UnityEngineVector3.__op_Addition__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3"
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __intnl_UnityEngineVector3_3
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __intnl_SystemObject_5
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_5
@@ -512,37 +517,37 @@
         PUSH, __intnl_UnityEngineVector3_4
         COPY
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __lcl___cls_tmp0_UnityEngineVector3_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_5
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_5
         PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
         PUSH, __intnl_SystemInt32_6
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __intnl_SystemInt32_7
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemInt32_7
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_6
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_6
         PUSH, __intnl_SystemInt32_8
         EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
         PUSH, __intnl_SystemInt32_8
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __intnl_SystemInt32_9
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemInt32_9
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -552,11 +557,11 @@
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__set_Power(object[], int)
 #
         PUSH, __6__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __intnl_SystemInt32_10
         EXTERN, "SystemInt32.__op_Division__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __5__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemInt32_10
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -566,14 +571,14 @@
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__get_Power(object[])
 #
         PUSH, __8__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_7
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_7
         PUSH, __intnl_SystemInt32_11
         EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
         PUSH, __intnl_SystemInt32_11
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __7__intnlparam
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -586,7 +591,7 @@
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__Hit__int(object[], int)
 #
         PUSH, __10__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_8
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_8
@@ -601,7 +606,7 @@
         PUSH, __lcl_dealt_SystemInt32_1
         EXTERN, "UnityEngineMathf.__Max__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __lcl_dealt_SystemInt32_1
-        PUSH, __const_SystemInt32_7  ; 99
+        PUSH, __const_SystemInt32_6  ; 99
         PUSH, __9__intnlparam
         EXTERN, "UnityEngineMathf.__Min__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -614,7 +619,7 @@
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__get_IsFast(object[])
 #
         PUSH, __13__intnlparam
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __intnl_SystemObject_9
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_9
@@ -635,14 +640,14 @@
 #
         PUSH, __gintnl_SystemUInt32_14  ; -> L0
         PUSH, __15__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __intnl_SystemObject_10
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_10
         PUSH, __intnl_UnityEngineVector3_5
         COPY
         PUSH, __15__intnlparam
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __intnl_SystemObject_11
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_11
@@ -665,22 +670,22 @@
         PUSH, __lcl_child_SystemObjectArray_0
         COPY
         PUSH, __15__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_12
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_12
         PUSH, __intnl_SystemInt32_14
         EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
         PUSH, __intnl_SystemInt32_14
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __intnl_SystemInt32_15
         EXTERN, "SystemInt32.__op_Division__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __lcl_child_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemInt32_15
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __15__intnlparam
-        PUSH, __const_SystemInt32_1  ; 5
+        PUSH, __const_SystemInt32_9  ; 6
         PUSH, __lcl_child_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl_child_SystemObjectArray_0
@@ -862,7 +867,7 @@
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_MathUtil__Twice__int(int)
 #
         PUSH, __25__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __24__intnlparam
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -875,19 +880,19 @@
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__init__UnityEngine_Vector3__float(object[], UnityEngine.Vector3, float)
 #
         PUSH, __26__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
-        PUSH, __const_SystemInt32_9  ; 10
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __const_SystemInt32_10  ; 10
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __26__intnlparam
-        PUSH, __const_SystemInt32_3  ; 4
+        PUSH, __const_SystemInt32_1  ; 5
         PUSH, __const_SystemString_4  ; "bullet"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __26__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 2
         PUSH, __27__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __26__intnlparam
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __28__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -896,7 +901,7 @@
 #
 # CustomUdonSharpTests.ClassBasic.Shooter.__cls_CustomUdonSharpTests_ClassBasic_Bullet__ctor__UnityEngine_Vector3(UnityEngine.Vector3)
 #
-        PUSH, __const_SystemInt32_8  ; 6
+        PUSH, __const_SystemInt32_8  ; 7
         PUSH, __lcl___this_SystemObjectArray_1
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_1
@@ -904,15 +909,19 @@
         PUSH, __const_SystemString_3  ; "CustomUdonSharpTests.ClassBasic.Bullet"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_1
-        PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __const_UnityEngineVector3_0  ; (0.00, 0.00, 0.00)
-        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
-        PUSH, __lcl___this_SystemObjectArray_1
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_4  ; 1
         PUSH, __const_SystemInt32_5  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_1
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __const_UnityEngineVector3_0  ; (0.00, 0.00, 0.00)
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __const_SystemInt32_5  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __const_SystemSingle_3  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_17  ; -> L0
@@ -957,16 +966,17 @@
 
 ### HeapDefaults
 __const_SystemBoolean_0 = False
-__const_SystemInt32_0 = 2
+__const_SystemInt32_0 = 3
 __const_SystemInt32_1 = 5
-__const_SystemInt32_2 = 1
-__const_SystemInt32_3 = 4
-__const_SystemInt32_4 = 40
+__const_SystemInt32_10 = 10
+__const_SystemInt32_2 = 2
+__const_SystemInt32_3 = 40
+__const_SystemInt32_4 = 1
 __const_SystemInt32_5 = 0
-__const_SystemInt32_6 = 3
-__const_SystemInt32_7 = 99
-__const_SystemInt32_8 = 6
-__const_SystemInt32_9 = 10
+__const_SystemInt32_6 = 99
+__const_SystemInt32_7 = 4
+__const_SystemInt32_8 = 7
+__const_SystemInt32_9 = 6
 __const_SystemSingle_0 = 3
 __const_SystemSingle_1 = 1
 __const_SystemSingle_2 = 2

@@ -744,7 +744,7 @@
         PUSH, __intnl_SystemInt32_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl_weakest_SystemObjectArray_0
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __intnl_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_0
@@ -798,7 +798,7 @@
         PUSH, __intnl_SystemObjectArray_0
         COPY
         PUSH, __intnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __const_SystemInt32_7  ; 3
         PUSH, __intnl_SystemObject_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_2
@@ -878,7 +878,7 @@
         PUSH, __lcl_e_SystemObjectArray_0
         COPY
         PUSH, __lcl_e_SystemObjectArray_0
-        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __const_SystemInt32_7  ; 3
         PUSH, __intnl_SystemObject_4
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_4
@@ -2361,7 +2361,7 @@
         PUSH, __lcl_e_SystemObjectArray_1
         COPY
         PUSH, __lcl_e_SystemObjectArray_1
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __intnl_SystemObject_6
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_6
@@ -2439,7 +2439,7 @@
         PUSH, __lcl_e_SystemObjectArray_2
         COPY
         PUSH, __lcl_e_SystemObjectArray_2
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __intnl_SystemObject_8
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_8
@@ -2449,7 +2449,7 @@
         PUSH, __lcl_e_SystemObjectArray_2
         COPY
         PUSH, __lcl_e_SystemObjectArray_2
-        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __const_SystemInt32_7  ; 3
         PUSH, __intnl_SystemObject_8
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_8
@@ -2886,7 +2886,7 @@
         PUSH, __lcl_e_SystemObjectArray_3
         COPY
         PUSH, __lcl_e_SystemObjectArray_3
-        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __const_SystemInt32_8  ; 4
         PUSH, __intnl_SystemObject_10
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_10
@@ -2905,7 +2905,7 @@
         PUSH, __lcl_e_SystemObjectArray_3
         COPY
         PUSH, __lcl_e_SystemObjectArray_3
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __intnl_SystemObject_10
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_10
@@ -3240,7 +3240,7 @@
         PUSH, __lcl_e_SystemObjectArray_3
         COPY
         PUSH, __lcl_e_SystemObjectArray_3
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __intnl_SystemObject_10
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_10
@@ -3428,7 +3428,7 @@
 #
 # CustomUdonSharpTests.CollectionLinqOrder.User.__cls_CustomUdonSharpTests_CollectionLinqOrder_Enemy__ctor__string__int__CustomUdonSharpTests_CollectionLinqOrder_Rank(string, int, CustomUdonSharpTests.CollectionLinqOrder.Rank)
 #
-        PUSH, __const_SystemInt32_8  ; 4
+        PUSH, __const_SystemInt32_4  ; 5
         PUSH, __lcl___this_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_0
@@ -3436,11 +3436,15 @@
         PUSH, __const_SystemString_5  ; "CustomUdonSharpTests.CollectionLinqOrder.Enemy"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
-        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __const_SystemInt32_1  ; 1
         PUSH, __const_SystemInt32_0  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
         PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_8  ; 4
         PUSH, __const_SystemInt32_5  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_14  ; -> L0
@@ -3539,15 +3543,15 @@
 # CustomUdonSharpTests.CollectionLinqOrder.User.__cls_CustomUdonSharpTests_CollectionLinqOrder_Enemy__init__string__int__CustomUdonSharpTests_CollectionLinqOrder_Rank(object[], string, int, CustomUdonSharpTests.CollectionLinqOrder.Rank)
 #
         PUSH, __8__intnlparam
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __9__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __8__intnlparam
-        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __const_SystemInt32_7  ; 3
         PUSH, __10__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __8__intnlparam
-        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __const_SystemInt32_8  ; 4
         PUSH, __11__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -3593,7 +3597,7 @@
         PUSH, __lcl_e_SystemObjectArray_4
         COPY
         PUSH, __lcl_e_SystemObjectArray_4
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __intnl_SystemObject_12
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_12
@@ -3872,7 +3876,7 @@
         PUSH, __lcl_e_SystemObjectArray_4
         COPY
         PUSH, __lcl_e_SystemObjectArray_4
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_6  ; 2
         PUSH, __intnl_SystemObject_12
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_12

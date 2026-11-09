@@ -706,7 +706,7 @@
         PUSH, __lcl_firstOdd_SystemInt32_0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl_alive_SystemObjectArray_0
-        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __const_SystemInt32_0  ; 2
         PUSH, __intnl_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_0
@@ -758,7 +758,7 @@
         PUSH, __intnl_SystemObjectArray_0
         COPY
         PUSH, __intnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __const_SystemInt32_0  ; 2
         PUSH, __intnl_SystemObject_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_2
@@ -1669,7 +1669,7 @@
         PUSH, __lcl_e_SystemObjectArray_0
         COPY
         PUSH, __lcl_e_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_5  ; 3
         PUSH, __intnl_SystemObject_4
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_4
@@ -1812,7 +1812,7 @@
         PUSH, __lcl_e_SystemObjectArray_1
         COPY
         PUSH, __lcl_e_SystemObjectArray_1
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_5  ; 3
         PUSH, __intnl_SystemObject_6
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_6
@@ -2181,7 +2181,7 @@
 #
 # CustomUdonSharpTests.CollectionLambda.User.__cls_CustomUdonSharpTests_CollectionLambda_Enemy__ctor__string__int(string, int)
 #
-        PUSH, __const_SystemInt32_5  ; 3
+        PUSH, __const_SystemInt32_2  ; 4
         PUSH, __lcl___this_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_0
@@ -2189,7 +2189,11 @@
         PUSH, __const_SystemString_5  ; "CustomUdonSharpTests.CollectionLambda.Enemy"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_5  ; 3
         PUSH, __const_SystemInt32_1  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_27  ; -> L0
@@ -2218,11 +2222,11 @@
 # CustomUdonSharpTests.CollectionLambda.User.__cls_CustomUdonSharpTests_CollectionLambda_Enemy__init__string__int(object[], string, int)
 #
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __const_SystemInt32_0  ; 2
         PUSH, __4__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __3__intnlparam
-        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __const_SystemInt32_5  ; 3
         PUSH, __5__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0

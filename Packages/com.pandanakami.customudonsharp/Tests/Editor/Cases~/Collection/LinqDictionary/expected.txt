@@ -820,7 +820,7 @@
         PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl_cheapest_SystemObjectArray_0
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_5
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_5
@@ -1217,7 +1217,7 @@
         PUSH, __intnl_SystemObjectArray_2
         COPY
         PUSH, __intnl_SystemObjectArray_2
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemObject_9
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_9
@@ -2758,7 +2758,7 @@
 #
 # CustomUdonSharpTests.CollectionLinqDictionary.User.__cls_CustomUdonSharpTests_CollectionLinqDictionary_Item__ctor__string__int(string, int)
 #
-        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __const_SystemInt32_6  ; 4
         PUSH, __lcl___this_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_0
@@ -2766,7 +2766,11 @@
         PUSH, __const_SystemString_7  ; "CustomUdonSharpTests.CollectionLinqDictionary.Item"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __const_SystemInt32_1  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_18  ; -> L0
@@ -2809,7 +2813,7 @@
         PUSH, __intnl_SystemObjectArray_5
         COPY
         PUSH, __intnl_SystemObjectArray_5
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_13
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_13
@@ -2849,11 +2853,11 @@
 # CustomUdonSharpTests.CollectionLinqDictionary.User.__cls_CustomUdonSharpTests_CollectionLinqDictionary_Item__init__string__int(object[], string, int)
 #
         PUSH, __7__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __8__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __7__intnlparam
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __9__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0

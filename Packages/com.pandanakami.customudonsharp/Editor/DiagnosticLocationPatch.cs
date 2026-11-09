@@ -17,7 +17,7 @@ namespace CustomUdonSharp
     ///   （U# は binding.tree と照合してファイル名を引くため）
     /// - 同じクラスのメソッドが複数の UdonSharpBehaviour にコピーされて同じエラーが出る場合は、1 つにまとめる
     /// - メッセージの末尾に「（汎用クラス Saver のメソッド Exists の中）」の補足を付ける
-    ///   （メッセージの中の式は書き換え後のもの（((string)(__this)[1]) など）なので、どこのコードかを示す）
+    ///   （メッセージの中の式は書き換え後のもの（((string)(__this)[2]) など）なので、どこのコードかを示す）
     /// </summary>
     internal static class DiagnosticLocationPatch
     {

@@ -361,7 +361,7 @@
         PUSH, __intnl_SystemObjectArray_0
         COPY
         PUSH, __intnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_0
@@ -376,7 +376,7 @@
 #
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Circle__ctor__float(float)
 #
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __lcl___this_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_0
@@ -385,6 +385,10 @@
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
         PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __const_SystemSingle_2  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_11  ; -> L0
@@ -409,7 +413,7 @@
 #
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Square__ctor__float(float)
 #
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __lcl___this_SystemObjectArray_1
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_1
@@ -418,6 +422,10 @@
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_1
         PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 1
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __const_SystemSingle_2  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_12  ; -> L0
@@ -717,12 +725,16 @@
 #
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Total__ctor()
 #
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __lcl___this_SystemObjectArray_2
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_2
         PUSH, __const_SystemInt32_1  ; 0
         PUSH, __const_SystemString_12  ; "CustomUdonSharpTests.ClassInterface.Total"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_1  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_26  ; -> L0
         PUSH, __lcl___this_SystemObjectArray_2
@@ -972,7 +984,7 @@
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Circle__init__float(object[], float)
 #
         PUSH, __21__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __22__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -982,7 +994,7 @@
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Square__init__float(object[], float)
 #
         PUSH, __23__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __24__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -992,7 +1004,7 @@
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Circle__Grow__float(object[], float)
 #
         PUSH, __25__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_6
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_6
@@ -1003,7 +1015,7 @@
         PUSH, __intnl_SystemSingle_2
         EXTERN, "SystemSingle.__op_Addition__SystemSingle_SystemSingle__SystemSingle"
         PUSH, __25__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemSingle_2
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -1115,7 +1127,7 @@
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Square__Grow__float(object[], float)
 #
         PUSH, __29__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_10
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_10
@@ -1126,7 +1138,7 @@
         PUSH, __intnl_SystemSingle_4
         EXTERN, "SystemSingle.__op_Addition__SystemSingle_SystemSingle__SystemSingle"
         PUSH, __29__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemSingle_4
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -1162,7 +1174,7 @@
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Circle__Area(object[])
 #
         PUSH, __38__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_11
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_11
@@ -1173,7 +1185,7 @@
         PUSH, __intnl_SystemSingle_6
         EXTERN, "SystemSingle.__op_Multiplication__SystemSingle_SystemSingle__SystemSingle"
         PUSH, __38__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_12
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_12
@@ -1193,14 +1205,14 @@
 # CustomUdonSharpTests.ClassInterface.ShapeUser.__cls_CustomUdonSharpTests_ClassInterface_Square__Area(object[])
 #
         PUSH, __40__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_13
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_13
         PUSH, __intnl_SystemSingle_8
         EXTERN, "SystemConvert.__ToSingle__SystemObject__SystemSingle"
         PUSH, __40__intnlparam
-        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_14
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_14

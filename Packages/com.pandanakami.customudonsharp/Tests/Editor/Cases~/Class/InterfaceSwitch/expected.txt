@@ -1,0 +1,1748 @@
+## Program: CustomUdonSharpTests.ClassInterfaceSwitch.Commander
+### Uasm
+.data_start
+    .export golem
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    golem: %VRCUdonUdonBehaviour, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __const_SystemInt32_0: %SystemInt32, null
+    __const_SystemInt32_1: %SystemInt32, null
+    __gintnl_SystemUInt32_0: %SystemUInt32, null
+    __0__intnlparam: %SystemObjectArray, null
+    __const_SystemInt32_2: %SystemInt32, null
+    __gintnl_SystemUInt32_1: %SystemUInt32, null
+    __1__intnlparam: %SystemObjectArray, null
+    __const_SystemInt32_3: %SystemInt32, null
+    __gintnl_SystemUInt32_2: %SystemUInt32, null
+    __2__intnlparam: %SystemObjectArray, null
+    __const_SystemInt32_4: %SystemInt32, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
+    __3__intnlparam: %SystemObjectArray, null
+    __const_SystemInt32_5: %SystemInt32, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __4__intnlparam: %SystemObject, null
+    __5__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_5: %SystemUInt32, null
+    __6__intnlparam: %SystemInt32, null
+    __7__intnlparam: %SystemObjectArray, null
+    __8__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_6: %SystemUInt32, null
+    __9__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_7: %SystemUInt32, null
+    __gintnl_SystemUInt32_8: %SystemUInt32, null
+    __gintnl_SystemUInt32_9: %SystemUInt32, null
+    __10__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_10: %SystemUInt32, null
+    __11__intnlparam: %SystemString, null
+    __12__intnlparam: %SystemObject, null
+    __const_SystemString_0: %SystemString, null
+    __gintnl_SystemUInt32_11: %SystemUInt32, null
+    __13__intnlparam: %SystemObjectArray, null
+    __const_SystemString_1: %SystemString, null
+    __gintnl_SystemUInt32_12: %SystemUInt32, null
+    __14__intnlparam: %SystemObjectArray, null
+    __const_SystemString_2: %SystemString, null
+    __gintnl_SystemUInt32_13: %SystemUInt32, null
+    __15__intnlparam: %SystemObjectArray, null
+    __const_SystemString_3: %SystemString, null
+    __gintnl_SystemUInt32_14: %SystemUInt32, null
+    __16__intnlparam: %SystemObjectArray, null
+    __const_SystemObject_0: %SystemObject, null
+    __const_SystemType_0: %SystemType, null
+    __const_SystemType_1: %SystemType, null
+    __gintnl_SystemUInt32Array_0: %SystemUInt32Array, null
+    __gintnl_SystemUInt32_15: %SystemUInt32, null
+    __17__intnlparam: %SystemObjectArray, null
+    __18__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_16: %SystemUInt32, null
+    __19__intnlparam: %SystemObjectArray, null
+    __20__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_17: %SystemUInt32, null
+    __21__intnlparam: %SystemObjectArray, null
+    __22__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_18: %SystemUInt32, null
+    __23__intnlparam: %SystemObjectArray, null
+    __24__intnlparam: %SystemInt32, null
+    __const_SystemString_4: %SystemString, null
+    __const_SystemString_5: %SystemString, null
+    __gintnl_SystemUInt32_19: %SystemUInt32, null
+    __25__intnlparam: %SystemInt32, null
+    __26__intnlparam: %SystemObject, null
+    __const_SystemString_6: %SystemString, null
+    __gintnl_SystemUInt32_20: %SystemUInt32, null
+    __27__intnlparam: %SystemObjectArray, null
+    __const_SystemString_7: %SystemString, null
+    __gintnl_SystemUInt32_21: %SystemUInt32, null
+    __28__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_22: %SystemUInt32, null
+    __29__intnlparam: %SystemBoolean, null
+    __30__intnlparam: %SystemObject, null
+    __gintnl_SystemUInt32_23: %SystemUInt32, null
+    __31__intnlparam: %SystemString, null
+    __32__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_24: %SystemUInt32, null
+    __33__intnlparam: %SystemBoolean, null
+    __34__intnlparam: %SystemObject, null
+    __gintnl_SystemUInt32_25: %SystemUInt32, null
+    __35__intnlparam: %SystemString, null
+    __36__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_26: %SystemUInt32, null
+    __37__intnlparam: %SystemBoolean, null
+    __38__intnlparam: %SystemObject, null
+    __gintnl_SystemUInt32_27: %SystemUInt32, null
+    __39__intnlparam: %SystemString, null
+    __40__intnlparam: %SystemObjectArray, null
+    __const_SystemString_8: %SystemString, null
+    __const_SystemString_9: %SystemString, null
+    __gintnl_SystemUInt32Array_1: %SystemUInt32Array, null
+    __gintnl_SystemUInt32_28: %SystemUInt32, null
+    __41__intnlparam: %SystemInt32, null
+    __42__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_29: %SystemUInt32, null
+    __43__intnlparam: %SystemInt32, null
+    __44__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_30: %SystemUInt32, null
+    __45__intnlparam: %SystemInt32, null
+    __46__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_31: %SystemUInt32, null
+    __47__intnlparam: %SystemInt32, null
+    __48__intnlparam: %SystemObjectArray, null
+    __const_SystemString_10: %SystemString, null
+    __const_SystemString_11: %SystemString, null
+    __const_SystemBoolean_0: %SystemBoolean, null
+    __const_SystemString_12: %SystemString, null
+    __const_SystemString_13: %SystemString, null
+    __const_SystemString_14: %SystemString, null
+    __const_SystemInt32_6: %SystemInt32, null
+    __lcl_units_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl_labels_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __lcl_u_SystemObject_0: %SystemObject, null
+    __lcl_l_SystemObject_0: %SystemObject, null
+    __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl___this_SystemObjectArray_1: %SystemObjectArray, null
+    __lcl___this_SystemObjectArray_2: %SystemObjectArray, null
+    __lcl___this_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_SystemBoolean_1: %SystemBoolean, null
+    __intnl_SystemType_0: %SystemType, null
+    __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
+    __lcl___a_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemBoolean_2: %SystemBoolean, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __intnl_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemObject_0: %SystemObject, null
+    __intnl_SystemObject_1: %SystemObject, null
+    __intnl_SystemType_1: %SystemType, null
+    __intnl_SystemObject_2: %SystemObject, null
+    __intnl_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
+    __intnl_SystemBoolean_5: %SystemBoolean, null
+    __intnl_SystemUInt32_0: %SystemUInt32, null
+    __intnl_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemObjectArray_1: %SystemObjectArray, null
+    __intnl_SystemObjectArray_2: %SystemObjectArray, null
+    __intnl_SystemObjectArray_3: %SystemObjectArray, null
+    __lcl_sum_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_6: %SystemBoolean, null
+    __lcl_u_SystemObject_1: %SystemObject, null
+    __lcl___this_SystemObjectArray_4: %SystemObjectArray, null
+    __lcl___this_SystemObjectArray_5: %SystemObjectArray, null
+    __intnl_SystemObjectArray_4: %SystemObjectArray, null
+    __intnl_SystemObjectArray_5: %SystemObjectArray, null
+    __intnl_SystemObjectArray_6: %SystemObjectArray, null
+    __lcl___u_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_3: %SystemObject, null
+    __intnl_SystemObject_4: %SystemObject, null
+    __intnl_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemInt32_7: %SystemInt32, null
+    __intnl_SystemObject_5: %SystemObject, null
+    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemInt32_9: %SystemInt32, null
+    __intnl_SystemObject_6: %SystemObject, null
+    __intnl_SystemInt32_10: %SystemInt32, null
+    __intnl_SystemInt32_11: %SystemInt32, null
+    __intnl_SystemInt32_12: %SystemInt32, null
+    __intnl_SystemObject_7: %SystemObject, null
+    __intnl_SystemInt32_13: %SystemInt32, null
+    __intnl_SystemInt32_14: %SystemInt32, null
+    __intnl_SystemBoolean_7: %SystemBoolean, null
+    __intnl_SystemType_2: %SystemType, null
+    __lcl___u_VRCUdonUdonBehaviour_2: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_8: %SystemObject, null
+    __lcl___a_SystemObjectArray_1: %SystemObjectArray, null
+    __intnl_SystemBoolean_8: %SystemBoolean, null
+    __intnl_SystemBoolean_9: %SystemBoolean, null
+    __intnl_SystemInt32_15: %SystemInt32, null
+    __intnl_SystemObject_9: %SystemObject, null
+    __intnl_SystemType_3: %SystemType, null
+    __intnl_SystemObject_10: %SystemObject, null
+    __intnl_SystemInt32_16: %SystemInt32, null
+    __intnl_SystemBoolean_10: %SystemBoolean, null
+    __intnl_SystemBoolean_11: %SystemBoolean, null
+    __intnl_SystemUInt32_1: %SystemUInt32, null
+    __intnl_SystemObjectArray_7: %SystemObjectArray, null
+    __intnl_SystemObjectArray_8: %SystemObjectArray, null
+    __intnl_SystemObjectArray_9: %SystemObjectArray, null
+    __intnl_SystemObjectArray_10: %SystemObjectArray, null
+    __intnl_SystemBoolean_12: %SystemBoolean, null
+    __intnl_SystemType_4: %SystemType, null
+    __intnl_SystemBoolean_13: %SystemBoolean, null
+    __lcl___a_SystemObjectArray_2: %SystemObjectArray, null
+    __intnl_SystemBoolean_14: %SystemBoolean, null
+    __intnl_SystemBoolean_15: %SystemBoolean, null
+    __intnl_SystemInt32_17: %SystemInt32, null
+    __intnl_SystemObject_11: %SystemObject, null
+    __intnl_SystemObject_12: %SystemObject, null
+    __intnl_SystemType_5: %SystemType, null
+    __intnl_SystemBoolean_16: %SystemBoolean, null
+    __intnl_SystemObject_13: %SystemObject, null
+    __intnl_SystemString_0: %SystemString, null
+    __intnl_SystemBoolean_17: %SystemBoolean, null
+    __intnl_SystemType_6: %SystemType, null
+    __intnl_SystemBoolean_18: %SystemBoolean, null
+    __lcl___a_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_SystemBoolean_19: %SystemBoolean, null
+    __intnl_SystemBoolean_20: %SystemBoolean, null
+    __intnl_SystemInt32_18: %SystemInt32, null
+    __intnl_SystemObject_14: %SystemObject, null
+    __intnl_SystemObject_15: %SystemObject, null
+    __intnl_SystemType_7: %SystemType, null
+    __intnl_SystemBoolean_21: %SystemBoolean, null
+    __intnl_SystemObject_16: %SystemObject, null
+    __intnl_SystemString_1: %SystemString, null
+    __intnl_SystemBoolean_22: %SystemBoolean, null
+    __intnl_SystemType_8: %SystemType, null
+    __intnl_SystemBoolean_23: %SystemBoolean, null
+    __lcl___a_SystemObjectArray_4: %SystemObjectArray, null
+    __intnl_SystemBoolean_24: %SystemBoolean, null
+    __intnl_SystemBoolean_25: %SystemBoolean, null
+    __intnl_SystemInt32_19: %SystemInt32, null
+    __intnl_SystemObject_17: %SystemObject, null
+    __intnl_SystemObject_18: %SystemObject, null
+    __intnl_SystemType_9: %SystemType, null
+    __intnl_SystemBoolean_26: %SystemBoolean, null
+    __intnl_SystemObject_19: %SystemObject, null
+    __intnl_SystemString_2: %SystemString, null
+    __intnl_SystemObject_20: %SystemObject, null
+    __intnl_SystemObject_21: %SystemObject, null
+    __intnl_SystemInt32_20: %SystemInt32, null
+    __intnl_SystemObject_22: %SystemObject, null
+    __intnl_SystemInt32_21: %SystemInt32, null
+    __intnl_SystemObject_23: %SystemObject, null
+    __intnl_SystemInt32_22: %SystemInt32, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.Start()
+#
+        PUSH, __const_SystemInt32_0  ; 5
+        PUSH, __lcl_units_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __gintnl_SystemUInt32_0  ; -> L0
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__ctor()>
+    L0:
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __0__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_1  ; -> L1
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__ctor()>
+    L1:
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __1__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_2  ; -> L2
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__ctor()>
+    L2:
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __2__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_3  ; -> L3
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__ctor()>
+    L3:
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __3__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __const_SystemInt32_5  ; 4
+        PUSH, golem
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemInt32_1
+        COPY
+    L4:
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __lcl_u_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemUInt32_4  ; -> L5
+        PUSH, __lcl_u_SystemObject_0
+        PUSH, __4__intnlparam
+        COPY
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __5__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__if_Boost__int__call(object, int)
+        JUMP, <__if_Boost__int__call(object, int)>
+    L5:
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L6:
+        PUSH, __gintnl_SystemUInt32_5  ; -> L8
+        PUSH, __gintnl_SystemUInt32_6  ; -> L7
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__ctor()>
+    L7:
+        PUSH, __9__intnlparam
+        PUSH, __7__intnlparam
+        COPY
+        PUSH, __lcl_units_SystemObjectArray_0
+        PUSH, __8__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__Total__objectArray(object[], object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__Total__objectArray(object[], object[])>
+    L8:
+        PUSH, __6__intnlparam
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __lcl_labels_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __gintnl_SystemUInt32_7  ; -> L9
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__ctor()>
+    L9:
+        PUSH, __lcl_labels_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __0__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_8  ; -> L10
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__ctor()>
+    L10:
+        PUSH, __lcl_labels_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __2__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_9  ; -> L11
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__ctor()
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__ctor()>
+    L11:
+        PUSH, __lcl_labels_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __10__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_labels_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemInt32_1
+        COPY
+    L12:
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L14
+        PUSH, __lcl_labels_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __lcl_l_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemUInt32_10  ; -> L13
+        PUSH, __lcl_l_SystemObject_0
+        PUSH, __12__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__if_Label__call(object)
+        JUMP, <__if_Label__call(object)>
+    L13:
+        PUSH, __11__intnlparam
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L12
+    L14:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__ctor()
+#
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __lcl___this_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemString_0  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Archer"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_11  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __13__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__init(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__ctor()
+#
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __lcl___this_SystemObjectArray_1
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemString_1  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Knight"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 1
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_12  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __14__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__init(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __1__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__ctor()
+#
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __lcl___this_SystemObjectArray_2
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemString_2  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Mage"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_13  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __15__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__init(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __2__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__ctor()
+#
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __lcl___this_SystemObjectArray_3
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_3
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemString_3  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Thief"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_3
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_4  ; 3
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_3
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_14  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_3
+        PUSH, __16__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__init(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_3
+        PUSH, __3__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__if_Boost__int__call(object, int)
+#
+        PUSH, __4__intnlparam
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L0
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemType_0
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_0
+        PUSH, __const_SystemType_0  ; System.Object[]
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+    L0:
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L7
+        PUSH, __4__intnlparam
+        PUSH, __lcl___a_SystemObjectArray_0
+        COPY
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_2
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_3
+        JUMP_IF_FALSE, L1
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_0
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+    L1:
+        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_2
+        COPY
+        PUSH, __intnl_SystemBoolean_2
+        JUMP_IF_FALSE, L2
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_1
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_1
+        PUSH, __intnl_SystemType_1
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_1
+        PUSH, __const_SystemType_1  ; System.String
+        PUSH, __intnl_SystemBoolean_2
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+    L2:
+        PUSH, __intnl_SystemBoolean_2
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemObject_2
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemBoolean_4
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_4
+        JUMP_IF_FALSE, L7
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __intnl_SystemBoolean_5
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_5
+        JUMP_IF_FALSE, L7
+        PUSH, __gintnl_SystemUInt32Array_0
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemUInt32_0
+        EXTERN, "SystemUInt32Array.__Get__SystemInt32__SystemUInt32"
+        JUMP_INDIRECT, __intnl_SystemUInt32_0
+        PUSH, __gintnl_SystemUInt32_15  ; -> L3
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemObjectArray_0
+        COPY
+        PUSH, __intnl_SystemObjectArray_0
+        PUSH, __17__intnlparam
+        COPY
+        PUSH, __5__intnlparam
+        PUSH, __18__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Boost__int(object[], int)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Boost__int(object[], int)>
+    L3:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __gintnl_SystemUInt32_16  ; -> L4
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemObjectArray_1
+        COPY
+        PUSH, __intnl_SystemObjectArray_1
+        PUSH, __19__intnlparam
+        COPY
+        PUSH, __5__intnlparam
+        PUSH, __20__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__Boost__int(object[], int)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__Boost__int(object[], int)>
+    L4:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __gintnl_SystemUInt32_17  ; -> L5
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemObjectArray_2
+        COPY
+        PUSH, __intnl_SystemObjectArray_2
+        PUSH, __21__intnlparam
+        COPY
+        PUSH, __5__intnlparam
+        PUSH, __22__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Boost__int(object[], int)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Boost__int(object[], int)>
+    L5:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __gintnl_SystemUInt32_18  ; -> L6
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemObjectArray_3
+        COPY
+        PUSH, __intnl_SystemObjectArray_3
+        PUSH, __23__intnlparam
+        COPY
+        PUSH, __5__intnlparam
+        PUSH, __24__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__Boost__int(object[], int)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__Boost__int(object[], int)>
+    L6:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L7:
+        PUSH, __4__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_4  ; "Boost__int__p0"
+        PUSH, __5__intnlparam
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_5  ; "Boost"
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__Total__objectArray(object[], object[])
+#
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __lcl_sum_SystemInt32_0
+        COPY
+        PUSH, __8__intnlparam
+        PUSH, __intnl_SystemInt32_4
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemInt32_5
+        COPY
+    L0:
+        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_6
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_6
+        JUMP_IF_FALSE, L2
+        PUSH, __8__intnlparam
+        PUSH, __intnl_SystemInt32_5
+        PUSH, __lcl_u_SystemObject_1
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemUInt32_19  ; -> L1
+        PUSH, __lcl_u_SystemObject_1
+        PUSH, __26__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army____if_Power__call__object(object)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army____if_Power__call__object(object)>
+    L1:
+        PUSH, __lcl_sum_SystemInt32_0
+        PUSH, __25__intnlparam
+        PUSH, __lcl_sum_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_5
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L2:
+        PUSH, __lcl_sum_SystemInt32_0
+        PUSH, __6__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__ctor()
+#
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __lcl___this_SystemObjectArray_4
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_4
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemString_6  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Army"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_4
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_1  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_20  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_4
+        PUSH, __27__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__init(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_4
+        PUSH, __9__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__ctor()
+#
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __lcl___this_SystemObjectArray_5
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_5
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemString_7  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Banner"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_5
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_2  ; 1
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_21  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_5
+        PUSH, __28__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__init(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_5
+        PUSH, __10__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__if_Label__call(object)
+#
+        PUSH, __gintnl_SystemUInt32_22  ; -> L0
+        PUSH, __12__intnlparam
+        PUSH, __30__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__is(object)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__is(object)>
+    L0:
+        PUSH, __29__intnlparam
+        JUMP_IF_FALSE, L2
+        PUSH, __gintnl_SystemUInt32_23  ; -> L1
+        PUSH, __12__intnlparam
+        PUSH, __intnl_SystemObjectArray_4
+        COPY
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __32__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Label(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Label(object[])>
+    L1:
+        PUSH, __31__intnlparam
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L2:
+        PUSH, __gintnl_SystemUInt32_24  ; -> L3
+        PUSH, __12__intnlparam
+        PUSH, __34__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__is(object)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__is(object)>
+    L3:
+        PUSH, __33__intnlparam
+        JUMP_IF_FALSE, L5
+        PUSH, __gintnl_SystemUInt32_25  ; -> L4
+        PUSH, __12__intnlparam
+        PUSH, __intnl_SystemObjectArray_5
+        COPY
+        PUSH, __intnl_SystemObjectArray_5
+        PUSH, __36__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__Label(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__Label(object[])>
+    L4:
+        PUSH, __35__intnlparam
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L5:
+        PUSH, __gintnl_SystemUInt32_26  ; -> L6
+        PUSH, __12__intnlparam
+        PUSH, __38__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__is(object)
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__is(object)>
+    L6:
+        PUSH, __37__intnlparam
+        JUMP_IF_FALSE, L8
+        PUSH, __gintnl_SystemUInt32_27  ; -> L7
+        PUSH, __12__intnlparam
+        PUSH, __intnl_SystemObjectArray_6
+        COPY
+        PUSH, __intnl_SystemObjectArray_6
+        PUSH, __40__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Label(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Label(object[])>
+    L7:
+        PUSH, __39__intnlparam
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L8:
+        PUSH, __12__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __const_SystemString_8  ; "Label"
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __const_SystemString_9  ; "Label__ret"
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__init(object[])
+#
+        PUSH, __13__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_2  ; 1
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__init(object[])
+#
+        PUSH, __14__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_3  ; 2
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__init(object[])
+#
+        PUSH, __15__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_4  ; 3
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__init(object[])
+#
+        PUSH, __16__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_5  ; 4
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Boost__int(object[], int)
+#
+        PUSH, __17__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_4
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_4
+        PUSH, __intnl_SystemInt32_6
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __18__intnlparam
+        PUSH, __intnl_SystemInt32_7
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __17__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_7
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__Boost__int(object[], int)
+#
+        PUSH, __19__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_5
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_5
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __20__intnlparam
+        PUSH, __intnl_SystemInt32_9
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __19__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_9
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Boost__int(object[], int)
+#
+        PUSH, __21__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_6
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_6
+        PUSH, __intnl_SystemInt32_10
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __22__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_11
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_10
+        PUSH, __intnl_SystemInt32_11
+        PUSH, __intnl_SystemInt32_12
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __21__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_12
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__Boost__int(object[], int)
+#
+        PUSH, __23__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_7
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_7
+        PUSH, __intnl_SystemInt32_13
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __24__intnlparam
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __23__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army____if_Power__call__object(object)
+#
+        PUSH, __26__intnlparam
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_7
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_7
+        JUMP_IF_FALSE, L0
+        PUSH, __26__intnlparam
+        PUSH, __intnl_SystemType_2
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_2
+        PUSH, __const_SystemType_0  ; System.Object[]
+        PUSH, __intnl_SystemBoolean_7
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+    L0:
+        PUSH, __intnl_SystemBoolean_7
+        JUMP_IF_FALSE, L7
+        PUSH, __26__intnlparam
+        PUSH, __lcl___a_SystemObjectArray_1
+        COPY
+        PUSH, __lcl___a_SystemObjectArray_1
+        PUSH, __intnl_SystemInt32_15
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_15
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemBoolean_9
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_9
+        JUMP_IF_FALSE, L1
+        PUSH, __lcl___a_SystemObjectArray_1
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_8
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_8
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_9
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+    L1:
+        PUSH, __intnl_SystemBoolean_9
+        PUSH, __intnl_SystemBoolean_8
+        COPY
+        PUSH, __intnl_SystemBoolean_8
+        JUMP_IF_FALSE, L2
+        PUSH, __lcl___a_SystemObjectArray_1
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_9
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_9
+        PUSH, __intnl_SystemType_3
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_3
+        PUSH, __const_SystemType_1  ; System.String
+        PUSH, __intnl_SystemBoolean_8
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+    L2:
+        PUSH, __intnl_SystemBoolean_8
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___a_SystemObjectArray_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemObject_10
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_10
+        PUSH, __intnl_SystemInt32_16
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_16
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemBoolean_10
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_10
+        JUMP_IF_FALSE, L7
+        PUSH, __intnl_SystemInt32_16
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __intnl_SystemBoolean_11
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_11
+        JUMP_IF_FALSE, L7
+        PUSH, __gintnl_SystemUInt32Array_1
+        PUSH, __intnl_SystemInt32_16
+        PUSH, __intnl_SystemUInt32_1
+        EXTERN, "SystemUInt32Array.__Get__SystemInt32__SystemUInt32"
+        JUMP_INDIRECT, __intnl_SystemUInt32_1
+        PUSH, __gintnl_SystemUInt32_28  ; -> L3
+        PUSH, __26__intnlparam
+        PUSH, __intnl_SystemObjectArray_7
+        COPY
+        PUSH, __intnl_SystemObjectArray_7
+        PUSH, __42__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Power(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Power(object[])>
+    L3:
+        PUSH, __41__intnlparam
+        PUSH, __25__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __gintnl_SystemUInt32_29  ; -> L4
+        PUSH, __26__intnlparam
+        PUSH, __intnl_SystemObjectArray_8
+        COPY
+        PUSH, __intnl_SystemObjectArray_8
+        PUSH, __44__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__Power(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__Power(object[])>
+    L4:
+        PUSH, __43__intnlparam
+        PUSH, __25__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __gintnl_SystemUInt32_30  ; -> L5
+        PUSH, __26__intnlparam
+        PUSH, __intnl_SystemObjectArray_9
+        COPY
+        PUSH, __intnl_SystemObjectArray_9
+        PUSH, __46__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Power(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Power(object[])>
+    L5:
+        PUSH, __45__intnlparam
+        PUSH, __25__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __gintnl_SystemUInt32_31  ; -> L6
+        PUSH, __26__intnlparam
+        PUSH, __intnl_SystemObjectArray_10
+        COPY
+        PUSH, __intnl_SystemObjectArray_10
+        PUSH, __48__intnlparam
+        COPY
+# Calling CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__Power(object[])
+        JUMP, <__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__Power(object[])>
+    L6:
+        PUSH, __47__intnlparam
+        PUSH, __25__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L7:
+        PUSH, __26__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        PUSH, __const_SystemString_10  ; "Power"
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        PUSH, __const_SystemString_11  ; "Power__ret"
+        PUSH, __intnl_SystemObject_8
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
+        PUSH, __intnl_SystemObject_8
+        PUSH, __25__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__init(object[])
+#
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__init(object[])
+#
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__is(object)
+#
+        PUSH, __30__intnlparam
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_12
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_12
+        JUMP_IF_FALSE, L0
+        JUMP, L1
+    L0:
+        PUSH, __30__intnlparam
+        PUSH, __intnl_SystemType_4
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_4
+        PUSH, __const_SystemType_0  ; System.Object[]
+        PUSH, __intnl_SystemBoolean_13
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_13
+        PUSH, __intnl_SystemBoolean_12
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L1:
+        PUSH, __intnl_SystemBoolean_12
+        JUMP_IF_FALSE, L2
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __29__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L2:
+        PUSH, __30__intnlparam
+        PUSH, __lcl___a_SystemObjectArray_2
+        COPY
+        PUSH, __lcl___a_SystemObjectArray_2
+        PUSH, __intnl_SystemInt32_17
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_17
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemBoolean_15
+        EXTERN, "SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_15
+        JUMP_IF_FALSE, L3
+        JUMP, L4
+    L3:
+        PUSH, __lcl___a_SystemObjectArray_2
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_11
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_11
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_15
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+    L4:
+        PUSH, __intnl_SystemBoolean_15
+        PUSH, __intnl_SystemBoolean_14
+        COPY
+        PUSH, __intnl_SystemBoolean_14
+        JUMP_IF_FALSE, L5
+        JUMP, L6
+    L5:
+        PUSH, __lcl___a_SystemObjectArray_2
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_12
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_12
+        PUSH, __intnl_SystemType_5
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_5
+        PUSH, __const_SystemType_1  ; System.String
+        PUSH, __intnl_SystemBoolean_16
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_16
+        PUSH, __intnl_SystemBoolean_14
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L6:
+        PUSH, __intnl_SystemBoolean_14
+        JUMP_IF_FALSE, L7
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __29__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L7:
+        PUSH, __lcl___a_SystemObjectArray_2
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_13
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_13
+        PUSH, __intnl_SystemString_0
+        COPY
+        PUSH, __intnl_SystemString_0
+        PUSH, __const_SystemString_0  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Archer"
+        PUSH, __29__intnlparam
+        EXTERN, "SystemString.__op_Equality__SystemString_SystemString__SystemBoolean"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Label(object[])
+#
+        PUSH, __const_SystemString_12  ; "archer"
+        PUSH, __31__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__is(object)
+#
+        PUSH, __34__intnlparam
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_17
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_17
+        JUMP_IF_FALSE, L0
+        JUMP, L1
+    L0:
+        PUSH, __34__intnlparam
+        PUSH, __intnl_SystemType_6
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_6
+        PUSH, __const_SystemType_0  ; System.Object[]
+        PUSH, __intnl_SystemBoolean_18
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_18
+        PUSH, __intnl_SystemBoolean_17
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L1:
+        PUSH, __intnl_SystemBoolean_17
+        JUMP_IF_FALSE, L2
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __33__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L2:
+        PUSH, __34__intnlparam
+        PUSH, __lcl___a_SystemObjectArray_3
+        COPY
+        PUSH, __lcl___a_SystemObjectArray_3
+        PUSH, __intnl_SystemInt32_18
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_18
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemBoolean_20
+        EXTERN, "SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_20
+        JUMP_IF_FALSE, L3
+        JUMP, L4
+    L3:
+        PUSH, __lcl___a_SystemObjectArray_3
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_14
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_14
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_20
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+    L4:
+        PUSH, __intnl_SystemBoolean_20
+        PUSH, __intnl_SystemBoolean_19
+        COPY
+        PUSH, __intnl_SystemBoolean_19
+        JUMP_IF_FALSE, L5
+        JUMP, L6
+    L5:
+        PUSH, __lcl___a_SystemObjectArray_3
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_15
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_15
+        PUSH, __intnl_SystemType_7
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_7
+        PUSH, __const_SystemType_1  ; System.String
+        PUSH, __intnl_SystemBoolean_21
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_21
+        PUSH, __intnl_SystemBoolean_19
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L6:
+        PUSH, __intnl_SystemBoolean_19
+        JUMP_IF_FALSE, L7
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __33__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L7:
+        PUSH, __lcl___a_SystemObjectArray_3
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_16
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_16
+        PUSH, __intnl_SystemString_1
+        COPY
+        PUSH, __intnl_SystemString_1
+        PUSH, __const_SystemString_7  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Banner"
+        PUSH, __33__intnlparam
+        EXTERN, "SystemString.__op_Equality__SystemString_SystemString__SystemBoolean"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__Label(object[])
+#
+        PUSH, __const_SystemString_13  ; "banner"
+        PUSH, __35__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__is(object)
+#
+        PUSH, __38__intnlparam
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_22
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_22
+        JUMP_IF_FALSE, L0
+        JUMP, L1
+    L0:
+        PUSH, __38__intnlparam
+        PUSH, __intnl_SystemType_8
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_8
+        PUSH, __const_SystemType_0  ; System.Object[]
+        PUSH, __intnl_SystemBoolean_23
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_23
+        PUSH, __intnl_SystemBoolean_22
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L1:
+        PUSH, __intnl_SystemBoolean_22
+        JUMP_IF_FALSE, L2
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __37__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L2:
+        PUSH, __38__intnlparam
+        PUSH, __lcl___a_SystemObjectArray_4
+        COPY
+        PUSH, __lcl___a_SystemObjectArray_4
+        PUSH, __intnl_SystemInt32_19
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_19
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemBoolean_25
+        EXTERN, "SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_25
+        JUMP_IF_FALSE, L3
+        JUMP, L4
+    L3:
+        PUSH, __lcl___a_SystemObjectArray_4
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_17
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_17
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_25
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+    L4:
+        PUSH, __intnl_SystemBoolean_25
+        PUSH, __intnl_SystemBoolean_24
+        COPY
+        PUSH, __intnl_SystemBoolean_24
+        JUMP_IF_FALSE, L5
+        JUMP, L6
+    L5:
+        PUSH, __lcl___a_SystemObjectArray_4
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_18
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_18
+        PUSH, __intnl_SystemType_9
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_9
+        PUSH, __const_SystemType_1  ; System.String
+        PUSH, __intnl_SystemBoolean_26
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_26
+        PUSH, __intnl_SystemBoolean_24
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L6:
+        PUSH, __intnl_SystemBoolean_24
+        JUMP_IF_FALSE, L7
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __37__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L7:
+        PUSH, __lcl___a_SystemObjectArray_4
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_19
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_19
+        PUSH, __intnl_SystemString_2
+        COPY
+        PUSH, __intnl_SystemString_2
+        PUSH, __const_SystemString_2  ; "CustomUdonSharpTests.ClassInterfaceSwitch.Mage"
+        PUSH, __37__intnlparam
+        EXTERN, "SystemString.__op_Equality__SystemString_SystemString__SystemBoolean"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Label(object[])
+#
+        PUSH, __const_SystemString_14  ; "mage"
+        PUSH, __39__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__Power(object[])
+#
+        PUSH, __42__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_20
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_20
+        PUSH, __41__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__Power(object[])
+#
+        PUSH, __44__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_21
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_21
+        PUSH, __intnl_SystemInt32_20
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_20
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __43__intnlparam
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__Power(object[])
+#
+        PUSH, __46__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_22
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_22
+        PUSH, __intnl_SystemInt32_21
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_21
+        PUSH, __const_SystemInt32_4  ; 3
+        PUSH, __45__intnlparam
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Commander.__cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__Power(object[])
+#
+        PUSH, __48__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_23
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_23
+        PUSH, __intnl_SystemInt32_22
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_22
+        PUSH, __const_SystemInt32_6  ; 10
+        PUSH, __47__intnlparam
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemBoolean_0 = False
+__const_SystemInt32_0 = 5
+__const_SystemInt32_1 = 0
+__const_SystemInt32_2 = 1
+__const_SystemInt32_3 = 2
+__const_SystemInt32_4 = 3
+__const_SystemInt32_5 = 4
+__const_SystemInt32_6 = 10
+__const_SystemString_0 = "CustomUdonSharpTests.ClassInterfaceSwitch.Archer"
+__const_SystemString_1 = "CustomUdonSharpTests.ClassInterfaceSwitch.Knight"
+__const_SystemString_10 = "Power"
+__const_SystemString_11 = "Power__ret"
+__const_SystemString_12 = "archer"
+__const_SystemString_13 = "banner"
+__const_SystemString_14 = "mage"
+__const_SystemString_2 = "CustomUdonSharpTests.ClassInterfaceSwitch.Mage"
+__const_SystemString_3 = "CustomUdonSharpTests.ClassInterfaceSwitch.Thief"
+__const_SystemString_4 = "Boost__int__p0"
+__const_SystemString_5 = "Boost"
+__const_SystemString_6 = "CustomUdonSharpTests.ClassInterfaceSwitch.Army"
+__const_SystemString_7 = "CustomUdonSharpTests.ClassInterfaceSwitch.Banner"
+__const_SystemString_8 = "Label"
+__const_SystemString_9 = "Label__ret"
+__const_SystemType_0 = System.Object[]
+__const_SystemType_1 = System.String
+__const_SystemUInt32_0 = 4294967295
+__gintnl_SystemUInt32Array_0 = [2440, 2536, 2632, 2728]
+__gintnl_SystemUInt32Array_1 = [5588, 5684, 5780, 5876]
+__gintnl_SystemUInt32_0 = -> Start():L0
+__gintnl_SystemUInt32_1 = -> Start():L1
+__gintnl_SystemUInt32_10 = -> Start():L13
+__gintnl_SystemUInt32_11 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Archer__ctor():L0
+__gintnl_SystemUInt32_12 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Knight__ctor():L0
+__gintnl_SystemUInt32_13 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Mage__ctor():L0
+__gintnl_SystemUInt32_14 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Thief__ctor():L0
+__gintnl_SystemUInt32_15 = -> __if_Boost__int__call(object, int):L3
+__gintnl_SystemUInt32_16 = -> __if_Boost__int__call(object, int):L4
+__gintnl_SystemUInt32_17 = -> __if_Boost__int__call(object, int):L5
+__gintnl_SystemUInt32_18 = -> __if_Boost__int__call(object, int):L6
+__gintnl_SystemUInt32_19 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__Total__objectArray(object[], object[]):L1
+__gintnl_SystemUInt32_2 = -> Start():L2
+__gintnl_SystemUInt32_20 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army__ctor():L0
+__gintnl_SystemUInt32_21 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Banner__ctor():L0
+__gintnl_SystemUInt32_22 = -> __if_Label__call(object):L0
+__gintnl_SystemUInt32_23 = -> __if_Label__call(object):L1
+__gintnl_SystemUInt32_24 = -> __if_Label__call(object):L3
+__gintnl_SystemUInt32_25 = -> __if_Label__call(object):L4
+__gintnl_SystemUInt32_26 = -> __if_Label__call(object):L6
+__gintnl_SystemUInt32_27 = -> __if_Label__call(object):L7
+__gintnl_SystemUInt32_28 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army____if_Power__call__object(object):L3
+__gintnl_SystemUInt32_29 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army____if_Power__call__object(object):L4
+__gintnl_SystemUInt32_3 = -> Start():L3
+__gintnl_SystemUInt32_30 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army____if_Power__call__object(object):L5
+__gintnl_SystemUInt32_31 = -> __cls_CustomUdonSharpTests_ClassInterfaceSwitch_Army____if_Power__call__object(object):L6
+__gintnl_SystemUInt32_4 = -> Start():L5
+__gintnl_SystemUInt32_5 = -> Start():L8
+__gintnl_SystemUInt32_6 = -> Start():L7
+__gintnl_SystemUInt32_7 = -> Start():L9
+__gintnl_SystemUInt32_8 = -> Start():L10
+__gintnl_SystemUInt32_9 = -> Start():L11
+__refl_typeid = 6047583304517339550
+__refl_typename = "CustomUdonSharpTests.ClassInterfaceSwitch.Commander"
+### NetworkEvents
+
+## Program: CustomUdonSharpTests.ClassInterfaceSwitch.Golem
+### Uasm
+.data_start
+    .export power
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    power: %SystemInt32, null
+    Power__ret: %SystemInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __const_SystemInt32_0: %SystemInt32, null
+    Boost__int__p0: %SystemInt32, null
+.data_end
+.code_start
+    .export Power
+    Power:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Golem.Power()
+#
+        PUSH, power
+        PUSH, __const_SystemInt32_0  ; 5
+        PUSH, Power__ret
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    .export Boost
+    Boost:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# CustomUdonSharpTests.ClassInterfaceSwitch.Golem.Boost(int)
+#
+        PUSH, power
+        PUSH, Boost__int__p0
+        PUSH, power
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemInt32_0 = 5
+__const_SystemUInt32_0 = 4294967295
+__refl_typeid = -5675604371158260614
+__refl_typename = "CustomUdonSharpTests.ClassInterfaceSwitch.Golem"
+### NetworkEvents
+
+## Diagnostics
+## Logs

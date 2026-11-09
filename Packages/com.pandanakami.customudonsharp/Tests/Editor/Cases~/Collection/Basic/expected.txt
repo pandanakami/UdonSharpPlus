@@ -512,7 +512,7 @@
         PUSH, __intnl_SystemObjectArray_0
         COPY
         PUSH, __intnl_SystemObjectArray_0
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_6  ; 3
         PUSH, __intnl_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_1
@@ -532,7 +532,7 @@
         PUSH, __intnl_SystemObjectArray_1
         COPY
         PUSH, __intnl_SystemObjectArray_1
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemObject_3
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_3
@@ -700,7 +700,7 @@
 #
 # CustomUdonSharpTests.CollectionBasic.User.__cls_CustomUdonSharpTests_CollectionBasic_Bullet__ctor__int(int)
 #
-        PUSH, __const_SystemInt32_6  ; 3
+        PUSH, __const_SystemInt32_7  ; 4
         PUSH, __lcl___this_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_0
@@ -709,6 +709,10 @@
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
         PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __const_SystemInt32_0  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_6  ; -> L0
@@ -737,7 +741,7 @@
         PUSH, __lcl_s_SystemInt32_1
         COPY
         PUSH, __7__intnlparam
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_6  ; 3
         PUSH, __intnl_SystemObject_5
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_5
@@ -788,11 +792,11 @@
         PUSH, __intnl_VRCSDK3DataDataList_5
         EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
         PUSH, __8__intnlparam
-        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_6  ; 3
         PUSH, __intnl_VRCSDK3DataDataList_5
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __8__intnlparam
-        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_3  ; 2
         PUSH, __9__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0

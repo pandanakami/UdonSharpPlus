@@ -11,11 +11,12 @@ namespace CustomUdonSharp
     /// <summary>
     /// UdonSharpBehaviour 以外のユーザー定義クラス（汎用クラス）を、UdonSharp が扱える形へ書き換える（Redmine #49）。
     ///
-    ///   インスタンス   : object[]。0 番目に型タグ（型の完全名）、1 番目以降にフィールド（自動実装プロパティを含む）
+    ///   インスタンス   : object[]。0 番目に型タグ（型の完全名）、1 番目に型番号（int。インタフェースの呼び出しの振り分けに使う。#65）、
+    ///                    2 番目以降にフィールド（自動実装プロパティを含む）
     ///   クラスの配列   : Bullet[] → object[][]
     ///   new Bullet(a)  → __cls_Ns_Bullet__ctor__T(a)
     ///   b.Move(d)      → __cls_Ns_Bullet__Move__T(b, d)
-    ///   b.damage       → ((int)(b)[2])、 b.damage = v → (b)[2] = (int)(v)
+    ///   b.damage       → ((int)(b)[3])、 b.damage = v → (b)[3] = (int)(v)
     ///   b is Bullet    → __cls_Ns_Bullet__is((object)(b))
     ///
     /// コンストラクタ・メソッド・プロパティのアクセサーは、使う UdonSharpBehaviour ごとに private static メソッドとして
@@ -31,6 +32,9 @@ namespace CustomUdonSharp
         internal const string InstanceType = "object[]";
         internal const string ThisName = "__this";
 
+        /// <summary>インスタンスの 0 番目は型タグ、1 番目は型番号（#65）。フィールドはその後ろから</summary>
+        private const int FirstSlot = 2;
+
         internal sealed class ClassInfo
         {
             public INamedTypeSymbol Symbol;
@@ -41,7 +45,7 @@ namespace CustomUdonSharp
             public bool Validated;
             public bool Valid = true;
 
-            public int Size => SlotOrder.Count + 1;
+            public int Size => SlotOrder.Count + FirstSlot;
             public string IsHelper => $"__cls_{Key}__is";
             public string AsHelper => $"__cls_{Key}__as";
         }
@@ -69,7 +73,7 @@ namespace CustomUdonSharp
         /// <summary>書き換えた tree の一覧を返す（変わらない tree はそのまま）</summary>
         /// <param name="usedClasses">UdonSharpBehaviour から使われる汎用クラスの型タグを入れて返す</param>
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics,
-            IEnumerable<MetadataReference> references, HashSet<string> usedClasses = null)
+            IEnumerable<MetadataReference> references, HashSet<string> usedClasses = null, IReadOnlyDictionary<string, int> classNumbers = null)
         {
             var compilation = CSharpCompilation.Create(
                 "CustomUdonSharp_ClassPrepass",
@@ -78,7 +82,7 @@ namespace CustomUdonSharp
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var classes = CollectClasses(compilation, trees);
-            var context = new Context(compilation, classes, diagnostics);
+            var context = new Context(compilation, classes, diagnostics, classNumbers);
 
             // UdonSharpBehaviour ごとに、使う汎用クラス（推移的に）を求める
             var hosts = new Dictionary<INamedTypeSymbol, (ClassDeclarationSyntax Host, List<ClassInfo> Used)>(SymbolEqualityComparer.Default);
@@ -206,12 +210,20 @@ namespace CustomUdonSharp
             /// <summary>同じく、外部のクラスを継承したユーザー定義クラス（#55）</summary>
             public readonly HashSet<INamedTypeSymbol> ExternalDerived = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
-            public Context(CSharpCompilation compilation, Dictionary<INamedTypeSymbol, ClassInfo> classes, InterfaceLowering.LoweringDiagnostics diagnostics)
+            /// <summary>型タグ → 型番号（インタフェースの段が振る。#65）</summary>
+            private readonly IReadOnlyDictionary<string, int> _numbers;
+
+            public Context(CSharpCompilation compilation, Dictionary<INamedTypeSymbol, ClassInfo> classes, InterfaceLowering.LoweringDiagnostics diagnostics,
+                IReadOnlyDictionary<string, int> numbers)
             {
                 Compilation = compilation;
                 Classes = classes;
                 Diagnostics = diagnostics;
+                _numbers = numbers;
             }
+
+            /// <summary>型番号。インタフェースの呼び出しで振り分けないクラスは 0</summary>
+            public int NumberOf(ClassInfo c) => _numbers != null && _numbers.TryGetValue(c.Tag, out int n) ? n : 0;
 
             public ClassInfo Target(ITypeSymbol type) =>
                 type is INamedTypeSymbol named && Classes.TryGetValue(named.OriginalDefinition, out var info) ? info : null;
@@ -413,7 +425,7 @@ namespace CustomUdonSharp
 
             private static void AddSlot(ClassInfo c, ISymbol symbol)
             {
-                c.Slots[symbol] = c.SlotOrder.Count + 1;
+                c.Slots[symbol] = c.SlotOrder.Count + FirstSlot;
                 c.SlotOrder.Add(symbol);
             }
         }
@@ -955,7 +967,7 @@ namespace CustomUdonSharp
 
             /// <summary>
             /// 値型のフィールドの一部を書き換える文（b.pos.x = 1; など）は、取り出して書き換えて戻す。
-            ///   { T __cls_tmp0 = ((T)(b)[1]); __cls_tmp0.x = 1; (b)[1] = __cls_tmp0; }
+            ///   { T __cls_tmp0 = ((T)(b)[2]); __cls_tmp0.x = 1; (b)[2] = __cls_tmp0; }
             /// </summary>
             public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
             {
@@ -1269,12 +1281,16 @@ namespace CustomUdonSharp
                 return sb.ToString();
             }
 
-            /// <summary>__ctor：配列を作り、型タグと既定値を入れて __init を呼ぶ</summary>
+            /// <summary>
+            /// __ctor：配列を作り、型タグ・型番号と既定値を入れて __init を呼ぶ。
+            /// 型番号は new したクラスのもの（基底クラスの初期化は __init だけを呼ぶので触らない）
+            /// </summary>
             private string BuildCtor(ClassInfo c, IMethodSymbol ctor, string parameters)
             {
                 var sb = new StringBuilder();
                 sb.Append($"private static {InstanceType} {CtorName(c, ctor)}({parameters}) {{ ");
                 sb.Append($"{InstanceType} {ThisName} = new object[{c.Size}]; {ThisName}[0] = {SyntaxFactory.Literal(c.Tag)}; ");
+                sb.Append($"{ThisName}[1] = {_context.NumberOf(c)}; ");
                 foreach (ISymbol slot in c.SlotOrder)
                 {
                     ITypeSymbol type = slot is IFieldSymbol f ? f.Type : ((IPropertySymbol)slot).Type;
