@@ -1,43 +1,84 @@
-# VPM Package Listing Template
+# Custom UdonSharp
 
-Starter for making your own Package Listings, including automation for building and publishing them.
+English | [日本語](README.ja.md)
 
-Once you're all set up, you'll be able to update the [`source.json`](source.json) file, and generate a listing which works in the VPM for delivering updates for all the listed packages.
+An editor extension for VRChat world creators that lets you write more of C# in UdonSharp.
 
-## ▶ Getting Started
+It patches the UdonSharp compiler with Harmony and rewrites your source into a form UdonSharp can handle, right before UdonSharp compiles it. The output is a regular Udon program, so nothing extra is needed on the VRChat client.
 
-* Press [![Use This Template](https://user-images.githubusercontent.com/737888/185467681-e5fdb099-d99f-454b-8d9e-0760e5a6e588.png)](https://github.com/vrchat-community/template-package-listing/generate)
-to start a new GitHub project based on this template, and follow the directions there. 
-  * Choose a fitting repository name and description.
-  * Set the visibility to 'Public'. You can also choose 'Private' and change it later.
-  * You don't need to select 'Include all branches.'
-* Edit this project on GitHub in your web browser, or clone it repository locally using Git.
-  * If you're unfamiliar with Git and GitHub, [visit GitHub's documentation](https://docs.github.com/en/get-started/quickstart/).
-  
-## Setting up the Automation
+> **Experimental.** This package depends on UdonSharp internals, so it may stop working when the VRChat SDK changes. On an unsupported SDK it disables itself, and UdonSharp behaves as usual.
 
-You'll need to edit some of the files in this template, starting with [`source.json`](source.json):
-- Fill out general information about your listing, such as the [`name`](source.json#L2), [`id`](source.json#L3), [`author`](source.json#L5), [`description`](source.json#L10), etc.
-- Make sure to update the ["url"](source.json#L4) field on line 4, replacing "vrchat-community" with your GitHub username, and "template-package-listing" with your repo name. This is the link that will be used to download your listing once it's published by GitHub. For example, the user "thupper" who made a repo called "thupper-listing" would update the url to "https://thupper.github.io/thupper-listing/index.json".
-- Update the "url" within ["infoLink"](source.json#L11) (on line 11) with the url of this new repo you've created.
-- If you'd like to include packages hosted on GitHub, specify them in [`githubRepos`](source.json#L16).
-- If you'd like to include packages hosted elsewhere as a `.zip` file, specify them in [`packages`](source.json#L19).
-  - You can safely remove either [`githubRepos`](source.json#L16) or [`packages`](source.json#L19) if you're not using them. 
-- Finally, go to the "Settings" page for your repo, then choose "Pages", and look for the heading "Build and deployment". Change the "Source" dropdown from "Deploy from a branch" to "GitHub Actions".
+## Features
 
-## 📃 Rebuilding the Listing
+| Feature | Examples |
+|---|---|
+| Interfaces | `class Enemy : UdonSharpBehaviour, IDamageable`, `((IDamageable)target).Damage(10)`, `is` / `as`, implementing `[NetworkCallable]` methods |
+| Plain classes | `new Bullet(pos)`, `b.Move(d)`, properties, static methods, arrays of classes |
+| Generics | `class Pool<T>`, `static T Max<T>(List<T> list) where T : IComparable<T>` |
+| List / Dictionary | `List<int>`, `Dictionary<string, Bullet>`, `foreach`, `TryGetValue` |
+| Lambdas and LINQ | `list.Find(b => b.damage > 0)`, `list.Where(...).Select(...).ToList()`, `OrderBy`, `Sum` |
 
-Whenever you make a change to the `main` branch, or when you trigger it manually, the 'Build Repo Listing' action will make a new index of all the releases available and publish them as a website hosted fore free on GitHub Pages. This listing can be used by the VPM to keep your package up to date, and the generated index page can serve as a simple landing page with info for your package. The URL for your package will be in the format https://username.github.io/repo-name.
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+using UdonSharp;
 
-## 🏠 Customizing the Landing Page
+public interface IDamageable
+{
+    int Damage(int amount);
+}
 
-The contents of the `Website` directory can be customized to change the appearance of the landing page. Most of the information will be automatically filled in with information from [`source.json`](source.json). Customizing the landing page by hand is not required.
+public class Bullet
+{
+    public int damage = 10;
+    public Bullet(int damage) { this.damage = damage; }
+}
 
-## Technical Stuff
+public class Attacker : UdonSharpBehaviour
+{
+    public UdonSharpBehaviour[] targets;
+    private List<Bullet> _bullets = new List<Bullet>();
 
-You are welcome to make your own changes to the automation process to make it fit your needs, and you can create Pull Requests if you have some changes you think we should adopt. Here's some more info on the included automation:
+    private void Start()
+    {
+        _bullets.Add(new Bullet(5));
+        _bullets.Add(new Bullet(20));
+        int total = _bullets.Where(b => b.damage > 10).Sum(b => b.damage);
 
-### Build Listing
-[build-listing.yml](.github/workflows/build-listing.yml)
+        foreach (UdonSharpBehaviour t in targets)
+            if (t is IDamageable)
+                ((IDamageable)t).Damage(total);
+    }
+}
+```
 
-This is a composite action which builds a vpm-compatible [Repo Listing](https://vcc.docs.vrchat.com/vpm/repos) based on the items you've added to your [`source.json`](source.json) file. you've created. In order to find all your releases and combine them into a listing, it checks out [another repository](https://github.com/vrchat-community/package-list-action) which has a [Nuke](https://nuke.build/) project which includes the VPM core lib to have access to its types and methods. This project will be expanded to include more functionality in the future - for now, the action just calls its `BuildRepoListing` target, which calls `RebuildHomePage` when it completes. If you wanted to make an action that just rebuilds the home page, you could call that directly instead - just copy the existing call and replace the target names.
+Anything a feature does not support is reported as a compile error. For exactly what you can write, see the [documentation](Packages/com.pandanakami.customudonsharp/Documentation~/README.md) (in Japanese).
+
+## Requirements
+
+- Unity 2022.3
+- VRChat Worlds SDK 3.10.x (includes UdonSharp)
+
+## Installation
+
+1. In VCC (VRChat Creator Companion), open **Settings** → **Packages** → **Add Repository** and add this URL:
+
+   ```
+   https://pandanakami.github.io/CustomUdonSharp/index.json
+   ```
+
+2. In your world project, open **Manage Project** and add **Custom UdonSharp**.
+
+That's all. There is nothing to configure.
+
+## Good to know
+
+- All features are experimental. If something does not work as expected, the rewritten source in your project's `Library/CustomUdonSharp/` shows what your code was turned into.
+- On an unsupported VRChat SDK, the console shows an error starting with `[CustomUdonSharp]` saying the package was disabled because UdonSharp internals changed. Update Custom UdonSharp when you see it.
+- The detailed documentation and the package's own error and warning messages are in Japanese for now.
+
+## License
+
+[MIT License](LICENSE) (Copyright (c) 2026 pandanakami)
+
+This package does not include the VRChat SDK, UdonSharp, Harmony, or Roslyn. It only references the copies that ship with the VRChat SDK; each is covered by its own license (VRChat SDK: https://hello.vrchat.com/legal/sdk).
