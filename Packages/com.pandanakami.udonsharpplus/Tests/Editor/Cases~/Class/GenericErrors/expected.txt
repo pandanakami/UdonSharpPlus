@@ -1,0 +1,13 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Box.cs(14,39): [UdonSharpPlus] 'EqualityComparer<T>.Default' : EqualityComparer<T>.Default / Comparer<T>.Default は未対応です（CompareTo・Equals を直接呼んでください）
+Error: Assets/UdonSharpPlusTests/Box.cs(17,31): [UdonSharpPlus] 普通のクラスへの ?. は未対応です（クラス Box<int> のメソッド Value の中）
+Error: Assets/UdonSharpPlusTests/Box.cs(26,20): [UdonSharpPlus] ジェネリックの型引数の入れ子が深すぎます（型が際限なく増える再帰は未対応です）
+Error: Assets/UdonSharpPlusTests/Other.cs(20,24): [UdonSharpPlus] 'Holder' : ジェネリックな UdonSharpBehaviour は未対応です
+Error: Assets/UdonSharpPlusTests/Other.cs(24,26): [UdonSharpPlus] 'IBox' : ジェネリックなインタフェースは未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(12,27): [UdonSharpPlus] 'Echo' : 別の UdonSharpBehaviour のジェネリックメソッドを呼ぶのは未対応です（static クラスに移すか、型を決めたメソッドを用意してください）
+Error: Assets/UdonSharpPlusTests/User.cs(15,23): [UdonSharpPlus] 型引数を省いた typeof（typeof(Pool<>) など）は未対応です
+Warning: Assets/UdonSharpPlusTests/Other.cs(10,30): [UdonSharpPlus] 'EchoProtectedInternal' : UdonSharpBehaviour のジェネリックメソッドは、別の UdonSharpBehaviour からは呼べません（同じクラスと継承したクラスの中からだけ呼べます）。private か protected にしてください
+Warning: Assets/UdonSharpPlusTests/Other.cs(11,25): [UdonSharpPlus] 'EchoStatic' : UdonSharpBehaviour のジェネリックメソッドは、別の UdonSharpBehaviour からは呼べません（同じクラスと継承したクラスの中からだけ呼べます）。private か protected にしてください
+Warning: Assets/UdonSharpPlusTests/Other.cs(8,18): [UdonSharpPlus] 'Echo' : UdonSharpBehaviour のジェネリックメソッドは、別の UdonSharpBehaviour からは呼べません（同じクラスと継承したクラスの中からだけ呼べます）。private か protected にしてください
+Warning: Assets/UdonSharpPlusTests/Other.cs(9,20): [UdonSharpPlus] 'EchoInternal' : UdonSharpBehaviour のジェネリックメソッドは、別の UdonSharpBehaviour からは呼べません（同じクラスと継承したクラスの中からだけ呼べます）。private か protected にしてください
+## Logs

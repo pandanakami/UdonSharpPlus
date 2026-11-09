@@ -1,0 +1,17 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(12,43): [UdonSharpPlus] 'new List<int>()' : List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）
+Error: Assets/UdonSharpPlusTests/User.cs(13,32): [UdonSharpPlus] LINQ は、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）
+Error: Assets/UdonSharpPlusTests/User.cs(17,26): [UdonSharpPlus] 'GroupBy' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select / OrderBy / ThenBy / Distinct / Skip / Take と、ToList / ToArray / ToDictionary / Any / All / Count / First / FirstOrDefault / Last / LastOrDefault / Sum / Min / Max / Average / Contains が使えます）
+Error: Assets/UdonSharpPlusTests/User.cs(18,26): [UdonSharpPlus] 'OrderBy' : 比較子を渡す形は未対応です（キーを返すラムダだけ渡してください）
+Error: Assets/UdonSharpPlusTests/User.cs(19,67): [UdonSharpPlus] 'OrderBy' : この型のキー（object）での並べ替えは未対応です（数値・string・bool・char・enum が使えます）
+Error: Assets/UdonSharpPlusTests/User.cs(20,40): [UdonSharpPlus] 'Select' : この形のラムダは未対応です（引数 1 つのラムダかメソッド名を渡してください。添字付きの (x, i) => ... は未対応です）
+Error: Assets/UdonSharpPlusTests/User.cs(22,46): [UdonSharpPlus] '_list.Select(x => x.ToString())' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）
+Error: Assets/UdonSharpPlusTests/User.cs(24,30): [UdonSharpPlus] 'Max' : 数値（int / long / float / double など）以外には未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(25,38): [UdonSharpPlus] '_list.Where(x => x > 0)' : List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）
+Error: Assets/UdonSharpPlusTests/User.cs(26,21): [UdonSharpPlus] '_list' : List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）
+Error: Assets/UdonSharpPlusTests/User.cs(27,21): [UdonSharpPlus] 'List.GetEnumerator' : List / Dictionary のこのメソッド（この引数の形）は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(28,36): [UdonSharpPlus] 'VRC.SDK3.Persistence.PlayerData.GetKeys(VRC.SDKBase.Networking.LocalPlayer)' : 外部の関数が返す IEnumerable は、Udon では中を回せません（foreach・LINQ は使えません）
+Error: Assets/UdonSharpPlusTests/User.cs(30,21): [UdonSharpPlus] 'VRC.SDK3.Persistence.PlayerData.GetKeys(VRC.SDKBase.Networking.LocalPlayer)' : 外部の関数が返す IEnumerable は、Udon では中を回せません（foreach・LINQ は使えません）
+Error: Assets/UdonSharpPlusTests/User.cs(33,54): [UdonSharpPlus] '_list.Where(x => x > 0)' : List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）
+Error: Assets/UdonSharpPlusTests/User.cs(34,40): [UdonSharpPlus] '_list' : List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）
+## Logs

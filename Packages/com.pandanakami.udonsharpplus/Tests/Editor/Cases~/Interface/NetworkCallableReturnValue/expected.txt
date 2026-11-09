@@ -1,0 +1,38 @@
+## Program: UdonSharpPlusTests.NetworkCallableReturnValue.Enemy
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    Damage__int__ret: %SystemInt32, null
+    Damage__int__p0: %SystemInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+.data_end
+.code_start
+    .export Damage
+    Damage:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.NetworkCallableReturnValue.Enemy.Damage(int)
+#
+        PUSH, Damage__int__p0
+        PUSH, Damage__int__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemUInt32_0 = 4294967295
+__refl_typeid = 2767935497873093559
+__refl_typename = "UdonSharpPlusTests.NetworkCallableReturnValue.Enemy"
+### NetworkEvents
+Damage(Damage__int__p0:UdonInt)
+
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Enemy.cs(9,9): Network callable method 'Damage' cannot have a return type.
+## Logs

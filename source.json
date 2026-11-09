@@ -1,17 +1,17 @@
 {
     "name": "pandanakami Listing",
     "id": "com.pandanakami.listing",
-    "url": "https://pandanakami.github.io/CustomUdonSharp/index.json",
+    "url": "https://pandanakami.github.io/UdonSharpPlus/index.json",
     "author": {
         "name": "pandanakami",
         "url": "https://github.com/pandanakami"
     },
-    "description": "VPM listing for Custom UdonSharp (editor-only extensions for the UdonSharp compiler)",
+    "description": "VPM listing for UdonSharp Plus (editor-only extensions for the UdonSharp compiler)",
     "infoLink": {
-        "url": "https://github.com/pandanakami/CustomUdonSharp",
+        "url": "https://github.com/pandanakami/UdonSharpPlus",
         "text": "View on GitHub"
     },
     "githubRepos": [
-        "pandanakami/CustomUdonSharp"
+        "pandanakami/UdonSharpPlus"
     ]
 }

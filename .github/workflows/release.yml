@@ -1,5 +1,5 @@
 # Based on vrchat-community/template-package .github/workflows/release.yml
-# Requires the repository variable PACKAGE_NAME = com.pandanakami.customudonsharp
+# Requires the repository variable PACKAGE_NAME = com.pandanakami.udonsharpplus
 # (Settings > Secrets and variables > Actions > Variables)
 name: Build Release
 

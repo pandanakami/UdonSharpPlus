@@ -1,0 +1,32 @@
+## Program: UdonSharpPlusTests.UnusedInterfaceClass.User
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __const_SystemString_0: %SystemString, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.UnusedInterfaceClass.User.Start()
+#
+        PUSH, __const_SystemString_0  ; "no class"
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemString_0 = "no class"
+__const_SystemUInt32_0 = 4294967295
+__refl_typeid = 8350020955719224033
+__refl_typename = "UdonSharpPlusTests.UnusedInterfaceClass.User"
+### NetworkEvents
+
+## Diagnostics
+## Logs

@@ -1,0 +1,6 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(11,33): [UdonSharpPlus] ラムダを渡す List のメソッドは、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）
+Error: Assets/UdonSharpPlusTests/User.cs(15,40): [UdonSharpPlus] ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます
+Error: Assets/UdonSharpPlusTests/User.cs(16,35): [UdonSharpPlus] delegate { ... } の形は未対応です。ラムダ（x => ...）で書いてください
+Error: Assets/UdonSharpPlusTests/User.cs(18,35): [UdonSharpPlus] デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）
+## Logs

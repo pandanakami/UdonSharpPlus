@@ -1,0 +1,438 @@
+## Program: UdonSharpPlusTests.CollectionForeignEnumerable.User
+### Uasm
+.data_start
+    .export group
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    group: %UnityEngineUIToggleGroup, null
+    _names: %VRCSDK3DataDataList, null
+    _keys: %SystemCollectionsGenericIEnumerableSystemString, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __gintnl_SystemUInt32_0: %SystemUInt32, null
+    __0_keys__param: %SystemCollectionsGenericIEnumerableSystemString, null
+    __const_SystemString_0: %SystemString, null
+    __gintnl_SystemUInt32_1: %SystemUInt32, null
+    __0_Keys__ret: %SystemCollectionsGenericIEnumerableSystemString, null
+    __gintnl_SystemUInt32_2: %SystemUInt32, null
+    __0___0___linq_Any_0__ret: %SystemBoolean, null
+    __0___src__param: %VRCSDK3DataDataList, null
+    __1_keys__param: %SystemCollectionsGenericIEnumerableSystemString, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
+    __0___0___linq_Select_1__ret: %VRCSDK3DataDataList, null
+    __1___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __0___0___linq_ToArray_2__ret: %SystemStringArray, null
+    __2___src__param: %VRCSDK3DataDataList, null
+    __const_SystemInt32_0: %SystemInt32, null
+    __const_SystemBoolean_0: %SystemBoolean, null
+    __const_SystemInt32_1: %SystemInt32, null
+    __const_SystemBoolean_1: %SystemBoolean, null
+    __gintnl_SystemUInt32_5: %SystemUInt32, null
+    __0__intnlparam: %SystemStringArray, null
+    __1__intnlparam: %VRCSDK3DataDataList, null
+    __lcl_on_SystemCollectionsGenericIEnumerableUnityEngineUIToggle_0: %SystemCollectionsGenericIEnumerableUnityEngineUIToggle, null
+    __lcl_active_SystemCollectionsGenericIEnumerableUnityEngineUIToggle_0: %SystemCollectionsGenericIEnumerableUnityEngineUIToggle, null
+    __intnl_VRCSDKBaseVRCPlayerApi_0: %VRCSDKBaseVRCPlayerApi, null
+    __intnl_SystemString_0: %SystemString, null
+    __intnl_SystemString_1: %SystemString, null
+    __lcl_keys_SystemCollectionsGenericIEnumerableSystemString_0: %SystemCollectionsGenericIEnumerableSystemString, null
+    __lcl_any_SystemBoolean_0: %SystemBoolean, null
+    __lcl_upper_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __intnl_SystemString_2: %SystemString, null
+    __intnl_SystemString_3: %SystemString, null
+    __intnl_VRCSDKBaseVRCPlayerApi_1: %VRCSDKBaseVRCPlayerApi, null
+    __intnl_SystemString_4: %SystemString, null
+    __lcl___n0_SystemInt32_0: %SystemInt32, null
+    __lcl___i0_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __lcl___v0_SystemString_0: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_0: %VRCSDK3DataDataToken, null
+    __lcl___r0_SystemBoolean_0: %SystemBoolean, null
+    __lcl_n_SystemString_0: %SystemString, null
+    __intnl_SystemString_5: %SystemString, null
+    __lcl___result_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_1: %SystemInt32, null
+    __lcl___i0_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_1: %SystemBoolean, null
+    __lcl___v0_SystemString_1: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_1: %VRCSDK3DataDataToken, null
+    __lcl___r0_SystemString_0: %SystemString, null
+    __lcl___v1_SystemString_0: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_2: %VRCSDK3DataDataToken, null
+    __lcl_n_SystemString_1: %SystemString, null
+    __lcl___result_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_2: %SystemInt32, null
+    __lcl___i0_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_2: %SystemBoolean, null
+    __lcl___v0_SystemString_2: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_3: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_4: %VRCSDK3DataDataToken, null
+    __lcl___a_SystemStringArray_0: %SystemStringArray, null
+    __intnl_SystemInt32_0: %SystemInt32, null
+    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __intnl_VRCSDK3DataDataToken_5: %VRCSDK3DataDataToken, null
+    __intnl_SystemString_6: %SystemString, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionForeignEnumerable.User.Start()
+#
+        PUSH, group
+        PUSH, __lcl_on_SystemCollectionsGenericIEnumerableUnityEngineUIToggle_0
+        EXTERN, "UnityEngineUIToggleGroup.__ActiveToggles__SystemCollectionsGenericIEnumerableUnityEngineUIToggle"
+        PUSH, group
+        PUSH, __lcl_active_SystemCollectionsGenericIEnumerableUnityEngineUIToggle_0
+        EXTERN, "UnityEngineUIToggleGroup.__ActiveToggles__SystemCollectionsGenericIEnumerableUnityEngineUIToggle"
+        PUSH, __intnl_VRCSDKBaseVRCPlayerApi_0
+        EXTERN, "VRCSDKBaseNetworking.__get_LocalPlayer__VRCSDKBaseVRCPlayerApi"
+        PUSH, __intnl_VRCSDKBaseVRCPlayerApi_0
+        PUSH, _keys
+        EXTERN, "VRCSDK3PersistencePlayerData.__GetKeys__VRCSDKBaseVRCPlayerApi__SystemCollectionsGenericIEnumerableSystemString"
+        PUSH, __gintnl_SystemUInt32_0  ; -> L0
+        PUSH, _keys
+        PUSH, __0_keys__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionForeignEnumerable.User.Show(System.Collections.Generic.IEnumerable<string>)
+        JUMP, <Show(System.Collections.Generic.IEnumerable<string>)>
+    L0:
+        PUSH, __gintnl_SystemUInt32_1  ; -> L1
+# Calling UdonSharpPlusTests.CollectionForeignEnumerable.User.Keys()
+        JUMP, <Keys()>
+    L1:
+        PUSH, __const_SystemString_0  ; ","
+        PUSH, __0_Keys__ret
+        PUSH, __intnl_SystemString_0
+        EXTERN, "SystemString.__Join__SystemString_SystemCollectionsGenericIEnumerableSystemString__SystemString"
+        PUSH, __intnl_SystemString_0
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, _keys
+        PUSH, __intnl_SystemString_1
+        EXTERN, "SystemString.__Concat__SystemCollectionsGenericIEnumerableSystemString__SystemString"
+        PUSH, __intnl_SystemString_1
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __lcl_on_SystemCollectionsGenericIEnumerableUnityEngineUIToggle_0
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __lcl_active_SystemCollectionsGenericIEnumerableUnityEngineUIToggle_0
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, _keys
+        PUSH, __lcl_keys_SystemCollectionsGenericIEnumerableSystemString_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_2  ; -> L2
+        PUSH, _names
+        PUSH, __0___src__param
+        COPY
+        PUSH, __lcl_keys_SystemCollectionsGenericIEnumerableSystemString_0
+        PUSH, __1_keys__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionForeignEnumerable.User.__linq_Any_0(VRC.SDK3.Data.DataList, System.Collections.Generic.IEnumerable<string>)
+        JUMP, <__linq_Any_0(VRC.SDK3.Data.DataList, System.Collections.Generic.IEnumerable<string>)>
+    L2:
+        PUSH, __0___0___linq_Any_0__ret
+        PUSH, __lcl_any_SystemBoolean_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_3  ; -> L3
+        PUSH, _names
+        PUSH, __1___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionForeignEnumerable.User.__linq_Select_1(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_Select_1(VRC.SDK3.Data.DataList)>
+    L3:
+        PUSH, __0___0___linq_Select_1__ret
+        PUSH, __lcl_upper_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_4  ; -> L4
+        PUSH, __lcl_upper_VRCSDK3DataDataList_0
+        PUSH, __2___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionForeignEnumerable.User.__linq_ToArray_2(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToArray_2(VRC.SDK3.Data.DataList)>
+    L4:
+        PUSH, __const_SystemString_0  ; ","
+        PUSH, __0___0___linq_ToArray_2__ret
+        PUSH, __intnl_SystemString_2
+        EXTERN, "SystemString.__Join__SystemString_SystemStringArray__SystemString"
+        PUSH, __lcl_any_SystemBoolean_0
+        PUSH, __intnl_SystemString_2
+        PUSH, __intnl_SystemString_3
+        EXTERN, "SystemString.__Concat__SystemObject_SystemObject__SystemString"
+        PUSH, __intnl_SystemString_3
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionForeignEnumerable.User.Keys()
+#
+        PUSH, __intnl_VRCSDKBaseVRCPlayerApi_1
+        EXTERN, "VRCSDKBaseNetworking.__get_LocalPlayer__VRCSDKBaseVRCPlayerApi"
+        PUSH, __intnl_VRCSDKBaseVRCPlayerApi_1
+        PUSH, __0_Keys__ret
+        EXTERN, "VRCSDK3PersistencePlayerData.__GetKeys__VRCSDKBaseVRCPlayerApi__SystemCollectionsGenericIEnumerableSystemString"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionForeignEnumerable.User.Show(System.Collections.Generic.IEnumerable<string>)
+#
+        PUSH, __const_SystemString_0  ; ","
+        PUSH, __0_keys__param
+        PUSH, __intnl_SystemString_4
+        EXTERN, "SystemString.__Join__SystemString_SystemCollectionsGenericIEnumerableSystemString__SystemString"
+        PUSH, __intnl_SystemString_4
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionForeignEnumerable.User.__linq_Any_0(VRC.SDK3.Data.DataList, System.Collections.Generic.IEnumerable<string>)
+#
+        PUSH, __0___src__param
+        PUSH, __lcl___n0_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __lcl___n0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L4
+        PUSH, __0___src__param
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        PUSH, __lcl___v0_SystemString_0
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___v0_SystemString_0
+        PUSH, __lcl_n_SystemString_0
+        COPY
+        PUSH, __const_SystemString_0  ; ","
+        PUSH, __1_keys__param
+        PUSH, __intnl_SystemString_5
+        EXTERN, "SystemString.__Join__SystemString_SystemCollectionsGenericIEnumerableSystemString__SystemString"
+        PUSH, __intnl_SystemString_5
+        PUSH, __lcl_n_SystemString_0
+        PUSH, __lcl___r0_SystemBoolean_0
+        EXTERN, "SystemString.__Contains__SystemString__SystemBoolean"
+        PUSH, __lcl___r0_SystemBoolean_0
+        JUMP_IF_FALSE, L1
+        JUMP, L2
+    L1:
+        JUMP, L3
+    L2:
+        PUSH, __const_SystemBoolean_0  ; True
+        PUSH, __0___0___linq_Any_0__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L3:
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L4:
+        PUSH, __const_SystemBoolean_1  ; False
+        PUSH, __0___0___linq_Any_0__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionForeignEnumerable.User.__linq_Select_1(VRC.SDK3.Data.DataList)
+#
+        PUSH, __lcl___result_VRCSDK3DataDataList_0
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __1___src__param
+        PUSH, __lcl___n0_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_1
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_1
+        PUSH, __lcl___n0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L1
+        PUSH, __1___src__param
+        PUSH, __lcl___i0_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        PUSH, __lcl___v0_SystemString_1
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___v0_SystemString_1
+        PUSH, __lcl_n_SystemString_1
+        COPY
+        PUSH, __lcl_n_SystemString_1
+        PUSH, __lcl___r0_SystemString_0
+        EXTERN, "SystemString.__ToUpper__SystemString"
+        PUSH, __lcl___r0_SystemString_0
+        PUSH, __lcl___v1_SystemString_0
+        COPY
+        PUSH, __lcl___v1_SystemString_0
+        PUSH, __intnl_VRCSDK3DataDataToken_2
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_2
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __lcl___result_VRCSDK3DataDataList_0
+        PUSH, __0___0___linq_Select_1__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionForeignEnumerable.User.__linq_ToArray_2(VRC.SDK3.Data.DataList)
+#
+        PUSH, __lcl___result_VRCSDK3DataDataList_1
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __2___src__param
+        PUSH, __lcl___n0_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_2
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_2
+        PUSH, __lcl___n0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_2
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_2
+        JUMP_IF_FALSE, L1
+        PUSH, __2___src__param
+        PUSH, __lcl___i0_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_3
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_3
+        PUSH, __lcl___v0_SystemString_2
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___v0_SystemString_2
+        PUSH, __intnl_VRCSDK3DataDataToken_4
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_1
+        PUSH, __intnl_VRCSDK3DataDataToken_4
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_2
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __gintnl_SystemUInt32_5  ; -> L2
+        PUSH, __lcl___result_VRCSDK3DataDataList_1
+        PUSH, __1__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.CollectionForeignEnumerable.User.__col_ToArray__string(VRC.SDK3.Data.DataList)
+        JUMP, <__col_ToArray__string(VRC.SDK3.Data.DataList)>
+    L2:
+        PUSH, __0__intnlparam
+        PUSH, __0___0___linq_ToArray_2__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.CollectionForeignEnumerable.User.__col_ToArray__string(VRC.SDK3.Data.DataList)
+#
+        PUSH, __1__intnlparam
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __intnl_SystemInt32_0
+        PUSH, __lcl___a_SystemStringArray_0
+        EXTERN, "SystemStringArray.__ctor__SystemInt32__SystemStringArray"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___a_SystemStringArray_0
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_3
+        JUMP_IF_FALSE, L1
+        PUSH, __1__intnlparam
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_5
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_5
+        PUSH, __intnl_SystemString_6
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___a_SystemStringArray_0
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemString_6
+        EXTERN, "SystemStringArray.__Set__SystemInt32_SystemString__SystemVoid"
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __lcl___a_SystemStringArray_0
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemBoolean_0 = True
+__const_SystemBoolean_1 = False
+__const_SystemInt32_0 = 0
+__const_SystemInt32_1 = 1
+__const_SystemString_0 = ","
+__const_SystemUInt32_0 = 4294967295
+__gintnl_SystemUInt32_0 = -> Start():L0
+__gintnl_SystemUInt32_1 = -> Start():L1
+__gintnl_SystemUInt32_2 = -> Start():L2
+__gintnl_SystemUInt32_3 = -> Start():L3
+__gintnl_SystemUInt32_4 = -> Start():L4
+__gintnl_SystemUInt32_5 = -> __linq_ToArray_2(VRC.SDK3.Data.DataList):L2
+__refl_typeid = -8211730365891760340
+__refl_typename = "UdonSharpPlusTests.CollectionForeignEnumerable.User"
+### NetworkEvents
+
+## Diagnostics
+## Logs

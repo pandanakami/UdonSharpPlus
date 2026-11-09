@@ -1,3 +1,0 @@
-## Diagnostics
-Error: Assets/CustomUdonSharpTests/Enemy.cs(8,25): [CustomUdonSharp] 'Enemy.Damage' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください
-## Logs

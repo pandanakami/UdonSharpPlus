@@ -1,0 +1,3 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Caller.cs(12,13): [UdonSharpPlus] 'Put' : ジェネリックメソッドは未対応です
+## Logs

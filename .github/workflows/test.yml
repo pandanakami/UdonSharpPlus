@@ -56,7 +56,7 @@ jobs:
         with:
           testMode: EditMode
           customImage: unityci/editor:ubuntu-2022.3.22f1-windows-mono-3
-          customParameters: -buildTarget StandaloneWindows64 -assemblyNames CustomUdonSharp.Editor.Tests
+          customParameters: -buildTarget StandaloneWindows64 -assemblyNames UdonSharpPlus.Editor.Tests
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: EditMode Test Results
 
@@ -73,5 +73,5 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: actual-outputs
-          path: Temp/CustomUdonSharpTests/actual/
+          path: Temp/UdonSharpPlusTests/actual/
           if-no-files-found: ignore

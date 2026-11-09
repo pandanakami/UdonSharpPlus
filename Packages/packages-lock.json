@@ -17,8 +17,8 @@
       },
       "hash": "81542a7e86292b5c4c21b1782c5af23b567f45ce"
     },
-    "com.pandanakami.customudonsharp": {
-      "version": "file:com.pandanakami.customudonsharp",
+    "com.pandanakami.udonsharpplus": {
+      "version": "file:com.pandanakami.udonsharpplus",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

@@ -1,0 +1,4 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Structs.cs(12,19): [UdonSharpPlus] 'Size' : ユーザー定義の構造体は未対応です
+Error: Assets/UdonSharpPlusTests/Structs.cs(4,19): [UdonSharpPlus] 'Point' : ユーザー定義の構造体は未対応です
+## Logs

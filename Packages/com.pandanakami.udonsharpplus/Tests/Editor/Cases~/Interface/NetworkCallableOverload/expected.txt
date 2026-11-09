@@ -1,0 +1,3 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Target.cs(14,21): [UdonSharpPlus] 'Target.Receive' : インタフェース（IReceiver）の実装メソッドと同じ名前のメソッドは置けません（Udon 上の名前が元のメソッド名になるため。[NetworkCallable] と同じ制約です）
+## Logs

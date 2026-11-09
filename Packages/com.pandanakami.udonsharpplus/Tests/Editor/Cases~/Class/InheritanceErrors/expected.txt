@@ -1,0 +1,6 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Types.cs(11,18): [UdonSharpPlus] 'Helper' : MonoBehaviour を継承したクラスは、UdonSharpBehaviour の中で使えません
+Error: Assets/UdonSharpPlusTests/Types.cs(16,18): [UdonSharpPlus] 'GameError' : Exception を継承したクラスは、UdonSharpBehaviour の中で使えません
+Error: Assets/UdonSharpPlusTests/Types.cs(27,18): [UdonSharpPlus] 'Box' : 普通のクラスの継承は未対応です
+Error: Assets/UdonSharpPlusTests/Types.cs(6,18): [UdonSharpPlus] 'Settings' : ScriptableObject を継承したクラスは、UdonSharpBehaviour の中で使えません
+## Logs

@@ -1,3 +1,0 @@
-## Diagnostics
-Error: Assets/CustomUdonSharpTests/User.cs(7,19): [CustomUdonSharp] 'Pair' : ユーザー定義の構造体は未対応です
-## Logs

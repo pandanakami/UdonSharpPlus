@@ -1,0 +1,20 @@
+{
+  "name": "com.pandanakami.udonsharpplus",
+  "displayName": "UdonSharp Plus",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "description": "Editor-only extension that lets UdonSharp compile more of C#: interfaces, plain classes, generics, List / Dictionary, lambdas and LINQ. Applied with Harmony patches; depends on UdonSharp internals of VRChat Worlds SDK 3.10.x.",
+  "author": {
+    "name": "pandanakami",
+    "url": "https://github.com/pandanakami"
+  },
+  "license": "MIT",
+  "licensesUrl": "https://github.com/pandanakami/UdonSharpPlus/blob/main/LICENSE",
+  "url": "https://github.com/pandanakami/UdonSharpPlus",
+  "documentationUrl": "https://github.com/pandanakami/UdonSharpPlus/blob/main/Packages/com.pandanakami.udonsharpplus/Documentation~/README.md",
+  "vpmDependencies": {
+    "com.vrchat.worlds": "~3.10.6"
+  },
+  "legacyFolders": {},
+  "legacyFiles": {}
+}

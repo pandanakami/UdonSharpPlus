@@ -1,0 +1,6 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Base.cs(16,27): [UdonSharpPlus] 'Counter.total' : static フィールドは非対応です（UdonSharp と同じ）
+Error: Assets/UdonSharpPlusTests/Base.cs(9,18): [UdonSharpPlus] 'Derived' : 普通のクラスの継承は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(11,21): [UdonSharpPlus] 普通のクラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）
+Error: Assets/UdonSharpPlusTests/User.cs(12,13): [UdonSharpPlus] 普通のクラスのフィールド・プロパティへの複合代入・インクリメントは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）
+## Logs

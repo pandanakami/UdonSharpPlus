@@ -1,0 +1,3960 @@
+## Program: UdonSharpPlusTests.CollectionLinqOrder.User
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    _ints: %VRCSDK3DataDataList, null
+    _words: %SystemStringArray, null
+    _enemies: %VRCSDK3DataDataList, null
+    __linq_First_3_b0: %VRCSDK3DataDataList, null
+    __linq_First_3_k0_0: %VRCSDK3DataDataList, null
+    __linq_First_3_o0: %VRCSDK3DataDataList, null
+    __linq_First_3_w0: %VRCSDK3DataDataList, null
+    __linq_Sum_7_b0: %VRCSDK3DataDataList, null
+    __linq_Sum_7_k0_0: %VRCSDK3DataDataList, null
+    __linq_Sum_7_o0: %VRCSDK3DataDataList, null
+    __linq_Sum_7_w0: %VRCSDK3DataDataList, null
+    __linq_ThenByDescending_2_b0: %VRCSDK3DataDataList, null
+    __linq_ThenByDescending_2_k0_0: %VRCSDK3DataDataList, null
+    __linq_ThenByDescending_2_k0_1: %VRCSDK3DataDataList, null
+    __linq_ThenByDescending_2_o0: %VRCSDK3DataDataList, null
+    __linq_ThenByDescending_2_w0: %VRCSDK3DataDataList, null
+    __linq_ToArray_1_b0: %VRCSDK3DataDataList, null
+    __linq_ToArray_1_k0_0: %VRCSDK3DataDataList, null
+    __linq_ToArray_1_o0: %VRCSDK3DataDataList, null
+    __linq_ToArray_1_w0: %VRCSDK3DataDataList, null
+    __linq_ToList_0_b0: %VRCSDK3DataDataList, null
+    __linq_ToList_0_k0_0: %VRCSDK3DataDataList, null
+    __linq_ToList_0_o0: %VRCSDK3DataDataList, null
+    __linq_ToList_0_w0: %VRCSDK3DataDataList, null
+    __linq_ToList_4_b0: %VRCSDK3DataDataList, null
+    __linq_ToList_4_k0_0: %VRCSDK3DataDataList, null
+    __linq_ToList_4_k0_1: %VRCSDK3DataDataList, null
+    __linq_ToList_4_o0: %VRCSDK3DataDataList, null
+    __linq_ToList_4_w0: %VRCSDK3DataDataList, null
+    __linq_ToList_5_seen0: %VRCSDK3DataDataDictionary, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __gintnl_SystemUInt32_0: %SystemUInt32, null
+    __0___0___linq_ToList_0__ret: %VRCSDK3DataDataList, null
+    __6___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_1: %SystemUInt32, null
+    __0___0___linq_ToArray_1__ret: %SystemInt32Array, null
+    __3___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_2: %SystemUInt32, null
+    __0___0___linq_ThenByDescending_2__ret: %VRCSDK3DataDataList, null
+    __2___src__param: %SystemStringArray, null
+    __const_SystemInt32_0: %SystemInt32, null
+    __const_SystemInt32_1: %SystemInt32, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
+    __0__intnlparam: %SystemObjectArray, null
+    __1__intnlparam: %SystemString, null
+    __2__intnlparam: %SystemInt32, null
+    __3__intnlparam: %SystemInt32, null
+    __const_SystemString_0: %SystemString, null
+    __const_SystemInt32_2: %SystemInt32, null
+    __const_SystemInt32_3: %SystemInt32, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __const_SystemString_1: %SystemString, null
+    __const_SystemInt32_4: %SystemInt32, null
+    __const_SystemInt32_5: %SystemInt32, null
+    __gintnl_SystemUInt32_5: %SystemUInt32, null
+    __0___0___linq_First_3__ret: %SystemObjectArray, null
+    __0___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_6: %SystemUInt32, null
+    __0___0___linq_ToList_4__ret: %VRCSDK3DataDataList, null
+    __8___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_7: %SystemUInt32, null
+    __0___0___linq_ToList_5__ret: %VRCSDK3DataDataList, null
+    __9___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_8: %SystemUInt32, null
+    __0___0___linq_ToList_6__ret: %VRCSDK3DataDataList, null
+    __10___src__param: %VRCSDK3DataDataList, null
+    __0___skip0__param: %SystemInt32, null
+    __1___take1__param: %SystemInt32, null
+    __const_SystemInt32_6: %SystemInt32, null
+    __gintnl_SystemUInt32_9: %SystemUInt32, null
+    __0___0___linq_Sum_7__ret: %SystemInt32, null
+    __1___src__param: %VRCSDK3DataDataList, null
+    __0___take1__param: %SystemInt32, null
+    __gintnl_SystemUInt32_10: %SystemUInt32, null
+    __0___0___linq_ToDictionary_8__ret: %VRCSDK3DataDataDictionary, null
+    __4___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_11: %SystemUInt32, null
+    __0___0___linq_ToDictionary_9__ret: %VRCSDK3DataDataDictionary, null
+    __5___src__param: %VRCSDK3DataDataList, null
+    __gintnl_SystemUInt32_12: %SystemUInt32, null
+    __4__intnlparam: %VRCSDK3DataDataList, null
+    __5__intnlparam: %VRCSDK3DataDataList, null
+    __gintnl_SystemObjectArray_0: %SystemObjectArray, null
+    __const_SystemInt32_7: %SystemInt32, null
+    __const_SystemInt32_8: %SystemInt32, null
+    __const_SystemInt32_9: %SystemInt32, null
+    __const_SystemInt32_10: %SystemInt32, null
+    __const_VRCSDK3DataDataToken_0: %VRCSDK3DataDataToken, null
+    __const_SystemInt32_11: %SystemInt32, null
+    __const_VRCSDK3DataDataToken_1: %VRCSDK3DataDataToken, null
+    __const_SystemInt32_12: %SystemInt32, null
+    __const_SystemString_2: %SystemString, null
+    __const_VRCSDK3DataDataToken_2: %VRCSDK3DataDataToken, null
+    __const_SystemBoolean_0: %SystemBoolean, null
+    __const_SystemBoolean_1: %SystemBoolean, null
+    __const_SystemInt32_13: %SystemInt32, null
+    __const_SystemString_3: %SystemString, null
+    __const_SystemObject_0: %SystemObject, null
+    __const_SystemObjectArray_0: %SystemObjectArray, null
+    __gintnl_SystemUInt32_13: %SystemUInt32, null
+    __6__intnlparam: %SystemInt32Array, null
+    __7__intnlparam: %VRCSDK3DataDataList, null
+    __const_SystemString_4: %SystemString, null
+    __const_SystemString_5: %SystemString, null
+    __gintnl_SystemUInt32_14: %SystemUInt32, null
+    __8__intnlparam: %SystemObjectArray, null
+    __9__intnlparam: %SystemString, null
+    __10__intnlparam: %SystemInt32, null
+    __11__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_15: %SystemUInt32, null
+    __12__intnlparam: %VRCSDK3DataDataList, null
+    __13__intnlparam: %VRCSDK3DataDataList, null
+    __lcl_asc_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl_desc_SystemInt32Array_0: %SystemInt32Array, null
+    __lcl_sorted_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __intnl_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __intnl_VRCSDK3DataDataToken_0: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
+    __intnl_VRCSDK3DataDataToken_1: %VRCSDK3DataDataToken, null
+    __lcl_weakest_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl_byRank_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl_unique_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl_page_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl_top2_SystemInt32_0: %SystemInt32, null
+    __lcl_byName_VRCSDK3DataDataDictionary_0: %VRCSDK3DataDataDictionary, null
+    __lcl_hpByName_VRCSDK3DataDataDictionary_0: %VRCSDK3DataDataDictionary, null
+    __lcl_names_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __intnl_VRCSDK3DataDataToken_2: %VRCSDK3DataDataToken, null
+    __intnl_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemObject_0: %SystemObject, null
+    __intnl_SystemString_0: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_3: %VRCSDK3DataDataToken, null
+    __intnl_SystemString_1: %SystemString, null
+    __intnl_SystemInt32_2: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_4: %VRCSDK3DataDataToken, null
+    __intnl_SystemInt32_3: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_5: %VRCSDK3DataDataToken, null
+    __intnl_SystemObject_1: %SystemObject, null
+    __intnl_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemObject_2: %SystemObject, null
+    __intnl_SystemInt32_4: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_6: %VRCSDK3DataDataToken, null
+    __intnl_SystemInt32_5: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_7: %VRCSDK3DataDataToken, null
+    __intnl_SystemString_2: %SystemString, null
+    __intnl_SystemString_3: %SystemString, null
+    __lcl___col_l2_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___col_n1_SystemInt32_0: %SystemInt32, null
+    __lcl___col_i0_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __lcl_w_SystemString_0: %SystemString, null
+    __lcl___n0_SystemInt32_0: %SystemInt32, null
+    __lcl___m0_SystemInt32_0: %SystemInt32, null
+    __lcl___p0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___q0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___halt_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___i0_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_1: %SystemBoolean, null
+    __lcl___v0_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_VRCSDK3DataDataToken_8: %VRCSDK3DataDataToken, null
+    __intnl_SystemObject_3: %SystemObject, null
+    __lcl___r0_SystemInt32_0: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_9: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_10: %VRCSDK3DataDataToken, null
+    __lcl_e_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemObject_4: %SystemObject, null
+    __lcl___j_SystemInt32_0: %SystemInt32, null
+    __lcl___w_SystemInt32_0: %SystemInt32, null
+    __lcl___t_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___lo_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_2: %SystemBoolean, null
+    __intnl_SystemInt32_6: %SystemInt32, null
+    __lcl___mid_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __lcl___hi_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
+    __lcl___l_SystemInt32_0: %SystemInt32, null
+    __lcl___r_SystemInt32_0: %SystemInt32, null
+    __lcl___k_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_5: %SystemBoolean, null
+    __lcl___left_SystemBoolean_0: %SystemBoolean, null
+    __intnl_SystemBoolean_6: %SystemBoolean, null
+    __intnl_SystemBoolean_7: %SystemBoolean, null
+    __lcl___x_SystemInt32_0: %SystemInt32, null
+    __lcl___y_SystemInt32_0: %SystemInt32, null
+    __lcl___c_SystemInt32_0: %SystemInt32, null
+    __lcl___a_SystemInt32_0: %SystemInt32, null
+    __lcl___b_SystemInt32_0: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_11: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_8: %SystemBoolean, null
+    __intnl_SystemBoolean_9: %SystemBoolean, null
+    __lcl___i1_SystemInt32_0: %SystemInt32, null
+    __lcl___v1_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl___taken1_SystemInt32_0: %SystemInt32, null
+    __lcl___stop1_SystemBoolean_0: %SystemBoolean, null
+    __lcl___acc_SystemInt32_0: %SystemInt32, null
+    __lcl___n0_SystemInt32_1: %SystemInt32, null
+    __lcl___m0_SystemInt32_1: %SystemInt32, null
+    __lcl___p0_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
+    __lcl___q0_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
+    __lcl___i0_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_10: %SystemBoolean, null
+    __lcl___v0_SystemInt32_0: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_12: %VRCSDK3DataDataToken, null
+    __lcl___r0_SystemInt32_1: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_13: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_14: %VRCSDK3DataDataToken, null
+    __lcl_x_SystemInt32_0: %SystemInt32, null
+    __lcl___j_SystemInt32_1: %SystemInt32, null
+    __lcl___w_SystemInt32_1: %SystemInt32, null
+    __lcl___t_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
+    __lcl___lo_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_11: %SystemBoolean, null
+    __intnl_SystemInt32_7: %SystemInt32, null
+    __lcl___mid_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_12: %SystemBoolean, null
+    __lcl___hi_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_13: %SystemBoolean, null
+    __lcl___l_SystemInt32_1: %SystemInt32, null
+    __lcl___r_SystemInt32_1: %SystemInt32, null
+    __lcl___k_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_14: %SystemBoolean, null
+    __lcl___left_SystemBoolean_1: %SystemBoolean, null
+    __intnl_SystemBoolean_15: %SystemBoolean, null
+    __intnl_SystemBoolean_16: %SystemBoolean, null
+    __lcl___x_SystemInt32_1: %SystemInt32, null
+    __lcl___y_SystemInt32_1: %SystemInt32, null
+    __lcl___c_SystemInt32_1: %SystemInt32, null
+    __lcl___a_SystemInt32_1: %SystemInt32, null
+    __lcl___b_SystemInt32_1: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_15: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_17: %SystemBoolean, null
+    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemBoolean_18: %SystemBoolean, null
+    __lcl___i1_SystemInt32_1: %SystemInt32, null
+    __lcl___v1_SystemInt32_0: %SystemInt32, null
+    __lcl___result_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_2: %SystemInt32, null
+    __lcl___m0_SystemInt32_2: %SystemInt32, null
+    __lcl___p0_VRCSDK3DataDataList_2: %VRCSDK3DataDataList, null
+    __lcl___q0_VRCSDK3DataDataList_2: %VRCSDK3DataDataList, null
+    __lcl___i0_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_19: %SystemBoolean, null
+    __lcl___v0_SystemString_0: %SystemString, null
+    __lcl___r0_SystemInt32_2: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_16: %VRCSDK3DataDataToken, null
+    __lcl___r1_SystemString_0: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_17: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_18: %VRCSDK3DataDataToken, null
+    __lcl_w_SystemString_1: %SystemString, null
+    __lcl___j_SystemInt32_2: %SystemInt32, null
+    __lcl___w_SystemInt32_2: %SystemInt32, null
+    __lcl___t_VRCSDK3DataDataList_2: %VRCSDK3DataDataList, null
+    __lcl___lo_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_20: %SystemBoolean, null
+    __intnl_SystemInt32_9: %SystemInt32, null
+    __lcl___mid_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_21: %SystemBoolean, null
+    __lcl___hi_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_22: %SystemBoolean, null
+    __lcl___l_SystemInt32_2: %SystemInt32, null
+    __lcl___r_SystemInt32_2: %SystemInt32, null
+    __lcl___k_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_23: %SystemBoolean, null
+    __lcl___left_SystemBoolean_2: %SystemBoolean, null
+    __intnl_SystemBoolean_24: %SystemBoolean, null
+    __intnl_SystemBoolean_25: %SystemBoolean, null
+    __lcl___x_SystemInt32_2: %SystemInt32, null
+    __lcl___y_SystemInt32_2: %SystemInt32, null
+    __lcl___c_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_26: %SystemBoolean, null
+    __lcl___a_SystemInt32_2: %SystemInt32, null
+    __lcl___b_SystemInt32_2: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_19: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_27: %SystemBoolean, null
+    __lcl___a_SystemString_0: %SystemString, null
+    __lcl___b_SystemString_0: %SystemString, null
+    __intnl_SystemInt32_10: %SystemInt32, null
+    __lcl___i1_SystemInt32_2: %SystemInt32, null
+    __lcl___v1_SystemString_0: %SystemString, null
+    __lcl___result_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_3: %SystemInt32, null
+    __lcl___m0_SystemInt32_3: %SystemInt32, null
+    __lcl___p0_VRCSDK3DataDataList_3: %VRCSDK3DataDataList, null
+    __lcl___q0_VRCSDK3DataDataList_3: %VRCSDK3DataDataList, null
+    __lcl___i0_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemBoolean_28: %SystemBoolean, null
+    __lcl___v0_SystemInt32_1: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_20: %VRCSDK3DataDataToken, null
+    __lcl___r0_SystemInt32_3: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_21: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_22: %VRCSDK3DataDataToken, null
+    __lcl_x_SystemInt32_1: %SystemInt32, null
+    __lcl___j_SystemInt32_3: %SystemInt32, null
+    __lcl___w_SystemInt32_3: %SystemInt32, null
+    __lcl___t_VRCSDK3DataDataList_3: %VRCSDK3DataDataList, null
+    __lcl___lo_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemBoolean_29: %SystemBoolean, null
+    __intnl_SystemInt32_11: %SystemInt32, null
+    __lcl___mid_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemBoolean_30: %SystemBoolean, null
+    __lcl___hi_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemBoolean_31: %SystemBoolean, null
+    __lcl___l_SystemInt32_3: %SystemInt32, null
+    __lcl___r_SystemInt32_3: %SystemInt32, null
+    __lcl___k_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemBoolean_32: %SystemBoolean, null
+    __lcl___left_SystemBoolean_3: %SystemBoolean, null
+    __intnl_SystemBoolean_33: %SystemBoolean, null
+    __intnl_SystemBoolean_34: %SystemBoolean, null
+    __lcl___x_SystemInt32_3: %SystemInt32, null
+    __lcl___y_SystemInt32_3: %SystemInt32, null
+    __lcl___c_SystemInt32_3: %SystemInt32, null
+    __lcl___a_SystemInt32_3: %SystemInt32, null
+    __lcl___b_SystemInt32_3: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_23: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_35: %SystemBoolean, null
+    __intnl_SystemInt32_12: %SystemInt32, null
+    __intnl_SystemBoolean_36: %SystemBoolean, null
+    __lcl___i1_SystemInt32_3: %SystemInt32, null
+    __lcl___v1_SystemInt32_1: %SystemInt32, null
+    __lcl___dict_VRCSDK3DataDataDictionary_0: %VRCSDK3DataDataDictionary, null
+    __lcl___n0_SystemInt32_4: %SystemInt32, null
+    __lcl___i0_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemBoolean_37: %SystemBoolean, null
+    __lcl___v0_SystemObjectArray_1: %SystemObjectArray, null
+    __intnl_VRCSDK3DataDataToken_24: %VRCSDK3DataDataToken, null
+    __intnl_SystemObject_5: %SystemObject, null
+    __lcl___r0_SystemString_0: %SystemString, null
+    __lcl___key_VRCSDK3DataDataToken_0: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_38: %SystemBoolean, null
+    __intnl_VRCSDK3DataDataToken_25: %VRCSDK3DataDataToken, null
+    __lcl_e_SystemObjectArray_1: %SystemObjectArray, null
+    __intnl_SystemObject_6: %SystemObject, null
+    __lcl___halt_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
+    __lcl___dict_VRCSDK3DataDataDictionary_1: %VRCSDK3DataDataDictionary, null
+    __lcl___n0_SystemInt32_5: %SystemInt32, null
+    __lcl___i0_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_39: %SystemBoolean, null
+    __lcl___v0_SystemObjectArray_2: %SystemObjectArray, null
+    __intnl_VRCSDK3DataDataToken_26: %VRCSDK3DataDataToken, null
+    __intnl_SystemObject_7: %SystemObject, null
+    __lcl___r0_SystemString_1: %SystemString, null
+    __lcl___r1_SystemInt32_0: %SystemInt32, null
+    __lcl___key_VRCSDK3DataDataToken_1: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_40: %SystemBoolean, null
+    __intnl_VRCSDK3DataDataToken_27: %VRCSDK3DataDataToken, null
+    __lcl_e_SystemObjectArray_2: %SystemObjectArray, null
+    __intnl_SystemObject_8: %SystemObject, null
+    __lcl___halt_VRCSDK3DataDataList_2: %VRCSDK3DataDataList, null
+    __lcl___result_VRCSDK3DataDataList_2: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_6: %SystemInt32, null
+    __lcl___m0_SystemInt32_4: %SystemInt32, null
+    __lcl___p0_VRCSDK3DataDataList_4: %VRCSDK3DataDataList, null
+    __lcl___q0_VRCSDK3DataDataList_4: %VRCSDK3DataDataList, null
+    __lcl___i0_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemBoolean_41: %SystemBoolean, null
+    __lcl___v0_SystemInt32_2: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_28: %VRCSDK3DataDataToken, null
+    __lcl___r0_SystemInt32_4: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_29: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_30: %VRCSDK3DataDataToken, null
+    __lcl_x_SystemInt32_2: %SystemInt32, null
+    __lcl___j_SystemInt32_4: %SystemInt32, null
+    __lcl___w_SystemInt32_4: %SystemInt32, null
+    __lcl___t_VRCSDK3DataDataList_4: %VRCSDK3DataDataList, null
+    __lcl___lo_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemBoolean_42: %SystemBoolean, null
+    __intnl_SystemInt32_13: %SystemInt32, null
+    __lcl___mid_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemBoolean_43: %SystemBoolean, null
+    __lcl___hi_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemBoolean_44: %SystemBoolean, null
+    __lcl___l_SystemInt32_4: %SystemInt32, null
+    __lcl___r_SystemInt32_4: %SystemInt32, null
+    __lcl___k_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemBoolean_45: %SystemBoolean, null
+    __lcl___left_SystemBoolean_4: %SystemBoolean, null
+    __intnl_SystemBoolean_46: %SystemBoolean, null
+    __intnl_SystemBoolean_47: %SystemBoolean, null
+    __lcl___x_SystemInt32_4: %SystemInt32, null
+    __lcl___y_SystemInt32_4: %SystemInt32, null
+    __lcl___c_SystemInt32_4: %SystemInt32, null
+    __lcl___a_SystemInt32_4: %SystemInt32, null
+    __lcl___b_SystemInt32_4: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_31: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_48: %SystemBoolean, null
+    __intnl_SystemBoolean_49: %SystemBoolean, null
+    __lcl___i1_SystemInt32_4: %SystemInt32, null
+    __lcl___v1_SystemInt32_2: %SystemInt32, null
+    __lcl___result_VRCSDK3DataDataList_3: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_7: %SystemInt32, null
+    __lcl___m0_SystemInt32_5: %SystemInt32, null
+    __lcl___p0_VRCSDK3DataDataList_5: %VRCSDK3DataDataList, null
+    __lcl___q0_VRCSDK3DataDataList_5: %VRCSDK3DataDataList, null
+    __lcl___i0_SystemInt32_7: %SystemInt32, null
+    __intnl_SystemBoolean_50: %SystemBoolean, null
+    __lcl___v0_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_VRCSDK3DataDataToken_32: %VRCSDK3DataDataToken, null
+    __intnl_SystemObject_9: %SystemObject, null
+    __lcl___r0_SystemInt32_5: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_33: %VRCSDK3DataDataToken, null
+    __lcl___r1_SystemString_1: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_34: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_35: %VRCSDK3DataDataToken, null
+    __lcl_e_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_SystemObject_10: %SystemObject, null
+    __intnl_SystemInt32_14: %SystemInt32, null
+    __lcl___j_SystemInt32_5: %SystemInt32, null
+    __lcl___w_SystemInt32_5: %SystemInt32, null
+    __lcl___t_VRCSDK3DataDataList_5: %VRCSDK3DataDataList, null
+    __lcl___lo_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_51: %SystemBoolean, null
+    __lcl___mid_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_52: %SystemBoolean, null
+    __lcl___hi_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_53: %SystemBoolean, null
+    __lcl___l_SystemInt32_5: %SystemInt32, null
+    __lcl___r_SystemInt32_5: %SystemInt32, null
+    __lcl___k_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_54: %SystemBoolean, null
+    __lcl___left_SystemBoolean_5: %SystemBoolean, null
+    __intnl_SystemBoolean_55: %SystemBoolean, null
+    __intnl_SystemBoolean_56: %SystemBoolean, null
+    __lcl___x_SystemInt32_5: %SystemInt32, null
+    __lcl___y_SystemInt32_5: %SystemInt32, null
+    __lcl___c_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_57: %SystemBoolean, null
+    __lcl___a_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemInt32_15: %SystemInt32, null
+    __lcl___b_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemInt32_16: %SystemInt32, null
+    __intnl_SystemInt32_17: %SystemInt32, null
+    __intnl_SystemBoolean_58: %SystemBoolean, null
+    __lcl___a_SystemString_1: %SystemString, null
+    __lcl___b_SystemString_1: %SystemString, null
+    __lcl___i1_SystemInt32_5: %SystemInt32, null
+    __lcl___v1_SystemObjectArray_1: %SystemObjectArray, null
+    __lcl___r2_SystemString_0: %SystemString, null
+    __lcl___v2_SystemString_0: %SystemString, null
+    __lcl___result_VRCSDK3DataDataList_4: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_8: %SystemInt32, null
+    __lcl___i0_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemBoolean_59: %SystemBoolean, null
+    __lcl___v0_SystemInt32_3: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_36: %VRCSDK3DataDataToken, null
+    __lcl___d0_VRCSDK3DataDataToken_0: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_60: %SystemBoolean, null
+    __intnl_VRCSDK3DataDataToken_37: %VRCSDK3DataDataToken, null
+    __lcl___skipped0_SystemInt32_0: %SystemInt32, null
+    __lcl___taken1_SystemInt32_1: %SystemInt32, null
+    __lcl___stop1_SystemBoolean_1: %SystemBoolean, null
+    __lcl___result_VRCSDK3DataDataList_5: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_9: %SystemInt32, null
+    __lcl___i0_SystemInt32_9: %SystemInt32, null
+    __intnl_SystemBoolean_61: %SystemBoolean, null
+    __lcl___v0_SystemInt32_4: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_38: %VRCSDK3DataDataToken, null
+    __intnl_SystemBoolean_62: %SystemBoolean, null
+    __intnl_SystemBoolean_63: %SystemBoolean, null
+    __intnl_VRCSDK3DataDataToken_39: %VRCSDK3DataDataToken, null
+    __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl___a_SystemInt32Array_0: %SystemInt32Array, null
+    __intnl_SystemInt32_18: %SystemInt32, null
+    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_19: %SystemInt32, null
+    __intnl_SystemBoolean_64: %SystemBoolean, null
+    __intnl_VRCSDK3DataDataToken_40: %VRCSDK3DataDataToken, null
+    __intnl_SystemInt32_20: %SystemInt32, null
+    __lcl___b0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___k0_0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___o0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___w0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __lcl___result_VRCSDK3DataDataList_6: %VRCSDK3DataDataList, null
+    __lcl___n0_SystemInt32_10: %SystemInt32, null
+    __lcl___m0_SystemInt32_6: %SystemInt32, null
+    __lcl___p0_VRCSDK3DataDataList_6: %VRCSDK3DataDataList, null
+    __lcl___q0_VRCSDK3DataDataList_6: %VRCSDK3DataDataList, null
+    __lcl___i0_SystemInt32_10: %SystemInt32, null
+    __intnl_SystemBoolean_65: %SystemBoolean, null
+    __lcl___v0_SystemObjectArray_4: %SystemObjectArray, null
+    __intnl_VRCSDK3DataDataToken_41: %VRCSDK3DataDataToken, null
+    __intnl_SystemObject_11: %SystemObject, null
+    __lcl___r0_SystemString_2: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_42: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_43: %VRCSDK3DataDataToken, null
+    __lcl_e_SystemObjectArray_4: %SystemObjectArray, null
+    __intnl_SystemObject_12: %SystemObject, null
+    __lcl___j_SystemInt32_6: %SystemInt32, null
+    __lcl___w_SystemInt32_6: %SystemInt32, null
+    __lcl___t_VRCSDK3DataDataList_6: %VRCSDK3DataDataList, null
+    __lcl___lo_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemBoolean_66: %SystemBoolean, null
+    __intnl_SystemInt32_21: %SystemInt32, null
+    __lcl___mid_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemBoolean_67: %SystemBoolean, null
+    __lcl___hi_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemBoolean_68: %SystemBoolean, null
+    __lcl___l_SystemInt32_6: %SystemInt32, null
+    __lcl___r_SystemInt32_6: %SystemInt32, null
+    __lcl___k_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemBoolean_69: %SystemBoolean, null
+    __lcl___left_SystemBoolean_6: %SystemBoolean, null
+    __intnl_SystemBoolean_70: %SystemBoolean, null
+    __intnl_SystemBoolean_71: %SystemBoolean, null
+    __lcl___x_SystemInt32_6: %SystemInt32, null
+    __lcl___y_SystemInt32_6: %SystemInt32, null
+    __lcl___c_SystemInt32_6: %SystemInt32, null
+    __lcl___a_SystemString_2: %SystemString, null
+    __lcl___b_SystemString_2: %SystemString, null
+    __intnl_VRCSDK3DataDataToken_44: %VRCSDK3DataDataToken, null
+    __lcl___i1_SystemInt32_6: %SystemInt32, null
+    __lcl___v1_SystemObjectArray_2: %SystemObjectArray, null
+    __lcl___r1_SystemString_2: %SystemString, null
+    __lcl___v2_SystemString_1: %SystemString, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.Start()
+#
+        PUSH, __gintnl_SystemUInt32_0  ; -> L0
+        PUSH, _ints
+        PUSH, __6___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_0(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToList_0(VRC.SDK3.Data.DataList)>
+    L0:
+        PUSH, __0___0___linq_ToList_0__ret
+        PUSH, __lcl_asc_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_1  ; -> L1
+        PUSH, _ints
+        PUSH, __3___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToArray_1(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToArray_1(VRC.SDK3.Data.DataList)>
+    L1:
+        PUSH, __0___0___linq_ToArray_1__ret
+        PUSH, __lcl_desc_SystemInt32Array_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_2  ; -> L2
+        PUSH, _words
+        PUSH, __2___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ThenByDescending_2(string[])
+        JUMP, <__linq_ThenByDescending_2(string[])>
+    L2:
+        PUSH, __0___0___linq_ThenByDescending_2__ret
+        PUSH, __lcl_sorted_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __lcl_sorted_VRCSDK3DataDataList_0
+        PUSH, __lcl___col_l2_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __lcl___col_l2_VRCSDK3DataDataList_0
+        PUSH, __lcl___col_n1_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___col_i0_SystemInt32_0
+        COPY
+    L3:
+        PUSH, __lcl___col_i0_SystemInt32_0
+        PUSH, __lcl___col_n1_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L4
+        PUSH, __lcl___col_l2_VRCSDK3DataDataList_0
+        PUSH, __lcl___col_i0_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        PUSH, __lcl_w_SystemString_0
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl_w_SystemString_0
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __lcl___col_i0_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___col_i0_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L3
+    L4:
+        PUSH, __gintnl_SystemUInt32_3  ; -> L5
+        PUSH, __const_SystemString_0  ; "a"
+        PUSH, __1__intnlparam
+        COPY
+        PUSH, __const_SystemInt32_2  ; 10
+        PUSH, __2__intnlparam
+        COPY
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __3__intnlparam
+        COPY
+# Cow dirty
+        PUSH, _enemies
+        PUSH, __intnl_VRCSDK3DataDataList_0
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__ctor__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)
+        JUMP, <__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__ctor__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)>
+    L5:
+        PUSH, __0__intnlparam
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemObject__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_4  ; -> L6
+        PUSH, __const_SystemString_1  ; "b"
+        PUSH, __1__intnlparam
+        COPY
+        PUSH, __const_SystemInt32_4  ; 5
+        PUSH, __2__intnlparam
+        COPY
+        PUSH, __const_SystemInt32_5  ; 0
+        PUSH, __3__intnlparam
+        COPY
+# Cow dirty
+        PUSH, _enemies
+        PUSH, __intnl_VRCSDK3DataDataList_1
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__ctor__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)
+        JUMP, <__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__ctor__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)>
+    L6:
+        PUSH, __0__intnlparam
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemObject__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataList_1
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_5  ; -> L7
+        PUSH, _enemies
+        PUSH, __0___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_First_3(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_First_3(VRC.SDK3.Data.DataList)>
+    L7:
+        PUSH, __0___0___linq_First_3__ret
+        PUSH, __lcl_weakest_SystemObjectArray_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_6  ; -> L8
+        PUSH, _enemies
+        PUSH, __8___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_4(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToList_4(VRC.SDK3.Data.DataList)>
+    L8:
+        PUSH, __0___0___linq_ToList_4__ret
+        PUSH, __lcl_byRank_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_7  ; -> L9
+        PUSH, _ints
+        PUSH, __9___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_5(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToList_5(VRC.SDK3.Data.DataList)>
+    L9:
+        PUSH, __0___0___linq_ToList_5__ret
+        PUSH, __lcl_unique_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_8  ; -> L10
+        PUSH, _ints
+        PUSH, __10___src__param
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __0___skip0__param
+        COPY
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __1___take1__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_6(VRC.SDK3.Data.DataList, int, int)
+        JUMP, <__linq_ToList_6(VRC.SDK3.Data.DataList, int, int)>
+    L10:
+        PUSH, __0___0___linq_ToList_6__ret
+        PUSH, __lcl_page_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_9  ; -> L11
+        PUSH, _ints
+        PUSH, __1___src__param
+        COPY
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __0___take1__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_Sum_7(VRC.SDK3.Data.DataList, int)
+        JUMP, <__linq_Sum_7(VRC.SDK3.Data.DataList, int)>
+    L11:
+        PUSH, __0___0___linq_Sum_7__ret
+        PUSH, __lcl_top2_SystemInt32_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_10  ; -> L12
+        PUSH, _enemies
+        PUSH, __4___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToDictionary_8(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToDictionary_8(VRC.SDK3.Data.DataList)>
+    L12:
+        PUSH, __0___0___linq_ToDictionary_8__ret
+        PUSH, __lcl_byName_VRCSDK3DataDataDictionary_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_11  ; -> L13
+        PUSH, _enemies
+        PUSH, __5___src__param
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToDictionary_9(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToDictionary_9(VRC.SDK3.Data.DataList)>
+    L13:
+        PUSH, __0___0___linq_ToDictionary_9__ret
+        PUSH, __lcl_hpByName_VRCSDK3DataDataDictionary_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_12  ; -> L14
+        PUSH, _enemies
+        PUSH, __5__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__Names__System_Collections_Generic_List_UdonSharpPlusTests_CollectionLinqOrder_Enemy_(VRC.SDK3.Data.DataList)
+        JUMP, <__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__Names__System_Collections_Generic_List_UdonSharpPlusTests_CollectionLinqOrder_Enemy_(VRC.SDK3.Data.DataList)>
+    L14:
+        PUSH, __4__intnlparam
+        PUSH, __lcl_names_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __lcl_asc_VRCSDK3DataDataList_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_VRCSDK3DataDataToken_2
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_2
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_desc_SystemInt32Array_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemInt32Array.__Get__SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_weakest_SystemObjectArray_0
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_0
+        PUSH, __intnl_SystemString_0
+        COPY
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemString_0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_byRank_VRCSDK3DataDataList_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_VRCSDK3DataDataToken_3
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_3
+        PUSH, __intnl_SystemString_1
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __intnl_SystemString_1
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_unique_VRCSDK3DataDataList_0
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_8  ; 4
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_page_VRCSDK3DataDataList_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_VRCSDK3DataDataToken_4
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_4
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_4  ; 5
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_9  ; 6
+        PUSH, __lcl_top2_SystemInt32_0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_byName_VRCSDK3DataDataDictionary_0
+        PUSH, __const_VRCSDK3DataDataToken_0  ; a
+        PUSH, __intnl_VRCSDK3DataDataToken_5
+        EXTERN, "VRCSDK3DataDataDictionary.__get_Item__VRCSDK3DataDataToken__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_5
+        PUSH, __intnl_SystemObject_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_1
+        PUSH, __intnl_SystemObjectArray_0
+        COPY
+        PUSH, __intnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __intnl_SystemObject_2
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemInt32_4
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_10  ; 7
+        PUSH, __intnl_SystemInt32_4
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_hpByName_VRCSDK3DataDataDictionary_0
+        PUSH, __const_VRCSDK3DataDataToken_1  ; b
+        PUSH, __intnl_VRCSDK3DataDataToken_6
+        EXTERN, "VRCSDK3DataDataDictionary.__get_Item__VRCSDK3DataDataToken__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_6
+        PUSH, __intnl_SystemInt32_5
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_11  ; 8
+        PUSH, __intnl_SystemInt32_5
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl_names_VRCSDK3DataDataList_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_VRCSDK3DataDataToken_7
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_7
+        PUSH, __intnl_SystemString_2
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __const_SystemInt32_12  ; 9
+        PUSH, __intnl_SystemString_2
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __const_SystemString_2  ; "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemString_3
+        EXTERN, "SystemString.__Format__SystemString_SystemObjectArray__SystemString"
+        PUSH, __intnl_SystemString_3
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_First_3(VRC.SDK3.Data.DataList)
+#
+        PUSH, __linq_First_3_b0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_First_3_k0_0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_First_3_o0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_First_3_w0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __0___src__param
+        PUSH, __lcl___n0_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __lcl___n0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L1
+        PUSH, __0___src__param
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __lcl___v0_SystemObjectArray_0
+        COPY
+        PUSH, __lcl___v0_SystemObjectArray_0
+        PUSH, __lcl_e_SystemObjectArray_0
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_0
+        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __intnl_SystemObject_4
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_4
+        PUSH, __lcl___r0_SystemInt32_0
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __lcl___r0_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_9
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_First_3_k0_0
+        PUSH, __intnl_VRCSDK3DataDataToken_9
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemObjectArray_0
+        PUSH, __intnl_VRCSDK3DataDataToken_10
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemObject__VRCSDK3DataDataToken"
+        PUSH, __linq_First_3_b0
+        PUSH, __intnl_VRCSDK3DataDataToken_10
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __linq_First_3_b0
+        PUSH, __lcl___m0_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___j_SystemInt32_0
+        COPY
+    L2:
+        PUSH, __lcl___j_SystemInt32_0
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L3
+        PUSH, __lcl___j_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_First_3_o0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __linq_First_3_w0
+        PUSH, __const_VRCSDK3DataDataToken_2  ; 0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___j_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___j_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L2
+    L3:
+        PUSH, __linq_First_3_o0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __linq_First_3_w0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___w_SystemInt32_0
+        COPY
+    L4:
+        PUSH, __lcl___w_SystemInt32_0
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L19
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___lo_SystemInt32_0
+        COPY
+    L5:
+        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_2
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_2
+        JUMP_IF_FALSE, L18
+        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __lcl___w_SystemInt32_0
+        PUSH, __lcl___mid_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___mid_SystemInt32_0
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_3
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __lcl___mid_SystemInt32_0
+        COPY
+    L6:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_0
+        PUSH, __intnl_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __lcl___hi_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___hi_SystemInt32_0
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_4
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_4
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __lcl___hi_SystemInt32_0
+        COPY
+    L7:
+        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __lcl___l_SystemInt32_0
+        COPY
+        PUSH, __lcl___mid_SystemInt32_0
+        PUSH, __lcl___r_SystemInt32_0
+        COPY
+        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __lcl___k_SystemInt32_0
+        COPY
+    L8:
+        PUSH, __lcl___k_SystemInt32_0
+        PUSH, __lcl___hi_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_5
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_5
+        JUMP_IF_FALSE, L17
+        PUSH, __lcl___l_SystemInt32_0
+        PUSH, __lcl___mid_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_6
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_6
+        JUMP_IF_FALSE, L9
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __lcl___left_SystemBoolean_0
+        COPY
+        JUMP, L14
+    L9:
+        PUSH, __lcl___r_SystemInt32_0
+        PUSH, __lcl___hi_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_7
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_7
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___left_SystemBoolean_0
+        COPY
+        JUMP, L14
+    L10:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        PUSH, __lcl___l_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        PUSH, __lcl___x_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        PUSH, __lcl___r_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_9
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_9
+        PUSH, __lcl___y_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_0
+        COPY
+        PUSH, __linq_First_3_k0_0
+        PUSH, __lcl___x_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_10
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_10
+        PUSH, __lcl___a_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_First_3_k0_0
+        PUSH, __lcl___y_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_11
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_11
+        PUSH, __lcl___b_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___a_SystemInt32_0
+        PUSH, __lcl___b_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_8
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_8
+        JUMP_IF_FALSE, L11
+        PUSH, __const_SystemInt32_13  ; -1
+        PUSH, __lcl___c_SystemInt32_0
+        COPY
+        JUMP, L13
+    L11:
+        PUSH, __lcl___a_SystemInt32_0
+        PUSH, __lcl___b_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_9
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_9
+        JUMP_IF_FALSE, L12
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___c_SystemInt32_0
+        COPY
+        JUMP, L13
+    L12:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_0
+        COPY
+    L13:
+        PUSH, __lcl___c_SystemInt32_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___left_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+    L14:
+        PUSH, __lcl___left_SystemBoolean_0
+        JUMP_IF_FALSE, L15
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        PUSH, __lcl___l_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_0
+        PUSH, __lcl___k_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___l_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___l_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L16
+    L15:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        PUSH, __lcl___r_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_0
+        PUSH, __lcl___k_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___r_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___r_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L16:
+        PUSH, __lcl___k_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___k_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L8
+    L17:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_0
+        PUSH, __intnl_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __lcl___lo_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L5
+    L18:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        PUSH, __lcl___t_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __lcl___q0_VRCSDK3DataDataList_0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __lcl___t_VRCSDK3DataDataList_0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __lcl___w_SystemInt32_0
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L19:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i1_SystemInt32_0
+        COPY
+    L20:
+        PUSH, __lcl___i1_SystemInt32_0
+        PUSH, __lcl___m0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L21
+        PUSH, __lcl___p0_VRCSDK3DataDataList_0
+        PUSH, __lcl___i1_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_8
+        PUSH, __intnl_SystemInt32_6
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_First_3_b0
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_9
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_9
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __lcl___v1_SystemObjectArray_0
+        COPY
+        PUSH, __lcl___v1_SystemObjectArray_0
+        PUSH, __0___0___linq_First_3__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __lcl___i1_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i1_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L20
+    L21:
+        PUSH, __const_SystemString_3  ; "[UdonSharpPlus] First : 要素がありません（C# では InvalidOperationException）"
+        EXTERN, "UnityEngineDebug.__LogError__SystemObject__SystemVoid"
+        PUSH, __const_SystemObject_0
+        PUSH, __lcl___halt_VRCSDK3DataDataList_0
+        COPY
+        PUSH, __lcl___halt_VRCSDK3DataDataList_0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __const_SystemObjectArray_0
+        PUSH, __0___0___linq_First_3__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_Sum_7(VRC.SDK3.Data.DataList, int)
+#
+        PUSH, __linq_Sum_7_b0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_Sum_7_k0_0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_Sum_7_o0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_Sum_7_w0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___taken1_SystemInt32_0
+        COPY
+        PUSH, __0___take1__param
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___stop1_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___acc_SystemInt32_0
+        COPY
+        PUSH, __1___src__param
+        PUSH, __lcl___n0_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_1
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_1
+        PUSH, __lcl___n0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_10
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_10
+        JUMP_IF_FALSE, L1
+        PUSH, __1___src__param
+        PUSH, __lcl___i0_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        PUSH, __lcl___v0_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___v0_SystemInt32_0
+        PUSH, __lcl_x_SystemInt32_0
+        COPY
+        PUSH, __lcl_x_SystemInt32_0
+        PUSH, __lcl___r0_SystemInt32_1
+        COPY
+        PUSH, __lcl___r0_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_13
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_Sum_7_k0_0
+        PUSH, __intnl_VRCSDK3DataDataToken_13
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_14
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_Sum_7_b0
+        PUSH, __intnl_VRCSDK3DataDataToken_14
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __linq_Sum_7_b0
+        PUSH, __lcl___m0_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___j_SystemInt32_1
+        COPY
+    L2:
+        PUSH, __lcl___j_SystemInt32_1
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_10
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_10
+        JUMP_IF_FALSE, L3
+        PUSH, __lcl___j_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_Sum_7_o0
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __linq_Sum_7_w0
+        PUSH, __const_VRCSDK3DataDataToken_2  ; 0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___j_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___j_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L2
+    L3:
+        PUSH, __linq_Sum_7_o0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        COPY
+        PUSH, __linq_Sum_7_w0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_1
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___w_SystemInt32_1
+        COPY
+    L4:
+        PUSH, __lcl___w_SystemInt32_1
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_10
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_10
+        JUMP_IF_FALSE, L19
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___lo_SystemInt32_1
+        COPY
+    L5:
+        PUSH, __lcl___lo_SystemInt32_1
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_11
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_11
+        JUMP_IF_FALSE, L18
+        PUSH, __lcl___lo_SystemInt32_1
+        PUSH, __lcl___w_SystemInt32_1
+        PUSH, __lcl___mid_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___mid_SystemInt32_1
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_12
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_12
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __lcl___mid_SystemInt32_1
+        COPY
+    L6:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_1
+        PUSH, __intnl_SystemInt32_7
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_1
+        PUSH, __intnl_SystemInt32_7
+        PUSH, __lcl___hi_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___hi_SystemInt32_1
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_13
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_13
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __lcl___hi_SystemInt32_1
+        COPY
+    L7:
+        PUSH, __lcl___lo_SystemInt32_1
+        PUSH, __lcl___l_SystemInt32_1
+        COPY
+        PUSH, __lcl___mid_SystemInt32_1
+        PUSH, __lcl___r_SystemInt32_1
+        COPY
+        PUSH, __lcl___lo_SystemInt32_1
+        PUSH, __lcl___k_SystemInt32_1
+        COPY
+    L8:
+        PUSH, __lcl___k_SystemInt32_1
+        PUSH, __lcl___hi_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_14
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_14
+        JUMP_IF_FALSE, L17
+        PUSH, __lcl___l_SystemInt32_1
+        PUSH, __lcl___mid_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_15
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_15
+        JUMP_IF_FALSE, L9
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __lcl___left_SystemBoolean_1
+        COPY
+        JUMP, L14
+    L9:
+        PUSH, __lcl___r_SystemInt32_1
+        PUSH, __lcl___hi_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_16
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_16
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___left_SystemBoolean_1
+        COPY
+        JUMP, L14
+    L10:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        PUSH, __lcl___l_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        PUSH, __lcl___x_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        PUSH, __lcl___r_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_13
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_13
+        PUSH, __lcl___y_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_1
+        COPY
+        PUSH, __linq_Sum_7_k0_0
+        PUSH, __lcl___x_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_14
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_14
+        PUSH, __lcl___a_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_Sum_7_k0_0
+        PUSH, __lcl___y_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_15
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_15
+        PUSH, __lcl___b_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___a_SystemInt32_1
+        PUSH, __lcl___b_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_17
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_17
+        JUMP_IF_FALSE, L11
+        PUSH, __const_SystemInt32_13  ; -1
+        PUSH, __intnl_SystemInt32_8
+        COPY
+        JUMP, L13
+    L11:
+        PUSH, __lcl___a_SystemInt32_1
+        PUSH, __lcl___b_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_18
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_18
+        JUMP_IF_FALSE, L12
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __intnl_SystemInt32_8
+        COPY
+        JUMP, L13
+    L12:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemInt32_8
+        COPY
+    L13:
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __lcl___c_SystemInt32_1
+        EXTERN, "SystemInt32.__op_UnaryMinus__SystemInt32__SystemInt32"
+        PUSH, __lcl___c_SystemInt32_1
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___left_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+    L14:
+        PUSH, __lcl___left_SystemBoolean_1
+        JUMP_IF_FALSE, L15
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        PUSH, __lcl___l_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_1
+        PUSH, __lcl___k_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___l_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___l_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L16
+    L15:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        PUSH, __lcl___r_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_1
+        PUSH, __lcl___k_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___r_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___r_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L16:
+        PUSH, __lcl___k_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___k_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L8
+    L17:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_1
+        PUSH, __intnl_SystemInt32_7
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_1
+        PUSH, __intnl_SystemInt32_7
+        PUSH, __lcl___lo_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L5
+    L18:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        PUSH, __lcl___t_VRCSDK3DataDataList_1
+        COPY
+        PUSH, __lcl___q0_VRCSDK3DataDataList_1
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        COPY
+        PUSH, __lcl___t_VRCSDK3DataDataList_1
+        PUSH, __lcl___q0_VRCSDK3DataDataList_1
+        COPY
+        PUSH, __lcl___w_SystemInt32_1
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L19:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i1_SystemInt32_1
+        COPY
+    L20:
+        PUSH, __lcl___i1_SystemInt32_1
+        PUSH, __lcl___m0_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_10
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_10
+        JUMP_IF_FALSE, L21
+        PUSH, __lcl___stop1_SystemBoolean_0
+        PUSH, __intnl_SystemBoolean_10
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L21:
+        PUSH, __intnl_SystemBoolean_10
+        JUMP_IF_FALSE, L23
+        PUSH, __lcl___p0_VRCSDK3DataDataList_1
+        PUSH, __lcl___i1_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_12
+        PUSH, __intnl_SystemInt32_7
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_Sum_7_b0
+        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_VRCSDK3DataDataToken_13
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_13
+        PUSH, __lcl___v1_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___taken1_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___taken1_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___taken1_SystemInt32_0
+        PUSH, __0___take1__param
+        PUSH, __intnl_SystemBoolean_11
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_11
+        JUMP_IF_FALSE, L22
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___stop1_SystemBoolean_0
+        COPY
+    L22:
+        PUSH, __lcl___acc_SystemInt32_0
+        PUSH, __lcl___v1_SystemInt32_0
+        PUSH, __lcl___acc_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___i1_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i1_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L20
+    L23:
+        PUSH, __lcl___acc_SystemInt32_0
+        PUSH, __0___0___linq_Sum_7__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ThenByDescending_2(string[])
+#
+        PUSH, __linq_ThenByDescending_2_b0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ThenByDescending_2_k0_0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ThenByDescending_2_k0_1
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ThenByDescending_2_o0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ThenByDescending_2_w0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __lcl___result_VRCSDK3DataDataList_0
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __2___src__param
+        PUSH, __lcl___n0_SystemInt32_2
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_2
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_2
+        PUSH, __lcl___n0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_19
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_19
+        JUMP_IF_FALSE, L1
+        PUSH, __2___src__param
+        PUSH, __lcl___i0_SystemInt32_2
+        PUSH, __lcl___v0_SystemString_0
+        EXTERN, "SystemStringArray.__Get__SystemInt32__SystemString"
+        PUSH, __lcl___v0_SystemString_0
+        PUSH, __lcl_w_SystemString_1
+        COPY
+        PUSH, __lcl_w_SystemString_1
+        PUSH, __lcl___r0_SystemInt32_2
+        EXTERN, "SystemString.__get_Length__SystemInt32"
+        PUSH, __lcl___r0_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ThenByDescending_2_k0_0
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemString_0
+        PUSH, __lcl_w_SystemString_1
+        COPY
+        PUSH, __lcl_w_SystemString_1
+        PUSH, __lcl___r1_SystemString_0
+        COPY
+        PUSH, __lcl___r1_SystemString_0
+        PUSH, __intnl_VRCSDK3DataDataToken_17
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __linq_ThenByDescending_2_k0_1
+        PUSH, __intnl_VRCSDK3DataDataToken_17
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemString_0
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __linq_ThenByDescending_2_b0
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_2
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __linq_ThenByDescending_2_b0
+        PUSH, __lcl___m0_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___j_SystemInt32_2
+        COPY
+    L2:
+        PUSH, __lcl___j_SystemInt32_2
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_19
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_19
+        JUMP_IF_FALSE, L3
+        PUSH, __lcl___j_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ThenByDescending_2_o0
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __linq_ThenByDescending_2_w0
+        PUSH, __const_VRCSDK3DataDataToken_2  ; 0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___j_SystemInt32_2
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___j_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L2
+    L3:
+        PUSH, __linq_ThenByDescending_2_o0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        COPY
+        PUSH, __linq_ThenByDescending_2_w0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_2
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___w_SystemInt32_2
+        COPY
+    L4:
+        PUSH, __lcl___w_SystemInt32_2
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_19
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_19
+        JUMP_IF_FALSE, L20
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___lo_SystemInt32_2
+        COPY
+    L5:
+        PUSH, __lcl___lo_SystemInt32_2
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_20
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_20
+        JUMP_IF_FALSE, L19
+        PUSH, __lcl___lo_SystemInt32_2
+        PUSH, __lcl___w_SystemInt32_2
+        PUSH, __lcl___mid_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___mid_SystemInt32_2
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_21
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_21
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __lcl___mid_SystemInt32_2
+        COPY
+    L6:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_2
+        PUSH, __intnl_SystemInt32_9
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_2
+        PUSH, __intnl_SystemInt32_9
+        PUSH, __lcl___hi_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___hi_SystemInt32_2
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_22
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_22
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __lcl___hi_SystemInt32_2
+        COPY
+    L7:
+        PUSH, __lcl___lo_SystemInt32_2
+        PUSH, __lcl___l_SystemInt32_2
+        COPY
+        PUSH, __lcl___mid_SystemInt32_2
+        PUSH, __lcl___r_SystemInt32_2
+        COPY
+        PUSH, __lcl___lo_SystemInt32_2
+        PUSH, __lcl___k_SystemInt32_2
+        COPY
+    L8:
+        PUSH, __lcl___k_SystemInt32_2
+        PUSH, __lcl___hi_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_23
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_23
+        JUMP_IF_FALSE, L18
+        PUSH, __lcl___l_SystemInt32_2
+        PUSH, __lcl___mid_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_24
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_24
+        JUMP_IF_FALSE, L9
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __lcl___left_SystemBoolean_2
+        COPY
+        JUMP, L15
+    L9:
+        PUSH, __lcl___r_SystemInt32_2
+        PUSH, __lcl___hi_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_25
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_25
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___left_SystemBoolean_2
+        COPY
+        JUMP, L15
+    L10:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        PUSH, __lcl___l_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        PUSH, __lcl___x_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        PUSH, __lcl___r_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_17
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_17
+        PUSH, __lcl___y_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_2
+        COPY
+        PUSH, __linq_ThenByDescending_2_k0_0
+        PUSH, __lcl___x_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        PUSH, __lcl___a_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_ThenByDescending_2_k0_0
+        PUSH, __lcl___y_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_19
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_19
+        PUSH, __lcl___b_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___a_SystemInt32_2
+        PUSH, __lcl___b_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_26
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_26
+        JUMP_IF_FALSE, L11
+        PUSH, __const_SystemInt32_13  ; -1
+        PUSH, __lcl___c_SystemInt32_2
+        COPY
+        JUMP, L13
+    L11:
+        PUSH, __lcl___a_SystemInt32_2
+        PUSH, __lcl___b_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_27
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_27
+        JUMP_IF_FALSE, L12
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___c_SystemInt32_2
+        COPY
+        JUMP, L13
+    L12:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_2
+        COPY
+    L13:
+        PUSH, __lcl___c_SystemInt32_2
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemBoolean_26
+        EXTERN, "SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_26
+        JUMP_IF_FALSE, L14
+        PUSH, __linq_ThenByDescending_2_k0_1
+        PUSH, __lcl___x_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        PUSH, __lcl___a_SystemString_0
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __linq_ThenByDescending_2_k0_1
+        PUSH, __lcl___y_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_19
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_19
+        PUSH, __lcl___b_SystemString_0
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___a_SystemString_0
+        PUSH, __lcl___b_SystemString_0
+        PUSH, __intnl_SystemInt32_10
+        EXTERN, "SystemString.__Compare__SystemString_SystemString__SystemInt32"
+        PUSH, __intnl_SystemInt32_10
+        PUSH, __lcl___c_SystemInt32_2
+        EXTERN, "SystemInt32.__op_UnaryMinus__SystemInt32__SystemInt32"
+    L14:
+        PUSH, __lcl___c_SystemInt32_2
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___left_SystemBoolean_2
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+    L15:
+        PUSH, __lcl___left_SystemBoolean_2
+        JUMP_IF_FALSE, L16
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        PUSH, __lcl___l_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_2
+        PUSH, __lcl___k_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___l_SystemInt32_2
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___l_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L17
+    L16:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        PUSH, __lcl___r_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_2
+        PUSH, __lcl___k_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___r_SystemInt32_2
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___r_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L17:
+        PUSH, __lcl___k_SystemInt32_2
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___k_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L8
+    L18:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_2
+        PUSH, __intnl_SystemInt32_9
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_2
+        PUSH, __intnl_SystemInt32_9
+        PUSH, __lcl___lo_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L5
+    L19:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        PUSH, __lcl___t_VRCSDK3DataDataList_2
+        COPY
+        PUSH, __lcl___q0_VRCSDK3DataDataList_2
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        COPY
+        PUSH, __lcl___t_VRCSDK3DataDataList_2
+        PUSH, __lcl___q0_VRCSDK3DataDataList_2
+        COPY
+        PUSH, __lcl___w_SystemInt32_2
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L20:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i1_SystemInt32_2
+        COPY
+    L21:
+        PUSH, __lcl___i1_SystemInt32_2
+        PUSH, __lcl___m0_SystemInt32_2
+        PUSH, __intnl_SystemBoolean_19
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_19
+        JUMP_IF_FALSE, L22
+        PUSH, __lcl___p0_VRCSDK3DataDataList_2
+        PUSH, __lcl___i1_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_16
+        PUSH, __intnl_SystemInt32_9
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_ThenByDescending_2_b0
+        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_VRCSDK3DataDataToken_17
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_17
+        PUSH, __lcl___v1_SystemString_0
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___v1_SystemString_0
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_18
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i1_SystemInt32_2
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i1_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L21
+    L22:
+        PUSH, __lcl___result_VRCSDK3DataDataList_0
+        PUSH, __0___0___linq_ThenByDescending_2__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToArray_1(VRC.SDK3.Data.DataList)
+#
+        PUSH, __linq_ToArray_1_b0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToArray_1_k0_0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToArray_1_o0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToArray_1_w0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __lcl___result_VRCSDK3DataDataList_1
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __3___src__param
+        PUSH, __lcl___n0_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_3
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_3
+        PUSH, __lcl___n0_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_28
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_28
+        JUMP_IF_FALSE, L1
+        PUSH, __3___src__param
+        PUSH, __lcl___i0_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        PUSH, __lcl___v0_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___v0_SystemInt32_1
+        PUSH, __lcl_x_SystemInt32_1
+        COPY
+        PUSH, __lcl_x_SystemInt32_1
+        PUSH, __lcl___r0_SystemInt32_3
+        COPY
+        PUSH, __lcl___r0_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_21
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToArray_1_k0_0
+        PUSH, __intnl_VRCSDK3DataDataToken_21
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_22
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToArray_1_b0
+        PUSH, __intnl_VRCSDK3DataDataToken_22
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_3
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __linq_ToArray_1_b0
+        PUSH, __lcl___m0_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___j_SystemInt32_3
+        COPY
+    L2:
+        PUSH, __lcl___j_SystemInt32_3
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_28
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_28
+        JUMP_IF_FALSE, L3
+        PUSH, __lcl___j_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToArray_1_o0
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __linq_ToArray_1_w0
+        PUSH, __const_VRCSDK3DataDataToken_2  ; 0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___j_SystemInt32_3
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___j_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L2
+    L3:
+        PUSH, __linq_ToArray_1_o0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        COPY
+        PUSH, __linq_ToArray_1_w0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_3
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___w_SystemInt32_3
+        COPY
+    L4:
+        PUSH, __lcl___w_SystemInt32_3
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_28
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_28
+        JUMP_IF_FALSE, L19
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___lo_SystemInt32_3
+        COPY
+    L5:
+        PUSH, __lcl___lo_SystemInt32_3
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_29
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_29
+        JUMP_IF_FALSE, L18
+        PUSH, __lcl___lo_SystemInt32_3
+        PUSH, __lcl___w_SystemInt32_3
+        PUSH, __lcl___mid_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___mid_SystemInt32_3
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_30
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_30
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __lcl___mid_SystemInt32_3
+        COPY
+    L6:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_3
+        PUSH, __intnl_SystemInt32_11
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_3
+        PUSH, __intnl_SystemInt32_11
+        PUSH, __lcl___hi_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___hi_SystemInt32_3
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_31
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_31
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __lcl___hi_SystemInt32_3
+        COPY
+    L7:
+        PUSH, __lcl___lo_SystemInt32_3
+        PUSH, __lcl___l_SystemInt32_3
+        COPY
+        PUSH, __lcl___mid_SystemInt32_3
+        PUSH, __lcl___r_SystemInt32_3
+        COPY
+        PUSH, __lcl___lo_SystemInt32_3
+        PUSH, __lcl___k_SystemInt32_3
+        COPY
+    L8:
+        PUSH, __lcl___k_SystemInt32_3
+        PUSH, __lcl___hi_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_32
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_32
+        JUMP_IF_FALSE, L17
+        PUSH, __lcl___l_SystemInt32_3
+        PUSH, __lcl___mid_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_33
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_33
+        JUMP_IF_FALSE, L9
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __lcl___left_SystemBoolean_3
+        COPY
+        JUMP, L14
+    L9:
+        PUSH, __lcl___r_SystemInt32_3
+        PUSH, __lcl___hi_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_34
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_34
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___left_SystemBoolean_3
+        COPY
+        JUMP, L14
+    L10:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        PUSH, __lcl___l_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        PUSH, __lcl___x_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        PUSH, __lcl___r_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_21
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_21
+        PUSH, __lcl___y_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_3
+        COPY
+        PUSH, __linq_ToArray_1_k0_0
+        PUSH, __lcl___x_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_22
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_22
+        PUSH, __lcl___a_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_ToArray_1_k0_0
+        PUSH, __lcl___y_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_23
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_23
+        PUSH, __lcl___b_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___a_SystemInt32_3
+        PUSH, __lcl___b_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_35
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_35
+        JUMP_IF_FALSE, L11
+        PUSH, __const_SystemInt32_13  ; -1
+        PUSH, __intnl_SystemInt32_12
+        COPY
+        JUMP, L13
+    L11:
+        PUSH, __lcl___a_SystemInt32_3
+        PUSH, __lcl___b_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_36
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_36
+        JUMP_IF_FALSE, L12
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __intnl_SystemInt32_12
+        COPY
+        JUMP, L13
+    L12:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemInt32_12
+        COPY
+    L13:
+        PUSH, __intnl_SystemInt32_12
+        PUSH, __lcl___c_SystemInt32_3
+        EXTERN, "SystemInt32.__op_UnaryMinus__SystemInt32__SystemInt32"
+        PUSH, __lcl___c_SystemInt32_3
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___left_SystemBoolean_3
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+    L14:
+        PUSH, __lcl___left_SystemBoolean_3
+        JUMP_IF_FALSE, L15
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        PUSH, __lcl___l_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_3
+        PUSH, __lcl___k_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___l_SystemInt32_3
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___l_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L16
+    L15:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        PUSH, __lcl___r_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_3
+        PUSH, __lcl___k_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___r_SystemInt32_3
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___r_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L16:
+        PUSH, __lcl___k_SystemInt32_3
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___k_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L8
+    L17:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_3
+        PUSH, __intnl_SystemInt32_11
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_3
+        PUSH, __intnl_SystemInt32_11
+        PUSH, __lcl___lo_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L5
+    L18:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        PUSH, __lcl___t_VRCSDK3DataDataList_3
+        COPY
+        PUSH, __lcl___q0_VRCSDK3DataDataList_3
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        COPY
+        PUSH, __lcl___t_VRCSDK3DataDataList_3
+        PUSH, __lcl___q0_VRCSDK3DataDataList_3
+        COPY
+        PUSH, __lcl___w_SystemInt32_3
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L19:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i1_SystemInt32_3
+        COPY
+    L20:
+        PUSH, __lcl___i1_SystemInt32_3
+        PUSH, __lcl___m0_SystemInt32_3
+        PUSH, __intnl_SystemBoolean_28
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_28
+        JUMP_IF_FALSE, L21
+        PUSH, __lcl___p0_VRCSDK3DataDataList_3
+        PUSH, __lcl___i1_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_20
+        PUSH, __intnl_SystemInt32_11
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_ToArray_1_b0
+        PUSH, __intnl_SystemInt32_11
+        PUSH, __intnl_VRCSDK3DataDataToken_21
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_21
+        PUSH, __lcl___v1_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___v1_SystemInt32_1
+        PUSH, __intnl_VRCSDK3DataDataToken_22
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_1
+        PUSH, __intnl_VRCSDK3DataDataToken_22
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i1_SystemInt32_3
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i1_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L20
+    L21:
+        PUSH, __gintnl_SystemUInt32_13  ; -> L22
+        PUSH, __lcl___result_VRCSDK3DataDataList_1
+        PUSH, __7__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__col_ToArray__int(VRC.SDK3.Data.DataList)
+        JUMP, <__col_ToArray__int(VRC.SDK3.Data.DataList)>
+    L22:
+        PUSH, __6__intnlparam
+        PUSH, __0___0___linq_ToArray_1__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToDictionary_8(VRC.SDK3.Data.DataList)
+#
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_0
+        EXTERN, "VRCSDK3DataDataDictionary.__ctor____VRCSDK3DataDataDictionary"
+        PUSH, __4___src__param
+        PUSH, __lcl___n0_SystemInt32_4
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_4
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_4
+        PUSH, __lcl___n0_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_37
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_37
+        JUMP_IF_FALSE, L2
+        PUSH, __4___src__param
+        PUSH, __lcl___i0_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_24
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_24
+        PUSH, __intnl_SystemObject_5
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_5
+        PUSH, __lcl___v0_SystemObjectArray_1
+        COPY
+        PUSH, __lcl___v0_SystemObjectArray_1
+        PUSH, __lcl_e_SystemObjectArray_1
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_1
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemObject_6
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_6
+        PUSH, __lcl___r0_SystemString_0
+        COPY
+        PUSH, __lcl___r0_SystemString_0
+        PUSH, __lcl___key_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_0
+        PUSH, __lcl___key_VRCSDK3DataDataToken_0
+        PUSH, __intnl_SystemBoolean_38
+        EXTERN, "VRCSDK3DataDataDictionary.__ContainsKey__VRCSDK3DataDataToken__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_38
+        JUMP_IF_FALSE, L1
+        PUSH, __const_SystemString_4  ; "[UdonSharpPlus] ToDictionary : 同じキーがあります（C# では ArgumentException）"
+        EXTERN, "UnityEngineDebug.__LogError__SystemObject__SystemVoid"
+        PUSH, __const_SystemObject_0
+        PUSH, __lcl___halt_VRCSDK3DataDataList_1
+        COPY
+        PUSH, __lcl___halt_VRCSDK3DataDataList_1
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+    L1:
+        PUSH, __lcl___v0_SystemObjectArray_1
+        PUSH, __intnl_VRCSDK3DataDataToken_25
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemObject__VRCSDK3DataDataToken"
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_0
+        PUSH, __lcl___key_VRCSDK3DataDataToken_0
+        PUSH, __intnl_VRCSDK3DataDataToken_25
+        EXTERN, "VRCSDK3DataDataDictionary.__SetValue__VRCSDK3DataDataToken_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_4
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L2:
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_0
+        PUSH, __0___0___linq_ToDictionary_8__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToDictionary_9(VRC.SDK3.Data.DataList)
+#
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_1
+        EXTERN, "VRCSDK3DataDataDictionary.__ctor____VRCSDK3DataDataDictionary"
+        PUSH, __5___src__param
+        PUSH, __lcl___n0_SystemInt32_5
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_5
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_5
+        PUSH, __lcl___n0_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_39
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_39
+        JUMP_IF_FALSE, L2
+        PUSH, __5___src__param
+        PUSH, __lcl___i0_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_26
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_26
+        PUSH, __intnl_SystemObject_7
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_7
+        PUSH, __lcl___v0_SystemObjectArray_2
+        COPY
+        PUSH, __lcl___v0_SystemObjectArray_2
+        PUSH, __lcl_e_SystemObjectArray_2
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_2
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemObject_8
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_8
+        PUSH, __lcl___r0_SystemString_1
+        COPY
+        PUSH, __lcl___v0_SystemObjectArray_2
+        PUSH, __lcl_e_SystemObjectArray_2
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_2
+        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __intnl_SystemObject_8
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_8
+        PUSH, __lcl___r1_SystemInt32_0
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __lcl___r0_SystemString_1
+        PUSH, __lcl___key_VRCSDK3DataDataToken_1
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_1
+        PUSH, __lcl___key_VRCSDK3DataDataToken_1
+        PUSH, __intnl_SystemBoolean_40
+        EXTERN, "VRCSDK3DataDataDictionary.__ContainsKey__VRCSDK3DataDataToken__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_40
+        JUMP_IF_FALSE, L1
+        PUSH, __const_SystemString_4  ; "[UdonSharpPlus] ToDictionary : 同じキーがあります（C# では ArgumentException）"
+        EXTERN, "UnityEngineDebug.__LogError__SystemObject__SystemVoid"
+        PUSH, __const_SystemObject_0
+        PUSH, __lcl___halt_VRCSDK3DataDataList_2
+        COPY
+        PUSH, __lcl___halt_VRCSDK3DataDataList_2
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+    L1:
+        PUSH, __lcl___r1_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_27
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_1
+        PUSH, __lcl___key_VRCSDK3DataDataToken_1
+        PUSH, __intnl_VRCSDK3DataDataToken_27
+        EXTERN, "VRCSDK3DataDataDictionary.__SetValue__VRCSDK3DataDataToken_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_5
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L2:
+        PUSH, __lcl___dict_VRCSDK3DataDataDictionary_1
+        PUSH, __0___0___linq_ToDictionary_9__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_0(VRC.SDK3.Data.DataList)
+#
+        PUSH, __linq_ToList_0_b0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToList_0_k0_0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToList_0_o0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToList_0_w0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __lcl___result_VRCSDK3DataDataList_2
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __6___src__param
+        PUSH, __lcl___n0_SystemInt32_6
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_6
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_6
+        PUSH, __lcl___n0_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_41
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_41
+        JUMP_IF_FALSE, L1
+        PUSH, __6___src__param
+        PUSH, __lcl___i0_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        PUSH, __lcl___v0_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___v0_SystemInt32_2
+        PUSH, __lcl_x_SystemInt32_2
+        COPY
+        PUSH, __lcl_x_SystemInt32_2
+        PUSH, __lcl___r0_SystemInt32_4
+        COPY
+        PUSH, __lcl___r0_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_29
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_0_k0_0
+        PUSH, __intnl_VRCSDK3DataDataToken_29
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_30
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_0_b0
+        PUSH, __intnl_VRCSDK3DataDataToken_30
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_6
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __linq_ToList_0_b0
+        PUSH, __lcl___m0_SystemInt32_4
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___j_SystemInt32_4
+        COPY
+    L2:
+        PUSH, __lcl___j_SystemInt32_4
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_41
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_41
+        JUMP_IF_FALSE, L3
+        PUSH, __lcl___j_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_0_o0
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __linq_ToList_0_w0
+        PUSH, __const_VRCSDK3DataDataToken_2  ; 0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___j_SystemInt32_4
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___j_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L2
+    L3:
+        PUSH, __linq_ToList_0_o0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        COPY
+        PUSH, __linq_ToList_0_w0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_4
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___w_SystemInt32_4
+        COPY
+    L4:
+        PUSH, __lcl___w_SystemInt32_4
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_41
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_41
+        JUMP_IF_FALSE, L19
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___lo_SystemInt32_4
+        COPY
+    L5:
+        PUSH, __lcl___lo_SystemInt32_4
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_42
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_42
+        JUMP_IF_FALSE, L18
+        PUSH, __lcl___lo_SystemInt32_4
+        PUSH, __lcl___w_SystemInt32_4
+        PUSH, __lcl___mid_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___mid_SystemInt32_4
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_43
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_43
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __lcl___mid_SystemInt32_4
+        COPY
+    L6:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_4
+        PUSH, __intnl_SystemInt32_13
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_4
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __lcl___hi_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___hi_SystemInt32_4
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_44
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_44
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __lcl___hi_SystemInt32_4
+        COPY
+    L7:
+        PUSH, __lcl___lo_SystemInt32_4
+        PUSH, __lcl___l_SystemInt32_4
+        COPY
+        PUSH, __lcl___mid_SystemInt32_4
+        PUSH, __lcl___r_SystemInt32_4
+        COPY
+        PUSH, __lcl___lo_SystemInt32_4
+        PUSH, __lcl___k_SystemInt32_4
+        COPY
+    L8:
+        PUSH, __lcl___k_SystemInt32_4
+        PUSH, __lcl___hi_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_45
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_45
+        JUMP_IF_FALSE, L17
+        PUSH, __lcl___l_SystemInt32_4
+        PUSH, __lcl___mid_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_46
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_46
+        JUMP_IF_FALSE, L9
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __lcl___left_SystemBoolean_4
+        COPY
+        JUMP, L14
+    L9:
+        PUSH, __lcl___r_SystemInt32_4
+        PUSH, __lcl___hi_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_47
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_47
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___left_SystemBoolean_4
+        COPY
+        JUMP, L14
+    L10:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        PUSH, __lcl___l_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        PUSH, __lcl___x_SystemInt32_4
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        PUSH, __lcl___r_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_29
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_29
+        PUSH, __lcl___y_SystemInt32_4
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_4
+        COPY
+        PUSH, __linq_ToList_0_k0_0
+        PUSH, __lcl___x_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_30
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_30
+        PUSH, __lcl___a_SystemInt32_4
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_ToList_0_k0_0
+        PUSH, __lcl___y_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_31
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_31
+        PUSH, __lcl___b_SystemInt32_4
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___a_SystemInt32_4
+        PUSH, __lcl___b_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_48
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_48
+        JUMP_IF_FALSE, L11
+        PUSH, __const_SystemInt32_13  ; -1
+        PUSH, __lcl___c_SystemInt32_4
+        COPY
+        JUMP, L13
+    L11:
+        PUSH, __lcl___a_SystemInt32_4
+        PUSH, __lcl___b_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_49
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_49
+        JUMP_IF_FALSE, L12
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___c_SystemInt32_4
+        COPY
+        JUMP, L13
+    L12:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_4
+        COPY
+    L13:
+        PUSH, __lcl___c_SystemInt32_4
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___left_SystemBoolean_4
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+    L14:
+        PUSH, __lcl___left_SystemBoolean_4
+        JUMP_IF_FALSE, L15
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        PUSH, __lcl___l_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_4
+        PUSH, __lcl___k_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___l_SystemInt32_4
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___l_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L16
+    L15:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        PUSH, __lcl___r_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_4
+        PUSH, __lcl___k_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___r_SystemInt32_4
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___r_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L16:
+        PUSH, __lcl___k_SystemInt32_4
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___k_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L8
+    L17:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_4
+        PUSH, __intnl_SystemInt32_13
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_4
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __lcl___lo_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L5
+    L18:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        PUSH, __lcl___t_VRCSDK3DataDataList_4
+        COPY
+        PUSH, __lcl___q0_VRCSDK3DataDataList_4
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        COPY
+        PUSH, __lcl___t_VRCSDK3DataDataList_4
+        PUSH, __lcl___q0_VRCSDK3DataDataList_4
+        COPY
+        PUSH, __lcl___w_SystemInt32_4
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L19:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i1_SystemInt32_4
+        COPY
+    L20:
+        PUSH, __lcl___i1_SystemInt32_4
+        PUSH, __lcl___m0_SystemInt32_4
+        PUSH, __intnl_SystemBoolean_41
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_41
+        JUMP_IF_FALSE, L21
+        PUSH, __lcl___p0_VRCSDK3DataDataList_4
+        PUSH, __lcl___i1_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_28
+        PUSH, __intnl_SystemInt32_13
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_ToList_0_b0
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __intnl_VRCSDK3DataDataToken_29
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_29
+        PUSH, __lcl___v1_SystemInt32_2
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___v1_SystemInt32_2
+        PUSH, __intnl_VRCSDK3DataDataToken_30
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_2
+        PUSH, __intnl_VRCSDK3DataDataToken_30
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i1_SystemInt32_4
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i1_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L20
+    L21:
+        PUSH, __lcl___result_VRCSDK3DataDataList_2
+        PUSH, __0___0___linq_ToList_0__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_4(VRC.SDK3.Data.DataList)
+#
+        PUSH, __linq_ToList_4_b0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToList_4_k0_0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToList_4_k0_1
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToList_4_o0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __linq_ToList_4_w0
+        EXTERN, "VRCSDK3DataDataList.__Clear__SystemVoid"
+        PUSH, __lcl___result_VRCSDK3DataDataList_3
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __8___src__param
+        PUSH, __lcl___n0_SystemInt32_7
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_7
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_7
+        PUSH, __lcl___n0_SystemInt32_7
+        PUSH, __intnl_SystemBoolean_50
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_50
+        JUMP_IF_FALSE, L1
+        PUSH, __8___src__param
+        PUSH, __lcl___i0_SystemInt32_7
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        PUSH, __intnl_SystemObject_9
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_9
+        PUSH, __lcl___v0_SystemObjectArray_3
+        COPY
+        PUSH, __lcl___v0_SystemObjectArray_3
+        PUSH, __lcl_e_SystemObjectArray_3
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_3
+        PUSH, __const_SystemInt32_8  ; 4
+        PUSH, __intnl_SystemObject_10
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_10
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __lcl___r0_SystemInt32_5
+        COPY
+        PUSH, __lcl___r0_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_33
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_4_k0_0
+        PUSH, __intnl_VRCSDK3DataDataToken_33
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemObjectArray_3
+        PUSH, __lcl_e_SystemObjectArray_3
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_3
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemObject_10
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_10
+        PUSH, __lcl___r1_SystemString_1
+        COPY
+        PUSH, __lcl___r1_SystemString_1
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_4_k0_1
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemObjectArray_3
+        PUSH, __intnl_VRCSDK3DataDataToken_35
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemObject__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_4_b0
+        PUSH, __intnl_VRCSDK3DataDataToken_35
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_7
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_7
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __linq_ToList_4_b0
+        PUSH, __lcl___m0_SystemInt32_5
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___j_SystemInt32_5
+        COPY
+    L2:
+        PUSH, __lcl___j_SystemInt32_5
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_50
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_50
+        JUMP_IF_FALSE, L3
+        PUSH, __lcl___j_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_4_o0
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __linq_ToList_4_w0
+        PUSH, __const_VRCSDK3DataDataToken_2  ; 0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___j_SystemInt32_5
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___j_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L2
+    L3:
+        PUSH, __linq_ToList_4_o0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        COPY
+        PUSH, __linq_ToList_4_w0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_5
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___w_SystemInt32_5
+        COPY
+    L4:
+        PUSH, __lcl___w_SystemInt32_5
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_50
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_50
+        JUMP_IF_FALSE, L20
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___lo_SystemInt32_5
+        COPY
+    L5:
+        PUSH, __lcl___lo_SystemInt32_5
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_51
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_51
+        JUMP_IF_FALSE, L19
+        PUSH, __lcl___lo_SystemInt32_5
+        PUSH, __lcl___w_SystemInt32_5
+        PUSH, __lcl___mid_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___mid_SystemInt32_5
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_52
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_52
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __lcl___mid_SystemInt32_5
+        COPY
+    L6:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_5
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_5
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __lcl___hi_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___hi_SystemInt32_5
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_53
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_53
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __lcl___hi_SystemInt32_5
+        COPY
+    L7:
+        PUSH, __lcl___lo_SystemInt32_5
+        PUSH, __lcl___l_SystemInt32_5
+        COPY
+        PUSH, __lcl___mid_SystemInt32_5
+        PUSH, __lcl___r_SystemInt32_5
+        COPY
+        PUSH, __lcl___lo_SystemInt32_5
+        PUSH, __lcl___k_SystemInt32_5
+        COPY
+    L8:
+        PUSH, __lcl___k_SystemInt32_5
+        PUSH, __lcl___hi_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_54
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_54
+        JUMP_IF_FALSE, L18
+        PUSH, __lcl___l_SystemInt32_5
+        PUSH, __lcl___mid_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_55
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_55
+        JUMP_IF_FALSE, L9
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __lcl___left_SystemBoolean_5
+        COPY
+        JUMP, L15
+    L9:
+        PUSH, __lcl___r_SystemInt32_5
+        PUSH, __lcl___hi_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_56
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_56
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___left_SystemBoolean_5
+        COPY
+        JUMP, L15
+    L10:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        PUSH, __lcl___l_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        PUSH, __lcl___x_SystemInt32_5
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        PUSH, __lcl___r_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_33
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_33
+        PUSH, __lcl___y_SystemInt32_5
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_5
+        COPY
+        PUSH, __linq_ToList_4_k0_0
+        PUSH, __lcl___x_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        PUSH, __intnl_SystemInt32_15
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __intnl_SystemInt32_15
+        PUSH, __lcl___a_SystemInt32_5
+        COPY
+        PUSH, __linq_ToList_4_k0_0
+        PUSH, __lcl___y_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_35
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_35
+        PUSH, __intnl_SystemInt32_16
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __intnl_SystemInt32_16
+        PUSH, __lcl___b_SystemInt32_5
+        COPY
+        PUSH, __lcl___a_SystemInt32_5
+        PUSH, __lcl___b_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_57
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_57
+        JUMP_IF_FALSE, L11
+        PUSH, __const_SystemInt32_13  ; -1
+        PUSH, __intnl_SystemInt32_17
+        COPY
+        JUMP, L13
+    L11:
+        PUSH, __lcl___a_SystemInt32_5
+        PUSH, __lcl___b_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_58
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_58
+        JUMP_IF_FALSE, L12
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __intnl_SystemInt32_17
+        COPY
+        JUMP, L13
+    L12:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemInt32_17
+        COPY
+    L13:
+        PUSH, __intnl_SystemInt32_17
+        PUSH, __lcl___c_SystemInt32_5
+        EXTERN, "SystemInt32.__op_UnaryMinus__SystemInt32__SystemInt32"
+        PUSH, __lcl___c_SystemInt32_5
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemBoolean_57
+        EXTERN, "SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_57
+        JUMP_IF_FALSE, L14
+        PUSH, __linq_ToList_4_k0_1
+        PUSH, __lcl___x_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        PUSH, __lcl___a_SystemString_1
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __linq_ToList_4_k0_1
+        PUSH, __lcl___y_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_35
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_35
+        PUSH, __lcl___b_SystemString_1
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___a_SystemString_1
+        PUSH, __lcl___b_SystemString_1
+        PUSH, __lcl___c_SystemInt32_5
+        EXTERN, "SystemString.__Compare__SystemString_SystemString__SystemInt32"
+    L14:
+        PUSH, __lcl___c_SystemInt32_5
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___left_SystemBoolean_5
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+    L15:
+        PUSH, __lcl___left_SystemBoolean_5
+        JUMP_IF_FALSE, L16
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        PUSH, __lcl___l_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_5
+        PUSH, __lcl___k_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___l_SystemInt32_5
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___l_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L17
+    L16:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        PUSH, __lcl___r_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_5
+        PUSH, __lcl___k_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___r_SystemInt32_5
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___r_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L17:
+        PUSH, __lcl___k_SystemInt32_5
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___k_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L8
+    L18:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_5
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_5
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __lcl___lo_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L5
+    L19:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        PUSH, __lcl___t_VRCSDK3DataDataList_5
+        COPY
+        PUSH, __lcl___q0_VRCSDK3DataDataList_5
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        COPY
+        PUSH, __lcl___t_VRCSDK3DataDataList_5
+        PUSH, __lcl___q0_VRCSDK3DataDataList_5
+        COPY
+        PUSH, __lcl___w_SystemInt32_5
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L20:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i1_SystemInt32_5
+        COPY
+    L21:
+        PUSH, __lcl___i1_SystemInt32_5
+        PUSH, __lcl___m0_SystemInt32_5
+        PUSH, __intnl_SystemBoolean_50
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_50
+        JUMP_IF_FALSE, L22
+        PUSH, __lcl___p0_VRCSDK3DataDataList_5
+        PUSH, __lcl___i1_SystemInt32_5
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_32
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __linq_ToList_4_b0
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __intnl_VRCSDK3DataDataToken_33
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_33
+        PUSH, __intnl_SystemObject_9
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_9
+        PUSH, __lcl___v1_SystemObjectArray_1
+        COPY
+        PUSH, __lcl___v1_SystemObjectArray_1
+        PUSH, __lcl_e_SystemObjectArray_3
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_3
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemObject_10
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_10
+        PUSH, __lcl___r2_SystemString_0
+        COPY
+        PUSH, __lcl___r2_SystemString_0
+        PUSH, __lcl___v2_SystemString_0
+        COPY
+        PUSH, __lcl___v2_SystemString_0
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_3
+        PUSH, __intnl_VRCSDK3DataDataToken_34
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i1_SystemInt32_5
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i1_SystemInt32_5
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L21
+    L22:
+        PUSH, __lcl___result_VRCSDK3DataDataList_3
+        PUSH, __0___0___linq_ToList_4__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_5(VRC.SDK3.Data.DataList)
+#
+        PUSH, __linq_ToList_5_seen0
+        EXTERN, "VRCSDK3DataDataDictionary.__Clear__SystemVoid"
+        PUSH, __lcl___result_VRCSDK3DataDataList_4
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __9___src__param
+        PUSH, __lcl___n0_SystemInt32_8
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_8
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_8
+        PUSH, __lcl___n0_SystemInt32_8
+        PUSH, __intnl_SystemBoolean_59
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_59
+        JUMP_IF_FALSE, L3
+        PUSH, __9___src__param
+        PUSH, __lcl___i0_SystemInt32_8
+        PUSH, __intnl_VRCSDK3DataDataToken_36
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_36
+        PUSH, __lcl___v0_SystemInt32_3
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___v0_SystemInt32_3
+        PUSH, __lcl___d0_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __linq_ToList_5_seen0
+        PUSH, __lcl___d0_VRCSDK3DataDataToken_0
+        PUSH, __intnl_SystemBoolean_60
+        EXTERN, "VRCSDK3DataDataDictionary.__ContainsKey__VRCSDK3DataDataToken__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_60
+        JUMP_IF_FALSE, L1
+        JUMP, L2
+    L1:
+        PUSH, __linq_ToList_5_seen0
+        PUSH, __lcl___d0_VRCSDK3DataDataToken_0
+        PUSH, __lcl___d0_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataDictionary.__SetValue__VRCSDK3DataDataToken_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemInt32_3
+        PUSH, __intnl_VRCSDK3DataDataToken_37
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_4
+        PUSH, __intnl_VRCSDK3DataDataToken_37
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+    L2:
+        PUSH, __lcl___i0_SystemInt32_8
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_8
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L3:
+        PUSH, __lcl___result_VRCSDK3DataDataList_4
+        PUSH, __0___0___linq_ToList_5__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_6(VRC.SDK3.Data.DataList, int, int)
+#
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___skipped0_SystemInt32_0
+        COPY
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___taken1_SystemInt32_1
+        COPY
+        PUSH, __1___take1__param
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___stop1_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __lcl___result_VRCSDK3DataDataList_5
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __10___src__param
+        PUSH, __lcl___n0_SystemInt32_9
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_9
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_9
+        PUSH, __lcl___n0_SystemInt32_9
+        PUSH, __intnl_SystemBoolean_61
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_61
+        JUMP_IF_FALSE, L1
+        PUSH, __lcl___stop1_SystemBoolean_1
+        PUSH, __intnl_SystemBoolean_61
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L1:
+        PUSH, __intnl_SystemBoolean_61
+        JUMP_IF_FALSE, L5
+        PUSH, __10___src__param
+        PUSH, __lcl___i0_SystemInt32_9
+        PUSH, __intnl_VRCSDK3DataDataToken_38
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_38
+        PUSH, __lcl___v0_SystemInt32_4
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___skipped0_SystemInt32_0
+        PUSH, __0___skip0__param
+        PUSH, __intnl_SystemBoolean_62
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_62
+        JUMP_IF_FALSE, L2
+        PUSH, __lcl___skipped0_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___skipped0_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L2:
+        PUSH, __lcl___taken1_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___taken1_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___taken1_SystemInt32_1
+        PUSH, __1___take1__param
+        PUSH, __intnl_SystemBoolean_63
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_63
+        JUMP_IF_FALSE, L3
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___stop1_SystemBoolean_1
+        COPY
+    L3:
+        PUSH, __lcl___v0_SystemInt32_4
+        PUSH, __intnl_VRCSDK3DataDataToken_39
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_5
+        PUSH, __intnl_VRCSDK3DataDataToken_39
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+    L4:
+        PUSH, __lcl___i0_SystemInt32_9
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_9
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L5:
+        PUSH, __lcl___result_VRCSDK3DataDataList_5
+        PUSH, __0___0___linq_ToList_6__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__ctor__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)
+#
+        PUSH, __const_SystemInt32_4  ; 5
+        PUSH, __lcl___this_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __const_SystemString_5  ; "UdonSharpPlusTests.CollectionLinqOrder.Enemy"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_8  ; 4
+        PUSH, __const_SystemInt32_5  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_14  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __8__intnlparam
+        COPY
+        PUSH, __1__intnlparam
+        PUSH, __9__intnlparam
+        COPY
+        PUSH, __2__intnlparam
+        PUSH, __10__intnlparam
+        COPY
+        PUSH, __3__intnlparam
+        PUSH, __11__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__init__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(object[], string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)
+        JUMP, <__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__init__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(object[], string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__Names__System_Collections_Generic_List_UdonSharpPlusTests_CollectionLinqOrder_Enemy_(VRC.SDK3.Data.DataList)
+#
+        PUSH, __gintnl_SystemUInt32_15  ; -> L0
+        PUSH, __5__intnlparam
+        PUSH, __13__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_10(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_ToList_10(VRC.SDK3.Data.DataList)>
+    L0:
+        PUSH, __12__intnlparam
+        PUSH, __4__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__col_ToArray__int(VRC.SDK3.Data.DataList)
+#
+        PUSH, __7__intnlparam
+        PUSH, __intnl_SystemInt32_18
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __intnl_SystemInt32_18
+        PUSH, __lcl___a_SystemInt32Array_0
+        EXTERN, "SystemInt32Array.__ctor__SystemInt32__SystemInt32Array"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___a_SystemInt32Array_0
+        PUSH, __intnl_SystemInt32_19
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemInt32_19
+        PUSH, __intnl_SystemBoolean_64
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_64
+        JUMP_IF_FALSE, L1
+        PUSH, __7__intnlparam
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_40
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_40
+        PUSH, __intnl_SystemInt32_20
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___a_SystemInt32Array_0
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemInt32_20
+        EXTERN, "SystemInt32Array.__Set__SystemInt32_SystemInt32__SystemVoid"
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __lcl___a_SystemInt32Array_0
+        PUSH, __6__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__init__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(object[], string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank)
+#
+        PUSH, __8__intnlparam
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __9__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __8__intnlparam
+        PUSH, __const_SystemInt32_7  ; 3
+        PUSH, __10__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __8__intnlparam
+        PUSH, __const_SystemInt32_8  ; 4
+        PUSH, __11__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.CollectionLinqOrder.User.__linq_ToList_10(VRC.SDK3.Data.DataList)
+#
+        PUSH, __lcl___b0_VRCSDK3DataDataList_0
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __lcl___k0_0_VRCSDK3DataDataList_0
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __lcl___o0_VRCSDK3DataDataList_0
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __lcl___w0_VRCSDK3DataDataList_0
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __lcl___result_VRCSDK3DataDataList_6
+        EXTERN, "VRCSDK3DataDataList.__ctor____VRCSDK3DataDataList"
+        PUSH, __13__intnlparam
+        PUSH, __lcl___n0_SystemInt32_10
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_10
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_10
+        PUSH, __lcl___n0_SystemInt32_10
+        PUSH, __intnl_SystemBoolean_65
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_65
+        JUMP_IF_FALSE, L1
+        PUSH, __13__intnlparam
+        PUSH, __lcl___i0_SystemInt32_10
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        PUSH, __intnl_SystemObject_11
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_11
+        PUSH, __lcl___v0_SystemObjectArray_4
+        COPY
+        PUSH, __lcl___v0_SystemObjectArray_4
+        PUSH, __lcl_e_SystemObjectArray_4
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_4
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemObject_12
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_12
+        PUSH, __lcl___r0_SystemString_2
+        COPY
+        PUSH, __lcl___r0_SystemString_2
+        PUSH, __intnl_VRCSDK3DataDataToken_42
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___k0_0_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_42
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___v0_SystemObjectArray_4
+        PUSH, __intnl_VRCSDK3DataDataToken_43
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemObject__VRCSDK3DataDataToken"
+        PUSH, __lcl___b0_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_43
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i0_SystemInt32_10
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_10
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L1:
+        PUSH, __lcl___b0_VRCSDK3DataDataList_0
+        PUSH, __lcl___m0_SystemInt32_6
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___j_SystemInt32_6
+        COPY
+    L2:
+        PUSH, __lcl___j_SystemInt32_6
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_65
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_65
+        JUMP_IF_FALSE, L3
+        PUSH, __lcl___j_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___o0_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___w0_VRCSDK3DataDataList_0
+        PUSH, __const_VRCSDK3DataDataToken_2  ; 0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___j_SystemInt32_6
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___j_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L2
+    L3:
+        PUSH, __lcl___o0_VRCSDK3DataDataList_0
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        COPY
+        PUSH, __lcl___w0_VRCSDK3DataDataList_0
+        PUSH, __lcl___q0_VRCSDK3DataDataList_6
+        COPY
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___w_SystemInt32_6
+        COPY
+    L4:
+        PUSH, __lcl___w_SystemInt32_6
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_65
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_65
+        JUMP_IF_FALSE, L16
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___lo_SystemInt32_6
+        COPY
+    L5:
+        PUSH, __lcl___lo_SystemInt32_6
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_66
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_66
+        JUMP_IF_FALSE, L15
+        PUSH, __lcl___lo_SystemInt32_6
+        PUSH, __lcl___w_SystemInt32_6
+        PUSH, __lcl___mid_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___mid_SystemInt32_6
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_67
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_67
+        JUMP_IF_FALSE, L6
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __lcl___mid_SystemInt32_6
+        COPY
+    L6:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_6
+        PUSH, __intnl_SystemInt32_21
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_6
+        PUSH, __intnl_SystemInt32_21
+        PUSH, __lcl___hi_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___hi_SystemInt32_6
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_68
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_68
+        JUMP_IF_FALSE, L7
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __lcl___hi_SystemInt32_6
+        COPY
+    L7:
+        PUSH, __lcl___lo_SystemInt32_6
+        PUSH, __lcl___l_SystemInt32_6
+        COPY
+        PUSH, __lcl___mid_SystemInt32_6
+        PUSH, __lcl___r_SystemInt32_6
+        COPY
+        PUSH, __lcl___lo_SystemInt32_6
+        PUSH, __lcl___k_SystemInt32_6
+        COPY
+    L8:
+        PUSH, __lcl___k_SystemInt32_6
+        PUSH, __lcl___hi_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_69
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_69
+        JUMP_IF_FALSE, L14
+        PUSH, __lcl___l_SystemInt32_6
+        PUSH, __lcl___mid_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_70
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_70
+        JUMP_IF_FALSE, L9
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __lcl___left_SystemBoolean_6
+        COPY
+        JUMP, L11
+    L9:
+        PUSH, __lcl___r_SystemInt32_6
+        PUSH, __lcl___hi_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_71
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_71
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemBoolean_1  ; True
+        PUSH, __lcl___left_SystemBoolean_6
+        COPY
+        JUMP, L11
+    L10:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        PUSH, __lcl___l_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        PUSH, __lcl___x_SystemInt32_6
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        PUSH, __lcl___r_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_42
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_42
+        PUSH, __lcl___y_SystemInt32_6
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___c_SystemInt32_6
+        COPY
+        PUSH, __lcl___k0_0_VRCSDK3DataDataList_0
+        PUSH, __lcl___x_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_43
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_43
+        PUSH, __lcl___a_SystemString_2
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___k0_0_VRCSDK3DataDataList_0
+        PUSH, __lcl___y_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_44
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_44
+        PUSH, __lcl___b_SystemString_2
+        EXTERN, "VRCSDK3DataDataToken.__get_String__SystemString"
+        PUSH, __lcl___a_SystemString_2
+        PUSH, __lcl___b_SystemString_2
+        PUSH, __lcl___c_SystemInt32_6
+        EXTERN, "SystemString.__Compare__SystemString_SystemString__SystemInt32"
+        PUSH, __lcl___c_SystemInt32_6
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___left_SystemBoolean_6
+        EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+    L11:
+        PUSH, __lcl___left_SystemBoolean_6
+        JUMP_IF_FALSE, L12
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        PUSH, __lcl___l_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_6
+        PUSH, __lcl___k_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___l_SystemInt32_6
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___l_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L13
+    L12:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        PUSH, __lcl___r_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___q0_VRCSDK3DataDataList_6
+        PUSH, __lcl___k_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__set_Item__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___r_SystemInt32_6
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___r_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L13:
+        PUSH, __lcl___k_SystemInt32_6
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___k_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L8
+    L14:
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_6
+        PUSH, __intnl_SystemInt32_21
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_6
+        PUSH, __intnl_SystemInt32_21
+        PUSH, __lcl___lo_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L5
+    L15:
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        PUSH, __lcl___t_VRCSDK3DataDataList_6
+        COPY
+        PUSH, __lcl___q0_VRCSDK3DataDataList_6
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        COPY
+        PUSH, __lcl___t_VRCSDK3DataDataList_6
+        PUSH, __lcl___q0_VRCSDK3DataDataList_6
+        COPY
+        PUSH, __lcl___w_SystemInt32_6
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __lcl___w_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L4
+    L16:
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i1_SystemInt32_6
+        COPY
+    L17:
+        PUSH, __lcl___i1_SystemInt32_6
+        PUSH, __lcl___m0_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_65
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_65
+        JUMP_IF_FALSE, L18
+        PUSH, __lcl___p0_VRCSDK3DataDataList_6
+        PUSH, __lcl___i1_SystemInt32_6
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_41
+        PUSH, __intnl_SystemInt32_21
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___b0_VRCSDK3DataDataList_0
+        PUSH, __intnl_SystemInt32_21
+        PUSH, __intnl_VRCSDK3DataDataToken_42
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_42
+        PUSH, __intnl_SystemObject_11
+        EXTERN, "VRCSDK3DataDataToken.__get_Reference__SystemObject"
+        PUSH, __intnl_SystemObject_11
+        PUSH, __lcl___v1_SystemObjectArray_2
+        COPY
+        PUSH, __lcl___v1_SystemObjectArray_2
+        PUSH, __lcl_e_SystemObjectArray_4
+        COPY
+        PUSH, __lcl_e_SystemObjectArray_4
+        PUSH, __const_SystemInt32_6  ; 2
+        PUSH, __intnl_SystemObject_12
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_12
+        PUSH, __lcl___r1_SystemString_2
+        COPY
+        PUSH, __lcl___r1_SystemString_2
+        PUSH, __lcl___v2_SystemString_1
+        COPY
+        PUSH, __lcl___v2_SystemString_1
+        PUSH, __intnl_VRCSDK3DataDataToken_43
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemString__VRCSDK3DataDataToken"
+        PUSH, __lcl___result_VRCSDK3DataDataList_6
+        PUSH, __intnl_VRCSDK3DataDataToken_43
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___i1_SystemInt32_6
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i1_SystemInt32_6
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L17
+    L18:
+        PUSH, __lcl___result_VRCSDK3DataDataList_6
+        PUSH, __12__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemBoolean_0 = False
+__const_SystemBoolean_1 = True
+__const_SystemInt32_0 = 0
+__const_SystemInt32_1 = 1
+__const_SystemInt32_10 = 7
+__const_SystemInt32_11 = 8
+__const_SystemInt32_12 = 9
+__const_SystemInt32_13 = -1
+__const_SystemInt32_2 = 10
+__const_SystemInt32_3 = 2
+__const_SystemInt32_4 = 5
+__const_SystemInt32_5 = 0
+__const_SystemInt32_6 = 2
+__const_SystemInt32_7 = 3
+__const_SystemInt32_8 = 4
+__const_SystemInt32_9 = 6
+__const_SystemString_0 = "a"
+__const_SystemString_1 = "b"
+__const_SystemString_2 = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}"
+__const_SystemString_3 = "[UdonSharpPlus] First : 要素がありません（C# では InvalidOperationException）"
+__const_SystemString_4 = "[UdonSharpPlus] ToDictionary : 同じキーがあります（C# では ArgumentException）"
+__const_SystemString_5 = "UdonSharpPlusTests.CollectionLinqOrder.Enemy"
+__const_SystemUInt32_0 = 4294967295
+__const_VRCSDK3DataDataToken_0 = a
+__const_VRCSDK3DataDataToken_1 = b
+__const_VRCSDK3DataDataToken_2 = 0
+__gintnl_SystemObjectArray_0 = [null, null, null, null, null, null, null, null, null, null]
+__gintnl_SystemUInt32_0 = -> Start():L0
+__gintnl_SystemUInt32_1 = -> Start():L1
+__gintnl_SystemUInt32_10 = -> Start():L12
+__gintnl_SystemUInt32_11 = -> Start():L13
+__gintnl_SystemUInt32_12 = -> Start():L14
+__gintnl_SystemUInt32_13 = -> __linq_ToArray_1(VRC.SDK3.Data.DataList):L22
+__gintnl_SystemUInt32_14 = -> __cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__ctor__string__int__UdonSharpPlusTests_CollectionLinqOrder_Rank(string, int, UdonSharpPlusTests.CollectionLinqOrder.Rank):L0
+__gintnl_SystemUInt32_15 = -> __cls_UdonSharpPlusTests_CollectionLinqOrder_Enemy__Names__System_Collections_Generic_List_UdonSharpPlusTests_CollectionLinqOrder_Enemy_(VRC.SDK3.Data.DataList):L0
+__gintnl_SystemUInt32_2 = -> Start():L2
+__gintnl_SystemUInt32_3 = -> Start():L5
+__gintnl_SystemUInt32_4 = -> Start():L6
+__gintnl_SystemUInt32_5 = -> Start():L7
+__gintnl_SystemUInt32_6 = -> Start():L8
+__gintnl_SystemUInt32_7 = -> Start():L9
+__gintnl_SystemUInt32_8 = -> Start():L10
+__gintnl_SystemUInt32_9 = -> Start():L11
+__refl_typeid = 1498274428708737860
+__refl_typename = "UdonSharpPlusTests.CollectionLinqOrder.User"
+### NetworkEvents
+
+## Diagnostics
+## Logs

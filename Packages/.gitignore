@@ -1,6 +1,6 @@
 /*/
 com.vrchat.*/
 !com.vrchat.core.*/
-!com.pandanakami.customudonsharp/
+!com.pandanakami.udonsharpplus/
 !vpm-manifest.json
 !manifest.json

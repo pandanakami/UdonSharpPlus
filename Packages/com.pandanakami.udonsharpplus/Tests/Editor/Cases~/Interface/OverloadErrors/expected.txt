@@ -1,0 +1,6 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/IShooter.cs(6,14): [UdonSharpPlus] 'IShooter.Fire' : インタフェースのメソッドのオーバーロードは未対応です（Udon 上の名前が元のメソッド名になるため、名前を変えてください）
+Error: Assets/UdonSharpPlusTests/Plain.cs(12,21): [UdonSharpPlus] 'Plain.Hit' : インタフェース（IHittable）の実装メソッドと同じ名前のメソッドは置けません（Udon 上の名前が元のメソッド名になるため。[NetworkCallable] と同じ制約です）
+Error: Assets/UdonSharpPlusTests/Target.cs(12,21): [UdonSharpPlus] 'Target.Hit' : インタフェース（IHittable）の実装メソッドと同じ名前のメソッドは置けません（Udon 上の名前が元のメソッド名になるため。[NetworkCallable] と同じ制約です）
+Error: Assets/UdonSharpPlusTests/Target.cs(8,21): [UdonSharpPlus] 'Target.Hit' : インタフェース（IHittableWithSource）の実装メソッドと同じ名前のメソッドは置けません（Udon 上の名前が元のメソッド名になるため。[NetworkCallable] と同じ制約です）
+## Logs

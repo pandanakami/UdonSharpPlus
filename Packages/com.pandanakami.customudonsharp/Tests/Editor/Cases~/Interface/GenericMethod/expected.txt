@@ -1,3 +1,0 @@
-## Diagnostics
-Error: Assets/CustomUdonSharpTests/Caller.cs(12,13): [CustomUdonSharp] 'Put' : ジェネリックメソッドは未対応です
-## Logs

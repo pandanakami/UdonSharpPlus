@@ -1,3 +1,0 @@
-## Diagnostics
-Error: Assets/CustomUdonSharpTests/User.cs(15,13): U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod
-## Logs

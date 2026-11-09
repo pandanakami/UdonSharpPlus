@@ -1,8 +1,8 @@
-# Custom UdonSharp
+# UdonSharp Plus
 
 English | [日本語](README.ja.md)
 
-An editor extension for VRChat world creators that lets you write more of C# in UdonSharp.
+An editor extension for VRChat world creators that lets you write more of C# in UdonSharp. It is an unofficial extension and is not affiliated with UdonSharp or VRChat.
 
 It patches the UdonSharp compiler with Harmony and rewrites your source into a form UdonSharp can handle, right before UdonSharp compiles it. The output is a regular Udon program, so nothing extra is needed on the VRChat client.
 
@@ -13,7 +13,7 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Feature | Examples |
 |---|---|
 | Interfaces | `class Enemy : UdonSharpBehaviour, IDamageable`, `((IDamageable)target).Damage(10)`, `is` / `as`, implementing `[NetworkCallable]` methods |
-| Plain classes | `new Bullet(pos)`, `b.Move(d)`, properties, static methods, arrays of classes |
+| Plain classes<br>(not UdonSharpBehaviour) | `new Bullet(pos)`, `b.Move(d)`, properties, static methods, arrays of classes |
 | Generics | `class Pool<T>`, `static T Max<T>(List<T> list) where T : IComparable<T>` |
 | List / Dictionary | `List<int>`, `Dictionary<string, Bullet>`, `foreach`, `TryGetValue` |
 | Lambdas and LINQ | `list.Find(b => b.damage > 0)`, `list.Where(...).Select(...).ToList()`, `OrderBy`, `Sum` |
@@ -52,15 +52,15 @@ public class Attacker : UdonSharpBehaviour
 }
 ```
 
-Anything a feature does not support is reported as a compile error. For exactly what you can write, see the [documentation](Packages/com.pandanakami.customudonsharp/Documentation~/README.md) (in Japanese).
+Anything a feature does not support is reported as a compile error. For exactly what you can write, see the [documentation](Packages/com.pandanakami.udonsharpplus/Documentation~/README.md) (in Japanese).
 
 ## How it works
 
-![Diagram: the U# compiler parses the U# source code, a rewrite step that CustomUdonSharp inserts with Harmony rewrites it, and the compiler then generates Udon Assembly, which the Udon VM on the VRChat client runs](Packages/com.pandanakami.customudonsharp/Documentation~/images/how-it-works.en.svg)
+![Diagram: the U# compiler parses the U# source code, a rewrite step that UdonSharp Plus inserts with Harmony rewrites it, and the compiler then generates Udon Assembly, which the Udon VM on the VRChat client runs](Packages/com.pandanakami.udonsharpplus/Documentation~/images/how-it-works.en.svg)
 
-The UdonSharp (U#) compiler parses your C# source and generates Udon Assembly. CustomUdonSharp uses Harmony to insert a "rewrite" step (orange in the diagram) in between. That step rewrites interfaces, plain classes, List and so on into code U# can handle (`object`, `object[]`, `DataList`, and so on).
+The UdonSharp (U#) compiler parses your C# source and generates Udon Assembly. UdonSharp Plus uses Harmony to insert a "rewrite" step (orange in the diagram) in between. That step rewrites interfaces, plain classes, List and so on into code U# can handle (`object`, `object[]`, `DataList`, and so on).
 
-The rewrite happens only in the editor. What the Udon VM runs on the VRChat client is a regular Udon program. For details, see [How it works](Packages/com.pandanakami.customudonsharp/Documentation~/how-it-works.md) (in Japanese).
+The rewrite happens only in the editor. What the Udon VM runs on the VRChat client is a regular Udon program. For details, see [How it works](Packages/com.pandanakami.udonsharpplus/Documentation~/how-it-works.md) (in Japanese).
 
 ## Requirements
 
@@ -72,18 +72,28 @@ The rewrite happens only in the editor. What the Udon VM runs on the VRChat clie
 1. In VCC (VRChat Creator Companion), open **Settings** → **Packages** → **Add Repository** and add this URL:
 
    ```
-   https://pandanakami.github.io/CustomUdonSharp/index.json
+   https://pandanakami.github.io/UdonSharpPlus/index.json
    ```
 
-2. In your world project, open **Manage Project** and add **Custom UdonSharp**.
+2. In your world project, open **Manage Project** and add **UdonSharp Plus**.
 
 That's all. There is nothing to configure.
 
 ## Good to know
 
-- All features are experimental. If something does not work as expected, the rewritten source in your project's `Library/CustomUdonSharp/` shows what your code was turned into.
-- On an unsupported VRChat SDK, the console shows an error starting with `[CustomUdonSharp]` saying the package was disabled because UdonSharp internals changed. Update Custom UdonSharp when you see it.
+- All features are experimental. If something does not work as expected, the rewritten source in your project's `Library/UdonSharpPlus/` shows what your code was turned into.
+- On an unsupported VRChat SDK, the console shows an error starting with `[UdonSharpPlus]` saying the package was disabled because UdonSharp internals changed. Update UdonSharp Plus when you see it.
 - The detailed documentation and the package's own error and warning messages are in Japanese for now.
+
+## Disclaimer
+
+The author accepts no liability whatsoever for any damage resulting from the use of UdonSharp Plus. Use it at your own risk.
+
+- UdonSharp Plus is experimental software provided as is, without warranty of any kind (MIT License). Damage includes, for example, broken projects or worlds, lost data, and publishing a world that does not work correctly.
+- UdonSharp Plus is an unofficial extension made by an individual. It is not affiliated with or endorsed by VRChat Inc. or the authors and team of UdonSharp. VRChat, UdonSharp, Unity, Harmony, and other names and trademarks belong to their respective owners.
+- UdonSharp Plus changes how the UdonSharp compiler works inside the Unity Editor. VRChat SDK updates, or other editor extensions that modify UdonSharp, may cause it to stop working or to produce incorrect programs. Back up your project before installing it, and always test your world before publishing.
+- It makes no changes to the VRChat client. The output is a regular Udon program.
+- Please report problems you run into while using UdonSharp Plus to this repository's Issues, not to VRChat or UdonSharp.
 
 ## License
 

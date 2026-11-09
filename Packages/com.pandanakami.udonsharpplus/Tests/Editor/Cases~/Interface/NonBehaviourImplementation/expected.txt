@@ -1,0 +1,3 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/IDamageable.cs(9,5): [UdonSharpPlus] 'Plain' : UdonSharpBehaviour と普通のクラス以外でのインタフェース実装は未対応です
+## Logs
