@@ -39,6 +39,7 @@ namespace UdonSharpPlus
                 DiagnosticLocationPatch.Apply(harmony);
                 DebugInfoPatch.Apply(harmony);
                 LoweredFieldSerializerPatch.Apply(harmony);
+                UpgradeGuardPatch.Apply(harmony);
                 Enabled = true;
             }
             catch (Exception e)
@@ -71,6 +72,9 @@ namespace UdonSharpPlus
         {
             try
             {
+                // UdonSharp の自動アップグレードが読み込むときは書き換えない（ソースに書き戻されるため。#84）
+                if (UpgradeGuardPatch.ConsumeSkip())
+                    return;
                 if (__result is Array bindings)
                     InterfaceLowering.Process(bindings, UdonSharpInternals.BindingTree, UdonSharpInternals.BindingSourceText, __instance);
             }

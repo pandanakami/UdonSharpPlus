@@ -45,6 +45,9 @@ namespace UdonSharpPlus
         // ---- LoweredFieldSerializerPatch ----------------------------------------------
         public static MethodInfo SerializerCreate;
 
+        // ---- UpgradeGuardPatch --------------------------------------------------------
+        public static MethodInfo UpgradeScripts;         // UdonSharpUpgrader.UpgradeScripts(UdonSharpProgramAsset[])
+
         /// <summary>見つからなかったものの名前（Resolve の後）</summary>
         public static IReadOnlyList<string> Missing => _missing;
 
@@ -107,6 +110,9 @@ namespace UdonSharpPlus
             FinalizeMethodEmit = M(AssemblyDebugInfo, "FinalizeMethodEmit");
 
             SerializerCreate = M(typeof(Serializer), "Create", typeof(TypeSerializationMetadata));
+
+            Type programAsset = T("UdonSharp.UdonSharpProgramAsset");
+            UpgradeScripts = M(T("UdonSharpEditor.UdonSharpUpgrader"), "UpgradeScripts", programAsset?.MakeArrayType());
 
             return _missing.Count == 0;
         }

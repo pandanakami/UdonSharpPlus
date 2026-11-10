@@ -22,5 +22,20 @@ namespace UdonSharpPlus.Tests
         {
             Assert.That(UdonSharpInterfacePatch.Enabled, Is.True, "パッチが当たっていません（コンソールの [UdonSharpPlus] のエラーを見てください）");
         }
+
+        /// <summary>
+        /// UdonSharp の自動アップグレードに入ると印が立ち、読み込む前に抜けても印が残らない（#84）。
+        /// 残ると、次のコンパイルで本パッケージの書き換えが行われなくなる
+        /// </summary>
+        [Test]
+        public void UpgradeGuardClearsWhenUpgradeReturnsEarly()
+        {
+            int before = UpgradeGuardPatch.EnteredCount;
+            var empty = System.Array.CreateInstance(UdonSharpInternals.UpgradeScripts.GetParameters()[0].ParameterType.GetElementType(), 0);
+            UdonSharpInternals.UpgradeScripts.Invoke(null, new object[] { empty });   // 空なら読み込む前に false で抜ける
+
+            Assert.That(UpgradeGuardPatch.EnteredCount, Is.EqualTo(before + 1), "UdonSharpUpgrader.UpgradeScripts にパッチが当たっていません");
+            Assert.That(UpgradeGuardPatch.ConsumeSkip(), Is.False, "アップグレードを抜けたあとも、書き換えを止める印が残っています");
+        }
     }
 }
