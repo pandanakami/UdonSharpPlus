@@ -21,7 +21,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 対応している書き方：
 
 - 要素の型：数値型、`bool`、`string`、enum、`Vector3` などの値型、UnityEngine.Object、普通のクラス、インタフェース、入れ子の List / Dictionary
-- 作成：`new List<T>()`、コレクション初期化子（`{ 1, 2 }`、`{ { "a", 1 } }`、`{ ["a"] = 1 }`）、List・配列からのコピー
+- 作成：`new List<T>()`、コレクション初期化子（`{ 1, 2 }`、`{ { "a", 1 } }`、`{ ["a"] = 1 }`）、List・配列からのコピー、Dictionary からのコピー（`new Dictionary<K, V>(other)`）。容量の指定（`new List<int>(10)`）は書けますが、無視します。比較子の指定（`StringComparer.Ordinal` など）は未対応です
 - List：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Insert`、`Remove`、`RemoveAt`、`RemoveRange`、`Contains`、`IndexOf`、`LastIndexOf`、`Clear`、`Sort()`、`Reverse()`、`AddRange`、`InsertRange`、`GetRange`、`ToArray`
 - Dictionary：添字（読み書き、`+=`、`++`）、`Count`、`Add`、`Remove`、`ContainsKey`、`ContainsValue`、`TryGetValue`、`Clear`
 - `foreach`：List、Dictionary（`kv.Key`／`kv.Value`）、`dict.Keys`、`dict.Values`。`kv` は変数に入れる、メソッドに渡す、ラムダの中で使う、などもできます（下の「KeyValuePair」）

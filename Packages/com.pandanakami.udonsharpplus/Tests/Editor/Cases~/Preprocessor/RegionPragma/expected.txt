@@ -1,0 +1,249 @@
+## Program: UdonSharpPlusTests.PreprocessorRegionPragma.User
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    _values: %VRCSDK3DataDataList, null
+    _unused: %SystemInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __gintnl_SystemUInt32_0: %SystemUInt32, null
+    __0__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_1: %SystemUInt32, null
+    __1__intnlparam: %SystemInt32, null
+    __2__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_2: %SystemUInt32, null
+    __0___0___linq_Count_0__ret: %SystemInt32, null
+    __0___src__param: %VRCSDK3DataDataList, null
+    __const_SystemInt32_0: %SystemInt32, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
+    __0___0___linq_Count_0_body0__ret: %SystemBoolean, null
+    __0_x__param: %SystemInt32, null
+    __const_SystemInt32_1: %SystemInt32, null
+    __const_SystemInt32_2: %SystemInt32, null
+    __const_SystemString_0: %SystemString, null
+    __const_SystemInt32_3: %SystemInt32, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __3__intnlparam: %SystemObjectArray, null
+    __lcl_u_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __intnl_VRCSDK3DataDataToken_0: %VRCSDK3DataDataToken, null
+    __lcl_notUsed_SystemInt32_0: %SystemInt32, null
+    __lcl_n_SystemInt32_0: %SystemInt32, null
+    __lcl___count_SystemInt32_0: %SystemInt32, null
+    __lcl___n0_SystemInt32_0: %SystemInt32, null
+    __lcl___i0_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __lcl___v0_SystemInt32_0: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_1: %VRCSDK3DataDataToken, null
+    __lcl___r0_SystemBoolean_0: %SystemBoolean, null
+    __lcl_x_SystemInt32_0: %SystemInt32, null
+    __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemObject_0: %SystemObject, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.PreprocessorRegionPragma.User.Start()
+#
+        PUSH, __gintnl_SystemUInt32_0  ; -> L0
+# Calling UdonSharpPlusTests.PreprocessorRegionPragma.User.__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__ctor()
+        JUMP, <__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__ctor()>
+    L0:
+        PUSH, __0__intnlparam
+        PUSH, __lcl_u_SystemObjectArray_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_1  ; -> L1
+        PUSH, __lcl_u_SystemObjectArray_0
+        PUSH, __2__intnlparam
+        COPY
+# Cow dirty
+        PUSH, _values
+        PUSH, __intnl_VRCSDK3DataDataList_0
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorRegionPragma.User.__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__Get(object[])
+        JUMP, <__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__Get(object[])>
+    L1:
+        PUSH, __1__intnlparam
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_2  ; -> L2
+        PUSH, _values
+        PUSH, __0___src__param
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorRegionPragma.User.__linq_Count_0(VRC.SDK3.Data.DataList)
+        JUMP, <__linq_Count_0(VRC.SDK3.Data.DataList)>
+    L2:
+        PUSH, __0___0___linq_Count_0__ret
+        PUSH, __lcl_n_SystemInt32_0
+        COPY
+        PUSH, __lcl_n_SystemInt32_0
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.PreprocessorRegionPragma.User.__linq_Count_0(VRC.SDK3.Data.DataList)
+#
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___count_SystemInt32_0
+        COPY
+        PUSH, __0___src__param
+        PUSH, __lcl___n0_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __lcl___i0_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __lcl___n0_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L5
+        PUSH, __0___src__param
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        PUSH, __lcl___v0_SystemInt32_0
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __lcl___v0_SystemInt32_0
+        PUSH, __lcl_x_SystemInt32_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_3  ; -> L1
+        PUSH, __lcl_x_SystemInt32_0
+        PUSH, __0_x__param
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorRegionPragma.User.__linq_Count_0_body0(int)
+        JUMP, <__linq_Count_0_body0(int)>
+    L1:
+        PUSH, __0___0___linq_Count_0_body0__ret
+        PUSH, __lcl___r0_SystemBoolean_0
+        COPY
+        PUSH, __lcl___r0_SystemBoolean_0
+        JUMP_IF_FALSE, L2
+        JUMP, L3
+    L2:
+        JUMP, L4
+    L3:
+        PUSH, __lcl___count_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___count_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L4:
+        PUSH, __lcl___i0_SystemInt32_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __lcl___i0_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L0
+    L5:
+        PUSH, __lcl___count_SystemInt32_0
+        PUSH, __0___0___linq_Count_0__ret
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.PreprocessorRegionPragma.User.__linq_Count_0_body0(int)
+#
+        PUSH, __0_x__param
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __0___0___linq_Count_0_body0__ret
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorRegionPragma.User.__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__ctor()
+#
+        PUSH, __const_SystemInt32_2  ; 3
+        PUSH, __lcl___this_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __const_SystemString_0  ; "UdonSharpPlusTests.PreprocessorRegionPragma.Unit"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 1
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_4  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __3__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorRegionPragma.User.__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__init(object[])
+        JUMP, <__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorRegionPragma.User.__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__Get(object[])
+#
+        PUSH, __2__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_0
+        PUSH, __1__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorRegionPragma.User.__cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__init(object[])
+#
+        PUSH, __3__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_2  ; 3
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemInt32_0 = 0
+__const_SystemInt32_1 = 1
+__const_SystemInt32_2 = 3
+__const_SystemInt32_3 = 2
+__const_SystemString_0 = "UdonSharpPlusTests.PreprocessorRegionPragma.Unit"
+__const_SystemUInt32_0 = 4294967295
+__gintnl_SystemUInt32_0 = -> Start():L0
+__gintnl_SystemUInt32_1 = -> Start():L1
+__gintnl_SystemUInt32_2 = -> Start():L2
+__gintnl_SystemUInt32_3 = -> __linq_Count_0(VRC.SDK3.Data.DataList):L1
+__gintnl_SystemUInt32_4 = -> __cls_UdonSharpPlusTests_PreprocessorRegionPragma_Unit__ctor():L0
+__refl_typeid = 1333432565560070690
+__refl_typename = "UdonSharpPlusTests.PreprocessorRegionPragma.User"
+### NetworkEvents
+
+## Diagnostics
+## Logs

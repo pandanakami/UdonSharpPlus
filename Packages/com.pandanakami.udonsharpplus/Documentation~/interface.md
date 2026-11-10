@@ -27,6 +27,7 @@ if (target is IDamageable)
 - `is`、`as`、キャスト
 - `[NetworkCallable]` の実装メソッド（ローカル呼び出しと、`SendCustomNetworkEvent` でのネットワーク越しの呼び出しの両方）
 - [普通のクラス](class.md)による実装。UdonSharpBehaviour による実装と混ぜて、同じインタフェース型の変数や配列に入れられます
+- UdonSharpBehaviour の継承との組み合わせ。abstract な基底クラスでインタフェースを実装し、派生クラスのインスタンスをインタフェース経由で呼べます。基底の virtual メソッドを派生クラスで override すると、インタフェース経由の呼び出しも override の方に届きます。ただし、UdonSharp の制限で `[NetworkCallable]` のメソッドは virtual にできません（`Network callable method 'Receive' cannot be virtual.`）
 
 インタフェース型の変数は、`object` として扱われます（中身は UdonSharpBehaviour か、普通のクラスのインスタンス）。そのため `x != null` は、普通の C# のインタフェースと同じく参照の比較になり、Unity の比較（破棄済みのオブジェクトを null とみなす）にはなりません。
 

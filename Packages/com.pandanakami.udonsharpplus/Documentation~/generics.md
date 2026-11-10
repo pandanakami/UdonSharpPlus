@@ -35,6 +35,7 @@ int max = Util.Max(scores);   // 型引数の推論も使えます
 
 - 別の UdonSharpBehaviour のジェネリックメソッドを呼ぶこと（`other.Echo(1)`）。static クラスに移すか、型を決めたメソッドを用意してください
 - ジェネリックな UdonSharpBehaviour、ジェネリックなインタフェース
+- ジェネリッククラスの `partial`（宣言を複数に分けること）。ジェネリックでないクラスの `partial` は使えます
 - 型が際限なく増える再帰（`Nest<T>` の中で `Nest<List<T>>` を呼ぶなど）
 - `EqualityComparer<T>.Default`・`Comparer<T>.Default`、型引数を省いた `typeof(Pool<>)`
 - そのほか、普通のクラスで未対応の書き方（ジェネリッククラスの static フィールド、継承など）

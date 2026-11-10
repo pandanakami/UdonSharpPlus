@@ -9,6 +9,7 @@ namespace FeatureTests.Collection
     //   - 要素がないときの First／Last／Min／Max／Average、ToDictionary の同じキー、存在しないキーの読み出し：実行時例外で止まる
     //   - FindIndex の範囲外（開始位置が要素数より大きい）：止まらず -1（C# では ArgumentOutOfRangeException。ドキュメントの「見つからない結果」）
     //   - foreach の途中の Add：止まらず、回る回数は最初の要素数のまま。Remove / Clear：範囲外を読んで止まる
+    //   - KeyValuePair の Equals：同じ要素から作った 2 つでも False（参照の比較。#95）
     // エラーのログ（First などが出すもの）は、コンソールで目で確かめる
     public class RuntimeNoteRunner : UdonSharpBehaviour
     {
@@ -26,6 +27,8 @@ namespace FeatureTests.Collection
                 return "-1";
             if (id == 8)
                 return "3,4";
+            if (id == 11)
+                return "False,True,True";
             return null;
         }
 

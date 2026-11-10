@@ -167,7 +167,16 @@ namespace UdonSharpPlus.Tests
                 .Select(p => (package.assetPath + "/" + p.Substring(package.resolvedPath.Length + 1).Replace('\\', '/'), File.ReadAllText(p)));
         }
 
-        public static CompileResult Compile(params TestSource[] sources)
+        /// <summary>
+        /// エディタでのコンパイル（プレイモード・ClientSim）と同じく定義するシンボル。
+        /// 本物の U# は、Unity のアセンブリのシンボルから UdonSharpUtils.GetProjectDefines で作る（アップロード用のビルドでは UNITY_EDITOR で始まるものを外し、
+        /// どちらでも COMPILER_UDONSHARP を足す）。テストは環境で結果が変わらないよう、#if でよく使うものだけにする（#91）
+        /// </summary>
+        public static readonly string[] EditorDefines = { "UNITY_EDITOR", "COMPILER_UDONSHARP" };
+
+        public static CompileResult Compile(params TestSource[] sources) => Compile(EditorDefines, sources);
+
+        public static CompileResult Compile(string[] defines, params TestSource[] sources)
         {
             lock (CompileLock)
             {
@@ -175,7 +184,7 @@ namespace UdonSharpPlus.Tests
                 InterfaceLowering.DumpEnabled = false;
                 try
                 {
-                    return CompileInternal(sources);
+                    return CompileInternal(defines, sources);
                 }
                 finally
                 {
@@ -184,7 +193,7 @@ namespace UdonSharpPlus.Tests
             }
         }
 
-        private static CompileResult CompileInternal(TestSource[] sources)
+        private static CompileResult CompileInternal(string[] defines, TestSource[] sources)
         {
             var result = new CompileResult();
 
@@ -217,6 +226,7 @@ namespace UdonSharpPlus.Tests
             // LoadSyntaxTreesAndCreateModules と同じ解析オプション
             CSharpParseOptions parseOptions = CSharpParseOptions.Default
                 .WithDocumentationMode(DocumentationMode.None)
+                .WithPreprocessorSymbols(defines)
                 .WithLanguageVersion(LanguageVersion.CSharp9);
 
             // テストのソースのあとに、U# 自身のライブラリのソースを足す（本物の U# と同じ。#78）

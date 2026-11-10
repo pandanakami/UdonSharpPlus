@@ -1,0 +1,4 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(10,5): [UdonSharpPlus] ジェネリックなクラス・メソッドの中の、改行を含む補間文字列は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(28,45): [UdonSharpPlus] ラムダの中の、改行を含む補間文字列は未対応です
+## Logs

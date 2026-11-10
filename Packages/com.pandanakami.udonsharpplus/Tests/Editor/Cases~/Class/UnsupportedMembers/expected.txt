@@ -1,0 +1,7 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(10,16): [UdonSharpPlus] 'WithStaticConstructor' : static コンストラクタは未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(16,10): [UdonSharpPlus] 'WithFinalizer' : ファイナライザーは未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(22,27): [UdonSharpPlus] 'WithStaticAutoProperty.Count' : static の自動実装プロパティは非対応です（static フィールドと同じ）
+Error: Assets/UdonSharpPlusTests/User.cs(31,18): [UdonSharpPlus] 'DerivedItem' : 普通のクラスの継承は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(33,29): [UdonSharpPlus] 'DerivedItem.Value' : override は未対応です
+## Logs

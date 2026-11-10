@@ -1,0 +1,11 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(18,24): [UdonSharpPlus] 'new List<string>(_dict.Keys)' : List をこの形で作るのは未対応です（List・配列からのコピーだけ使えます）
+Error: Assets/UdonSharpPlusTests/User.cs(18,41): [UdonSharpPlus] 'Dictionary.Keys' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）
+Error: Assets/UdonSharpPlusTests/User.cs(20,27): [UdonSharpPlus] 'new Dictionary<string, int>(StringComparer.Ordinal)' : List / Dictionary をこの形で作るのは未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(22,55): [UdonSharpPlus] この形の Dictionary の初期化子は未対応です（{ キー, 値 } か [キー] = 値 を使ってください）
+Error: Assets/UdonSharpPlusTests/User.cs(24,28): [UdonSharpPlus] 'Dictionary.Values' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）
+Error: Assets/UdonSharpPlusTests/User.cs(24,28): [UdonSharpPlus] List / 配列以外からの追加は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(26,23): [UdonSharpPlus] 'GetValueOrDefault' : List / Dictionary に対する拡張メソッド（LINQ など）は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(28,23): [UdonSharpPlus] 'Any' : LINQ は List・配列・Dictionary にだけ使えます（string は未対応です）
+Error: Assets/UdonSharpPlusTests/User.cs(30,23): [UdonSharpPlus] この形の LINQ の呼び出しは未対応です
+## Logs

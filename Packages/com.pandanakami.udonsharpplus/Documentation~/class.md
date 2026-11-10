@@ -39,7 +39,7 @@ Bullet[] pool = new Bullet[8];
 
 未対応の書き方（そのクラスを UdonSharpBehaviour から使うとコンパイルエラーになります）：
 
-- static フィールド（UdonSharp と同じく非対応）
+- static フィールド・static の自動実装プロパティ（UdonSharp と同じく非対応）、static コンストラクタ、ファイナライザー（`~Bullet()`）
 - 継承、abstract クラス、入れ子のクラス。ScriptableObject・MonoBehaviour・Exception などを継承したクラスも、UdonSharpBehaviour から使うと「`'Settings' : ScriptableObject を継承したクラスは、UdonSharpBehaviour の中で使えません`」のエラーになります（UdonSharp も対応しておらず、そのままだと内部の例外になるため）
 - ユーザー定義の構造体（struct）。UdonSharp も対応していません。UdonSharpBehaviour から使うと「`'Point' : ユーザー定義の構造体は未対応です`」のエラーになります（UdonSharp のままだと内部の例外になり、原因が分かりにくいため）
 - 演算子のオーバーロード、インデクサー、イベント、`ToString` などの override

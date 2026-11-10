@@ -32,6 +32,13 @@ namespace UdonSharpPlus.Tests
         /// </summary>
         private const string DiagnosticsOnlyFileName = "diagnostics-only";
 
+        /// <summary>
+        /// ケースのフォルダにこの名前のファイルがあると、1 行に 1 つ書いたシンボルを定義して解析する（#91）。
+        /// ないときは UdonSharpTestCompiler.EditorDefines（エディタでのコンパイルと同じ）。
+        /// アップロード用のビルドを確かめるときは、UNITY_EDITOR を書かずに COMPILER_UDONSHARP だけにする
+        /// </summary>
+        private const string DefinesFileName = "defines";
+
         public static string CasesRoot
         {
             get
@@ -74,7 +81,11 @@ namespace UdonSharpPlus.Tests
                 .ToArray();
 
             bool diagnosticsOnly = File.Exists(Path.Combine(dir, DiagnosticsOnlyFileName));
-            return Render(UdonSharpTestCompiler.Compile(sources), diagnosticsOnly);
+            string definesPath = Path.Combine(dir, DefinesFileName);
+            string[] defines = File.Exists(definesPath)
+                ? File.ReadAllLines(definesPath).Select(l => l.Trim()).Where(l => l.Length > 0).ToArray()
+                : UdonSharpTestCompiler.EditorDefines;
+            return Render(UdonSharpTestCompiler.Compile(defines, sources), diagnosticsOnly);
         }
 
         public static void Verify(string caseName)

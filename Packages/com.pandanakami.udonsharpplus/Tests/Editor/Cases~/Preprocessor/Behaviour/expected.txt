@@ -1,0 +1,340 @@
+## Program: UdonSharpPlusTests.PreprocessorBehaviour.User
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    _values: %VRCSDK3DataDataList, null
+    _editorOnly: %SystemInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __gintnl_SystemUInt32_0: %SystemUInt32, null
+    __0__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_1: %SystemUInt32, null
+    __1__intnlparam: %SystemInt32, null
+    __2__intnlparam: %SystemObject, null
+    __const_SystemInt32_0: %SystemInt32, null
+    __const_SystemInt32_1: %SystemInt32, null
+    __const_SystemString_0: %SystemString, null
+    __const_SystemInt32_2: %SystemInt32, null
+    __const_SystemInt32_3: %SystemInt32, null
+    __gintnl_SystemUInt32_2: %SystemUInt32, null
+    __3__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
+    __4__intnlparam: %SystemBoolean, null
+    __5__intnlparam: %SystemObject, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __6__intnlparam: %SystemInt32, null
+    __7__intnlparam: %SystemObjectArray, null
+    __const_SystemString_1: %SystemString, null
+    __const_SystemString_2: %SystemString, null
+    __const_SystemObject_0: %SystemObject, null
+    __const_SystemType_0: %SystemType, null
+    __const_SystemBoolean_0: %SystemBoolean, null
+    __const_SystemType_1: %SystemType, null
+    __lcl_u_SystemObject_0: %SystemObject, null
+    __intnl_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
+    __intnl_SystemInt32_0: %SystemInt32, null
+    __intnl_VRCSDK3DataDataToken_0: %VRCSDK3DataDataToken, null
+    __intnl_VRCSDK3DataDataToken_1: %VRCSDK3DataDataToken, null
+    __intnl_SystemInt32_1: %SystemInt32, null
+    __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_0: %SystemObject, null
+    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __intnl_SystemType_0: %SystemType, null
+    __intnl_SystemBoolean_1: %SystemBoolean, null
+    __lcl___a_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemBoolean_2: %SystemBoolean, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __intnl_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemObject_1: %SystemObject, null
+    __intnl_SystemObject_2: %SystemObject, null
+    __intnl_SystemType_1: %SystemType, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
+    __intnl_SystemObject_3: %SystemObject, null
+    __intnl_SystemString_0: %SystemString, null
+    __intnl_SystemObject_4: %SystemObject, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.PreprocessorBehaviour.User.Start()
+#
+        PUSH, __gintnl_SystemUInt32_0  ; -> L0
+# Calling UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__ctor()
+        JUMP, <__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__ctor()>
+    L0:
+        PUSH, __0__intnlparam
+        PUSH, __lcl_u_SystemObject_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_1  ; -> L1
+        PUSH, __lcl_u_SystemObject_0
+        PUSH, __2__intnlparam
+        COPY
+# Cow dirty
+        PUSH, _values
+        PUSH, __intnl_VRCSDK3DataDataList_0
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorBehaviour.User.__if_Hp__call(object)
+        JUMP, <__if_Hp__call(object)>
+    L1:
+        PUSH, __1__intnlparam
+        PUSH, _editorOnly
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataToken.__ctor__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataList_0
+        PUSH, __intnl_VRCSDK3DataDataToken_0
+        EXTERN, "VRCSDK3DataDataList.__Add__VRCSDK3DataDataToken__SystemVoid"
+        PUSH, _values
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        EXTERN, "VRCSDK3DataDataList.__get_Item__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __intnl_VRCSDK3DataDataToken_1
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__ctor()
+#
+        PUSH, __const_SystemInt32_1  ; 3
+        PUSH, __lcl___this_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __const_SystemString_0  ; "UdonSharpPlusTests.PreprocessorBehaviour.Unit"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_0  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_2  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __3__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__init(object[])
+        JUMP, <__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorBehaviour.User.__if_Hp__call(object)
+#
+        PUSH, __gintnl_SystemUInt32_3  ; -> L0
+        PUSH, __2__intnlparam
+        PUSH, __5__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__is(object)
+        JUMP, <__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__is(object)>
+    L0:
+        PUSH, __4__intnlparam
+        JUMP_IF_FALSE, L2
+        PUSH, __gintnl_SystemUInt32_4  ; -> L1
+        PUSH, __2__intnlparam
+        PUSH, __intnl_SystemObjectArray_0
+        COPY
+        PUSH, __intnl_SystemObjectArray_0
+        PUSH, __7__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__Hp(object[])
+        JUMP, <__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__Hp(object[])>
+    L1:
+        PUSH, __6__intnlparam
+        PUSH, __1__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L2:
+        PUSH, __2__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_1  ; "Hp"
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_2  ; "Hp__ret"
+        PUSH, __intnl_SystemObject_0
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
+        PUSH, __intnl_SystemObject_0
+        PUSH, __1__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__init(object[])
+#
+        PUSH, __3__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __const_SystemInt32_1  ; 3
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__is(object)
+#
+        PUSH, __5__intnlparam
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L0
+        JUMP, L1
+    L0:
+        PUSH, __5__intnlparam
+        PUSH, __intnl_SystemType_0
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_0
+        PUSH, __const_SystemType_0  ; System.Object[]
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_1
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L1:
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L2
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __4__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L2:
+        PUSH, __5__intnlparam
+        PUSH, __lcl___a_SystemObjectArray_0
+        COPY
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_2
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_3
+        JUMP_IF_FALSE, L3
+        JUMP, L4
+    L3:
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemObject_1
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_1
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemObject.__op_Equality__SystemObject_SystemObject__SystemBoolean"
+    L4:
+        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_2
+        COPY
+        PUSH, __intnl_SystemBoolean_2
+        JUMP_IF_FALSE, L5
+        JUMP, L6
+    L5:
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemObject_2
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemType_1
+        EXTERN, "SystemObject.__GetType__SystemType"
+        PUSH, __intnl_SystemType_1
+        PUSH, __const_SystemType_1  ; System.String
+        PUSH, __intnl_SystemBoolean_4
+        EXTERN, "SystemType.__Equals__SystemType__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_2
+        EXTERN, "SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean"
+    L6:
+        PUSH, __intnl_SystemBoolean_2
+        JUMP_IF_FALSE, L7
+        PUSH, __const_SystemBoolean_0  ; False
+        PUSH, __4__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L7:
+        PUSH, __lcl___a_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __intnl_SystemString_0
+        COPY
+        PUSH, __intnl_SystemString_0
+        PUSH, __const_SystemString_0  ; "UdonSharpPlusTests.PreprocessorBehaviour.Unit"
+        PUSH, __4__intnlparam
+        EXTERN, "SystemString.__op_Equality__SystemString_SystemString__SystemBoolean"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.PreprocessorBehaviour.User.__cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__Hp(object[])
+#
+        PUSH, __7__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_4
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_4
+        PUSH, __6__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemBoolean_0 = False
+__const_SystemInt32_0 = 0
+__const_SystemInt32_1 = 3
+__const_SystemInt32_2 = 1
+__const_SystemInt32_3 = 2
+__const_SystemString_0 = "UdonSharpPlusTests.PreprocessorBehaviour.Unit"
+__const_SystemString_1 = "Hp"
+__const_SystemString_2 = "Hp__ret"
+__const_SystemType_0 = System.Object[]
+__const_SystemType_1 = System.String
+__const_SystemUInt32_0 = 4294967295
+__gintnl_SystemUInt32_0 = -> Start():L0
+__gintnl_SystemUInt32_1 = -> Start():L1
+__gintnl_SystemUInt32_2 = -> __cls_UdonSharpPlusTests_PreprocessorBehaviour_Unit__ctor():L0
+__gintnl_SystemUInt32_3 = -> __if_Hp__call(object):L0
+__gintnl_SystemUInt32_4 = -> __if_Hp__call(object):L1
+__refl_typeid = -7658003855927397084
+__refl_typename = "UdonSharpPlusTests.PreprocessorBehaviour.User"
+### NetworkEvents
+
+## Diagnostics
+## Logs

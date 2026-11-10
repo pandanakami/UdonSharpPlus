@@ -125,5 +125,60 @@ namespace UdonSharpPlusTests.DebugInfoLambda
             Assert.That(forEach.Positions.Select(p => p.Line + 1), Does.Contain(18), forEach.ToString());
             Assert.That(forEach.Positions.Select(p => p.Line + 1), Does.Contain(19), forEach.ToString());
         }
+
+        // ジェネリッククラスのコピー（#95）：Box<int> は Box__int になり、さらに普通のクラスとして使う側にコピーされる。
+        // 2 段の書き換えのあとも、元のジェネリッククラスの行を指す
+        private const string Box = @"
+namespace UdonSharpPlusTests.DebugInfoGeneric
+{
+    public class Box<T>
+    {
+        public T[] values = new T[2];
+
+        public T Get(int i)
+        {
+            T v = values[i];
+            return v;
+        }
+    }
+}";
+
+        private const string GenericUser = @"
+using UdonSharp;
+using UnityEngine;
+
+namespace UdonSharpPlusTests.DebugInfoGeneric
+{
+    public class User : UdonSharpBehaviour
+    {
+        void Start()
+        {
+            var b = new Box<int>();
+            Debug.Log(b.Get(5));
+        }
+    }
+}";
+
+        [Test]
+        public void GenericCopiesPointToGenericClass()
+        {
+            var result = UdonSharpTestCompiler.Compile(new TestSource("Box.cs", Box), new TestSource("User.cs", GenericUser));
+            Assert.That(result.Diagnostics, Is.Empty);
+            ProgramResult program = result["User"];
+            string dump = string.Join(" / ", program.DebugMethods);
+            var copies = program.DebugMethods.Where(m => m.FilePath.EndsWith("Box.cs")).ToList();
+
+            // Get のコピー：元のメソッドの行（8〜12 行目）だけを指し、2 つの文（10・11 行目）を両方含む
+            DebugMethodInfo get = copies.FirstOrDefault(m => m.MethodName.Contains("Get"));
+            Assert.That(get, Is.Not.Null, dump);
+            Assert.That(get.Positions.Select(p => p.Line + 1), Is.All.InRange(8, 12), get.ToString());
+            Assert.That(get.Positions.Select(p => p.Line + 1), Does.Contain(10), get.ToString());
+            Assert.That(get.Positions.Select(p => p.Line + 1), Does.Contain(11), get.ToString());
+
+            // フィールドの初期化子（6 行目）
+            DebugMethodInfo init = copies.FirstOrDefault(m => m.MethodName.Contains("init"));
+            Assert.That(init, Is.Not.Null, dump);
+            Assert.That(init.Positions.Select(p => p.Line + 1), Is.All.EqualTo(6), init.ToString());
+        }
     }
 }

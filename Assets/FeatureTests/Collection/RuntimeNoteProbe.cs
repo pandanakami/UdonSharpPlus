@@ -10,7 +10,7 @@ namespace FeatureTests.Collection
     // started は実行の前、finished は実行の後に立てる。RuntimeNoteRunner がそれを読んで判定する
     public class RuntimeNoteProbe : UdonSharpBehaviour
     {
-        public const int Count = 11;
+        public const int Count = 12;
 
         public int caseId;
         public bool started;
@@ -32,6 +32,7 @@ namespace FeatureTests.Collection
                 case 8: return "foreach + Add";
                 case 9: return "foreach + Remove";
                 case 10: return "foreach + Clear";
+                case 11: return "KeyValuePair Equals";
             }
             return "?";
         }
@@ -77,6 +78,16 @@ namespace FeatureTests.Collection
                     foreach (int x in list)
                         list.Clear();
                     observed = "" + list.Count;
+                    break;
+                case 11:
+                    // #95: kv そのものを使うたびに新しい object[] を作るので、同じ要素でも Equals は参照の比較になる（C# では True,True,True）
+                    var scores = new Dictionary<string, int> { { "a", 1 } };
+                    foreach (var kv in scores)
+                    {
+                        KeyValuePair<string, int> first = kv;
+                        KeyValuePair<string, int> second = kv;
+                        observed = first.Equals(second) + "," + first.Equals(first) + "," + (first.Key == second.Key && first.Value == second.Value);
+                    }
                     break;
             }
             finished = true;

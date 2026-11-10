@@ -1,0 +1,4 @@
+## Program: UdonSharpPlusTests.InheritanceNetworkCallableVirtual.Receiver
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/ReceiverBase.cs(9,9): Network callable method 'Receive' cannot be virtual.
+## Logs
