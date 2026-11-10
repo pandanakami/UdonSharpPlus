@@ -1,0 +1,3 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Types.cs(11,1): Method is not exposed to Udon: 'global::System.IO.File.Exists(p)'（クラス Store<int> のメソッド Check の中）
+## Logs

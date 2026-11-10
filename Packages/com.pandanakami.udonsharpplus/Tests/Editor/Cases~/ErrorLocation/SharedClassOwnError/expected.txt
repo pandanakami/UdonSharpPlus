@@ -1,0 +1,4 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Types.cs(10,41): [UdonSharpPlus] 普通のクラスへの ?. は未対応です
+Error: Assets/UdonSharpPlusTests/Types.cs(17,30): [UdonSharpPlus] 普通のクラスへの ?. は未対応です（クラス Box<int> のメソッド Value の中）
+## Logs
