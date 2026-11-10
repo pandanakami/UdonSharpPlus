@@ -551,6 +551,22 @@ namespace UdonSharpPlus
                     return f.Incrementors.Contains(node);
                 case LambdaExpressionSyntax lambda when lambda.Body == node:
                     return model.GetTypeInfo(lambda).ConvertedType is INamedTypeSymbol d && d.DelegateInvokeMethod != null && d.DelegateInvokeMethod.ReturnsVoid;
+                // 式形式のメンバーで、値を返さないもの（コンストラクタ、set、void のメソッド・ローカル関数）の本体（#79）
+                case ArrowExpressionClauseSyntax arrow:
+                    switch (arrow.Parent)
+                    {
+                        case ConstructorDeclarationSyntax _:
+                        case DestructorDeclarationSyntax _:
+                            return true;
+                        case AccessorDeclarationSyntax accessor:
+                            return !accessor.IsKind(SyntaxKind.GetAccessorDeclaration);
+                        case MethodDeclarationSyntax method:
+                            return model.GetDeclaredSymbol(method) is IMethodSymbol m && m.ReturnsVoid;
+                        case LocalFunctionStatementSyntax local:
+                            return model.GetDeclaredSymbol(local) is IMethodSymbol lm && lm.ReturnsVoid;
+                        default:
+                            return false;
+                    }
                 default:
                     return false;
             }

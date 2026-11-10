@@ -1,0 +1,244 @@
+## Program: UdonSharpPlusTests.ExpressionBodied.User
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __gintnl_SystemUInt32_0: %SystemUInt32, null
+    __0__intnlparam: %SystemObjectArray, null
+    __1__intnlparam: %SystemInt32, null
+    __const_SystemInt32_0: %SystemInt32, null
+    __gintnl_SystemUInt32_1: %SystemUInt32, null
+    __2__intnlparam: %SystemObjectArray, null
+    __3__intnlparam: %SystemInt32, null
+    __const_SystemInt32_1: %SystemInt32, null
+    __gintnl_SystemUInt32_2: %SystemUInt32, null
+    __4__intnlparam: %SystemObjectArray, null
+    __const_SystemInt32_2: %SystemInt32, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
+    __5__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __6__intnlparam: %SystemInt32, null
+    __7__intnlparam: %SystemObjectArray, null
+    __const_SystemInt32_3: %SystemInt32, null
+    __const_SystemString_0: %SystemString, null
+    __const_SystemInt32_4: %SystemInt32, null
+    __gintnl_SystemUInt32_5: %SystemUInt32, null
+    __8__intnlparam: %SystemObjectArray, null
+    __9__intnlparam: %SystemInt32, null
+    __lcl_b_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemObject_0: %SystemObject, null
+    __intnl_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemObject_1: %SystemObject, null
+    __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemInt32_2: %SystemInt32, null
+    __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemObject_2: %SystemObject, null
+    __intnl_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemObject_3: %SystemObject, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.ExpressionBodied.User.Start()
+#
+        PUSH, __gintnl_SystemUInt32_0  ; -> L0
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __1__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__ctor__int(int)
+        JUMP, <__cls_UdonSharpPlusTests_ExpressionBodied_Box__ctor__int(int)>
+    L0:
+        PUSH, __0__intnlparam
+        PUSH, __lcl_b_SystemObjectArray_0
+        COPY
+        PUSH, __gintnl_SystemUInt32_1  ; -> L1
+        PUSH, __lcl_b_SystemObjectArray_0
+        PUSH, __2__intnlparam
+        COPY
+        PUSH, __const_SystemInt32_1  ; 4
+        PUSH, __3__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__set_W(object[], int)
+        JUMP, <__cls_UdonSharpPlusTests_ExpressionBodied_Box__set_W(object[], int)>
+    L1:
+        PUSH, __gintnl_SystemUInt32_2  ; -> L2
+        PUSH, __lcl_b_SystemObjectArray_0
+        PUSH, __4__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__Bump(object[])
+        JUMP, <__cls_UdonSharpPlusTests_ExpressionBodied_Box__Bump(object[])>
+    L2:
+        PUSH, __lcl_b_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __intnl_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_0
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_3  ; -> L3
+        PUSH, __lcl_b_SystemObjectArray_0
+        PUSH, __5__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__Reset(object[])
+        JUMP, <__cls_UdonSharpPlusTests_ExpressionBodied_Box__Reset(object[])>
+    L3:
+        PUSH, __lcl_b_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __intnl_SystemObject_1
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_1
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __gintnl_SystemUInt32_4  ; -> L4
+        PUSH, __lcl_b_SystemObjectArray_0
+        PUSH, __7__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__get_W(object[])
+        JUMP, <__cls_UdonSharpPlusTests_ExpressionBodied_Box__get_W(object[])>
+    L4:
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __6__intnlparam
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__ctor__int(int)
+#
+        PUSH, __const_SystemInt32_1  ; 4
+        PUSH, __lcl___this_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 0
+        PUSH, __const_SystemString_0  ; "UdonSharpPlusTests.ExpressionBodied.Box"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_4  ; 1
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_5  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __8__intnlparam
+        COPY
+        PUSH, __1__intnlparam
+        PUSH, __9__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__init__int(object[], int)
+        JUMP, <__cls_UdonSharpPlusTests_ExpressionBodied_Box__init__int(object[], int)>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__set_W(object[], int)
+#
+        PUSH, __2__intnlparam
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __3__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__Bump(object[])
+#
+        PUSH, __4__intnlparam
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __intnl_SystemObject_2
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __const_SystemInt32_4  ; 1
+        PUSH, __intnl_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __4__intnlparam
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __intnl_SystemInt32_4
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__Reset(object[])
+#
+        PUSH, __5__intnlparam
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__get_W(object[])
+#
+        PUSH, __7__intnlparam
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __6__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.ExpressionBodied.User.__cls_UdonSharpPlusTests_ExpressionBodied_Box__init__int(object[], int)
+#
+        PUSH, __8__intnlparam
+        PUSH, __const_SystemInt32_2  ; 2
+        PUSH, __9__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemInt32_0 = 3
+__const_SystemInt32_1 = 4
+__const_SystemInt32_2 = 2
+__const_SystemInt32_3 = 0
+__const_SystemInt32_4 = 1
+__const_SystemString_0 = "UdonSharpPlusTests.ExpressionBodied.Box"
+__const_SystemUInt32_0 = 4294967295
+__gintnl_SystemUInt32_0 = -> Start():L0
+__gintnl_SystemUInt32_1 = -> Start():L1
+__gintnl_SystemUInt32_2 = -> Start():L2
+__gintnl_SystemUInt32_3 = -> Start():L3
+__gintnl_SystemUInt32_4 = -> Start():L4
+__gintnl_SystemUInt32_5 = -> __cls_UdonSharpPlusTests_ExpressionBodied_Box__ctor__int(int):L0
+__refl_typeid = 7462665826978467793
+__refl_typename = "UdonSharpPlusTests.ExpressionBodied.User"
+### NetworkEvents
+
+## Diagnostics
+## Logs
