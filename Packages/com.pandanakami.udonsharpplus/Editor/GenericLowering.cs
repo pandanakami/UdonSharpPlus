@@ -17,7 +17,7 @@ namespace UdonSharpPlus
     /// - コピーの中では T を具体的な型（完全修飾）に置き換えるので、後の段（List / LINQ など）はそのまま使える
     /// - 使う側の Pool&lt;int&gt;・Max(list) などは、コピーの名前に置き換える
     ///
-    /// 元の宣言は消し（改行だけ残す）、コピーは 1 行にして宣言の最後の行に置くので、行数は変わらない。
+    /// 元の宣言は消し（改行は残し、ほかの文字は空白にする）、コピーは 1 行にして宣言の最後の行に置くので、行数は変わらない。
     /// コピーの各メンバー・各文の前には元の位置の印（SourceMap、#52）を置く。
     /// 書き換えの段の最初に動かし、後の段はジェネリクスのないコードを見る。
     /// </summary>
@@ -533,14 +533,16 @@ namespace UdonSharpPlus
                 return false;
             }
 
-            /// <summary>宣言を消した表記（改行だけ残して行数を変えない）</summary>
+            /// <summary>
+            /// 宣言を消した表記。改行はそのまま、ほかの文字は 1 文字ずつ空白にして、行数と各行の長さを変えない
+            /// （U# のエラーの位置を元の位置に戻すとき、列が行の長さで切り詰められないように。#88）
+            /// </summary>
             private static string Blank(SyntaxNode node)
             {
                 string text = node.ToString();
-                var sb = new StringBuilder();
+                var sb = new StringBuilder(text.Length);
                 foreach (char c in text)
-                    if (c == '\r' || c == '\n')
-                        sb.Append(c);
+                    sb.Append(c == '\r' || c == '\n' ? c : ' ');
                 return sb.ToString();
             }
 
