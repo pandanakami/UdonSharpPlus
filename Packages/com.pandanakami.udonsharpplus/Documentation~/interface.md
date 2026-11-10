@@ -68,7 +68,14 @@ enemy.SendCustomNetworkEvent(NetworkEventTarget.All, "Receive", 1, "a");
 - `?.` での呼び出し
 - ref/out/in/params 引数、ジェネリックメソッド
 - 明示的インタフェース実装
-- インタフェース型のシリアライズフィールド（Unity がシリアライズしないため。`UdonSharpBehaviour` 型で受けてキャストしてください）
+- インタフェース型（とその配列）のフィールドの、シリアライズと同期（`[SerializeField]`、`[UdonSynced]`）。「`'target' : インタフェース型のフィールドは、シリアライズ・同期できません（…）`」のエラーになります。Inspector で設定したいときは、`UdonSharpBehaviour` 型で受けてキャストしてください
+
+  ```csharp
+  [SerializeField] private UdonSharpBehaviour target;   // Inspector で設定する
+  IDamageable d = (IDamageable)target;
+  ```
+
+  public フィールドはエラーにしませんが、シリアライズされず、Inspector にも出ません（コードで代入して使う分には使えます）
 - `GetComponent<IFoo>()` などの GetComponent 系（`GetComponents`・`GetComponentInChildren`・`GetComponentInParent` など、GameObject から呼ぶものも）。インタフェース型は `object` に書き換わるので、そのままだと実行時に例外で止まります。[普通のクラス](class.md)の型も同じです。次のように、具体的な UdonSharpBehaviour の型で取得するか、`UdonSharpBehaviour` で受けて `is`／`as` してください
 
   ```csharp

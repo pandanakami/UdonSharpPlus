@@ -671,6 +671,34 @@ namespace UdonSharpPlus
             // 明示的インタフェース実装（void IFoo.M()）の IFoo は、名前の位置なので object に置き換えられない（エラーは別に出す）
             public override SyntaxNode VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => node;
 
+            // ---- フィールド（シリアライズ・同期は未対応。#72） ---------------------
+
+            /// <summary>
+            /// UdonSharpBehaviour のインタフェース型（とその配列）のフィールドに [SerializeField] / [UdonSynced] / [SerializeReference] があればエラーにする。
+            /// object になるので Unity はシリアライズせず（Inspector に出ない）、同期もできないため。public は、コードで代入して使う分には問題ないのでそのまま
+            /// （普通のクラス型のフィールドと同じ扱い）
+            /// </summary>
+            public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
+            {
+                ITypeSymbol type = _model.GetTypeInfo(node.Declaration.Type).Type;
+                while (type is IArrayTypeSymbol array)
+                    type = array.ElementType;
+                if (AsTarget(type) != null
+                    && _model.GetDeclaredSymbol(node.Declaration.Variables[0]) is IFieldSymbol field && IsUdonSharpBehaviour(field.ContainingType)
+                    && node.AttributeLists.SelectMany(l => l.Attributes).Any(a => IsSerializationAttribute(_model.GetSymbolInfo(a).Symbol?.ContainingType)))
+                {
+                    foreach (VariableDeclaratorSyntax v in node.Declaration.Variables)
+                        Error(v, $"'{v.Identifier.ValueText}' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください");
+                }
+                return base.VisitFieldDeclaration(node);
+            }
+
+            private static bool IsSerializationAttribute(INamedTypeSymbol attribute)
+            {
+                string name = attribute?.ToDisplayString();
+                return name == "UnityEngine.SerializeField" || name == "UnityEngine.SerializeReference" || name == "UdonSharp.UdonSyncedAttribute";
+            }
+
             // ---- 型参照の置換 -------------------------------------------------
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)

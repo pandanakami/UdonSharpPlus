@@ -1,0 +1,7 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(21,42): [UdonSharpPlus] 'serializedTarget' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(22,38): [UdonSharpPlus] 'syncedTarget' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(23,44): [UdonSharpPlus] 'serializedTargets' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(24,42): [UdonSharpPlus] 'first' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください
+Error: Assets/UdonSharpPlusTests/User.cs(24,49): [UdonSharpPlus] 'second' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください
+## Logs
