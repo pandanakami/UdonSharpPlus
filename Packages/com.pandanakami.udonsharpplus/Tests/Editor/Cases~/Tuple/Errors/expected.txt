@@ -1,0 +1,19 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Types.cs(11,16): [UdonSharpPlus] '(int min, int max)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/Types.cs(11,64): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/Types.cs(17,31): [UdonSharpPlus] 'var (x, _)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください（クラス Pool<int> のメソッド Get の中）
+Error: Assets/UdonSharpPlusTests/Types.cs(9,16): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(10,17): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(11,22): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(17,21): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(18,13): [UdonSharpPlus] '(int x, string y)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(18,39): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(19,13): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(20,13): [UdonSharpPlus] 'var (a, b)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(22,13): [UdonSharpPlus] '(c, d)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(23,13): [UdonSharpPlus] 'var (k, v)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(24,40): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(30,17): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(30,44): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/User.cs(32,27): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+## Logs

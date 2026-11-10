@@ -4,7 +4,7 @@ Error: Assets/UdonSharpPlusTests/User.cs(16,13): [UdonSharpPlus] 'List.CopyTo' :
 Error: Assets/UdonSharpPlusTests/User.cs(17,40): [UdonSharpPlus] '_list' : List / Dictionary を System.Collections.Generic.IEnumerable<int> として渡すのは未対応です
 Error: Assets/UdonSharpPlusTests/User.cs(18,20): [UdonSharpPlus] Dictionary.TryGetValue は、ループの条件やフィールドの初期化子の中では未対応です（前の文で呼んでください）
 Error: Assets/UdonSharpPlusTests/User.cs(20,21): [UdonSharpPlus] List / Dictionary への ?. は未対応です
-Error: Assets/UdonSharpPlusTests/User.cs(21,13): [UdonSharpPlus] List / Dictionary の foreach での分解（var (k, v)）は未対応です。kv.Key / kv.Value を使ってください
+Error: Assets/UdonSharpPlusTests/User.cs(21,13): [UdonSharpPlus] 'var (k, value)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
 Error: Assets/UdonSharpPlusTests/User.cs(25,22): [UdonSharpPlus] List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）
 Error: Assets/UdonSharpPlusTests/User.cs(26,13): [UdonSharpPlus] List / Dictionary の要素への複合代入は、受け側と添字が変数・フィールド・定数のときだけ使えます（いったん変数に入れてください）
 Error: Assets/UdonSharpPlusTests/User.cs(27,23): [UdonSharpPlus] 'Dictionary.Keys' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）

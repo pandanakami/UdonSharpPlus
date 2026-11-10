@@ -877,17 +877,6 @@ namespace UdonSharpPlus
                 return SyntaxFactory.ParseStatement(code);
             }
 
-            public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-            {
-                ITypeSymbol type = _helpers == null ? null : TypeOf(node.Expression);
-                if (IsList(type) || IsDictionary(type))
-                {
-                    Error(node, "List / Dictionary の foreach での分解（var (k, v)）は未対応です。kv.Key / kv.Value を使ってください");
-                    return node;
-                }
-                return base.VisitForEachVariableStatement(node);
-            }
-
             // ---- ラムダ（#57） ------------------------------------------------------
 
             /// <summary>ラムダの外の変数（ラムダを含むメソッドのローカル変数・引数）</summary>

@@ -90,6 +90,10 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
+            // タプル（#81）は UdonSharp が対応していないのでエラーにする。書き換えの前に見るので、元のソースの位置に出る
+            if (TupleCheck.MayHaveTuples(current))
+                TupleCheck.Run(current, diagnostics, GetMetadataReferences());
+
             // 1) インタフェース → 2) 汎用クラス（#49）の順に書き換える。どちらも行数を変えず、tree の並びも変えない。
             // インタフェースの段は、汎用クラスの実装への振り分けを普通の C#（((Bullet)x).M(a)）で書き、
             // 汎用クラスの段がそれをコピーの呼び出しにする（#50）
@@ -309,7 +313,9 @@ namespace UdonSharpPlus
                     string message = source != null && !ReferenceEquals(location, entry.Location)
                         ? entry.Message + SourceMap.Describe(source)
                         : entry.Message;
-                    if (!seen.Add($"{entry.IsError}|{At(location, message)}"))
+                    // ジェネリッククラスのコピーが複数あると、同じ位置に同じエラーが「どのコピーの中か」だけ違って並ぶので、
+                    // 末尾の説明を除いた内容で比べて 1 つにする（#81）
+                    if (!seen.Add($"{entry.IsError}|{At(location, entry.Message)}"))
                         continue;
 
                     if (add != null)
