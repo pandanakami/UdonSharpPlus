@@ -1,0 +1,6 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/Types.cs(10,13): [UdonSharpPlus] 'Add' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください
+Error: Assets/UdonSharpPlusTests/Types.cs(11,13): [UdonSharpPlus] 'Twice' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください
+Error: Assets/UdonSharpPlusTests/Types.cs(22,13): [UdonSharpPlus] 'Plus' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください
+Error: Assets/UdonSharpPlusTests/Types.cs(34,13): [UdonSharpPlus] 'Inner' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください（クラス Box<int> のメソッド Get の中）
+## Logs

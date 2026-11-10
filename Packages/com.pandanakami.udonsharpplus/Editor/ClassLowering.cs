@@ -475,6 +475,18 @@ namespace UdonSharpPlus
 
             private ClassInfo Target(ITypeSymbol type) => _context.Target(type);
 
+            /// <summary>
+            /// 普通のクラスの中のローカル関数はエラーにする（#87）。UdonSharp も対応しておらず（UdonSharpBehaviour の中なら UdonSharp がエラーにする）、
+            /// そのままだと呼び出しがコピーのメソッド名に置き換わって、分かりにくいエラーになるため。対応は #69 で行う
+            /// </summary>
+            public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+            {
+                if (_self == null)
+                    return base.VisitLocalFunctionStatement(node);
+                Error(node, $"'{node.Identifier.ValueText}' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください");
+                return node;
+            }
+
             /// <summary>元の位置の印（#52）</summary>
             private string Marker(SyntaxNode original, string member = null) => SourceMap.Marker(original, _self?.Symbol.Name, member ?? _member);
 
