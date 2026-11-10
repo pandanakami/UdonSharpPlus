@@ -12,6 +12,7 @@
   "licensesUrl": "https://github.com/pandanakami/UdonSharpPlus/blob/main/LICENSE",
   "url": "https://github.com/pandanakami/UdonSharpPlus",
   "documentationUrl": "https://github.com/pandanakami/UdonSharpPlus/blob/main/Packages/com.pandanakami.udonsharpplus/Documentation~/README.md",
+  "changelogUrl": "https://github.com/pandanakami/UdonSharpPlus/blob/main/Packages/com.pandanakami.udonsharpplus/CHANGELOG.md",
   "vpmDependencies": {
     "com.vrchat.worlds": "~3.10.6"
   },

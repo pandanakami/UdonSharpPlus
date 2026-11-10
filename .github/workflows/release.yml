@@ -57,6 +57,22 @@ jobs:
           echo "unityPackage=${{ vars.PACKAGE_NAME }}-${{ steps.version.outputs.value }}.unitypackage" >> $GITHUB_ENV
           echo "version=${{ steps.version.outputs.value }}" >> $GITHUB_ENV
 
+      # The release body is the section of CHANGELOG.md for this version (#83).
+      # Stop before tagging when the section is missing or empty, so a release is never published without notes.
+      - name: Extract Release Notes
+        run: |
+          notes="${{ runner.temp }}/release-notes.md"
+          awk -v heading="## [${{ env.version }}]" '
+            $0 == heading || index($0, heading " ") == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' "${{ env.packagePath }}/CHANGELOG.md" > "$notes"
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "::error::CHANGELOG.md has no section for ${{ env.version }} (## [${{ env.version }}])"
+            exit 1
+          fi
+          echo "releaseNotes=$notes" >> $GITHUB_ENV
+
       # Zip the Package for release
       # テスト（Tests/、Cases~ を含む）は配布物に入れない（#36）
       - name: Create Package Zip
@@ -90,6 +106,7 @@ jobs:
             ${{ env.unityPackage }}
             ${{ env.packagePath }}/package.json
           tag_name: ${{ env.version }}
+          body_path: ${{ env.releaseNotes }}
 
       # Releases made with GITHUB_TOKEN do not trigger other workflows,
       # but workflow_dispatch is allowed, so rebuild the VPM listing explicitly.

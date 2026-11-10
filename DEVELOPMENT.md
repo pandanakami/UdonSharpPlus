@@ -21,6 +21,15 @@ UdonSharp Plus は、Harmony で UdonSharp（VRChat Worlds SDK に同梱）の�
 5. VRChat のクライアントでも、同じパネルを確かめる。
 6. `package.json` の `vpmDependencies` の範囲を広げ（例：`>=3.10.6 <3.12`）、README の「動作対象」も直して、パッケージのバージョンを上げてリリースする。
 
+## リリース
+
+1. [CHANGELOG.md](Packages/com.pandanakami.udonsharpplus/CHANGELOG.md) に、新しいバージョンの節（`## [0.1.2]`）を足す。英語（`### English`）と日本語（`### 日本語`）の両方を書く。
+2. `package.json` の `version` を同じバージョンにする。
+3. コミットして push し、`gh workflow run release.yml` でリリースのワークフローを実行する。
+   - ワークフローは、CHANGELOG.md のそのバージョンの節（見出しの次の行から、次の `## [` の前まで）を、GitHub のリリースの本文にする。
+   - 節がない・中身が空のときは、タグを作る前に止まる（本文のないリリースを出さないため）。
+   - リリースのあと、VPM のリスティング（Build Repo Listing）も作り直す。
+
 ## 仕組みの図
 
 README とドキュメントの仕組みの図（`Packages/com.pandanakami.udonsharpplus/Documentation~/images/how-it-works.*.svg`）は、同じフォルダの `.mmd`（mermaid）から作っています。直すときは `.mmd` を直し、mermaid-cli で SVG を作り直します。GitHub で `<img>` として表示しても崩れないよう、ラベルは HTML ではなく SVG の文字にしています（`.mmd` の先頭の `htmlLabels: false`）。
