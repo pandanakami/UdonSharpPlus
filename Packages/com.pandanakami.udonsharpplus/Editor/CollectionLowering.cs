@@ -212,6 +212,25 @@ namespace UdonSharpPlus
                 return $"new {DataTokenType}((object)({value}))";
             }
 
+            /// <summary>
+            /// ユーザーが書いた式 → DataToken。普通のクラス・インタフェースなど object で入れる型で、式が null の定数（null、default(Item) など）なら、
+            /// new DataToken((object)(object[])null) にする（#89）。new DataToken((object)(null)) は U# がコンパイル時に計算しようとして
+            /// コンストラクタが決まらず、内部の例外（AmbiguousMatchException）になるため。途中の (object[]) の変換で定数扱いでなくなる。
+            /// 実行時は同じく「参照型で中身が null」のトークンになる。null でない値には (object[]) を挟まない（インタフェースの中身は UdonSharpBehaviour のこともある）
+            /// </summary>
+            private string WrapExpr(ExpressionSyntax expression, ITypeSymbol type)
+            {
+                if (!IsToken(type) && type.IsReferenceType && Accessor(type) == null && IsNullConstant(expression))
+                    return $"new {DataTokenType}((object)(object[])null)";
+                return Wrap(Text(Visit(expression)), type);
+            }
+
+            private bool IsNullConstant(ExpressionSyntax expression)
+            {
+                Optional<object> constant = _model.GetConstantValue(expression);
+                return constant.HasValue && constant.Value == null;
+            }
+
             /// <summary>DataToken → 値</summary>
             private static string Unwrap(string token, ITypeSymbol type)
             {
@@ -442,7 +461,7 @@ namespace UdonSharpPlus
                     if (IsList(type))
                     {
                         ITypeSymbol element = Element(type);
-                        string items = string.Join(", ", initializer.Expressions.Select(e => Wrap(Text(Visit(e)), element)));
+                        string items = string.Join(", ", initializer.Expressions.Select(e => WrapExpr(e, element)));
                         created = args.Count == 0
                             ? $"new {DataListType}(new {DataTokenType}[] {{ {items} }})"
                             : $"{AddRangeHelper()}({created}, new {DataTokenType}[] {{ {items} }})";
@@ -456,12 +475,12 @@ namespace UdonSharpPlus
                             switch (e)
                             {
                                 case InitializerExpressionSyntax pair when pair.Expressions.Count == 2:   // { k, v }
-                                    keys.Add(Wrap(Text(Visit(pair.Expressions[0])), KeyOf(type)));
-                                    values.Add(Wrap(Text(Visit(pair.Expressions[1])), ValueOf(type)));
+                                    keys.Add(WrapExpr(pair.Expressions[0], KeyOf(type)));
+                                    values.Add(WrapExpr(pair.Expressions[1], ValueOf(type)));
                                     break;
                                 case AssignmentExpressionSyntax a when a.Left is ImplicitElementAccessSyntax index && index.ArgumentList.Arguments.Count == 1:   // [k] = v
-                                    keys.Add(Wrap(Text(Visit(index.ArgumentList.Arguments[0].Expression)), KeyOf(type)));
-                                    values.Add(Wrap(Text(Visit(a.Right)), ValueOf(type)));
+                                    keys.Add(WrapExpr(index.ArgumentList.Arguments[0].Expression, KeyOf(type)));
+                                    values.Add(WrapExpr(a.Right, ValueOf(type)));
                                     break;
                                 default:
                                     Error(e, "この形の Dictionary の初期化子は未対応です（{ キー, 値 } か [キー] = 値 を使ってください）");
@@ -482,7 +501,7 @@ namespace UdonSharpPlus
             {
                 string receiver = Text(Visit(node.Expression));
                 ExpressionSyntax index = node.ArgumentList.Arguments[0].Expression;
-                string key = IsList(receiverType) ? Text(Visit(index)) : Wrap(Text(Visit(index)), KeyOf(receiverType));
+                string key = IsList(receiverType) ? Text(Visit(index)) : WrapExpr(index, KeyOf(receiverType));
                 return $"({receiver})[{key}]";
             }
 
@@ -522,7 +541,7 @@ namespace UdonSharpPlus
                 ITypeSymbol element = ElementTypeOf(receiverType);
                 string raw = RawElement(target, receiverType);
                 if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
-                    return Parse($"{raw} = {Wrap(Text(Visit(node.Right)), element)}", node);
+                    return Parse($"{raw} = {WrapExpr(node.Right, element)}", node);
 
                 // 複合代入：受け側と添字を 2 回評価するので、副作用のない形に限る
                 if (!IsSimple(target.Expression) || !IsSimple(target.ArgumentList.Arguments[0].Expression))
@@ -610,15 +629,15 @@ namespace UdonSharpPlus
                     switch (method.Name)
                     {
                         case "Add" when args.Count == 1:
-                            return Parse($"({receiver}).Add({Wrap(Arg(0), element)})", node);
+                            return Parse($"({receiver}).Add({WrapExpr(args[0].Expression, element)})", node);
                         case "Insert" when args.Count == 2:
-                            return Parse($"({receiver}).Insert({Arg(0)}, {Wrap(Arg(1), element)})", node);
+                            return Parse($"({receiver}).Insert({Arg(0)}, {WrapExpr(args[1].Expression, element)})", node);
                         case "Remove" when args.Count == 1:
                         case "Contains" when args.Count == 1:
-                            return Parse($"({receiver}).{method.Name}({Wrap(Arg(0), element)})", node);
+                            return Parse($"({receiver}).{method.Name}({WrapExpr(args[0].Expression, element)})", node);
                         case "IndexOf" when args.Count >= 1:
                         case "LastIndexOf" when args.Count >= 1:
-                            return Parse($"({receiver}).{method.Name}({string.Join(", ", new[] { Wrap(Arg(0), element) }.Concat(Enumerable.Range(1, args.Count - 1).Select(Arg)))})", node);
+                            return Parse($"({receiver}).{method.Name}({string.Join(", ", new[] { WrapExpr(args[0].Expression, element) }.Concat(Enumerable.Range(1, args.Count - 1).Select(Arg)))})", node);
                         case "RemoveAt" when args.Count == 1:
                         case "RemoveRange" when args.Count == 2:
                         case "GetRange" when args.Count == 2:
@@ -641,12 +660,12 @@ namespace UdonSharpPlus
                     switch (method.Name)
                     {
                         case "Add" when args.Count == 2:
-                            return Parse($"({receiver}).Add({Wrap(Arg(0), key)}, {Wrap(Arg(1), value)})", node);
+                            return Parse($"({receiver}).Add({WrapExpr(args[0].Expression, key)}, {WrapExpr(args[1].Expression, value)})", node);
                         case "Remove" when args.Count == 1:
                         case "ContainsKey" when args.Count == 1:
-                            return Parse($"({receiver}).{method.Name}({Wrap(Arg(0), key)})", node);
+                            return Parse($"({receiver}).{method.Name}({WrapExpr(args[0].Expression, key)})", node);
                         case "ContainsValue" when args.Count == 1:
-                            return Parse($"({receiver}).ContainsValue({Wrap(Arg(0), value)})", node);
+                            return Parse($"({receiver}).ContainsValue({WrapExpr(args[0].Expression, value)})", node);
                         case "Clear" when args.Count == 0:
                             return Parse($"({receiver}).Clear()", node);
                         case "TryGetValue" when args.Count == 2:
@@ -690,7 +709,7 @@ namespace UdonSharpPlus
                 string result = $"{ok} ? {Unwrap(token, value)} : default({typeText})";
 
                 _pending.Add($"{DataTokenType} {token};");
-                _pending.Add($"bool {ok} = ({receiver}).TryGetValue({Wrap(Text(Visit(args[0].Expression)), key)}, out {token});");
+                _pending.Add($"bool {ok} = ({receiver}).TryGetValue({WrapExpr(args[0].Expression, key)}, out {token});");
                 switch (outArg.Expression)
                 {
                     case DeclarationExpressionSyntax declaration when declaration.Designation is SingleVariableDesignationSyntax name:
