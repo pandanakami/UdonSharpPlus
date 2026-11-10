@@ -36,7 +36,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 - `IEnumerable<T>` などとして扱うこと（`string.Join(",", list)` など。下の「IEnumerable」）、`GetEnumerator()`、`?.`
 - `foreach (var (k, v) in dict)` の分解（[タプル](README.md#全体に共通すること)は未対応のため。`kv.Key`／`kv.Value` を使ってください）
 - `Keys`／`Values` を `foreach`、`.Count`、LINQ 以外で使うこと
-- 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、メソッド呼び出しを書くこと（`Get()[0] += 1`）
+- 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、変数・フィールド・定数以外を書くこと（`Get()[0] += 1`、入れ子の `nested[0][1] += 1`）。いったん変数に入れてください（`List<int> row = nested[0]; row[1] += 1;`）。入れ子の要素への普通の代入（`nested[0][1] = 1`）は書けます
 - `TryGetValue` をループの条件の中で使うこと
 
 注意：

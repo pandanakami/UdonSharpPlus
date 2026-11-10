@@ -9,7 +9,7 @@ namespace UdonSharpPlusTests.Syntax
 
         private void Start()
         {
-            Debug.Log(SyntaxScenario.Run(target));
+            Debug.Log(SyntaxScenario.Run(target) + BoundaryScenario.Run());
         }
     }
 }
