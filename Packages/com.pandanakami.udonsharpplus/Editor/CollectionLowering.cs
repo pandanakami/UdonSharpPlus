@@ -241,6 +241,9 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => node;
 
+            // using エイリアス（using IntList = List<int>;）の右側には手を入れない。エイリアスを使う側（IntList x）は、名前が指す型として置き換わる（#79）
+            public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node) => node;
+
             public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
             {
                 // U# がコンパイルするのは UdonSharpBehaviour だけ（汎用クラスはコピーが UdonSharpBehaviour の中にある）

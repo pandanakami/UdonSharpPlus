@@ -487,6 +487,10 @@ namespace UdonSharpPlus
                 return result;
             }
 
+            // using エイリアス（using B = Game.Bullet;）の右側は名前しか書けないので、object[] などに置き換えない。
+            // エイリアスを使う側（B x）は、名前が指すクラスとして置き換わる（#79）
+            public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node) => node;
+
             // ---- 型の表記 --------------------------------------------------------
 
             /// <summary>汎用クラスを object[] に置き換えた型の表記</summary>

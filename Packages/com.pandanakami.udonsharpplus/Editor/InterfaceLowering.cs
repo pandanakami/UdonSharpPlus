@@ -668,6 +668,10 @@ namespace UdonSharpPlus
             // インタフェース宣言自体には手を入れない
             public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => node;
 
+            // using エイリアス（using IDmg = Game.IDamageable;）の右側は名前しか書けないので、object に置き換えない。
+            // エイリアスを使う側（IDmg x）は、名前が指すインタフェースとして置き換わる（#79）
+            public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node) => node;
+
             // 明示的インタフェース実装（void IFoo.M()）の IFoo は、名前の位置なので object に置き換えられない（エラーは別に出す）
             public override SyntaxNode VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => node;
 
