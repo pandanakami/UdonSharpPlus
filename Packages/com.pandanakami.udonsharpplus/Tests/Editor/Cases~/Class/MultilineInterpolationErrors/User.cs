@@ -5,8 +5,18 @@ using UnityEngine;
 
 namespace UdonSharpPlusTests.MultilineInterpolationErrors
 {
-    // #93: 改行を含む補間文字列は、ラムダ・ジェネリクスのコピーの中ではエラー
-    // （普通のクラスのメソッドの中も同じだが、今は位置が出ない不具合がある：#97）
+    // #93: 改行を含む補間文字列は、普通のクラス・ラムダ・ジェネリクスのコピーの中ではエラー（元の位置に出る。#97）
+    public class Note
+    {
+        public int hp;
+
+        public string Text()
+        {
+            return $@"hp={hp}
+end";
+        }
+    }
+
     public class Box<T>
     {
         public T value;
@@ -27,7 +37,7 @@ end";
             _values.Add(1);
             var texts = _values.Select(x => $@"{x}
 ").ToList();
-            Debug.Log(texts.Count + new Box<int>().Text());
+            Debug.Log(texts.Count + new Box<int>().Text() + new Note().Text());
         }
     }
 }

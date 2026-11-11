@@ -1269,7 +1269,7 @@ namespace UdonSharpPlus
                     ParameterSyntax ps = syntax != null && i < syntax.Parameters.Count ? syntax.Parameters[i] : null;
                     string text = (p.IsParams ? "params " : "") + RefPrefix(p) + TypeText(p.Type) + " " + p.Name;
                     if (withDefaults && ps?.Default != null)
-                        text += " = " + Flatten(Visit(ps.Default.Value));
+                        text += " = " + Flatten(Visit(ps.Default.Value), ps.Default.Value);
                     list.Add(text);
                 }
                 return string.Join(", ", list);
@@ -1295,7 +1295,7 @@ namespace UdonSharpPlus
                     && _model.GetSymbolInfo(initializer).Symbol is IMethodSymbol other)
                 {
                     var args = new List<string> { ThisName };
-                    args.AddRange(initializer.ArgumentList.Arguments.Select(a => Flatten(Visit(a))));
+                    args.AddRange(initializer.ArgumentList.Arguments.Select(a => Flatten(Visit(a), a)));
                     sb.Append($"{InitName(c, other)}({string.Join(", ", args)}); ");
                 }
                 else
@@ -1306,10 +1306,10 @@ namespace UdonSharpPlus
                 switch (body)
                 {
                     case BlockSyntax block:
-                        sb.Append(string.Join(" ", block.Statements.Select(st => Flatten(Visit(st)))));
+                        sb.Append(string.Join(" ", block.Statements.Select(st => Flatten(Visit(st), st))));
                         break;
                     case ArrowExpressionClauseSyntax arrow:
-                        sb.Append(Marker(arrow.Expression)).Append(Flatten(Visit(arrow.Expression))).Append(';');
+                        sb.Append(Marker(arrow.Expression)).Append(Flatten(Visit(arrow.Expression), arrow.Expression)).Append(';');
                         break;
                 }
 
@@ -1364,7 +1364,7 @@ namespace UdonSharpPlus
                         ? this
                         : new Rewriter(_context, _context.Compilation.GetSemanticModel(value.SyntaxTree), c, _sink, null);
                     string member = $"{(slot is IFieldSymbol ? "フィールド" : "プロパティ")} {slot.Name} の初期化子";
-                    sb.Append($"{rewriter.Marker(value, member)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({rewriter.Flatten(rewriter.Visit(value))}); ");
+                    sb.Append($"{rewriter.Marker(value, member)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({rewriter.Flatten(rewriter.Visit(value), value)}); ");
                 }
                 return sb.ToString();
             }
@@ -1381,7 +1381,7 @@ namespace UdonSharpPlus
 
                 if (property.ExpressionBody != null)
                 {
-                    yield return $"private static {type} {GetterName(c, symbol)}({self}) {{ {Marker(property.ExpressionBody.Expression)}return {Flatten(Visit(property.ExpressionBody.Expression))}; }}";
+                    yield return $"private static {type} {GetterName(c, symbol)}({self}) {{ {Marker(property.ExpressionBody.Expression)}return {Flatten(Visit(property.ExpressionBody.Expression), property.ExpressionBody.Expression)}; }}";
                     yield break;
                 }
 
@@ -1397,11 +1397,11 @@ namespace UdonSharpPlus
             private string Body(BlockSyntax block, ArrowExpressionClauseSyntax arrow, bool returnsValue)
             {
                 if (block != null)
-                    return Flatten(Visit(block));
+                    return Flatten(Visit(block), block);
                 if (arrow != null)
                     return returnsValue
-                        ? $"{{ {Marker(arrow.Expression)}return {Flatten(Visit(arrow.Expression))}; }}"
-                        : $"{{ {Marker(arrow.Expression)}{Flatten(Visit(arrow.Expression))}; }}";
+                        ? $"{{ {Marker(arrow.Expression)}return {Flatten(Visit(arrow.Expression), arrow.Expression)}; }}"
+                        : $"{{ {Marker(arrow.Expression)}{Flatten(Visit(arrow.Expression), arrow.Expression)}; }}";
                 return "{ }";
             }
 
@@ -1409,7 +1409,8 @@ namespace UdonSharpPlus
             /// 1 行にする（生成メンバーを '}' と同じ行に置くため）。コメントと改行は空白にし、
             /// 改行を含む文字列リテラルはエスケープした表記にする。
             /// </summary>
-            private string Flatten(SyntaxNode node)
+            /// <param name="original">エラーの位置に使う、書き換える前の節点（node は Visit したあとの木から外れた節点で、位置を持たない。#97）</param>
+            private string Flatten(SyntaxNode node, SyntaxNode original)
             {
                 // プリプロセッサ指令（#if・#region・#pragma など）と #if の無効な側は trivia なので、下で空白になり、
                 // 有効な側のコードだけが残る（ソースは U# と同じシンボルで解析済み。#91）
@@ -1422,7 +1423,7 @@ namespace UdonSharpPlus
                 string text = flat.ToFullString().Trim();
                 if (text.Contains("\n"))
                 {
-                    Error(node, "普通のクラスのメソッドの中の、改行を含む補間文字列は未対応です");
+                    Error(original, "普通のクラスのメソッドの中の、改行を含む補間文字列は未対応です");
                     return "";
                 }
                 return text;
