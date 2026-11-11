@@ -363,7 +363,14 @@ namespace UdonSharpPlus
                 if (s.BaseType != null && s.BaseType.SpecialType != SpecialType.System_Object)
                     Fail(at, $"'{s.Name}' : 普通のクラスの継承は未対応です");
                 if (s.IsGenericType)
-                    Fail(at, $"'{s.Name}' : ジェネリッククラスは未対応です");
+                {
+                    // ジェネリッククラスは GenericLowering がコピーにするので、ここに残るのは GenericLowering がエラーにしたもの
+                    // （partial など）。そのエラーと重ねて「ジェネリッククラスは未対応」と出すと誤解させるので、出さない（#98）
+                    if (s.DeclaringSyntaxReferences.Length > 1)
+                        c.Valid = false;
+                    else
+                        Fail(at, $"'{s.Name}' : ジェネリッククラスは未対応です");
+                }
                 if (s.ContainingType != null)
                 {
                     ReportNested(s);
@@ -392,7 +399,7 @@ namespace UdonSharpPlus
                             Fail(loc, $"'{s.Name}' : インデクサーは未対応です");
                             break;
                         case IPropertySymbol p when p.ExplicitInterfaceImplementations.Length > 0:
-                            Fail(loc, $"'{s.Name}.{p.Name}' : 明示的インタフェース実装は未対応です");
+                            Fail(loc, $"'{s.Name}.{p.ExplicitInterfaceImplementations[0].Name}' : 明示的インタフェース実装は未対応です");
                             break;
                         case IPropertySymbol p when IsAutoProperty(p) && p.IsStatic:
                             Fail(loc, $"'{s.Name}.{p.Name}' : static の自動実装プロパティは非対応です（static フィールドと同じ）");
@@ -415,7 +422,7 @@ namespace UdonSharpPlus
                             Fail(loc, $"'{s.Name}' : ファイナライザーは未対応です");
                             break;
                         case IMethodSymbol m when m.MethodKind == MethodKind.ExplicitInterfaceImplementation:
-                            Fail(loc, $"'{s.Name}.{m.Name}' : 明示的インタフェース実装は未対応です");
+                            Fail(loc, $"'{s.Name}.{m.ExplicitInterfaceImplementations.FirstOrDefault()?.Name ?? m.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください");
                             break;
                         case IMethodSymbol m when m.IsGenericMethod:
                             Fail(loc, $"'{s.Name}.{m.Name}' : ジェネリックメソッドは未対応です");

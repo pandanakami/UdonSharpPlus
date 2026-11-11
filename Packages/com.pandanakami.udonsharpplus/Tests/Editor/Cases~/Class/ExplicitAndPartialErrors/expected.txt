@@ -1,0 +1,7 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(12,29): [UdonSharpPlus] 'Box' : ジェネリッククラスの partial は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(27,20): [UdonSharpPlus] 'Item.Score' : 明示的インタフェース実装は未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(28,20): [UdonSharpPlus] 'Item.Calc' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください
+Error: Assets/UdonSharpPlusTests/User.cs(7,29): [UdonSharpPlus] 'Box' : ジェネリッククラスの partial は未対応です
+Warning: Assets/UdonSharpPlusTests/User.cs(20,13): [UdonSharpPlus] 'UdonSharpPlusTests.ExplicitAndPartialErrors.IScore.Score' : インタフェースはメソッドのみ対応しています（プロパティ/イベントは未対応）
+## Logs
