@@ -31,6 +31,53 @@ namespace UdonSharpPlus
         private static List<Entry> _entries = new List<Entry>();
         private static Dictionary<SyntaxTree, int> _treeIndex = new Dictionary<SyntaxTree, int>();
 
+        /// <summary>
+        /// 置き換えた式（replacement）の行数が、元の式（original。複数行の初期化子・LINQ・ラムダなど）より少ないとき、
+        /// 足りない改行を式のうしろに足して、うしろの行をずらさない（#103）。
+        /// 式の途中に改行があっても C# としては問題ない。元の式の最後の行にあったもの（「;」や行末のコメント）は、元の行に来る
+        /// </summary>
+        public static TNode KeepLineCount<TNode>(TNode replacement, SyntaxNode original) where TNode : SyntaxNode
+        {
+            if (original.SyntaxTree == null)
+                return replacement;
+            FileLinePositionSpan span = original.SyntaxTree.GetLineSpan(original.Span);
+            int originalBreaks = span.EndLinePosition.Line - span.StartLinePosition.Line;
+            int replacementBreaks = CountLineBreaks(replacement.ToString());   // 前後の trivia は数えない
+            if (replacementBreaks >= originalBreaks)
+                return replacement;
+
+            // 足した行は、元の行と同じ長さの空白で埋める。印から元の位置に戻すとき（ToLocation）は、元の行・列を
+            // 書き換え後の同じ行に当てはめ、列は行の長さで切るので、空の行だと列が 0 になってしまう
+            var lines = original.SyntaxTree.GetText().Lines;
+            var trailing = new List<SyntaxTrivia>();
+            for (int i = replacementBreaks; i < originalBreaks; i++)
+            {
+                trailing.Add(Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndOfLine("\n"));
+                int width = lines[span.StartLinePosition.Line + i + 1].Span.Length;
+                if (width > 0)
+                    trailing.Add(Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Whitespace(new string(' ', width)));
+            }
+            trailing.AddRange(replacement.GetTrailingTrivia());
+            return replacement.WithTrailingTrivia(trailing);
+        }
+
+        private static int CountLineBreaks(string text)
+        {
+            int count = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\r')
+                {
+                    count++;
+                    if (i + 1 < text.Length && text[i + 1] == '\n')
+                        i++;
+                }
+                else if (text[i] == '\n')
+                    count++;
+            }
+            return count;
+        }
+
         public static void Clear()
         {
             lock (Gate)

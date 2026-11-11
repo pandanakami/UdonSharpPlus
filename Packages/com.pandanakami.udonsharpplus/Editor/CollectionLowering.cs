@@ -137,7 +137,7 @@ namespace UdonSharpPlus
             private ExpressionSyntax Parse(string code, SyntaxNode original)
             {
                 Changed = true;
-                return SyntaxFactory.ParseExpression(code).WithTriviaFrom(original);
+                return SourceMap.KeepLineCount(SyntaxFactory.ParseExpression(code).WithTriviaFrom(original), original);
             }
 
             private ITypeSymbol TypeOf(SyntaxNode node) => _model.GetTypeInfo(node).Type;

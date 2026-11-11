@@ -1,0 +1,3 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(19,35): Method is not exposed to Udon: 'System.IO.File.Exists("a")'
+## Logs
