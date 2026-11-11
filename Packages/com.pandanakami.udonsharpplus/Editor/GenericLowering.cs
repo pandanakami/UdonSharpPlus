@@ -672,15 +672,12 @@ namespace UdonSharpPlus
             /// </summary>
             private string Flatten(SyntaxNode original, string text)
             {
-                MemberDeclarationSyntax member = SyntaxFactory.ParseMemberDeclaration(text);
+                // 元と同じシンボル（COMPILER_UDONSHARP・UNITY_EDITOR など）で解析し直す。#if の無効な側は trivia になり、
+                // 下で指令ごと空白にするので、有効な側のコードだけが残る（#91）
+                MemberDeclarationSyntax member = SyntaxFactory.ParseMemberDeclaration(text, options: original.SyntaxTree?.Options);
                 if (member == null)
                 {
                     Error(original, "ジェネリックのコピーを作れませんでした");
-                    return "";
-                }
-                if (member.DescendantTrivia(descendIntoTrivia: true).Any(t => t.IsDirective))
-                {
-                    Error(original, "ジェネリックなクラス・メソッドの中のプリプロセッサ指令（#if など）は未対応です");
                     return "";
                 }
 

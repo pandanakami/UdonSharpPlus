@@ -1,3 +1,0 @@
-## Diagnostics
-Error: Assets/UdonSharpPlusTests/Box.cs(7,5): [UdonSharpPlus] ジェネリックなクラス・メソッドの中のプリプロセッサ指令（#if など）は未対応です
-## Logs

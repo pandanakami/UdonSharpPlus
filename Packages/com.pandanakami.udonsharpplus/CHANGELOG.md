@@ -15,6 +15,7 @@ Fixes
 - Assignments in expression-bodied members of plain classes (`public Item(int v) => this.v = v;`, `set => _v = value;`) no longer report a false error.
 - Errors inside copies of generic classes now point to the correct column.
 - A preprocessor directive right before the closing brace of a `UdonSharpBehaviour` (`#endif` of an `#if UNITY_EDITOR` block, `#endregion` of a `#region` around the whole class, `#pragma`) no longer causes error CS1040 when the class uses interfaces, plain classes, or `List` / `Dictionary`.
+- Preprocessor directives (`#if`, `#region`, `#pragma`, ...) inside methods of plain classes, inside generic classes, and inside lambdas are no longer an error. Only the active branch of `#if` is used, with the same symbols as UdonSharp (`COMPILER_UDONSHARP`, and `UNITY_EDITOR` in the editor).
 - UdonSharp errors after a multi-line `List` / `Dictionary` initializer, LINQ chain, or lambda now point to the correct line. They used to point a few lines too early.
 
 Clearer errors
@@ -33,6 +34,7 @@ Clearer errors
 - 普通のクラスの式形式のメンバーでの代入（`public Item(int v) => this.v = v;`、`set => _v = value;`）が、誤ってエラーになっていたのを直しました。
 - ジェネリッククラスのコピーの中のエラーが、正しい列に出るようになりました。
 - インタフェース・普通のクラス・`List` / `Dictionary` を使う `UdonSharpBehaviour` で、クラスの閉じ括弧の直前にプリプロセッサ指令（`#if UNITY_EDITOR` のブロックの `#endif`、クラス全体を囲む `#region` の `#endregion`、`#pragma`）があると、エラー CS1040 になっていたのを直しました。
+- 普通のクラスのメソッドの中・ジェネリッククラスの中・ラムダの中のプリプロセッサ指令（`#if`・`#region`・`#pragma` など）が、エラーにならなくなりました。`#if` は、UdonSharp と同じシンボル（`COMPILER_UDONSHARP`、エディタでは `UNITY_EDITOR` も）で有効な側だけを使います。
 - 複数行の `List` / `Dictionary` の初期化子・LINQ・ラムダのうしろの行で出た UdonSharp のエラーが、数行前の行に表示されていたのを直しました。
 
 分かりやすいエラーにしたもの

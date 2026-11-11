@@ -23,11 +23,7 @@ UdonSharp で書ける C# を増やすパッケージ、UdonSharp Plus の詳し
 - **対応していない SDK**：UdonSharp の内部 API が見つからないときは自動で無効になり、コンソールに `[UdonSharpPlus] この VRChat SDK（…）では UdonSharp の内部が変わっているため、無効にしました` のエラーが出ます。そのときは素の UdonSharp と同じ動きになるので、UdonSharp Plus を更新してください。
 - **タプル**：タプル（`(int, string)`、`(1, "a")`、`var (x, y) = ...`、`foreach (var (k, v) in dict)` など）は未対応です。UdonSharp も対応しておらず、そのままだと内部の例外になって原因が分かりにくいので、UdonSharpBehaviour とそこから使われる普通のクラスでは「`'(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください`」のエラーにします。
 - **アセンブリ（asmdef）**：普通のクラス・インタフェース・ジェネリッククラスは、UdonSharp がコンパイルするアセンブリ（Assembly-CSharp か、U# Assembly Definition を付けた asmdef）に置いてください。その間なら、アセンブリをまたいで使えます。U# Assembly Definition のない asmdef に置くと書き換えの対象にならず、UdonSharp の「`Method is not exposed to Udon: 'new PlainHelper()'`」などのエラーになります
-- **プリプロセッサ指令（`#if` など）**：UdonSharp と同じシンボル（`COMPILER_UDONSHARP`、エディタでのコンパイルでは `UNITY_EDITOR` も）が定義された状態で読むので、`#if UNITY_EDITOR`・`#if !COMPILER_UDONSHARP` は UdonSharp と同じに使えます。`#region`・`#pragma` なども同じ扱いで、次のところに書くとエラーになります。
-  - 普通のクラスのメソッドの中
-  - ジェネリッククラスの中。メンバーを囲むだけでもエラーです
-
-  普通のクラスのメンバーやクラスを丸ごと囲むのは使えます。
+- **プリプロセッサ指令（`#if` など）**：UdonSharp と同じシンボル（`COMPILER_UDONSHARP`、エディタでのコンパイルでは `UNITY_EDITOR` も）が定義された状態で読むので、`#if UNITY_EDITOR`・`#if !COMPILER_UDONSHARP` は UdonSharp と同じに使えます。普通のクラス・ジェネリッククラス・ラムダの中でも使えます（書き換えでは、有効な側のコードだけを使います）。`#region`・`#pragma` なども、どこに書いても使えます。
 - **文言**：本パッケージが出すエラー・警告の文言は日本語です。
 
 ## 仕組み

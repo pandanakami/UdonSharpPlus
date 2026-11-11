@@ -1265,11 +1265,7 @@ namespace UdonSharpPlus
             /// </summary>
             private string Flatten(SyntaxNode node, SyntaxNode original)
             {
-                if (node.DescendantTrivia(descendIntoTrivia: true).Any(t => t.IsDirective))
-                {
-                    Error(original, "ラムダの中のプリプロセッサ指令（#if など）は未対応です");
-                    return null;
-                }
+                // プリプロセッサ指令と #if の無効な側は trivia なので、下で空白になり、有効な側のコードだけが残る（#91）
                 SyntaxNode flat = node.ReplaceTokens(
                     node.DescendantTokens().Where(t => t.IsKind(SyntaxKind.StringLiteralToken) && t.Text.Contains("\n")),
                     (o, _) => SyntaxFactory.Literal(o.ValueText).WithTriviaFrom(o));
