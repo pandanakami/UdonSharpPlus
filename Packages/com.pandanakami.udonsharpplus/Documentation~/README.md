@@ -20,7 +20,7 @@ UdonSharp で書ける C# を増やすパッケージ、UdonSharp Plus の詳し
 - **書き換えはエディタの中だけ**：UdonSharp がコンパイルする前に、C# のソースを UdonSharp が扱える形に書き換えます。出力されるのは通常の Udon プログラムなので、VRChat のクライアント側には何も要りません。
 - **エラーの位置**：書き換えで生成したコードの中で出たコンパイルエラーと実行時例外は、元のソースの位置に表示されます。必要に応じて、どのクラス・メンバーのコピーの中かの補足が付きます（[普通のクラス](class.md)の「注意」）。
 - **書き換え後のソース**：デバッグ用に、プロジェクトの `Library/UdonSharpPlus/` に出力されます。思ったとおりに動かないときは、ここを見ると何に書き換わったか分かります。
-- **対応していない SDK**：UdonSharp の内部 API が見つからないときは自動で無効になり、コンソールに `[UdonSharpPlus] この VRChat SDK（…）では UdonSharp の内部が変わっているため、無効にしました` のエラーが出ます。そのときは素の UdonSharp と同じ動きになるので、UdonSharp Plus を更新してください。
+- **対応していない SDK**：UdonSharp の内部 API が見つからないときは自動で無効になり、コンソールに `[UdonSharpPlus] この VRChat SDK（…）では UdonSharp の内部が変わっているため、無効にしました` のエラーが出ます。そのときは素の UdonSharp と同じ動きになるので、UdonSharp Plus を更新してください。SDK のバージョンが動作を確かめた範囲の外のときは、`[UdonSharpPlus] この VRChat SDK（…）は、動作を確かめた範囲（…）の外です` の警告が出ます（動きは変わりません）。
 - **タプル**：タプル（`(int, string)`、`(1, "a")`、`var (x, y) = ...`、`foreach (var (k, v) in dict)` など）は未対応です。UdonSharp も対応しておらず、そのままだと内部の例外になって原因が分かりにくいので、UdonSharpBehaviour とそこから使われる普通のクラスでは「`'(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください`」のエラーにします。
 - **アセンブリ（asmdef）**：普通のクラス・インタフェース・ジェネリッククラスは、UdonSharp がコンパイルするアセンブリ（Assembly-CSharp か、U# Assembly Definition を付けた asmdef）に置いてください。その間なら、アセンブリをまたいで使えます。U# Assembly Definition のない asmdef に置くと書き換えの対象にならず、UdonSharp の「`Method is not exposed to Udon: 'new PlainHelper()'`」などのエラーになります
 - **プリプロセッサ指令（`#if` など）**：UdonSharp と同じシンボル（`COMPILER_UDONSHARP`、エディタでのコンパイルでは `UNITY_EDITOR` も）が定義された状態で読むので、`#if UNITY_EDITOR`・`#if !COMPILER_UDONSHARP` は UdonSharp と同じに使えます。普通のクラス・ジェネリッククラス・ラムダの中でも使えます（書き換えでは、有効な側のコードだけを使います）。`#region`・`#pragma` なども、どこに書いても使えます。

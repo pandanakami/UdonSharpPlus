@@ -23,6 +23,7 @@ Clearer errors
 - Tuples (`(int, string)`, `var (x, y) = ...`, `foreach (var (k, v) in dict)`) now report "tuples are not supported" instead of an internal UdonSharp exception.
 - `[SerializeField]` / `[UdonSynced]` on interface-typed fields is now an error. These fields were never serialized or synced. To set one in the Inspector, use a `UdonSharpBehaviour` field and cast it.
 - Local functions in plain classes now report "local functions are not supported" (UdonSharp does not support them either).
+- A warning is shown at startup when the VRChat SDK version is outside the tested range (`vpmDependencies` in package.json). UdonSharp Plus keeps working; it is still disabled automatically if UdonSharp internals it needs are missing.
 
 ### 日本語
 
@@ -42,3 +43,4 @@ Clearer errors
 - タプル（`(int, string)`、`var (x, y) = ...`、`foreach (var (k, v) in dict)`）は、UdonSharp の内部の例外ではなく「タプルは未対応です」のエラーになります。
 - インタフェース型のフィールドに `[SerializeField]` / `[UdonSynced]` を付けるとエラーになります（もともとシリアライズも同期もされていませんでした）。Inspector で設定するときは、`UdonSharpBehaviour` 型のフィールドで受けてキャストしてください。
 - 普通のクラスの中のローカル関数は「ローカル関数は未対応です」のエラーになります（UdonSharp も対応していません）。
+- VRChat SDK のバージョンが、動作を確かめた範囲（package.json の `vpmDependencies`）の外のときは、起動時に警告を出します。動きは変わりません（必要な UdonSharp の内部が見つからないときは、これまでどおり自動で無効になります）。

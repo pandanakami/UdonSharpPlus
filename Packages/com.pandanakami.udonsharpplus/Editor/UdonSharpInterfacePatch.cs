@@ -23,6 +23,8 @@ namespace UdonSharpPlus
 
         static UdonSharpInterfacePatch()
         {
+            SdkVersionCheck.WarnIfOutOfRange();   // 範囲外でも動きは変えない（#95）
+
             if (!UdonSharpInternals.Resolve())
             {
                 ReportDisabled("見つからないもの：" + string.Join("、", UdonSharpInternals.Missing));
