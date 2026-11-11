@@ -837,7 +837,9 @@ namespace UdonSharpPlus
                 ITypeSymbol type = _helpers == null ? null : TypeOf(node.Expression);
                 if (IsEnumerable(type) && !IsDataListBacked(node.Expression))
                 {
-                    Error(node.Expression, $"'{Text(node.Expression)}' : {ForeignEnumerableMessage}");   // #62
+                    string message = NotIterableMessage(node.Expression);   // #62・#99
+                    if (message != null)
+                        Error(node.Expression, message);
                     return node;
                 }
                 bool list = IsList(type) || IsEnumerable(type), dict = IsDictionary(type), keys = IsKeys(type), values = IsValues(type);   // IEnumerable は LINQ の結果（DataList）

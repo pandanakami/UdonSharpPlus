@@ -1,0 +1,10 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(16,23): [UdonSharpPlus] 'Range' : Enumerable.Range は未対応です（LINQ は List・配列・Dictionary から始めてください）
+Error: Assets/UdonSharpPlusTests/User.cs(17,28): [UdonSharpPlus] 'Repeat' : Enumerable.Repeat は未対応です（LINQ は List・配列・Dictionary から始めてください）
+Error: Assets/UdonSharpPlusTests/User.cs(20,23): [UdonSharpPlus] 'Empty' : Enumerable.Empty は未対応です（LINQ は List・配列・Dictionary から始めてください）
+Error: Assets/UdonSharpPlusTests/User.cs(23,25): [UdonSharpPlus] クエリ構文（from … select）は未対応です。メソッドの形（list.Where(x => …).Select(x => …)）で書いてください
+Error: Assets/UdonSharpPlusTests/User.cs(25,23): [UdonSharpPlus] クエリ構文（from … select）は未対応です。メソッドの形（list.Where(x => …).Select(x => …)）で書いてください
+Error: Assets/UdonSharpPlusTests/User.cs(26,31): [UdonSharpPlus] クエリ構文（from … select）は未対応です。メソッドの形（list.Where(x => …).Select(x => …)）で書いてください
+Error: Assets/UdonSharpPlusTests/User.cs(32,23): [UdonSharpPlus] 'items' : IEnumerable 型の変数は未対応です。List・配列の型のまま（または var で）使ってください
+Error: Assets/UdonSharpPlusTests/User.cs(33,31): [UdonSharpPlus] 'items' : IEnumerable 型の変数は未対応です。List・配列の型のまま（または var で）使ってください
+## Logs

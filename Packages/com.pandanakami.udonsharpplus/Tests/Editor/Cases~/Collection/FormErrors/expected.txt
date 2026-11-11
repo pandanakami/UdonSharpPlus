@@ -7,5 +7,5 @@ Error: Assets/UdonSharpPlusTests/User.cs(24,28): [UdonSharpPlus] 'Dictionary.Val
 Error: Assets/UdonSharpPlusTests/User.cs(24,28): [UdonSharpPlus] List / 配列以外からの追加は未対応です
 Error: Assets/UdonSharpPlusTests/User.cs(26,23): [UdonSharpPlus] 'GetValueOrDefault' : List / Dictionary に対する拡張メソッド（LINQ など）は未対応です
 Error: Assets/UdonSharpPlusTests/User.cs(28,23): [UdonSharpPlus] 'Any' : LINQ は List・配列・Dictionary にだけ使えます（string は未対応です）
-Error: Assets/UdonSharpPlusTests/User.cs(30,23): [UdonSharpPlus] この形の LINQ の呼び出しは未対応です
+Error: Assets/UdonSharpPlusTests/User.cs(30,23): [UdonSharpPlus] 'Empty' : Enumerable.Empty は未対応です（LINQ は List・配列・Dictionary から始めてください）
 ## Logs

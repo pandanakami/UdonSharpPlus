@@ -57,8 +57,8 @@ namespace UdonSharpPlus
                     return node.Expression is MemberAccessExpressionSyntax access
                         ? new LinqCallInfo { Node = node, Method = method, Receiver = access.Expression, Args = args }
                         : null;
-                // static の形：Enumerable.Where(list, f)
-                if (args.Count == 0)
+                // static の形：Enumerable.Where(list, f)。拡張メソッドだけ（Enumerable.Range など、元を取らない生成のメソッドは違う。#99）
+                if (args.Count == 0 || !method.IsExtensionMethod)
                     return null;
                 return new LinqCallInfo { Node = node, Method = method, Receiver = args[0], Args = args.Skip(1).ToList() };
             }
@@ -76,7 +76,7 @@ namespace UdonSharpPlus
                     case ParenthesizedExpressionSyntax p:
                         return IsDataListBacked(p.Expression);
                     case InvocationExpressionSyntax invocation when _model.GetSymbolInfo(invocation).Symbol is IMethodSymbol m && IsLinqMethod(m):
-                        return true;
+                        return !IsLinqGenerator(m);
                 }
                 ITypeSymbol type = TypeOf(expression);
                 if (IsList(type) || IsDictionary(type))
@@ -90,6 +90,58 @@ namespace UdonSharpPlus
 
             private const string ForeignEnumerableMessage =
                 "外部の関数が返す IEnumerable は、Udon では中を回せません（foreach・LINQ は使えません）";
+
+            private const string QueryMessage =
+                "クエリ構文（from … select）は未対応です。メソッドの形（list.Where(x => …).Select(x => …)）で書いてください";
+
+            /// <summary>Enumerable.Range・Repeat・Empty など、元（List・配列）を取らない生成のメソッド</summary>
+            private static bool IsLinqGenerator(IMethodSymbol method) =>
+                IsLinqMethod(method) && method.ReducedFrom == null && !method.IsExtensionMethod;
+
+            private static string GeneratorMessage(IMethodSymbol method) =>
+                $"'{method.Name}' : Enumerable.{method.Name} は未対応です（LINQ は List・配列・Dictionary から始めてください）";
+
+            /// <summary>
+            /// 中を回せない IEnumerable（DataList でない）を foreach・LINQ に渡したときのエラー。書き方に合わせて文言を変える（#99）。
+            /// 変数の宣言の場所でエラーにしているもの（クエリ構文・Enumerable.Range などで初期化した変数）なら null
+            /// </summary>
+            private string NotIterableMessage(ExpressionSyntax source)
+            {
+                ExpressionSyntax origin = source;
+                while (origin is ParenthesizedExpressionSyntax p)
+                    origin = p.Expression;
+                // 変数なら、宣言の初期化子までたどる
+                if (_model.GetSymbolInfo(origin).Symbol is ILocalSymbol local
+                    && local.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is VariableDeclaratorSyntax declarator)
+                {
+                    ExpressionSyntax value = declarator.Initializer?.Value;
+                    while (value is ParenthesizedExpressionSyntax p)
+                        value = p.Expression;
+                    // クエリ構文・生成のメソッドは、宣言の場所でエラーにしているので重ねない
+                    if (value is QueryExpressionSyntax)
+                        return null;
+                    if (value is InvocationExpressionSyntax generated && _model.GetSymbolInfo(generated).Symbol is IMethodSymbol g && IsLinqGenerator(g))
+                        return null;
+                    // 外部の関数の戻り値でなければ、自分で IEnumerable 型にした変数
+                    if (!(value is InvocationExpressionSyntax))
+                        return $"'{local.Name}' : IEnumerable 型の変数は未対応です。List・配列の型のまま（または var で）使ってください";
+                    return $"'{Text(source)}' : {ForeignEnumerableMessage}";
+                }
+                // LINQ・foreach に直接書いたクエリ構文は、ここで止めるので中は見ない。ここでクエリ構文のエラーにする
+                if (origin is QueryExpressionSyntax)
+                    return QueryMessage;
+                if (origin is InvocationExpressionSyntax invocation && _model.GetSymbolInfo(invocation).Symbol is IMethodSymbol m && IsLinqGenerator(m))
+                    return GeneratorMessage(m);
+                return $"'{Text(source)}' : {ForeignEnumerableMessage}";
+            }
+
+            public override SyntaxNode VisitQueryExpression(QueryExpressionSyntax node)
+            {
+                if (_helpers == null)
+                    return base.VisitQueryExpression(node);
+                Error(node, QueryMessage);
+                return node;
+            }
 
             private const string EnumerableConversionMessage =
                 "List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）";
@@ -137,7 +189,9 @@ namespace UdonSharpPlus
                 }
                 if (calls.Count == 0)
                 {
-                    Error(node, "この形の LINQ の呼び出しは未対応です");
+                    Error(node, _model.GetSymbolInfo(node).Symbol is IMethodSymbol generator && IsLinqGenerator(generator)
+                        ? GeneratorMessage(generator)
+                        : "この形の LINQ の呼び出しは未対応です");
                     return node;
                 }
                 ExpressionSyntax source = current;
@@ -151,7 +205,9 @@ namespace UdonSharpPlus
                 string sourceText = null, sourceParam = DataListType;
                 if (IsEnumerable(sourceType) && !IsDataListBacked(source))
                 {
-                    Error(source, $"'{Text(source)}' : {ForeignEnumerableMessage}");
+                    string message = NotIterableMessage(source);
+                    if (message != null)
+                        Error(source, message);
                     return node;
                 }
                 if (IsList(sourceType) || IsEnumerable(sourceType))

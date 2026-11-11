@@ -129,6 +129,8 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 未対応の書き方（コンパイルエラーになります）：
 
 - `GroupBy`、`SelectMany`、`Reverse` など、上記以外のメソッド
+- クエリ構文（`from x in list where x > 0 select x`）。メソッドの形（`list.Where(x => x > 0)`）で書いてください
+- `Enumerable.Range`・`Enumerable.Repeat`・`Enumerable.Empty` など、List・配列・Dictionary から始まらない LINQ
 - 比較子（`IComparer`／`IEqualityComparer`）を渡す形、数値・string・bool・char・enum 以外のキーでの並べ替え
 - 添字付きのラムダ（`Select((x, i) => ...)`）、`Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`
 - Dictionary の要素（`KeyValuePair`）の `Contains`（`ContainsKey` などを使ってください）
