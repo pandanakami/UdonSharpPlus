@@ -47,6 +47,10 @@ namespace UdonSharpPlus
 
         // ---- UpgradeGuardPatch --------------------------------------------------------
         public static MethodInfo UpgradeScripts;         // UdonSharpUpgrader.UpgradeScripts(UdonSharpProgramAsset[])
+        public static FieldInfo NeedsProgramUpgradePass; // UdonSharpUpgrader._needsProgramUpgradePass（static）
+        public static MethodInfo TryGetSystemType;       // TypeSymbol.TryGetSystemType(ITypeSymbol, out Type)
+        public static PropertyInfo EditorCacheInstance;  // UdonSharpEditorCache.Instance
+        public static MethodInfo ClearUpgradePassQueue;  // UdonSharpEditorCache.ClearUpgradePassQueue()
 
         /// <summary>見つからなかったものの名前（Resolve の後）</summary>
         public static IReadOnlyList<string> Missing => _missing;
@@ -112,7 +116,13 @@ namespace UdonSharpPlus
             SerializerCreate = M(typeof(Serializer), "Create", typeof(TypeSerializationMetadata));
 
             Type programAsset = T("UdonSharp.UdonSharpProgramAsset");
-            UpgradeScripts = M(T("UdonSharpEditor.UdonSharpUpgrader"), "UpgradeScripts", programAsset?.MakeArrayType());
+            Type upgrader = T("UdonSharpEditor.UdonSharpUpgrader");
+            UpgradeScripts = M(upgrader, "UpgradeScripts", programAsset?.MakeArrayType());
+            NeedsProgramUpgradePass = F(upgrader, "_needsProgramUpgradePass");
+            TryGetSystemType = M(TypeSymbol, "TryGetSystemType", typeof(ITypeSymbol), typeof(Type).MakeByRefType());
+            Type editorCache = T("UdonSharp.UdonSharpEditorCache");
+            EditorCacheInstance = P(editorCache, "Instance");
+            ClearUpgradePassQueue = M(editorCache, "ClearUpgradePassQueue");
 
             return _missing.Count == 0;
         }
