@@ -176,12 +176,21 @@ namespace UdonSharpPlus.Tests
 
         public static CompileResult Compile(params TestSource[] sources) => Compile(EditorDefines, sources);
 
-        public static CompileResult Compile(string[] defines, params TestSource[] sources)
+        public static CompileResult Compile(string[] defines, params TestSource[] sources) => Compile(defines, null, sources);
+
+        /// <summary>
+        /// dumpDir を渡すと、書き換え後のソースをそこに出す（本物の Library/UdonSharpPlus/ は汚さない。#100）。
+        /// null なら出さない
+        /// </summary>
+        public static CompileResult Compile(string[] defines, string dumpDir, params TestSource[] sources)
         {
             lock (CompileLock)
             {
                 bool dump = InterfaceLowering.DumpEnabled;
-                InterfaceLowering.DumpEnabled = false;
+                string dir = InterfaceLowering.DumpDir;
+                InterfaceLowering.DumpEnabled = dumpDir != null;
+                if (dumpDir != null)
+                    InterfaceLowering.DumpDir = dumpDir;
                 try
                 {
                     return CompileInternal(defines, sources);
@@ -189,6 +198,7 @@ namespace UdonSharpPlus.Tests
                 finally
                 {
                     InterfaceLowering.DumpEnabled = dump;
+                    InterfaceLowering.DumpDir = dir;
                 }
             }
         }

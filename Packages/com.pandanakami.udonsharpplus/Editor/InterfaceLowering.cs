@@ -39,9 +39,10 @@ namespace UdonSharpPlus
 
         /// <summary>インタフェース型の置き換え先（UdonSharpBehaviour と汎用クラスの object[] の両方を入れられるもの。#50）</summary>
         internal const string ErasedType = "object";
-        private static readonly string DumpDir = Path.Combine("Library", "UdonSharpPlus");
+        /// <summary>書き換え後のソースの出力先（テストでは一時フォルダに差し替える。#100）</summary>
+        internal static string DumpDir = Path.Combine("Library", "UdonSharpPlus");
 
-        /// <summary>書き換え後のソースを Library/UdonSharpPlus/ に出すか（テストでは止める）</summary>
+        /// <summary>書き換え後のソースを DumpDir に出すか（テストでは止める）</summary>
         internal static bool DumpEnabled = true;
 
         internal sealed class InterfaceInfo
@@ -74,6 +75,9 @@ namespace UdonSharpPlus
         {
             InterfaceNaming.ImplementationKeys = new HashSet<string>();
             SourceMap.Clear();
+            // 書き換えは毎回すべてのスクリプトが対象なので、前回の出力を消してから書く（消したスクリプトなどの古い出力を残さない。#100）
+            if (DumpEnabled)
+                ClearDump();
 
             var original = new List<SyntaxTree>(bindings.Length);
             foreach (object b in bindings)
@@ -610,18 +614,54 @@ namespace UdonSharpPlus
             return (IEnumerable<MetadataReference>)UdonSharpInternals.GetMetadataReferences.Invoke(null, null);
         }
 
+        private static void ClearDump()
+        {
+            try
+            {
+                // 出力先を差し替えたときの設定ミスで、ほかのフォルダを消さないよう、名前に UdonSharpPlus を含むフォルダだけを消す
+                if (string.IsNullOrEmpty(DumpDir) || Path.GetFileName(Path.GetFullPath(DumpDir).TrimEnd('/', '\\')).IndexOf("UdonSharpPlus", StringComparison.Ordinal) < 0)
+                    return;
+                if (Directory.Exists(DumpDir))
+                    Directory.Delete(DumpDir, recursive: true);
+            }
+            catch
+            {
+                // デバッグ用の出力なので失敗は無視
+            }
+        }
+
         private static void Dump(object binding, string text)
         {
             try
             {
-                string filePath = (string)UdonSharpInternals.BindingFilePath.GetValue(binding);
-                Directory.CreateDirectory(DumpDir);
-                File.WriteAllText(Path.Combine(DumpDir, Path.GetFileName(filePath)), text);
+                string path = DumpPath((string)UdonSharpInternals.BindingFilePath.GetValue(binding));
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, text);
             }
             catch
             {
-                // デバッグ用ダンプなので失敗は無視
+                // デバッグ用の出力なので失敗は無視
             }
+        }
+
+        /// <summary>
+        /// 出力するファイルのパス。スクリプトのプロジェクトからの相対パスのまま置く（Assets/A/User.cs → DumpDir/Assets/A/User.cs）。
+        /// ファイル名だけだと、別のフォルダの同じ名前のスクリプトが上書きし合う（#100）。
+        /// プロジェクトの外の絶対パスは、ドライブなどを除いて _external/ の下に置く
+        /// </summary>
+        internal static string DumpPath(string filePath)
+        {
+            string relative = filePath.Replace('\\', '/');
+            if (Path.IsPathRooted(relative))
+            {
+                string project = Path.GetFullPath(".").Replace('\\', '/').TrimEnd('/') + "/";
+                relative = relative.StartsWith(project, StringComparison.OrdinalIgnoreCase)
+                    ? relative.Substring(project.Length)
+                    : "_external/" + relative.Substring(Path.GetPathRoot(relative).Length);
+            }
+            // 「..」で出力先の外に出ないようにする
+            var parts = relative.Split('/').Where(p => p.Length > 0 && p != "." && p != "..");
+            return Path.Combine(DumpDir, Path.Combine(parts.ToArray()));
         }
 
         // ------------------------------------------------------------------
