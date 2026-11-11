@@ -937,10 +937,7 @@ namespace UdonSharpPlus
 
                 // 生成メンバーは閉じ括弧 '}' と同じ行に置き、行番号を一切ずらさない
                 if (members.Count > 0)
-                {
-                    var parsed = members.Select(code => SyntaxFactory.ParseMemberDeclaration(code + " ")).Where(d => d != null);
-                    visited = visited.WithMembers(visited.Members.AddRange(parsed));
-                }
+                    visited = GeneratedMembers.AppendOnClosingLine(visited, members);
 
                 if (plainClass && visited != node)
                     RewrittenClasses.Add((ClassLowering.TagOf(classSymbol), node));

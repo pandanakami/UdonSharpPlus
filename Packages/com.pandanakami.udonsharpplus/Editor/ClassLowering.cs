@@ -568,8 +568,7 @@ namespace UdonSharpPlus
 
                 Changed = true;
                 // 生成メンバーは閉じ括弧 '}' と同じ行に置き、行番号をずらさない
-                var parsed = members.Select(code => SyntaxFactory.ParseMemberDeclaration(code + " ")).Where(d => d != null);
-                return visited.WithMembers(visited.Members.AddRange(parsed));
+                return GeneratedMembers.AppendOnClosingLine(visited, members);
             }
 
             private SyntaxNode VisitUdonSharpBehaviour(ClassDeclarationSyntax node) => base.VisitClassDeclaration(node);

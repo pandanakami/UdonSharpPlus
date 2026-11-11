@@ -279,8 +279,7 @@ namespace UdonSharpPlus
                     return visited;
                 Changed = true;
                 // 生成メンバーは閉じ括弧 '}' と同じ行に置き、行番号を一切ずらさない
-                var parsed = helpers.Values.Select(code => SyntaxFactory.ParseMemberDeclaration(code + " ")).Where(d => d != null);
-                return visited.WithMembers(visited.Members.AddRange(parsed));
+                return GeneratedMembers.AppendOnClosingLine(visited, helpers.Values);
             }
 
             /// <summary>文：TryGetValue の前出しを受け取る</summary>

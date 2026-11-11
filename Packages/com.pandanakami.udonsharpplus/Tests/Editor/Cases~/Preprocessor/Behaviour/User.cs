@@ -21,16 +21,6 @@ namespace UdonSharpPlusTests.PreprocessorBehaviour
         private int _editorOnly = 10;
 #endif
 
-#if !COMPILER_UDONSHARP
-        // U# には見えないので、UdonSharp で使えない型（HashSet）を書いてもよい。
-        // クラスの最後（閉じ括弧の直前）に置くと、今は CS1040 になる（不具合のチケットを参照）
-        private void OnValidate()
-        {
-            var set = new HashSet<int>();
-            set.Add(1);
-        }
-#endif
-
         private void Start()
         {
             IUnit u = new Unit();
@@ -41,5 +31,15 @@ namespace UdonSharpPlusTests.PreprocessorBehaviour
 #endif
             Debug.Log(_values[0]);
         }
+
+#if !COMPILER_UDONSHARP
+        // U# には見えないので、UdonSharp で使えない型（HashSet）を書いてもよい。
+        // クラスの最後（閉じ括弧の直前）に置いても、生成したメンバーと同じ行にならない（#96）
+        private void OnValidate()
+        {
+            var set = new HashSet<int>();
+            set.Add(1);
+        }
+#endif
     }
 }
