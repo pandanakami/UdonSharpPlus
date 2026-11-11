@@ -55,7 +55,11 @@ namespace UdonSharpPlus
         {
             public readonly HashSet<ClassInfo> IsHelpers = new HashSet<ClassInfo>();
             public readonly HashSet<ClassInfo> AsHelpers = new HashSet<ClassInfo>();
+            public bool NotNullHelper;   // 受け側の null の確認（受け側を 2 回評価できないとき。#104）
         }
+
+        /// <summary>受け側が null なら止めて、そうでなければそのまま返すヘルパー（#104）</summary>
+        private const string NotNullHelper = "__cls__notnull";
 
         /// <summary>
         /// 汎用クラス（とエラーにする構造体・外部のクラスの派生。#54, #55）がありそうか（なければコンパイルを作らずに済ませる）。
@@ -201,6 +205,7 @@ namespace UdonSharpPlus
         private sealed class Context
         {
             public readonly CSharpCompilation Compilation;
+            public readonly ReceiverNullCheck NullCheck;
             public readonly Dictionary<INamedTypeSymbol, ClassInfo> Classes;
             public readonly InterfaceLowering.LoweringDiagnostics Diagnostics;
 
@@ -217,6 +222,7 @@ namespace UdonSharpPlus
                 IReadOnlyDictionary<string, int> numbers)
             {
                 Compilation = compilation;
+                NullCheck = new ReceiverNullCheck(compilation);
                 Classes = classes;
                 Diagnostics = diagnostics;
                 _numbers = numbers;
@@ -569,6 +575,8 @@ namespace UdonSharpPlus
                     if (sink.AsHelpers.Contains(c))
                         members.Add($"private static {InstanceType} {c.AsHelper}(object __o) {{ return {c.IsHelper}(__o) ? ({InstanceType})__o : null; }}");
                 }
+                if (sink.NotNullHelper)
+                    members.Add($"private static {InstanceType} {NotNullHelper}({InstanceType} __o) {{ if (__o.Length < 0) return null; return __o; }}");
 
                 if (members.Count == 0)
                     return visited;
@@ -831,6 +839,72 @@ namespace UdonSharpPlus
                 return Text(Visit(receiver));
             }
 
+            /// <summary>
+            /// 受け側 receiver（書き換え後は text）に対して callees を呼ぶとき、null なら呼び出しの位置で止まるようにする（#104）。
+            /// 最初に必ず this のフィールドを読むメンバーなら、その中で止まるので何もしない（ReceiverNullCheck）。
+            /// 受け側を 2 回評価してよいときはその場で Length を読み、そうでなければヘルパーを通す（位置はクラスの閉じ括弧の行になる）
+            /// </summary>
+            private string CheckedReceiver(ExpressionSyntax receiver, string text, params IMethodSymbol[] callees)
+            {
+                ExpressionSyntax inner = receiver;
+                while (inner is ParenthesizedExpressionSyntax paren)
+                    inner = paren.Expression;
+                if (inner == null || inner is ThisExpressionSyntax || inner is BaseObjectCreationExpressionSyntax   // new X().M() は null にならない
+                    || IsDispatchReceiver(inner) || !callees.Any(_context.NullCheck.Needs))
+                    return text;
+                if (IsPureReceiver(receiver))
+                    return $"((({text}).Length < 0) ? null : ({text}))";
+                if (_sink == null)
+                    return text;
+                _sink.NotNullHelper = true;
+                return $"{NotNullHelper}({text})";
+            }
+
+            /// <summary>インタフェースの振り分けの中の ((Circle)__t)（null でないことを確かめたあと）</summary>
+            private static bool IsDispatchReceiver(ExpressionSyntax e) =>
+                e is CastExpressionSyntax cast && cast.Expression is IdentifierNameSyntax id
+                && id.Identifier.ValueText == InterfaceLowering.DispatchReceiver;
+
+            /// <summary>評価しても副作用がなく、何度評価してもよい受け側か（変数・フィールド・配列の要素）</summary>
+            private bool IsPureReceiver(ExpressionSyntax e)
+            {
+                switch (e)
+                {
+                    case ThisExpressionSyntax _:
+                        return true;
+                    case ParenthesizedExpressionSyntax p:
+                        return IsPureReceiver(p.Expression);
+                    case CastExpressionSyntax c:
+                        return IsPureReceiver(c.Expression);
+                    case ElementAccessExpressionSyntax el:
+                        return _model.GetTypeInfo(el.Expression).Type is IArrayTypeSymbol && IsPureReceiver(el.Expression)
+                            && el.ArgumentList.Arguments.All(a => a.Expression is LiteralExpressionSyntax || IsPureReceiver(a.Expression));
+                    case MemberAccessExpressionSyntax m when m.IsKind(SyntaxKind.SimpleMemberAccessExpression):
+                        if (!(_model.GetSymbolInfo(m.Expression).Symbol is ITypeSymbol) && !IsPureReceiver(m.Expression))
+                            return false;
+                        return IsPureSymbol(_model.GetSymbolInfo(m).Symbol);
+                    case IdentifierNameSyntax _:
+                        return IsPureSymbol(_model.GetSymbolInfo(e).Symbol);
+                    default:
+                        return false;
+                }
+            }
+
+            private bool IsPureSymbol(ISymbol symbol)
+            {
+                switch (symbol)
+                {
+                    case ILocalSymbol _:
+                    case IParameterSymbol _:
+                    case IFieldSymbol _:
+                        return true;
+                    case IPropertySymbol p:   // 汎用クラスの自動実装プロパティ（object[] の要素）
+                        return Target(p.ContainingType) is ClassInfo c && c.Slots.ContainsKey(p.OriginalDefinition);
+                    default:
+                        return false;
+                }
+            }
+
             private string SlotRead(string receiver, int index, ITypeSymbol type) =>
                 $"(({TypeText(type)})({receiver})[{index}])";
 
@@ -845,7 +919,8 @@ namespace UdonSharpPlus
                     return Parse(SlotRead(ReceiverText(receiver), index, type), node);
 
                 if (TryBodiedProperty(node, out ClassInfo c, out IPropertySymbol p, out ExpressionSyntax propReceiver))
-                    return Parse(p.IsStatic ? $"{GetterName(c, p)}()" : $"{GetterName(c, p)}({ReceiverText(propReceiver)})", node);
+                    return Parse(p.IsStatic ? $"{GetterName(c, p)}()"
+                        : $"{GetterName(c, p)}({CheckedReceiver(propReceiver, ReceiverText(propReceiver), p.GetMethod)})", node);
 
                 if (symbol is INamedTypeSymbol t)
                 {
@@ -947,7 +1022,9 @@ namespace UdonSharpPlus
                     string right = Text(Visit(node.Right));
                     string current = recv == null ? $"{GetterName(c, p)}()" : $"{GetterName(c, p)}({recv})";
                     string value = compound ? $"({current} {BinaryOperator(node.Kind())} ({right}))" : $"({right})";
-                    string args = recv == null ? $"({TypeText(p.Type)}){value}" : $"{recv}, ({TypeText(p.Type)}){value}";
+                    // 受け側は、セッターの引数のほうが先に評価される
+                    string checkedRecv = recv == null ? null : CheckedReceiver(propReceiver, recv, p.SetMethod, compound ? p.GetMethod : null);
+                    string args = recv == null ? $"({TypeText(p.Type)}){value}" : $"{checkedRecv}, ({TypeText(p.Type)}){value}";
                     return Parse($"{SetterName(c, p)}({args})", node);
                 }
 
@@ -981,7 +1058,8 @@ namespace UdonSharpPlus
                     string recv = p.IsStatic ? null : ReceiverText(propReceiver);
                     string current = recv == null ? $"{GetterName(c, p)}()" : $"{GetterName(c, p)}({recv})";
                     string value = $"({TypeText(p.Type)})({current} {op} 1)";
-                    return Parse(recv == null ? $"{SetterName(c, p)}({value})" : $"{SetterName(c, p)}({recv}, {value})", node);
+                    string checkedRecv = recv == null ? null : CheckedReceiver(propReceiver, recv, p.SetMethod, p.GetMethod);
+                    return Parse(recv == null ? $"{SetterName(c, p)}({value})" : $"{SetterName(c, p)}({checkedRecv}, {value})", node);
                 }
 
                 return null;
@@ -1127,7 +1205,7 @@ namespace UdonSharpPlus
                     switch (node.Expression)
                     {
                         case MemberAccessExpressionSyntax access:
-                            args.Add(Text(Visit(access.Expression)));
+                            args.Add(CheckedReceiver(access.Expression, Text(Visit(access.Expression)), definition));
                             break;
                         case IdentifierNameSyntax _ when _self != null:
                             args.Add(ThisName);

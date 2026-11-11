@@ -169,6 +169,7 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
     __16__intnlparam: %SystemObjectArray, null
     __17__intnlparam: %SystemObjectArray, null
     __18__intnlparam: %SystemString, null
+    __const_SystemObject_0: %SystemObject, null
     __const_SystemString_2: %SystemString, null
     __gintnl_SystemUInt32_11: %SystemUInt32, null
     __0_a__param: %SystemInt32Array, null
@@ -222,6 +223,9 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
     __intnl_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
     __lcl_second_SystemInt32_0: %SystemInt32, null
     __lcl_texts_SystemObjectArray_0: %SystemObjectArray, null
+    __intnl_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __intnl_SystemObjectArray_0: %SystemObjectArray, null
     __lcl_arr_SystemInt32Array_0: %SystemInt32Array, null
     __intnl_SystemString_0: %SystemString, null
     __intnl_SystemString_1: %SystemString, null
@@ -229,16 +233,19 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
     __intnl_SystemString_3: %SystemString, null
     __intnl_SystemString_4: %SystemString, null
     __intnl_SystemString_5: %SystemString, null
-    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_1: %SystemBoolean, null
+    __intnl_SystemObjectArray_1: %SystemObjectArray, null
+    __intnl_SystemBoolean_2: %SystemBoolean, null
     __intnl_SystemString_6: %SystemString, null
-    __intnl_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_2: %SystemInt32, null
     __intnl_SystemObject_0: %SystemObject, null
     __intnl_SystemString_7: %SystemString, null
     __intnl_SystemString_8: %SystemString, null
-    __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemInt32_3: %SystemInt32, null
     __intnl_SystemString_9: %SystemString, null
     __lcl_t_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemInt32_4: %SystemInt32, null
     __intnl_SystemObject_1: %SystemObject, null
     __intnl_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
     __intnl_VRCSDK3DataDataToken_1: %VRCSDK3DataDataToken, null
@@ -256,18 +263,18 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
     __lcl___col_l2_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
     __lcl___col_n1_SystemInt32_0: %SystemInt32, null
     __lcl___col_i0_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemBoolean_1: %SystemBoolean, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
     __lcl_x_SystemInt32_0: %SystemInt32, null
     __intnl_VRCSDK3DataDataToken_5: %VRCSDK3DataDataToken, null
-    __intnl_SystemInt32_3: %SystemInt32, null
-    __intnl_SystemBoolean_2: %SystemBoolean, null
+    __intnl_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
     __intnl_VRCSDK3DataDataToken_6: %VRCSDK3DataDataToken, null
     __lcl_result_SystemObjectArray_0: %SystemObjectArray, null
     __lcl_i_SystemInt32_0: %SystemInt32, null
     __intnl_SystemObject_4: %SystemObject, null
     __intnl_VRCSDK3DataDataList_4: %VRCSDK3DataDataList, null
-    __intnl_SystemInt32_4: %SystemInt32, null
-    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __intnl_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemBoolean_5: %SystemBoolean, null
     __intnl_SystemObject_5: %SystemObject, null
     __intnl_VRCSDK3DataDataList_5: %VRCSDK3DataDataList, null
     __intnl_VRCSDK3DataDataToken_7: %VRCSDK3DataDataToken, null
@@ -419,8 +426,26 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         PUSH, __14__intnlparam
         PUSH, __lcl_second_SystemInt32_0
         COPY
-        PUSH, __gintnl_SystemUInt32_10  ; -> L10
+        PUSH, __gintnl_SystemUInt32_10  ; -> L12
         PUSH, _ints
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_0
+        PUSH, __const_SystemInt32_2  ; 0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L10
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemObjectArray_0
+        COPY
+        JUMP, L11
+    L10:
+        PUSH, _ints
+        PUSH, __intnl_SystemObjectArray_0
+        COPY
+    L11:
+        PUSH, __intnl_SystemObjectArray_0
         PUSH, __17__intnlparam
         COPY
         PUSH, __const_SystemString_2  ; "z"
@@ -428,7 +453,7 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         COPY
 # Calling UdonSharpPlusTests.ClassGeneric.User.__cls_UdonSharpPlusTests_ClassGeneric_Pool__int__Fill__string__string(object[], string)
         JUMP, <__cls_UdonSharpPlusTests_ClassGeneric_Pool__int__Fill__string__string(object[], string)>
-    L10:
+    L12:
         PUSH, __16__intnlparam
         PUSH, __lcl_texts_SystemObjectArray_0
         COPY
@@ -443,7 +468,7 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         PUSH, __const_SystemInt32_3  ; 1
         PUSH, __const_SystemInt32_4  ; 2
         EXTERN, "SystemInt32Array.__Set__SystemInt32_SystemInt32__SystemVoid"
-        PUSH, __gintnl_SystemUInt32_11  ; -> L11
+        PUSH, __gintnl_SystemUInt32_11  ; -> L13
         PUSH, __lcl_arr_SystemInt32Array_0
         PUSH, __0_a__param
         COPY
@@ -455,14 +480,14 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         COPY
 # Calling UdonSharpPlusTests.ClassGeneric.User.Swap__int(int[], int, int)
         JUMP, <Swap__int(int[], int, int)>
-    L11:
-        PUSH, __gintnl_SystemUInt32_12  ; -> L12
+    L13:
+        PUSH, __gintnl_SystemUInt32_12  ; -> L14
         PUSH, __lcl_first_SystemString_0
         PUSH, __0_value__param
         COPY
 # Calling UdonSharpPlusTests.ClassGeneric.User.Echo__string(string)
         JUMP, <Echo__string(string)>
-    L12:
+    L14:
         PUSH, __0___0_Echo__string__ret
         PUSH, __lcl_max_SystemInt32_0
         PUSH, __intnl_SystemString_0
@@ -471,7 +496,7 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         PUSH, __lcl_second_SystemInt32_0
         PUSH, __intnl_SystemString_1
         EXTERN, "SystemString.__Concat__SystemObject_SystemObject__SystemString"
-        PUSH, __gintnl_SystemUInt32_13  ; -> L13
+        PUSH, __gintnl_SystemUInt32_13  ; -> L15
         PUSH, __lcl_texts_SystemObjectArray_0
         PUSH, __20__intnlparam
         COPY
@@ -484,12 +509,12 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         COPY
 # Calling UdonSharpPlusTests.ClassGeneric.User.__cls_UdonSharpPlusTests_ClassGeneric_Pool__string__Get__int(object[], int)
         JUMP, <__cls_UdonSharpPlusTests_ClassGeneric_Pool__string__Get__int(object[], int)>
-    L13:
+    L15:
         PUSH, __intnl_SystemString_1
         PUSH, __19__intnlparam
         PUSH, __intnl_SystemString_3
         EXTERN, "SystemString.__op_Addition__SystemString_SystemString__SystemString"
-        PUSH, __gintnl_SystemUInt32_14  ; -> L14
+        PUSH, __gintnl_SystemUInt32_14  ; -> L16
         PUSH, __lcl_names_SystemObjectArray_0
         PUSH, __23__intnlparam
         COPY
@@ -502,30 +527,48 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         COPY
 # Calling UdonSharpPlusTests.ClassGeneric.User.__cls_UdonSharpPlusTests_ClassGeneric_Pool__string__Has__string(object[], string)
         JUMP, <__cls_UdonSharpPlusTests_ClassGeneric_Pool__string__Has__string(object[], string)>
-    L14:
+    L16:
         PUSH, __intnl_SystemString_3
         PUSH, __22__intnlparam
         PUSH, __intnl_SystemString_5
         EXTERN, "SystemString.__Concat__SystemObject_SystemObject__SystemString"
-        PUSH, __gintnl_SystemUInt32_15  ; -> L15
+        PUSH, __gintnl_SystemUInt32_15  ; -> L19
         PUSH, _ints
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 0
+        PUSH, __intnl_SystemBoolean_1
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+# Cow dirty
+        PUSH, __22__intnlparam
+        PUSH, __intnl_SystemBoolean_2
+        COPY
+        PUSH, __intnl_SystemBoolean_1
+        JUMP_IF_FALSE, L17
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemObjectArray_1
+        COPY
+        JUMP, L18
+    L17:
+        PUSH, _ints
+        PUSH, __intnl_SystemObjectArray_1
+        COPY
+    L18:
+        PUSH, __intnl_SystemObjectArray_1
         PUSH, __26__intnlparam
         COPY
         PUSH, __const_SystemBoolean_0  ; False
         PUSH, __27__intnlparam
         COPY
-# Cow dirty
-        PUSH, __22__intnlparam
-        PUSH, __intnl_SystemBoolean_0
-        COPY
 # Calling UdonSharpPlusTests.ClassGeneric.User.__cls_UdonSharpPlusTests_ClassGeneric_Pool__int__LastOrDefault__bool(object[], bool)
         JUMP, <__cls_UdonSharpPlusTests_ClassGeneric_Pool__int__LastOrDefault__bool(object[], bool)>
-    L15:
+    L19:
         PUSH, __intnl_SystemString_5
         PUSH, __25__intnlparam
         PUSH, __intnl_SystemString_6
         EXTERN, "SystemString.__Concat__SystemObject_SystemObject__SystemString"
-        PUSH, __gintnl_SystemUInt32_16  ; -> L16
+        PUSH, __gintnl_SystemUInt32_16  ; -> L20
         PUSH, __lcl_items_SystemObjectArray_0
         PUSH, __29__intnlparam
         COPY
@@ -534,11 +577,11 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         COPY
 # Cow dirty
         PUSH, __25__intnlparam
-        PUSH, __intnl_SystemInt32_0
+        PUSH, __intnl_SystemInt32_2
         COPY
 # Calling UdonSharpPlusTests.ClassGeneric.User.__cls_UdonSharpPlusTests_ClassGeneric_Pool__UdonSharpPlusTests_ClassGeneric_Item__Get__int(object[], int)
         JUMP, <__cls_UdonSharpPlusTests_ClassGeneric_Pool__UdonSharpPlusTests_ClassGeneric_Item__Get__int(object[], int)>
-    L16:
+    L20:
         PUSH, __28__intnlparam
         PUSH, __const_SystemInt32_4  ; 2
         PUSH, __intnl_SystemObject_0
@@ -552,10 +595,10 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         EXTERN, "SystemString.__op_Addition__SystemString_SystemString__SystemString"
         PUSH, __lcl_arr_SystemInt32Array_0
         PUSH, __const_SystemInt32_2  ; 0
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_3
         EXTERN, "SystemInt32Array.__Get__SystemInt32__SystemInt32"
         PUSH, __intnl_SystemString_8
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_3
         PUSH, __intnl_SystemString_9
         EXTERN, "SystemString.__Concat__SystemObject_SystemObject__SystemString"
         PUSH, __intnl_SystemString_9
@@ -573,11 +616,11 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         EXTERN, "SystemInt32Array.__Get__SystemInt32__SystemInt32"
         PUSH, __0_a__param
         PUSH, __0_j__param
-        PUSH, __intnl_SystemInt32_2
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemInt32Array.__Get__SystemInt32__SystemInt32"
         PUSH, __0_a__param
         PUSH, __0_i__param
-        PUSH, __intnl_SystemInt32_2
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemInt32Array.__Set__SystemInt32_SystemInt32__SystemVoid"
         PUSH, __0_a__param
         PUSH, __0_j__param
@@ -780,9 +823,9 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
     L0:
         PUSH, __lcl___col_i0_SystemInt32_0
         PUSH, __lcl___col_n1_SystemInt32_0
-        PUSH, __intnl_SystemBoolean_1
+        PUSH, __intnl_SystemBoolean_3
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_1
+        PUSH, __intnl_SystemBoolean_3
         JUMP_IF_FALSE, L2
         PUSH, __lcl___col_l2_VRCSDK3DataDataList_0
         PUSH, __lcl___col_i0_SystemInt32_0
@@ -793,13 +836,13 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
         PUSH, __lcl_x_SystemInt32_0
         PUSH, __lcl_best_SystemInt32_0
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_5
         EXTERN, "SystemInt32.__CompareTo__SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_5
         PUSH, __const_SystemInt32_2  ; 0
-        PUSH, __intnl_SystemBoolean_2
+        PUSH, __intnl_SystemBoolean_4
         EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_2
+        PUSH, __intnl_SystemBoolean_4
         JUMP_IF_FALSE, L1
         PUSH, __lcl_x_SystemInt32_0
         PUSH, __lcl_best_SystemInt32_0
@@ -880,13 +923,13 @@ __refl_typename = "UdonSharpPlusTests.ClassGeneric.Derived"
         PUSH, __intnl_VRCSDK3DataDataList_4
         COPY
         PUSH, __intnl_VRCSDK3DataDataList_4
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "VRCSDK3DataDataList.__get_Count__SystemInt32"
         PUSH, __lcl_i_SystemInt32_0
-        PUSH, __intnl_SystemInt32_4
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_5
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_5
         JUMP_IF_FALSE, L3
         PUSH, __gintnl_SystemUInt32_22  ; -> L2
         PUSH, __lcl_result_SystemObjectArray_0
@@ -1083,13 +1126,13 @@ __const_VRCSDK3DataDataToken_3 = p
 __const_VRCSDK3DataDataToken_4 = q
 __gintnl_SystemUInt32_0 = -> Start():L0
 __gintnl_SystemUInt32_1 = -> Start():L1
-__gintnl_SystemUInt32_10 = -> Start():L10
-__gintnl_SystemUInt32_11 = -> Start():L11
-__gintnl_SystemUInt32_12 = -> Start():L12
-__gintnl_SystemUInt32_13 = -> Start():L13
-__gintnl_SystemUInt32_14 = -> Start():L14
-__gintnl_SystemUInt32_15 = -> Start():L15
-__gintnl_SystemUInt32_16 = -> Start():L16
+__gintnl_SystemUInt32_10 = -> Start():L12
+__gintnl_SystemUInt32_11 = -> Start():L13
+__gintnl_SystemUInt32_12 = -> Start():L14
+__gintnl_SystemUInt32_13 = -> Start():L15
+__gintnl_SystemUInt32_14 = -> Start():L16
+__gintnl_SystemUInt32_15 = -> Start():L19
+__gintnl_SystemUInt32_16 = -> Start():L20
 __gintnl_SystemUInt32_17 = -> __cls_UdonSharpPlusTests_ClassGeneric_Pool__string__ctor():L0
 __gintnl_SystemUInt32_18 = -> __cls_UdonSharpPlusTests_ClassGeneric_Pool__UdonSharpPlusTests_ClassGeneric_Item__ctor():L0
 __gintnl_SystemUInt32_19 = -> __cls_UdonSharpPlusTests_ClassGeneric_Item__ctor__string(string):L0

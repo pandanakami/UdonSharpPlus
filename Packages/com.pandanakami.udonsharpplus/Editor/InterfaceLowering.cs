@@ -39,6 +39,9 @@ namespace UdonSharpPlus
 
         /// <summary>インタフェース型の置き換え先（UdonSharpBehaviour と汎用クラスの object[] の両方を入れられるもの。#50）</summary>
         internal const string ErasedType = "object";
+
+        /// <summary>振り分けのメソッドの受け側の引数。振り分けの中では null でないことを確かめてから、実装クラスにキャストして呼ぶ（#104）</summary>
+        internal const string DispatchReceiver = "__t";
         /// <summary>書き換え後のソースの出力先（テストでは一時フォルダに差し替える。#100）</summary>
         internal static string DumpDir = Path.Combine("Library", "UdonSharpPlus");
 

@@ -31,6 +31,8 @@ if (target is IDamageable)
 
 インタフェース型の変数は、`object` として扱われます（中身は UdonSharpBehaviour か、普通のクラスのインスタンス）。そのため `x != null` は、普通の C# のインタフェースと同じく参照の比較になり、Unity の比較（破棄済みのオブジェクトを null とみなす）にはなりません。
 
+null のインタフェース型の変数でメソッドを呼ぶと、C# と同じく実行時例外で止まります（止まる前に、ほかの処理は走りません）。ただし、例外の位置（`Udon runtime exception detected!`）は呼び出した行ではなく、その UdonSharpBehaviour のクラスの閉じ括弧の行になります。呼び出しは、閉じ括弧の行に生成した振り分けのメソッドを通り、その中で止まるためです（呼び出した行にするには呼び出しのたびに確認が要るので、しません）。位置が閉じ括弧の行のときは、null のインタフェース型の変数の呼び出しを疑ってください。
+
 ## メソッド名とオーバーロード
 
 インタフェース実装メソッドは、Udon 上でも元の名前（`Receive`）のままです。`SendCustomEvent` や `SendCustomNetworkEvent` には、`nameof(...)`、文字列リテラル、変数のどれで名前を渡しても届きます。受け手の型が `UdonSharpBehaviour` や `IUdonEventReceiver` でも同じです。

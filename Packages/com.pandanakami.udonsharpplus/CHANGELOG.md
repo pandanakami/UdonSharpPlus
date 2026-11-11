@@ -18,6 +18,7 @@ Fixes
 - Preprocessor directives (`#if`, `#region`, `#pragma`, ...) inside methods of plain classes, inside generic classes, and inside lambdas are no longer an error. Only the active branch of `#if` is used, with the same symbols as UdonSharp (`COMPILER_UDONSHARP`, and `UNITY_EDITOR` in the editor).
 - The rewritten source in `Library/UdonSharpPlus/` now keeps the folder structure of your scripts and is rebuilt on every compile. Scripts with the same name in different folders no longer overwrite each other, and outputs of deleted scripts no longer remain.
 - UdonSharp errors after a multi-line `List` / `Dictionary` initializer, LINQ chain, or lambda now point to the correct line. They used to point a few lines too early.
+- Calling a method or property of a plain class on `null` now always stops with a runtime exception, as in C#. Before, a member that does not use `this` (`int Twice(int x) => x * 2;`) ran without error, and a member that did other work before using `this` stopped only after that work. For these members, the exception now points to the line of the call.
 
 Clearer errors
 
@@ -39,6 +40,7 @@ Clearer errors
 - 普通のクラスのメソッドの中・ジェネリッククラスの中・ラムダの中のプリプロセッサ指令（`#if`・`#region`・`#pragma` など）が、エラーにならなくなりました。`#if` は、UdonSharp と同じシンボル（`COMPILER_UDONSHARP`、エディタでは `UNITY_EDITOR` も）で有効な側だけを使います。
 - `Library/UdonSharpPlus/` の書き換え後のソースを、元のスクリプトと同じフォルダの形で出し、コンパイルのたびに作り直すようにしました。別のフォルダの同じ名前のスクリプトが上書きし合ったり、消したスクリプトの出力が残ったりしなくなりました。
 - 複数行の `List` / `Dictionary` の初期化子・LINQ・ラムダのうしろの行で出た UdonSharp のエラーが、数行前の行に表示されていたのを直しました。
+- null の普通のクラスのメソッド・プロパティを呼ぶと、C# と同じく必ず実行時例外で止まるようにしました。これまでは、`this` を使わないメンバー（`int Twice(int x) => x * 2;`）はそのまま動き、`this` を使う前にほかの処理をするメンバーは、その処理をしてから止まっていました。こうしたメンバーでは、例外の位置は呼び出した行になります。
 
 分かりやすいエラーにしたもの
 

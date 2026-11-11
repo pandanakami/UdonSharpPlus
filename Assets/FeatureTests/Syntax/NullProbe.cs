@@ -8,9 +8,36 @@ namespace FeatureTests.Syntax
     // Udon でも実行時例外で止まる（黙って進まない）ことを確かめる。
     // 例外が起きるとこの UdonBehaviour は止まるので、ケースごとに 1 つずつ置き、caseId で選ぶ。
     // started は実行の前、finished は実行の後に立てる。NullProbeRunner がそれを読んで判定する
+    // #104: this を最初に使わないメンバー。null に対して呼ぶと、C# では呼び出しの時点で NullReferenceException になる
+    public class NullTarget
+    {
+        public int v;
+
+        public int Pure(int x) => x * 2;                       // this を使わない
+
+        public int Branch(int x)                               // 一部の分岐でだけ this を使う
+        {
+            if (x > 0)
+                return v;
+            return 0;
+        }
+
+        public int MarkThen(NullProbe p)                        // this を使う前に、ほかの処理がある
+        {
+            p.observed = "side effect";
+            return v;
+        }
+
+        public int PassThis() => Helper(this);                  // this を渡すだけ
+
+        private static int Helper(NullTarget t) => 1;
+
+        public int Constant => 42;                              // this を使わない本体付きプロパティ
+    }
+
     public class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 6;
+        public const int Count = 11;
 
         public int caseId;
         public bool started;
@@ -27,6 +54,11 @@ namespace FeatureTests.Syntax
                 case 3: return "null plain class field read";
                 case 4: return "null plain class field write";
                 case 5: return "null plain class method call";
+                case 6: return "null plain class method not using this";
+                case 7: return "null plain class method using this in a branch";
+                case 8: return "null plain class method with work before this";
+                case 9: return "null plain class method passing this";
+                case 10: return "null plain class property not using this";
             }
             return "?";
         }
@@ -40,6 +72,7 @@ namespace FeatureTests.Syntax
             IBase baseRef = derived;
             Link link = null;
             Item item = null;
+            NullTarget target = null;
             switch (caseId)
             {
                 case 0: observed = "" + derived.A(1); break;
@@ -51,6 +84,11 @@ namespace FeatureTests.Syntax
                     observed = "written";
                     break;
                 case 5: observed = "" + item.Score(1); break;
+                case 6: observed = "" + target.Pure(1); break;
+                case 7: observed = "" + target.Branch(0); break;
+                case 8: observed = "" + target.MarkThen(this); break;
+                case 9: observed = "" + target.PassThis(); break;
+                case 10: observed = "" + target.Constant; break;
             }
             finished = true;
             Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);

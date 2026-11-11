@@ -14,6 +14,7 @@
     __3__intnlparam: %SystemInt32, null
     __4__intnlparam: %SystemObjectArray, null
     __const_SystemInt32_0: %SystemInt32, null
+    __const_SystemObject_0: %SystemObject, null
     __const_SystemInt32_1: %SystemInt32, null
     __const_SystemString_0: %SystemString, null
     __const_SystemInt32_2: %SystemInt32, null
@@ -23,7 +24,10 @@
     __const_SystemInt32_4: %SystemInt32, null
     __lcl_box_SystemObjectArray_0: %SystemObjectArray, null
     __intnl_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_0: %SystemBoolean, null
+    __intnl_SystemObjectArray_0: %SystemObjectArray, null
     __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemInt32_2: %SystemInt32, null
     __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
     __lcl_unused_SystemInt32_0: %SystemInt32, null
     __intnl_SystemObject_0: %SystemObject, null
@@ -49,22 +53,40 @@
 # Calling UdonSharpPlusTests.PreprocessorGenericRegion.User.__cls_UdonSharpPlusTests_PreprocessorGenericRegion_Box__int__Get(object[])
         JUMP, <__cls_UdonSharpPlusTests_PreprocessorGenericRegion_Box__int__Get(object[])>
     L1:
-        PUSH, __gintnl_SystemUInt32_2  ; -> L2
+        PUSH, __gintnl_SystemUInt32_2  ; -> L4
         PUSH, __lcl_box_SystemObjectArray_0
-        PUSH, __4__intnlparam
-        COPY
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_0
+        PUSH, __const_SystemInt32_0  ; 0
+        PUSH, __intnl_SystemBoolean_0
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
 # Cow dirty
         PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_0
+        PUSH, __intnl_SystemInt32_1
+        COPY
+        PUSH, __intnl_SystemBoolean_0
+        JUMP_IF_FALSE, L2
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemObjectArray_0
+        COPY
+        JUMP, L3
+    L2:
+        PUSH, __lcl_box_SystemObjectArray_0
+        PUSH, __intnl_SystemObjectArray_0
+        COPY
+    L3:
+        PUSH, __intnl_SystemObjectArray_0
+        PUSH, __4__intnlparam
         COPY
 # Calling UdonSharpPlusTests.PreprocessorGenericRegion.User.__cls_UdonSharpPlusTests_PreprocessorGenericRegion_Box__int__EditorOnly(object[])
         JUMP, <__cls_UdonSharpPlusTests_PreprocessorGenericRegion_Box__int__EditorOnly(object[])>
-    L2:
-        PUSH, __intnl_SystemInt32_0
+    L4:
+        PUSH, __intnl_SystemInt32_1
         PUSH, __3__intnlparam
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_2
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_2
         EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -72,20 +94,20 @@
 #
 # UdonSharpPlusTests.PreprocessorGenericRegion.User.__cls_UdonSharpPlusTests_PreprocessorGenericRegion_Box__int__ctor()
 #
-        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __const_SystemInt32_1  ; 3
         PUSH, __lcl___this_SystemObjectArray_0
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __lcl___this_SystemObjectArray_0
-        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemInt32_0  ; 0
         PUSH, __const_SystemString_0  ; "UdonSharpPlusTests.PreprocessorGenericRegion.Box__int"
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
         PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemInt32_0  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __lcl___this_SystemObjectArray_0
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __const_SystemInt32_0  ; 0
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemUInt32_3  ; -> L0
         PUSH, __lcl___this_SystemObjectArray_0
@@ -140,8 +162,8 @@
 .code_end
 
 ### HeapDefaults
-__const_SystemInt32_0 = 3
-__const_SystemInt32_1 = 0
+__const_SystemInt32_0 = 0
+__const_SystemInt32_1 = 3
 __const_SystemInt32_2 = 1
 __const_SystemInt32_3 = 2
 __const_SystemInt32_4 = 100
@@ -149,7 +171,7 @@ __const_SystemString_0 = "UdonSharpPlusTests.PreprocessorGenericRegion.Box__int"
 __const_SystemUInt32_0 = 4294967295
 __gintnl_SystemUInt32_0 = -> Start():L0
 __gintnl_SystemUInt32_1 = -> Start():L1
-__gintnl_SystemUInt32_2 = -> Start():L2
+__gintnl_SystemUInt32_2 = -> Start():L4
 __gintnl_SystemUInt32_3 = -> __cls_UdonSharpPlusTests_PreprocessorGenericRegion_Box__int__ctor():L0
 __refl_typeid = 3594460955502778504
 __refl_typename = "UdonSharpPlusTests.PreprocessorGenericRegion.User"

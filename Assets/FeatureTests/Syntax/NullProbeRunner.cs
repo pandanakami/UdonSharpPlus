@@ -5,7 +5,8 @@ using UnityEngine.UI;
 namespace FeatureTests.Syntax
 {
     // #79 i・f: NullProbe（ケースごとに 1 つ）の結果を、数フレーム後に読んで OK/NG を表示する。
-    // 期待は C# と同じく、どのケースも実行時例外で止まること（finished が立たない）
+    // 期待は C# と同じく、どのケースも実行時例外で止まること（finished が立たない）。
+    // 止まる前にほかの処理が走っていないこと（observed が空のまま）も見る（#104）
     public class NullProbeRunner : UdonSharpBehaviour
     {
         public NullProbe[] probes;
@@ -22,8 +23,9 @@ namespace FeatureTests.Syntax
             for (int i = 0; i < probes.Length; i++)
             {
                 NullProbe p = probes[i];
-                string state = !p.started ? "not started" : p.finished ? "finished " + p.observed : "halted";
-                bool ok = p.started && !p.finished;
+                string state = !p.started ? "not started" : p.finished ? "finished " + p.observed
+                    : p.observed.Length > 0 ? "halted after " + p.observed : "halted";
+                bool ok = p.started && !p.finished && p.observed.Length == 0;
                 allOk &= ok;
                 text += (ok ? "OK  " : "NG  ") + NullProbe.NameOf(p.caseId) + ": " + state + (ok ? "" : " (expected halted)") + "\n";
             }
