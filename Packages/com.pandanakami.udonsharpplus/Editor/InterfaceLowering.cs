@@ -131,6 +131,13 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
+            // 4) 基底と派生の UdonSharpBehaviour の両方にできた同じ名前の生成メソッドは、派生の側の名前を変える（#111）
+            if (!diagnostics.HasErrors)
+            {
+                current = InheritedHelperNames.Run(current, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // エラーがあれば U# はこの直後でコンパイルを止めるので、書き換えた tree は使われない。
             // 元の tree のままにしておくと、U# が診断の位置からファイル名を引ける（binding.tree と照合するため）
             if (diagnostics.HasErrors && context != null)

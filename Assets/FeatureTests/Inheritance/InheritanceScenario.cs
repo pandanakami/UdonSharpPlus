@@ -43,6 +43,10 @@ namespace FeatureTests.Inheritance
             foreach (IInheritUnit u in units)
                 sum += u.Hp();
             r += sum + ";";
+
+            // e: 基底と派生の両方で、インタフェースの呼び出し・普通のクラス・ラムダを使う（#111）
+            InheritArcher archer = (InheritArcher)targets[1];
+            r += archer.BaseHelpers() + "," + archer.DerivedHelpers() + ";";
             return r;
         }
     }

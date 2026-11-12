@@ -8,7 +8,7 @@ namespace FeatureTests.Inheritance
     public class InheritanceRunner : UdonSharpBehaviour
     {
         // エディタで InheritanceScenario.Run() を普通の C# として実行した結果
-        private const string Expected = "20,base,22 10,base,11 ;False,True;22,22,16;43;";
+        private const string Expected = "20,base,22 10,base,11 ;False,True;22,22,16;43;23,35;";
 
         public UdonSharpBehaviour[] targets;   // Knight, Archer
         public InheritUnitBase baseTyped;      // Knight
