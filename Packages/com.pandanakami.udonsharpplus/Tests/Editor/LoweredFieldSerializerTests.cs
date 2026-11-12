@@ -38,6 +38,25 @@ namespace UdonSharpPlus.Tests
             Assert.That(storage.FullName, Is.EqualTo(udonType));
         }
 
+        /// <summary>
+        /// U# のコンパイルの並列処理（ワーカースレッド）から呼ばれても、例外にならない（#112）。
+        /// ドメインリロード直後と同じく、キャッシュを作り直したあと、最初の呼び出しをワーカースレッドで行う
+        /// </summary>
+        [Test]
+        public void WorksFromWorkerThreadAfterLoad()
+        {
+            LoweredFieldSerializerPatch.LoadSourceAssemblies();   // パッチを当てるとき（メインスレッド）と同じ
+            Type storage = null;
+            Exception error = null;
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try { storage = LoweredFieldSerializerPatch.UdonStorageType(typeof(Sample)); }
+                catch (Exception e) { error = e; }
+            }).Wait();
+            Assert.That(error, Is.Null);
+            Assert.That(storage, Is.EqualTo(typeof(object[])));
+        }
+
         [TestCase(typeof(int))]
         [TestCase(typeof(string))]
         [TestCase(typeof(int[]))]

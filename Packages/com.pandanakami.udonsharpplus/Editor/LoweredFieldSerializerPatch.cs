@@ -20,10 +20,22 @@ namespace UdonSharpPlus
     /// </summary>
     internal static class LoweredFieldSerializerPatch
     {
+        /// <summary>
+        /// ソースからコンパイルされたアセンブリの名前。パッチを当てるとき（[InitializeOnLoad]、メインスレッド）に作る。
+        /// Serializer.Create は U# のコンパイルの並列処理（ワーカースレッド）からも呼ばれ、
+        /// CompilationPipeline.GetAssemblies はメインスレッドでしか呼べないため、最初に使うときに作ってはいけない（#112）。
+        /// アセンブリの構成が変わるのはスクリプトのコンパイルのあとで、そのときはドメインリロードで作り直される
+        /// </summary>
         private static HashSet<string> _sourceAssemblies;
+
+        internal static void LoadSourceAssemblies()
+        {
+            _sourceAssemblies = new HashSet<string>(CompilationPipeline.GetAssemblies().Select(a => a.name));
+        }
 
         public static void Apply(Harmony harmony)
         {
+            LoadSourceAssemblies();
             harmony.Patch(UdonSharpInternals.SerializerCreate, prefix: new HarmonyMethod(typeof(LoweredFieldSerializerPatch), nameof(Prefix)));
         }
 
@@ -85,7 +97,7 @@ namespace UdonSharpPlus
         private static bool IsFromSource(Type type)
         {
             if (_sourceAssemblies == null)
-                _sourceAssemblies = new HashSet<string>(CompilationPipeline.GetAssemblies().Select(a => a.name));
+                LoadSourceAssemblies();   // Apply の前（テストなど）。メインスレッドのときだけ
             return _sourceAssemblies.Contains(type.Assembly.GetName().Name);
         }
     }

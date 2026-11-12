@@ -3,6 +3,20 @@
 Changes in each version of UdonSharp Plus. Each section is used as the body of the GitHub release.
 UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリリースの本文になります。
 
+## [0.1.3]
+
+### English
+
+Fixes
+
+- UdonSharp compilation no longer fails at random with "get_allowUnsafeCode can only be called from the main thread". This happened most often in the first compile after a script change.
+
+### 日本語
+
+不具合の修正
+
+- UdonSharp のコンパイルが、ときどき「get_allowUnsafeCode can only be called from the main thread」で失敗していたのを直しました。スクリプトを変えたあとの最初のコンパイルで起きやすいものでした。
+
 ## [0.1.2]
 
 ### English
