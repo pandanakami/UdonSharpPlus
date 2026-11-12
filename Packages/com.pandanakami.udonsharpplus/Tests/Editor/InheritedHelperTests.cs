@@ -118,13 +118,13 @@ namespace UdonSharpPlusTests.InheritedHelper
                 new TestSource("Shared.cs", Shared), new TestSource("BaseUser.cs", Base), new TestSource("DerivedUser.cs", Derived));
             Assert.That(result.Diagnostics, Is.Empty);
 
-            // 基底の名前はそのまま、派生の側だけ「名前__クラス名」になる（宣言と呼び出しの両方）
+            // 基底の名前はそのまま、派生の側だけ「名前__クラスの完全名」になる（宣言と呼び出しの両方）
             string baseText = Dumped("BaseUser.cs");
             string derived = Dumped("DerivedUser.cs");
             Assert.That(baseText, Does.Contain("__if_GetWidth__call("));
-            Assert.That(baseText, Does.Not.Contain("__DerivedUser"));
-            Assert.That(derived, Does.Contain("int __if_GetWidth__call__DerivedUser(object __t"));
-            Assert.That(derived, Does.Contain("__if_GetWidth__call__DerivedUser(s)"));
+            Assert.That(baseText, Does.Not.Contain("DerivedUser("));
+            Assert.That(derived, Does.Contain("int __if_GetWidth__call__UdonSharpPlusTests_InheritedHelper_DerivedUser(object __t"));
+            Assert.That(derived, Does.Contain("__if_GetWidth__call__UdonSharpPlusTests_InheritedHelper_DerivedUser(s)"));
             Assert.That(derived, Does.Not.Contain("__if_GetWidth__call("));
         }
 
@@ -136,7 +136,7 @@ namespace UdonSharpPlusTests.InheritedHelper
                 new TestSource("Shared.cs", Shared), new TestSource("BaseUser.cs", Base), new TestSource("DerivedUser.cs", Derived),
                 new TestSource("ThirdUser.cs", Third));
             Assert.That(result.Diagnostics, Is.Empty);
-            Assert.That(Dumped("ThirdUser.cs"), Does.Contain("__if_GetWidth__call__ThirdUser("));
+            Assert.That(Dumped("ThirdUser.cs"), Does.Contain("__if_GetWidth__call__UdonSharpPlusTests_InheritedHelper_ThirdUser("));
         }
     }
 }

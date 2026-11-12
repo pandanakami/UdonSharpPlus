@@ -10,6 +10,7 @@ UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリ
 Fixes
 
 - Using the same interface call, plain class, or lambda in both a base `UdonSharpBehaviour` and a class derived from it no longer causes the UdonSharp error "U# does not yet support hiding base methods".
+- Using the same interface call, plain class, or lambda in both files of a `partial` `UdonSharpBehaviour` no longer causes errors CS0111 and CS0121.
 - UdonSharp compilation no longer fails at random with "get_allowUnsafeCode can only be called from the main thread". This happened most often in the first compile after a script change.
 
 ### 日本語
@@ -17,6 +18,7 @@ Fixes
 不具合の修正
 
 - 基底の `UdonSharpBehaviour` と、その派生クラスの両方で、同じインタフェースの呼び出し・普通のクラス・ラムダを使うと、UdonSharp のエラー「U# does not yet support hiding base methods」になっていたのを直しました。
+- `partial` の `UdonSharpBehaviour` の 2 つのファイルの両方で、同じインタフェースの呼び出し・普通のクラス・ラムダを使うと、エラー CS0111・CS0121 になっていたのを直しました。
 - UdonSharp のコンパイルが、ときどき「get_allowUnsafeCode can only be called from the main thread」で失敗していたのを直しました。スクリプトを変えたあとの最初のコンパイルで起きやすいものでした。
 
 ## [0.1.2]

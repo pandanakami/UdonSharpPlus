@@ -174,6 +174,9 @@ namespace UdonSharpPlus.Tests
         /// </summary>
         public static readonly string[] EditorDefines = { "UNITY_EDITOR", "COMPILER_UDONSHARP" };
 
+        /// <summary>生成（Emit）を、U# と同じくプログラムごとに並列で行う（既定は順番。結果の比べやすさのため）</summary>
+        public static bool ParallelEmit;
+
         public static CompileResult Compile(params TestSource[] sources) => Compile(EditorDefines, sources);
 
         public static CompileResult Compile(string[] defines, params TestSource[] sources) => Compile(defines, null, sources);
@@ -326,12 +329,28 @@ namespace UdonSharpPlus.Tests
                 {
                     // ---- Emit ---------------------------------------------------------
                     phaseProperty.SetValue(context, Enum.Parse(phaseType, "Emit"));
-                    foreach (var (rootType, binding) in roots)
+                    if (ParallelEmit)
                     {
-                        ProgramResult program = EmitProgram(context, contextType, compilerType, assemblyModuleType, emitContextType, typeSymbolType,
-                            rootType, binding, assemblyModuleField);
-                        if (program != null)
-                            result.Programs.Add(program);
+                        // U# の EmitAllPrograms と同じく、プログラムごとに並列で生成する（#113）
+                        var emitted = new System.Collections.Concurrent.ConcurrentBag<ProgramResult>();
+                        System.Threading.Tasks.Parallel.ForEach(roots, root =>
+                        {
+                            ProgramResult program = EmitProgram(context, contextType, compilerType, assemblyModuleType, emitContextType, typeSymbolType,
+                                root.Type, root.Binding, assemblyModuleField);
+                            if (program != null)
+                                emitted.Add(program);
+                        });
+                        result.Programs.AddRange(emitted.OrderBy(p => p.TypeName, StringComparer.Ordinal));
+                    }
+                    else
+                    {
+                        foreach (var (rootType, binding) in roots)
+                        {
+                            ProgramResult program = EmitProgram(context, contextType, compilerType, assemblyModuleType, emitContextType, typeSymbolType,
+                                rootType, binding, assemblyModuleField);
+                            if (program != null)
+                                result.Programs.Add(program);
+                        }
                     }
                 }
             }

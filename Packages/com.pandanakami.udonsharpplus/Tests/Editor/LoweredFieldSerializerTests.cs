@@ -57,6 +57,35 @@ namespace UdonSharpPlus.Tests
             Assert.That(storage, Is.EqualTo(typeof(object[])));
         }
 
+        public class FallbackSample { }   // ほかのテストで使わない型（CreatePooled は型ごとに覚えるので）
+
+        /// <summary>
+        /// パッチの中で例外が起きても、コンパイルを止めず、U# の元の写し方に戻る（#113 G）。
+        /// #112 と同じく、キャッシュがない状態でワーカースレッドから呼んで、例外を起こす
+        /// </summary>
+        [Test]
+        public void FallsBackWhenPatchThrows()
+        {
+            FieldInfo cache = typeof(LoweredFieldSerializerPatch).GetField("_sourceAssemblies", BindingFlags.NonPublic | BindingFlags.Static);
+            object serializer = null;
+            Exception error = null;
+            try
+            {
+                cache.SetValue(null, null);
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    try { serializer = CreatePooled(typeof(FallbackSample)); }
+                    catch (Exception e) { error = e; }
+                }).Wait();
+            }
+            finally
+            {
+                LoweredFieldSerializerPatch.LoadSourceAssemblies();
+            }
+            Assert.That(error, Is.Null);
+            Assert.That(serializer, Is.Not.Null);
+        }
+
         [TestCase(typeof(int))]
         [TestCase(typeof(string))]
         [TestCase(typeof(int[]))]
@@ -70,7 +99,7 @@ namespace UdonSharpPlus.Tests
         }
 
         /// <summary>U# の Serializer.CreatePooled(Type)（テストのアセンブリは U# を参照しないので、リフレクションで呼ぶ）</summary>
-        private static object CreatePooled(Type type)
+        internal static object CreatePooled(Type type)
         {
             Type serializerType = null;
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
