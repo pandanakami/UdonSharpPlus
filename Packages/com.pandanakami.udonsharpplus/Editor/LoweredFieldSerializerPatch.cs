@@ -39,14 +39,27 @@ namespace UdonSharpPlus
             harmony.Patch(UdonSharpInternals.SerializerCreate, prefix: new HarmonyMethod(typeof(LoweredFieldSerializerPatch), nameof(Prefix)));
         }
 
+        private static int _warned;
+
         private static bool Prefix(TypeSerializationMetadata typeMetadata, ref Serializer __result)
         {
-            Type type = typeMetadata?.cSharpType;
-            if (type == null || UdonStorageType(type) == null)
-                return true;
+            try
+            {
+                Type type = typeMetadata?.cSharpType;
+                if (type == null || UdonStorageType(type) == null)
+                    return true;
 
-            __result = (Serializer)Activator.CreateInstance(typeof(LoweredFieldSerializer<>).MakeGenericType(type), typeMetadata);
-            return false;
+                __result = (Serializer)Activator.CreateInstance(typeof(LoweredFieldSerializer<>).MakeGenericType(type), typeMetadata);
+                return false;
+            }
+            catch (Exception e)
+            {
+                // U# のコンパイルの並列処理の中からも呼ばれるので、例外を外に出すとコンパイル全体が失敗する（#116）。
+                // U# の元の写し方に戻す（型を書き換えたフィールドでは、Play モードに入るときに「not compatible with serializer」が出うる）
+                if (System.Threading.Interlocked.Exchange(ref _warned, 1) == 0)
+                    Debug.LogWarning($"[UdonSharpPlus] フィールドの写し方を決めるところで例外が起きたため、UdonSharp の元の写し方に戻しました：{e.GetType().Name}: {e.Message}");
+                return true;
+            }
         }
 
         /// <summary>書き換え後の Udon 側の型。書き換えない型なら null</summary>
