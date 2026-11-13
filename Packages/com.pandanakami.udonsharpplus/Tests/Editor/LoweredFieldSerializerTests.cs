@@ -14,6 +14,7 @@ namespace UdonSharpPlus.Tests
         public class Sample : ISample { }
         public class Box<T> { }
         public class SampleBehaviour : MonoBehaviour { }
+        public delegate int SampleCalc(int x);   // #119
 
         private static IEnumerable<TestCaseData> Lowered()
         {
@@ -27,6 +28,8 @@ namespace UdonSharpPlus.Tests
             yield return new TestCaseData(typeof(Sample[]), "System.Object[][]");
             yield return new TestCaseData(typeof(ISample[]), "System.Object[]");
             yield return new TestCaseData(typeof(List<int>[]), "VRC.SDK3.Data.DataList[]");
+            yield return new TestCaseData(typeof(SampleCalc), "System.Object[]");
+            yield return new TestCaseData(typeof(SampleCalc[]), "System.Object[][]");
         }
 
         [TestCaseSource(nameof(Lowered))]
@@ -92,6 +95,7 @@ namespace UdonSharpPlus.Tests
         [TestCase(typeof(GameObject))]
         [TestCase(typeof(SampleBehaviour))]
         [TestCase(typeof(IDisposable))]
+        [TestCase(typeof(Action<int>))]   // ソースのデリゲートではない（#125 まで書き換えない）
         public void KeepsUdonSharpSerializer(Type type)
         {
             object serializer = CreatePooled(type);

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using UnityEngine;
@@ -39,6 +40,45 @@ namespace UdonSharpPlus
                 finalizer: new HarmonyMethod(typeof(UpgradeGuardPatch), nameof(Finalizer)));
             harmony.Patch(UdonSharpInternals.TryGetSystemType,
                 prefix: new HarmonyMethod(typeof(UpgradeGuardPatch), nameof(TryGetSystemTypePrefix)));
+            harmony.Patch(UdonSharpInternals.UpgradeVisitField,
+                prefix: new HarmonyMethod(typeof(UpgradeGuardPatch), nameof(VisitFieldPrefix)));
+        }
+
+        /// <summary>
+        /// アップグレードが [OdinSerialize] を足すフィールドから、UdonSharp Plus が書き換える型（ソースの普通のクラス・インタフェース・
+        /// デリゲートと、その配列）のフィールドを外す（#127）。書き換えた後はシリアライズしない型なので、足すとユーザーのスクリプトが
+        /// 変わるだけでなく、UdonSharp が [NonSerialized] より優先してシリアライズするフィールドとみなし、null でなく空の配列で始まってしまう
+        /// </summary>
+        // 引数名は元のメソッドと一致させる（Harmony は名前で対応づける）
+        private static bool VisitFieldPrefix(object __instance, Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax node, ref SyntaxNode __result)
+        {
+            try
+            {
+                if (UdonSharpInternals.UpgradeRewriterModel.GetValue(__instance) is SemanticModel model
+                    && IsLoweredType(model.GetTypeInfo(node.Declaration.Type).Type))
+                {
+                    __result = node;
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                // 判定できないときは UdonSharp の元の動きにする
+            }
+            return true;
+        }
+
+        /// <summary>UdonSharp Plus が書き換える、ソースの型か（普通のクラス・インタフェース・デリゲートと、その配列）</summary>
+        internal static bool IsLoweredType(ITypeSymbol type)
+        {
+            while (type is IArrayTypeSymbol array)
+                type = array.ElementType;
+            if (!(type is INamedTypeSymbol named))
+                return false;
+            named = named.OriginalDefinition;
+            if (!named.Locations.Any(l => l.IsInSource))
+                return false;
+            return named.TypeKind == TypeKind.Interface || named.TypeKind == TypeKind.Delegate || ClassLowering.IsPlainClass(named);
         }
 
         /// <summary>次の読み込みを書き換えないなら true を返し、印を消す</summary>

@@ -142,5 +142,71 @@ namespace UdonSharpPlusTests.Concurrency
             });
             Assert.That(errors, Is.Empty);
         }
+
+        // ---- デリゲート（#126 D4） ------------------------------------------------
+
+        private const string DelegateShared = @"
+namespace UdonSharpPlusTests.ConcurrencyDelegate
+{
+    public delegate int Calc(int x);
+
+    public class Holder
+    {
+        public Calc calc;
+        public int Run(int x) => calc(x);
+    }
+}";
+
+        private static string DelegateUser(int i) => $@"
+using UdonSharp;
+using UnityEngine;
+
+namespace UdonSharpPlusTests.ConcurrencyDelegate
+{{
+    public class DUser{i} : UdonSharpBehaviour
+    {{
+        private static int Twice(int x) => x * 2;
+        private int Add(int x) => x + {i};
+
+        void Start()
+        {{
+            Calc c = Twice;
+            var h = new Holder();
+            h.calc = Add;
+            Debug.Log(c({i}) + h.Run(1));
+        }}
+    }}
+}}";
+
+        private static string Uasm(CompileResult result) =>
+            string.Join("\n", result.Programs.OrderBy(p => p.TypeName, StringComparer.Ordinal).Select(p => p.TypeName + "\n" + p.Uasm));
+
+        /// <summary>デリゲートの書き換え（中継メソッド・呼び出しの static クラスのコピー）は、並列で生成しても順番に生成したときと同じ</summary>
+        [Test]
+        public void ParallelEmitKeepsDelegatePrograms()
+        {
+            TestSource[] sources = new[] { new TestSource("DelegateShared.cs", DelegateShared) }
+                .Concat(Enumerable.Range(0, Programs).Select(i => new TestSource($"DUser{i}.cs", DelegateUser(i)))).ToArray();
+            bool saved = UdonSharpTestCompiler.ParallelEmit;
+            try
+            {
+                UdonSharpTestCompiler.ParallelEmit = false;
+                CompileResult sequential = UdonSharpTestCompiler.Compile(sources);
+                Assert.That(sequential.Diagnostics, Is.Empty);
+                Assert.That(sequential.Programs.Count, Is.EqualTo(Programs));
+                string expected = Uasm(sequential);
+                for (int run = 0; run < 3; run++)
+                {
+                    UdonSharpTestCompiler.ParallelEmit = true;
+                    CompileResult parallel = UdonSharpTestCompiler.Compile(sources);
+                    Assert.That(parallel.Diagnostics, Is.Empty);
+                    Assert.That(Uasm(parallel), Is.EqualTo(expected), $"{run + 1} 回目");
+                }
+            }
+            finally
+            {
+                UdonSharpTestCompiler.ParallelEmit = saved;
+            }
+        }
     }
 }

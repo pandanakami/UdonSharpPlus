@@ -51,6 +51,8 @@ namespace UdonSharpPlus
         public static MethodInfo TryGetSystemType;       // TypeSymbol.TryGetSystemType(ITypeSymbol, out Type)
         public static PropertyInfo EditorCacheInstance;  // UdonSharpEditorCache.Instance
         public static MethodInfo ClearUpgradePassQueue;  // UdonSharpEditorCache.ClearUpgradePassQueue()
+        public static MethodInfo UpgradeVisitField;      // UdonSharpUpgrader.SerializationUpdateSyntaxRewriter.VisitFieldDeclaration（#127）
+        public static FieldInfo UpgradeRewriterModel;    // UdonSharpUpgrader.SerializationUpdateSyntaxRewriter.model
 
         /// <summary>見つからなかったものの名前（Resolve の後）</summary>
         public static IReadOnlyList<string> Missing => _missing;
@@ -123,6 +125,9 @@ namespace UdonSharpPlus
             Type editorCache = T("UdonSharp.UdonSharpEditorCache");
             EditorCacheInstance = P(editorCache, "Instance");
             ClearUpgradePassQueue = M(editorCache, "ClearUpgradePassQueue");
+            Type upgradeRewriter = Need(upgrader == null ? null : AccessTools.Inner(upgrader, "SerializationUpdateSyntaxRewriter"), "UdonSharpUpgrader.SerializationUpdateSyntaxRewriter");
+            UpgradeVisitField = M(upgradeRewriter, "VisitFieldDeclaration", typeof(Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax));
+            UpgradeRewriterModel = F(upgradeRewriter, "model");
 
             return _missing.Count == 0;
         }

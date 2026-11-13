@@ -7,11 +7,29 @@ UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリ
 
 ### English
 
+New
+
+- Delegates you declare yourself (`delegate int Calc(int x);`) can be used in variables, fields, parameters, return values, and arrays, and called with `d(x)` / `d.Invoke(x)`. A delegate can hold a static method or a method of the same `UdonSharpBehaviour`, and can be passed to and called from another `UdonSharpBehaviour`. Lambdas, `+=` / `-=`, and `Action` / `Func` / `Predicate` are not supported yet (they are compile errors). See Documentation~/delegates.md.
+
+Fixes
+
+- A public field of a plain class type in a `UdonSharpBehaviour` now starts as `null` even after UdonSharp's automatic upgrade (for example, when you create the U# program asset). Before, it started as an empty array, so `item == null` was false.
+- UdonSharp's automatic upgrade no longer adds `[OdinSerialize]` to your script for public fields of plain class, interface, and delegate types. These fields are not serialized.
+
 Clearer errors
 
 - A `partial` method in a plain class (`partial void OnHit();`) now reports "partial methods are not supported" (UdonSharp does not support them either). Before, it caused errors CS0111 and CS0121, or, when only the declaration was written, compiled as an empty method. `partial` classes can still be used.
 
 ### 日本語
+
+新しく使えるもの
+
+- 自分で宣言したデリゲート（`delegate int Calc(int x);`）を、変数・フィールド・引数・戻り値・配列に入れ、`d(x)`・`d.Invoke(x)` で呼べるようになりました。入れられるのは static メソッドと、その `UdonSharpBehaviour` のメソッドです。別の `UdonSharpBehaviour` に渡して、向こうで呼ぶこともできます。ラムダ・`+=` / `-=`・`Action` / `Func` / `Predicate` は、まだ未対応です（コンパイルエラーになります）。詳しくは Documentation~/delegates.md を見てください。
+
+不具合の修正
+
+- `UdonSharpBehaviour` の普通のクラス型の public フィールドが、UdonSharp の自動アップグレード（U# のプログラムアセットを作ったときなど）のあとでも、`null` で始まるようにしました。これまでは空の配列で始まり、`item == null` が false になっていました。
+- UdonSharp の自動アップグレードが、普通のクラス型・インタフェース型・デリゲート型の public フィールドに `[OdinSerialize]` を足して、スクリプトを書き換えないようにしました（これらのフィールドはシリアライズしません）。
 
 分かりやすいエラーにしたもの
 

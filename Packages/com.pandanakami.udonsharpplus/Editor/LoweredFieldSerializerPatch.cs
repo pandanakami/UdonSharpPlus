@@ -86,6 +86,8 @@ namespace UdonSharpPlus
                 return null;
             if (type.IsInterface)
                 return typeof(object);
+            if (typeof(Delegate).IsAssignableFrom(type))
+                return typeof(object[]);   // ソースで宣言したデリゲート（#119）
             if (IsPlainClass(type))
                 return typeof(object[]);
             return null;

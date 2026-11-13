@@ -37,12 +37,20 @@ namespace FeatureTests.Syntax
 
     public class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 11;
+        public const int Count = 17;
 
         public int caseId;
         public bool started;
         public bool finished;
         public string observed = "";
+
+        // #126: デリゲートのケース
+        public FeatureTests.Delegate.DelegateHolder victim;   // 12：Destroy してから、そのメソッドのデリゲートを呼ぶ
+        private FeatureTests.Delegate.Calc _pending;
+        private FeatureTests.Delegate.Calc[] _calcs = new FeatureTests.Delegate.Calc[1];
+        private FeatureTests.Delegate.Calc NullCalc => null;
+        private FeatureTests.Delegate.Calc GetNullCalc() => null;
+        private int Divide(int x) => 10 / x;
 
         public static string NameOf(int id)
         {
@@ -59,6 +67,12 @@ namespace FeatureTests.Syntax
                 case 8: return "null plain class method with work before this";
                 case 9: return "null plain class method passing this";
                 case 10: return "null plain class property not using this";
+                case 11: return "null delegate call";
+                case 12: return "delegate call after target destroyed";
+                case 13: return "exception inside delegate target";
+                case 14: return "null delegate array element call";
+                case 15: return "null delegate returned by method call";
+                case 16: return "null delegate property call";
             }
             return "?";
         }
@@ -73,6 +87,7 @@ namespace FeatureTests.Syntax
             Link link = null;
             Item item = null;
             NullTarget target = null;
+            FeatureTests.Delegate.Calc calc = null;   // #119
             switch (caseId)
             {
                 case 0: observed = "" + derived.A(1); break;
@@ -89,7 +104,27 @@ namespace FeatureTests.Syntax
                 case 8: observed = "" + target.MarkThen(this); break;
                 case 9: observed = "" + target.PassThis(); break;
                 case 10: observed = "" + target.Constant; break;
+                case 11: observed = "" + calc(1); break;
+                case 12:
+                    _pending = victim.MakeAdder();
+                    Destroy(victim.gameObject);
+                    SendCustomEventDelayedFrames(nameof(CallDestroyed), 2);
+                    return;   // 結果はあとで
+                case 13:
+                    FeatureTests.Delegate.Calc divide = Divide;
+                    observed = "" + divide(0);
+                    break;
+                case 14: observed = "" + _calcs[0](1); break;
+                case 15: observed = "" + GetNullCalc()(1); break;
+                case 16: observed = "" + NullCalc(1); break;
             }
+            finished = true;
+            Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);
+        }
+
+        public void CallDestroyed()
+        {
+            observed = "" + _pending(1);
             finished = true;
             Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);
         }

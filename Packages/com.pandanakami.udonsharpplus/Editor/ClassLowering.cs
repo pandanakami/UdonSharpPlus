@@ -612,18 +612,12 @@ namespace UdonSharpPlus
                     return base.VisitFieldDeclaration(node);
                 }
 
+                // public でも Unity・UdonSharp にシリアライズさせない（[NonSerialized] を足し、自動アップグレードが足した [OdinSerialize] は外す。#127）
                 var visited = (FieldDeclarationSyntax)base.VisitFieldDeclaration(node);
-                bool isPublic = node.Modifiers.Any(SyntaxKind.PublicKeyword);
-                if (!isPublic || attributes.Contains("NonSerializedAttribute"))
-                    return visited;
-
-                // public でも Unity にシリアライズさせない（同じ行に属性を足す）
-                Changed = true;
-                var attribute = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::System.NonSerialized"))))
-                    .WithTrailingTrivia(SyntaxFactory.Space);
-                SyntaxTriviaList leading = visited.GetLeadingTrivia();
-                return visited.WithoutLeadingTrivia().WithAttributeLists(visited.AttributeLists.Insert(0, attribute)).WithLeadingTrivia(leading);
+                FieldDeclarationSyntax result = SerializationFields.MakeNonSerialized(visited);
+                if (!ReferenceEquals(result, visited))
+                    Changed = true;
+                return result;
             }
 
             // ---- 型参照の置換 ---------------------------------------------------

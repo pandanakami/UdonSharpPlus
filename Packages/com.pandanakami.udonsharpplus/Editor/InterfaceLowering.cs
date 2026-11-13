@@ -101,6 +101,14 @@ namespace UdonSharpPlus
             if (TupleCheck.MayHaveTuples(current))
                 TupleCheck.Run(current, diagnostics, GetMetadataReferences());
 
+            // ソースで宣言したデリゲート → object[] と、呼び出しの static クラス・中継メソッド（#69 / #119）。
+            // 生成するコードは普通のクラス・インタフェースの型のままなので、それらの段より前に置く
+            if (DelegateLowering.MayHaveDelegates(current))
+            {
+                current = DelegateLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // 1) インタフェース → 2) 汎用クラス（#49）の順に書き換える。どちらも行数を変えず、tree の並びも変えない。
             // インタフェースの段は、汎用クラスの実装への振り分けを普通の C#（((Bullet)x).M(a)）で書き、
             // 汎用クラスの段がそれをコピーの呼び出しにする（#50）
