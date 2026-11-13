@@ -19,7 +19,8 @@ UdonSharp Plus は、Harmony で UdonSharp（VRChat Worlds SDK に同梱）の�
 3. EditMode テスト（`UdonSharpPlus.Editor.Tests`）を実行する。
    - まず `UdonSharpInternalsTests` を見る。落ちていたら、メッセージにある内部 API が変わっています。UdonSharp のソース（`Packages/com.vrchat.worlds/Integrations/UdonSharp/`）を見て、`UdonSharpInternals.cs` と、それを使うパッチを直します。
    - ゴールデンテスト（`GoldenTests`）が落ちたら、UdonSharp が出す Udon Assembly が変わっていないか、期待値ファイルとの差分を見る。変わったのが UdonSharp 側の都合だけなら、`Tools > UdonSharpPlus > Tests > Update Expected Files` で期待値を作り直す。
-4. `Assets/FeatureTests/FeatureTests.unity` を ClientSim で実行し、全パネルが `RESULT: OK` になることを見る。#32（ネットワーク）は 2 クライアント、#53（実行時エラー）は手で操作して確かめる。
+4. `Assets/FeatureTests/FeatureTests.unity` を ClientSim で実行し、全パネルが `RESULT: OK` になることを見る。プレイモードの間にメニューの `Tools/UdonSharpPlus/FeatureTests/Collect Results` を実行すると、全パネルの結果がコンソールに 1 つのログでまとめて出る（Unity MCP からは `execute_code` で `return FeatureTests.EditorTools.FeatureTestResults.Collect();`）。遅れて判定するパネルは「未完了」になるので、少し待って呼び直す。#32（ネットワーク）は 2 クライアント、#53（実行時エラー）は手で操作して確かめる（まとめの最後に「手で確認」として出る）。
+   - 新しいパネルを足すときは、結果を出す UdonSharpBehaviour に `resultReady`・`resultOk`・`resultName`・`resultText` の public 変数を作り、判定したところで入れる（`[HideInInspector]` を付ける）。
 5. VRChat のクライアントでも、同じパネルを確かめる。
 6. `package.json` の `vpmDependencies` の範囲を広げ（例：`>=3.10.6 <3.12`）、README の「動作対象」も直して、パッケージのバージョンを上げてリリースする。
 

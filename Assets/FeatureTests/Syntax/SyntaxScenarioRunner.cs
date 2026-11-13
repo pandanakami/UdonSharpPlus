@@ -8,6 +8,12 @@ namespace FeatureTests.Syntax
     // Start で 1 回実行し、Interact でもう一度実行できる。
     public class SyntaxScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで SyntaxScenario.Run() を普通の C# として実行した結果
         private const string Expected =
             "a:3,x3,p9,4,6,10;b:6,2,8,4;c:5,[z],25,4,6,True,False;d:1,1,1,0,12,4,9;" +
@@ -41,6 +47,7 @@ namespace FeatureTests.Syntax
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
+            resultName = "#79 syntax"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #79 " + (ok ? "OK" : "NG") + " | " + actual);
             if (display != null)
                 display.text = text;

@@ -10,6 +10,12 @@ namespace FeatureTests.Collection
     // Start で 1 回実行し、ボタン（Interact）でもう一度実行できる。
     public class LinqScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで LinqScenario.Run() を普通の C# として実行した結果（m は RunInstance の結果を手で書いたもの）
         private const string Expected =
             "a:10 16 12,242;b:3,586<5><8><6>;c:True,True,False,True,False,6,2,True,False;d:5,5,0,7,3,0;e:26,220,1,9,-1,5.5,2.75;" +
@@ -56,6 +62,7 @@ namespace FeatureTests.Collection
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
+            resultName = "#58 LINQ"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #58 " + (ok ? "OK" : "NG") + " | " + actual);
             if (display != null)
                 display.text = text;

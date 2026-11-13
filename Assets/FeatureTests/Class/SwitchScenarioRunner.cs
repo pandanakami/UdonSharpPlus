@@ -9,6 +9,12 @@ namespace FeatureTests.Class
     // 時間（time）は参考の表示で、OK/NG には入れない
     public class SwitchScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         private const string Expected =
             "a:2,6,15,13,5,4,0,-9,11,12,42;b:101;c:15;d:a,c,banner;e:13,12;";
 
@@ -60,6 +66,7 @@ namespace FeatureTests.Class
             Measure(units[0]);
             string time = "first " + Measure(units[8]) + "ms, last " + Measure(units[7]) + "ms (" + Loops + " calls)";
 
+            resultName = "#65 interface switch"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #65 " + (ok ? "OK " : "NG ") + actual + " " + time);
             if (display != null)
                 display.text = "#65 interface switch\n" + (ok ? "RESULT: OK" : "RESULT: NG") + "\n\n"

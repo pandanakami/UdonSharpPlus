@@ -8,6 +8,12 @@ namespace FeatureTests.Class
     // 手計算の期待値と比べて OK/NG を表示する。Start で 1 回実行し、Interact でもう一度実行できる。
     public class ShapeScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         private const string Expected =
             "a circle:12;a square:9;a triangle:7;sum:28;is:True,True,False,False,False;as:as circle;cross:9;init:12,7,27,9;";
 
@@ -55,6 +61,7 @@ namespace FeatureTests.Class
             actual += init[0].Area() + "," + init[1].Area() + ";";
 
             bool ok = actual == Expected;
+            resultName = "#50 class implements interface"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #50 " + (ok ? "OK " : "NG ") + actual);
             if (display != null)
                 display.text = "#50 class implements interface\n" + (ok ? "RESULT: OK" : "RESULT: NG") + "\n\n"

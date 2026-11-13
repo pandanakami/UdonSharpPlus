@@ -7,6 +7,12 @@ namespace FeatureTests.Inheritance
     // #92: InheritanceScenario を Udon 上で実行し、普通の C#（エディタ）で実行した結果と比べて OK/NG を表示する
     public class InheritanceRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで InheritanceScenario.Run() を普通の C# として実行した結果
         private const string Expected = "20,base,22 10,base,11 ;False,True;22,22,16;43;23,35;";
 
@@ -34,6 +40,7 @@ namespace FeatureTests.Inheritance
                     continue;
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
+            resultName = "#92 behaviour inheritance"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #92 " + (ok ? "OK" : "NG") + " | " + actual);
             if (display != null)
                 display.text = text;

@@ -13,6 +13,12 @@ namespace FeatureTests.Collection
     // エラーのログ（First などが出すもの）は、コンソールで目で確かめる
     public class RuntimeNoteRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         public RuntimeNoteProbe[] probes;
         public Text display;
 
@@ -49,6 +55,7 @@ namespace FeatureTests.Collection
             bool countOk = probes.Length == RuntimeNoteProbe.Count;
             allOk &= countOk;
 
+            resultName = "#63 runtime notes"; resultOk = allOk; resultText = text.Replace("\n", " | "); resultReady = true;
             Debug.Log("[FeatureTests] #63 notes " + (allOk ? "OK" : "NG") + " | " + text.Replace("\n", " | "));
             if (display != null)
                 display.text = "#63 runtime notes\n" + (allOk ? "RESULT: OK" : "RESULT: NG") + (countOk ? "" : " (probe count)") + "\n\n" + text;

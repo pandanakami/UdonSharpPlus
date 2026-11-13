@@ -8,6 +8,12 @@ namespace FeatureTests.Interface
     // Enemy・GreetTarget と同じ GameObject に置く。Enemy の状態は変えない（ほかのテストが Enemy を使うため）
     public class GetComponentProbe : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         private void Start()
         {
             string r = "";
@@ -56,6 +62,7 @@ namespace FeatureTests.Interface
             ok &= greetedAll == "hi b";
             r += "greetAs:" + greetedAll + ";";
 
+            resultName = "#76 GetComponent"; resultOk = ok; resultText = r; resultReady = true;
             Debug.Log("[FeatureTests] #76 GetComponent " + (ok ? "OK" : "NG") + " | " + r);
         }
     }

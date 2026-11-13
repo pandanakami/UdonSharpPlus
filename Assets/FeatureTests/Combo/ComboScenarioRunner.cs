@@ -8,6 +8,12 @@ namespace FeatureTests.Combo
     // Start で 1 回実行し、Interact でもう一度実行できる。
     public class ComboScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで ComboScenario.Run() を普通の C# として実行した結果
         private const string Expected =
             "a:4,mage,52,2,7,Truemage,hired:x thief;b:2,-1,True,8 6 2 8 7 5,19;c:archer golem hired:x knight thief,6,8,7;" +
@@ -39,6 +45,7 @@ namespace FeatureTests.Combo
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
+            resultName = "#63 combo"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #63 " + (ok ? "OK" : "NG") + " | " + actual);
             if (display != null)
                 display.text = text;

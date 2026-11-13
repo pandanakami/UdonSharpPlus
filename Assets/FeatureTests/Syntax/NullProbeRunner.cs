@@ -9,6 +9,12 @@ namespace FeatureTests.Syntax
     // 止まる前にほかの処理が走っていないこと（observed が空のまま）も見る（#104）
     public class NullProbeRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         public NullProbe[] probes;
         public Text display;
 
@@ -32,6 +38,7 @@ namespace FeatureTests.Syntax
             bool countOk = probes.Length == NullProbe.Count;
             allOk &= countOk;
 
+            resultName = "#79 null access"; resultOk = allOk; resultText = text.Replace("\n", " | "); resultReady = true;
             Debug.Log("[FeatureTests] #79 null " + (allOk ? "OK" : "NG") + " | " + text.Replace("\n", " | "));
             if (display != null)
                 display.text = "#79 null access\n" + (allOk ? "RESULT: OK" : "RESULT: NG") + (countOk ? "" : " (probe count)") + "\n\n" + text;

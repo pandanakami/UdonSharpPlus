@@ -8,6 +8,12 @@ namespace FeatureTests.Class
     // Start で 1 回実行し、ボタン（Interact）でもう一度実行できる。
     public class ClassScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで ClassScenario.Run() を普通の C# として実行した結果
         private const string Expected =
             "a:10,3,bullet,(0.00, 0.00, 0.00);b:(0.00, 0.00, 3.00),10;c:20,(1.00, 0.00, 3.00),first,40,False;d:18,99;" +
@@ -46,6 +52,7 @@ namespace FeatureTests.Class
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
+            resultName = "#49 class"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] " + (ok ? "OK " : "NG ") + actual);
             if (display != null)
                 display.text = text;

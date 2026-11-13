@@ -8,6 +8,12 @@ namespace FeatureTests.Generic
     // Start で 1 回実行し、ボタン（Interact）でもう一度実行できる。
     public class GenericScenarioRunner : GenericScenarioBase
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで GenericScenario.Run() を普通の C# として実行した結果と、z（このクラスのジェネリックメソッド）
         private const string Expected =
             "a:3,5,4,0,True,False;b:xyTrue,bob2True;c:3z;d:9,plum,1.5,pear,9;e:b/2,3,1;f:2,1,0,True,3;g:3,3;h:5,1,0,5;" +
@@ -62,6 +68,7 @@ namespace FeatureTests.Generic
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
+            resultName = "#59 generics"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #59 " + (ok ? "OK" : "NG") + " | " + actual);
             if (display != null)
                 display.text = text;

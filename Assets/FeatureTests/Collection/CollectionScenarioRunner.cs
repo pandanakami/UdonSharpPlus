@@ -10,6 +10,12 @@ namespace FeatureTests.Collection
     // Start で 1 回実行し、ボタン（Interact）でもう一度実行できる。
     public class CollectionScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで CollectionScenario.Run() を普通の C# として実行した結果
         private const string Expected =
             "a:10 7 9 1,True,True,2,4;b:1 7 9 10;c:10 9 7 1;d:4,9 7 1 7,9 7 1 7;e0:2two;e:2,False,True,11;f:11;g:0;" +
@@ -54,6 +60,7 @@ namespace FeatureTests.Collection
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
+            resultName = "#56 List / Dictionary"; resultOk = ok; resultText = fieldText + " | " + actual; resultReady = true;
             Debug.Log("[FeatureTests] #56 " + (ok ? "OK " : "NG ") + fieldText + " | " + actual);
             if (display != null)
                 display.text = text;

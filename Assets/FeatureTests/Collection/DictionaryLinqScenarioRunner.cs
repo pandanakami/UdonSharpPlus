@@ -8,6 +8,12 @@ namespace FeatureTests.Collection
     // Start で 1 回実行し、ボタン（Interact）でもう一度実行できる。
     public class DictionaryLinqScenarioRunner : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         // エディタで DictionaryLinqScenario.Run() を普通の C# として実行した結果
         private const string Expected =
             "a:ann cid dan,3,False,True,cid,220;b:3,50,False,260,90,ann cid dan;c:cid90,2ann90,cid,eve=55;d:3,2,ann=70 cid=90;" +
@@ -37,6 +43,7 @@ namespace FeatureTests.Collection
                 text += ei == ai ? $"OK  {ai}\n" : $"NG  {ai}\n    expected {ei}\n";
             }
 
+            resultName = "#61 Dictionary LINQ"; resultOk = ok; resultText = actual; resultReady = true;
             Debug.Log("[FeatureTests] #61 " + (ok ? "OK" : "NG") + " | " + actual);
             if (display != null)
                 display.text = text;

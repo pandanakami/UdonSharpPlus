@@ -8,6 +8,12 @@ namespace FeatureTests.Interface
     // 結果はパネルに OK / NG で出す。Start で 1 回実行し、ボタン（Interact）でもう一度実行できる。
     public class TypeCheckProbe : UdonSharpBehaviour
     {
+        // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
+        [HideInInspector] public bool resultReady;
+        [HideInInspector] public bool resultOk;
+        [HideInInspector] public string resultName = "";
+        [HideInInspector] public string resultText = "";
+
         public Text display;
         public UdonSharpBehaviour behaviour;   // 任意の UdonSharpBehaviour
         public ObjectHolder holder;            // 別の Behaviour へ渡す確認用
@@ -82,6 +88,7 @@ namespace FeatureTests.Interface
                            + $"10000 checks: GetType {(t1 - t0) * 1000f:F2}ms / null-check only {(t2 - t1) * 1000f:F2}ms";
 
             string result = header + _text + types;
+            resultName = "#33 runtime type check"; resultOk = _ng == 0; resultText = result.Replace("\n", " | "); resultReady = true;
             Debug.Log("[FeatureTests] " + result.Replace("\n", " | "));
             if (display != null)
                 display.text = result;
