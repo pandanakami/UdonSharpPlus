@@ -433,6 +433,10 @@ namespace UdonSharpPlus
                         case IMethodSymbol m when m.IsGenericMethod:
                             Fail(loc, $"'{s.Name}.{m.Name}' : ジェネリックメソッドは未対応です");
                             break;
+                        case IMethodSymbol m when IsPartialMethod(m):
+                            // 宣言と実装が別のメソッドとしてコピーされて二重になる。宣言だけなら空のメソッドとして通ってしまう（#117）
+                            Fail(loc, $"'{s.Name}.{m.Name}' : partial メソッドは未対応です（UdonSharp も対応していません）。普通のメソッドにしてください");
+                            break;
                         case IMethodSymbol m when m.IsOverride && m.Name != "ToString" && m.Name != "Equals" && m.Name != "GetHashCode":
                             Fail(loc, $"'{s.Name}.{m.Name}' : override は未対応です");
                             break;
@@ -452,6 +456,11 @@ namespace UdonSharpPlus
                     }
                 }
             }
+
+            /// <summary>partial メソッド（宣言だけのものも、実装のあるものも）</summary>
+            private static bool IsPartialMethod(IMethodSymbol m) =>
+                m.PartialDefinitionPart != null || m.PartialImplementationPart != null
+                || m.DeclaringSyntaxReferences.Any(r => r.GetSyntax() is MethodDeclarationSyntax d && d.Modifiers.Any(SyntaxKind.PartialKeyword));
 
             private static void AddSlot(ClassInfo c, ISymbol symbol)
             {

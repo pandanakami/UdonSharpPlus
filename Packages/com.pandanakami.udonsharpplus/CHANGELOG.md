@@ -3,6 +3,20 @@
 Changes in each version of UdonSharp Plus. Each section is used as the body of the GitHub release.
 UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリリースの本文になります。
 
+## [0.1.4]
+
+### English
+
+Clearer errors
+
+- A `partial` method in a plain class (`partial void OnHit();`) now reports "partial methods are not supported" (UdonSharp does not support them either). Before, it caused errors CS0111 and CS0121, or, when only the declaration was written, compiled as an empty method. `partial` classes can still be used.
+
+### 日本語
+
+分かりやすいエラーにしたもの
+
+- 普通のクラスの `partial` メソッド（`partial void OnHit();`）は「partial メソッドは未対応です」のエラーになります（UdonSharp も対応していません）。これまでは、エラー CS0111・CS0121 になるか、宣言だけのときは中身が空のメソッドとして通っていました。`partial` クラスは、これまでどおり使えます。
+
 ## [0.1.3]
 
 ### English

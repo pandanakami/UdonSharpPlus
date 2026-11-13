@@ -1,0 +1,4 @@
+## Diagnostics
+Error: Assets/UdonSharpPlusTests/User.cs(10,22): [UdonSharpPlus] 'Both.OnHit' : partial メソッドは未対応です（UdonSharp も対応していません）。普通のメソッドにしてください
+Error: Assets/UdonSharpPlusTests/User.cs(22,22): [UdonSharpPlus] 'DeclarationOnly.OnHit' : partial メソッドは未対応です（UdonSharp も対応していません）。普通のメソッドにしてください
+## Logs

@@ -44,6 +44,7 @@ Bullet[] pool = new Bullet[8];
 - ユーザー定義の構造体（struct）。UdonSharp も対応していません。UdonSharpBehaviour から使うと「`'Point' : ユーザー定義の構造体は未対応です`」のエラーになります（UdonSharp のままだと内部の例外になり、原因が分かりにくいため）
 - 演算子のオーバーロード、インデクサー、イベント、`ToString` などの override
 - ローカル関数（メソッドの中に書いたメソッド）。UdonSharp も対応していません。「`'Add' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください`」のエラーになります
+- partial メソッド（`partial void OnHit();` と、別の宣言に書いたその実装）。UdonSharp も対応していません。「`'Item.OnHit' : partial メソッドは未対応です（UdonSharp も対応していません）。普通のメソッドにしてください`」のエラーになります。partial クラス（宣言を複数に分けること）は使えます
 - インスタンスのメソッドを、メソッド名だけで渡すこと（`list.Find(b.IsHit)`）。ラムダで書いてください（`list.Find(x => b.IsHit(x))`）
 - オブジェクト初期化子（`new Bullet { damage = 1 }`）、`?.`、型パターン（`x is Bullet b`）、`typeof(Bullet)`
 - `GetComponent<Bullet>()` などの GetComponent 系（普通のクラスはコンポーネントではなく、書き換えると実行時に例外で止まるため）
