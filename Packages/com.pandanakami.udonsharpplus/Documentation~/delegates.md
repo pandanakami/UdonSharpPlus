@@ -16,6 +16,7 @@ public class Turret : UdonSharpBehaviour
     {
         _damage = Double;          // static メソッド
         _damage = AddBonus;        // この UdonSharpBehaviour のメソッド
+        _damage = x => x + bonus;  // ラムダ（外のローカル変数・引数を使わないもの）
         int d = _damage(10);       // 呼び出し（_damage.Invoke(10) も同じ）
         other.SetFilter(_damage);  // 引数に渡す（別の UdonSharpBehaviour でも呼べます）
     }
@@ -26,7 +27,8 @@ public class Turret : UdonSharpBehaviour
 
 - `delegate` の宣言。名前空間の直下・UdonSharpBehaviour の中・普通のクラスの中のどこに書いても使えます
 - デリゲート型の変数・フィールド・引数・戻り値・配列、普通のクラスのフィールド
-- 入れられるもの：static メソッド（どのクラスのものでも）、その UdonSharpBehaviour の（`this` の）メソッド、`null`、`new Calc(F)`
+- 入れられるもの：static メソッド（どのクラスのものでも）、その UdonSharpBehaviour の（`this` の）メソッド、ラムダ、`null`、`new Calc(F)`
+- ラムダ：式の本体（`x => x * 2`）・ブロックの本体（`x => { ... }`）・捨てる引数（`(_, _) => ...`）が使えます。フィールド・プロパティ・メソッドは使えますが、外のローカル変数・引数は、まだ使えません（クロージャ。対応予定）。ラムダの中でエラー・実行時例外が起きると、元のラムダの行に表示されます。デリゲートを呼ぶラムダは、再帰しても壊れないよう `[RecursiveMethod]` と同じ扱いにします（ラムダには属性を書けないため）
 - 呼び出し：`d(x)`、`d.Invoke(x)`。null のデリゲートを呼ぶと、C# と同じく実行時例外で止まります。止まる位置は、変数・フィールド・プロパティを呼んだときは呼び出した行、配列の要素（`ds[0](x)`）・メソッドの戻り値（`Get()(x)`）を呼んだときはデリゲートの宣言の行です
 - 呼んだメソッドの中で起きた実行時例外は、そのメソッドの行に表示されます
 - 引数・戻り値の型は、値型（`Vector3` など）・配列・`GameObject`・UdonSharpBehaviour・普通のクラス・インタフェース・ジェネリッククラス・`List` / `Dictionary`・ほかのデリゲートのどれでも使えます
@@ -40,7 +42,8 @@ public class Turret : UdonSharpBehaviour
 
 | 書き方 | 予定 |
 |---|---|
-| ラムダ・匿名メソッド（`d = x => x * 2;`、`delegate (int x) { ... }`）、ローカル関数 | 対応予定 |
+| 外のローカル変数・引数を使うラムダ（`int k = 1; d = x => x + k;`） | 対応予定 |
+| 匿名メソッド（`delegate (int x) { ... }`）、ローカル関数 | 対応予定 |
 | `+=` / `-=`、`+` / `-` | 対応予定 |
 | ほかのインスタンスのメソッド（`d = enemy.Hit;`、普通のクラスのメソッド） | 対応予定 |
 | 普通のクラスの中・static メソッドの中・フィールドの初期化子の中でデリゲートを作ること | 普通のクラスの中は対応予定。UdonSharpBehaviour の中で作って渡してください |

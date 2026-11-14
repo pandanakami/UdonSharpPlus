@@ -63,7 +63,7 @@ namespace UdonSharpPlus
             for (int i = 0; i < trees.Count; i++)
             {
                 SemanticModel model = compilation.GetSemanticModel(trees[i]);
-                var rewriter = new Rewriter(shared, model);
+                var rewriter = new Rewriter(shared, model, i);
                 SyntaxNode newRoot = rewriter.Visit(trees[i].GetRoot());
                 result.Add(rewriter.Changed ? Reparse(newRoot, trees[i]) : trees[i]);
             }
@@ -122,9 +122,15 @@ namespace UdonSharpPlus
             public readonly Dictionary<INamedTypeSymbol, DelegateInfo> Delegates;
             public readonly InterfaceLowering.LoweringDiagnostics Diagnostics;
 
-            /// <summary>UdonSharpBehaviour ごとの中継メソッド（名前 → コード）と、使うデリゲート型</summary>
-            public readonly Dictionary<INamedTypeSymbol, (Dictionary<string, string> Trampolines, HashSet<DelegateInfo> Delegates)> Hosts =
-                new Dictionary<INamedTypeSymbol, (Dictionary<string, string>, HashSet<DelegateInfo>)>(SymbolEqualityComparer.Default);
+            /// <summary>UdonSharpBehaviour ごとの生成メンバーと、使うデリゲート型</summary>
+            public readonly Dictionary<INamedTypeSymbol, HostInfo> Hosts = new Dictionary<INamedTypeSymbol, HostInfo>(SymbolEqualityComparer.Default);
+
+            public HostInfo HostOf(INamedTypeSymbol host)
+            {
+                if (!Hosts.TryGetValue(host, out HostInfo info))
+                    Hosts[host] = info = new HostInfo();
+                return info;
+            }
 
             public Shared(Dictionary<INamedTypeSymbol, DelegateInfo> delegates, InterfaceLowering.LoweringDiagnostics diagnostics)
             {
@@ -194,11 +200,40 @@ namespace UdonSharpPlus
             }
         }
 
+        /// <summary>クラスの宣言の場所（tree の番号・名前・名前の行）。書き換えても行は変わらないので、書き換え後の tree でも引ける</summary>
+        private readonly struct DeclRef : IEquatable<DeclRef>
+        {
+            public readonly int Tree;
+            public readonly string Name;
+            public readonly int Line;
+
+            public DeclRef(int tree, ClassDeclarationSyntax decl)
+            {
+                Tree = tree;
+                Name = decl.Identifier.ValueText;
+                Line = decl.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line;
+            }
+
+            public bool Equals(DeclRef other) => Tree == other.Tree && Name == other.Name && Line == other.Line;
+            public override bool Equals(object obj) => obj is DeclRef other && Equals(other);
+            public override int GetHashCode() => (Tree * 397) ^ (Name.GetHashCode() * 31) ^ Line;
+        }
+
+        /// <summary>UdonSharpBehaviour ごとの生成メンバー</summary>
+        private sealed class HostInfo
+        {
+            public readonly HashSet<DelegateInfo> Delegates = new HashSet<DelegateInfo>();
+            /// <summary>名前 → コードと、置く宣言（作った場所の宣言。partial のほかのファイルの using に頼らないため）</summary>
+            public readonly Dictionary<string, (string Code, DeclRef Decl)> Members = new Dictionary<string, (string, DeclRef)>();
+            public int LambdaCount;
+        }
+
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// 中継メソッドと、その引数・戻り値のフィールドを、UdonSharpBehaviour の最初の宣言（partial なら tree の順で最初）の閉じ括弧の行に置く。
-        /// フィールドは、同じデリゲート型の中継メソッドを持つ基底があれば、基底の側にだけ置く（派生は継承したものを使う）
+        /// 中継メソッド・ラムダの本体は、作った場所のクラスの宣言の、閉じ括弧の行に置く。
+        /// 引数・戻り値のフィールドは、UdonSharpBehaviour の最初の宣言（partial なら tree の順で最初）に置く。
+        /// 同じデリゲート型を使う基底があれば、基底の側にだけ置く（派生は継承したものを使う）
         /// </summary>
         private static List<SyntaxTree> AddGeneratedMembers(List<SyntaxTree> rewritten, List<SyntaxTree> originals, Shared shared)
         {
@@ -206,51 +241,57 @@ namespace UdonSharpPlus
                 return rewritten;
 
             var result = new List<SyntaxTree>(rewritten);
-            var byTree = new Dictionary<int, List<(string Name, int Line, List<string> Code)>>();
+            var byDecl = new Dictionary<DeclRef, List<string>>();
+            void Add(DeclRef decl, IEnumerable<string> code)
+            {
+                if (!byDecl.TryGetValue(decl, out var list))
+                    byDecl[decl] = list = new List<string>();
+                list.AddRange(code);
+            }
+
             foreach (var pair in shared.Hosts)
             {
                 INamedTypeSymbol host = pair.Key;
-                var code = new List<string>();
+                var fields = new List<string>();
                 foreach (DelegateInfo info in pair.Value.Delegates.OrderBy(d => d.Key, StringComparer.Ordinal))
                 {
                     bool inherited = false;
                     for (INamedTypeSymbol b = host.BaseType; b != null && !inherited; b = b.BaseType)
                         inherited = shared.Hosts.TryGetValue(b, out var baseHost) && baseHost.Delegates.Contains(info);
                     if (!inherited)
-                        code.AddRange(shared.FieldCode(info));
+                        fields.AddRange(shared.FieldCode(info));
                 }
-                code.AddRange(pair.Value.Trampolines.OrderBy(t => t.Key, StringComparer.Ordinal).Select(t => t.Value));
 
-                // 最初の宣言
-                var first = host.DeclaringSyntaxReferences
-                    .Select(r => (Tree: originals.IndexOf(r.SyntaxTree), Node: r.GetSyntax() as ClassDeclarationSyntax))
-                    .Where(r => r.Tree >= 0 && r.Node != null)
-                    .OrderBy(r => r.Tree).ThenBy(r => r.Node.SpanStart)
-                    .FirstOrDefault();
-                if (first.Node == null)
-                    continue;
-                int line = first.Node.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line;
-                if (!byTree.TryGetValue(first.Tree, out var list))
-                    byTree[first.Tree] = list = new List<(string, int, List<string>)>();
-                list.Add((first.Node.Identifier.ValueText, line, code));
+                if (fields.Count > 0)
+                {
+                    var first = host.DeclaringSyntaxReferences
+                        .Select(r => (Tree: originals.IndexOf(r.SyntaxTree), Node: r.GetSyntax() as ClassDeclarationSyntax))
+                        .Where(r => r.Tree >= 0 && r.Node != null)
+                        .OrderBy(r => r.Tree).ThenBy(r => r.Node.SpanStart)
+                        .FirstOrDefault();
+                    if (first.Node != null)
+                        Add(new DeclRef(first.Tree, first.Node), fields);
+                }
+                foreach (var m in pair.Value.Members.OrderBy(m => m.Key, StringComparer.Ordinal))
+                    Add(m.Value.Decl, new[] { m.Value.Code });
             }
 
-            foreach (var pair in byTree)
+            foreach (var group in byDecl.GroupBy(d => d.Key.Tree))
             {
-                SyntaxTree tree = result[pair.Key];
+                SyntaxTree tree = result[group.Key];
                 SyntaxNode root = tree.GetRoot();
                 var targets = new Dictionary<ClassDeclarationSyntax, List<string>>();
-                foreach (var (name, line, code) in pair.Value)
+                foreach (var pair in group)
                 {
                     ClassDeclarationSyntax target = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault(c =>
-                        c.Identifier.ValueText == name && c.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line == line);
+                        c.Identifier.ValueText == pair.Key.Name && c.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line == pair.Key.Line);
                     if (target != null)
-                        targets[target] = code;
+                        targets[target] = pair.Value;
                 }
                 if (targets.Count == 0)
                     continue;
                 root = root.ReplaceNodes(targets.Keys, (o, n) => GeneratedMembers.AppendOnClosingLine(n, targets[o]));
-                result[pair.Key] = Reparse(root, tree);
+                result[group.Key] = Reparse(root, tree);
             }
             return result;
         }
@@ -265,11 +306,28 @@ namespace UdonSharpPlus
 
             public bool Changed { get; private set; }
 
-            public Rewriter(Shared shared, SemanticModel model)
+            private readonly int _treeIndex;
+
+            /// <summary>ラムダの本体を書き換えている間：元の文 → 位置の印（書き換えた文の前に付ける）</summary>
+            private Dictionary<SyntaxNode, string> _statementMarkers;
+
+            public Rewriter(Shared shared, SemanticModel model, int treeIndex)
             {
                 _shared = shared;
                 _model = model;
+                _treeIndex = treeIndex;
             }
+
+            public override SyntaxNode Visit(SyntaxNode node)
+            {
+                SyntaxNode visited = base.Visit(node);
+                if (_statementMarkers != null && node != null && visited != null && _statementMarkers.TryGetValue(node, out string marker))
+                    visited = visited.WithLeadingTrivia(visited.GetLeadingTrivia().Insert(0, SyntaxFactory.Comment(marker)));
+                return visited;
+            }
+
+            /// <summary>作った場所の、クラスの宣言</summary>
+            private DeclRef DeclOf(SyntaxNode node) => new DeclRef(_treeIndex, node.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().First());
 
             private void Error(SyntaxNode node, string message) =>
                 _shared.Diagnostics.Error(node.GetLocation(), message, _owners.Count > 0 ? _owners.Peek() : null);
@@ -628,17 +686,166 @@ namespace UdonSharpPlus
                 }
 
                 string trampoline = $"__dlg_{info.Key}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(method.ContainingType))}_{name}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(host))}";
-                if (!_shared.Hosts.TryGetValue(host, out var entry))
-                    _shared.Hosts[host] = entry = (new Dictionary<string, string>(), new HashSet<DelegateInfo>());
+                HostInfo entry = _shared.HostOf(host);
                 entry.Delegates.Add(info);
-                if (!entry.Trampolines.ContainsKey(trampoline))
-                {
-                    IMethodSymbol invoke = info.Invoke;
-                    string args = string.Join(", ", Enumerable.Range(0, invoke.Parameters.Length).Select(info.ParamField));
-                    string assign = invoke.ReturnsVoid ? "" : info.RetField + " = ";
-                    entry.Trampolines[trampoline] = $"public void {trampoline}() {{ {SourceMap.MarkerFor(node)}{assign}{callee}({args}); }}";
-                }
+                if (!entry.Members.ContainsKey(trampoline))
+                    entry.Members[trampoline] = (TrampolineCode(info, trampoline, SourceMap.MarkerFor(node), callee), DeclOf(node));
                 return Parse($"new {ValueType} {{ this, \"{trampoline}\", null }}", node);
+            }
+
+            /// <summary>中継メソッド：public void T() { ret = callee(p0, p1); }</summary>
+            private static string TrampolineCode(DelegateInfo info, string name, string marker, string callee)
+            {
+                IMethodSymbol invoke = info.Invoke;
+                string args = string.Join(", ", Enumerable.Range(0, invoke.Parameters.Length).Select(info.ParamField));
+                string assign = invoke.ReturnsVoid ? "" : info.RetField + " = ";
+                return $"public void {name}() {{ {marker}{assign}{callee}({args}); }}";
+            }
+
+            // ---- ラムダ（#120） -------------------------------------------------
+
+            /// <summary>
+            /// ソースのデリゲート型に入れるラムダ：本体をメソッドにし（引数はラムダの引数）、それを呼ぶ中継メソッドを置く。
+            ///   private R __dlg_K__lambdaN__C__body(T0 x) { ... }
+            ///   public void __dlg_K__lambdaN__C() { ret = __dlg_K__lambdaN__C__body(p0); }
+            /// 外のローカル変数・引数を使うもの（クロージャ）は、まだ未対応（#121）
+            /// </summary>
+            private SyntaxNode CreateLambda(LambdaExpressionSyntax node, DelegateInfo info)
+            {
+                if (info.Unsupported != null)
+                {
+                    Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                    return node;
+                }
+                if (node.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
+                {
+                    Error(node, "async のラムダは未対応です");
+                    return node;
+                }
+                INamedTypeSymbol host = HostOf(node, out string hostError);
+                if (host == null)
+                {
+                    Error(node, hostError.Replace("デリゲートを作る", "ラムダをデリゲートに入れる"));
+                    return node;
+                }
+
+                IMethodSymbol invoke = info.Invoke;
+                string[] names;
+                CSharpSyntaxNode body;
+                switch (node)
+                {
+                    case SimpleLambdaExpressionSyntax s:
+                        names = new[] { s.Parameter.Identifier.ValueText };
+                        body = s.Body;
+                        break;
+                    case ParenthesizedLambdaExpressionSyntax p:
+                        names = p.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray();
+                        body = p.Body;
+                        break;
+                    default:
+                        return node;
+                }
+                if (names.Length != invoke.Parameters.Length)
+                    return node;   // C# のエラーになる
+                // 捨てる引数（(_, _) => ...）は名前が重なるので付け直す（本体からは使えない）
+                if (names.Count(n => n == "_") > 1)
+                    for (int i = 0; i < names.Length; i++)
+                        if (names[i] == "_")
+                            names[i] = "__a" + i;
+
+                string captured = CapturedOuter(node, body);
+                if (captured != null)
+                {
+                    Error(node, $"'{captured}' : 外のローカル変数・引数を使うラムダを、デリゲートに入れることは、まだ未対応です。フィールドにするか、デリゲートの引数で渡してください");
+                    return node;
+                }
+
+                HostInfo entry = _shared.HostOf(host);
+                entry.Delegates.Add(info);
+                string name = $"__dlg_{info.Key}__lambda{entry.LambdaCount++}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(host))}";
+                string bodyName = name + "__body";
+
+                // ラムダは名前がないので、自分を呼ぶ（再帰する）にはデリゲートを通すしかない。デリゲートを呼ぶラムダは、
+                // 再帰しても引数・ローカル変数が壊れないよう [RecursiveMethod] にする（ラムダには属性を書けないため）
+                bool recursive = body.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Any(inv =>
+                    DelegateOf(inv.Expression) != null
+                    || inv.Expression is MemberAccessExpressionSyntax ma && ma.Name.Identifier.ValueText == "Invoke" && DelegateOf(ma.Expression) != null);
+
+                string bodyText = LambdaBodyText(body, invoke);
+                if (bodyText == null)
+                    return node;
+                string ret = invoke.ReturnsVoid ? "void" : _shared.TypeText(invoke.ReturnType);
+                string parameters = string.Join(", ", names.Select((n, i) => $"{_shared.TypeText(invoke.Parameters[i].Type)} {n}"));
+                string marker = SourceMap.MarkerFor(node);
+                string attribute = recursive ? "[global::UdonSharp.RecursiveMethod] " : "";
+                entry.Members[bodyName] = ($"{attribute}private {ret} {bodyName}({parameters}) {bodyText}", DeclOf(node));
+                entry.Members[name] = (TrampolineCode(info, name, marker, "this." + bodyName), DeclOf(node));
+                return Parse($"new {ValueType} {{ this, \"{name}\", null }}", node);
+            }
+
+            /// <summary>ラムダの外で宣言したローカル変数・引数を使っていれば、その名前。なければ null</summary>
+            private string CapturedOuter(LambdaExpressionSyntax lambda, CSharpSyntaxNode body)
+            {
+                foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+                {
+                    ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                    bool variable = symbol is ILocalSymbol || symbol is IParameterSymbol p && !p.IsThis;
+                    if (!variable)
+                        continue;
+                    if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == lambda.SyntaxTree && lambda.Span.Contains(r.Span)))
+                        continue;
+                    return symbol.Name;
+                }
+                return null;
+            }
+
+            /// <summary>ラムダの本体を、1 行のメソッドの本体（{ ... }）にする。文ごとに元の位置の印を付ける</summary>
+            private string LambdaBodyText(CSharpSyntaxNode body, IMethodSymbol invoke)
+            {
+                var markers = new Dictionary<SyntaxNode, string>();
+                SyntaxNode visited;
+                Dictionary<SyntaxNode, string> saved = _statementMarkers;
+                if (body is BlockSyntax block)
+                {
+                    foreach (StatementSyntax s in block.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax)).OfType<StatementSyntax>())
+                        if (!(s is BlockSyntax))
+                            markers[s] = SourceMap.MarkerFor(s);
+                    _statementMarkers = markers;
+                    try { visited = Visit(block); }
+                    finally { _statementMarkers = saved; }
+                    return Flatten(visited, body);
+                }
+
+                var expression = (ExpressionSyntax)body;
+                _statementMarkers = null;
+                try { visited = Visit(expression); }
+                finally { _statementMarkers = saved; }
+                string text = Flatten(visited, body);
+                if (text == null)
+                    return null;
+                string marker = SourceMap.MarkerFor(expression);
+                return invoke.ReturnsVoid ? $"{{ {marker}{text}; }}" : $"{{ {marker}return {text}; }}";
+            }
+
+            /// <summary>
+            /// 生成メソッドに入れるため 1 行にする（生成メンバーはクラスの閉じ括弧の行に置くので、改行があると後ろの行がずれる）。
+            /// 位置の印は残す。だめなときは null
+            /// </summary>
+            private string Flatten(SyntaxNode node, SyntaxNode original)
+            {
+                // プリプロセッサ指令と #if の無効な側は trivia なので、空白になり、有効な側のコードだけが残る
+                SyntaxNode flat = node.ReplaceTokens(
+                    node.DescendantTokens().Where(t => t.IsKind(SyntaxKind.StringLiteralToken) && t.Text.Contains("\n")),
+                    (o, _) => SyntaxFactory.Literal(o.ValueText).WithTriviaFrom(o));
+                flat = flat.ReplaceTrivia(flat.DescendantTrivia(descendIntoTrivia: false),
+                    (o, _) => SourceMap.IsMarker(o) ? o : SyntaxFactory.Space);
+                string text = flat.ToFullString().Trim();
+                if (text.Contains("\n"))
+                {
+                    Error(original, "ラムダの中の、改行を含む補間文字列は未対応です");
+                    return null;
+                }
+                return text;
             }
 
             /// <summary>デリゲートを作れる場所なら、その UdonSharpBehaviour。そうでなければ null と理由</summary>
@@ -712,7 +919,15 @@ namespace UdonSharpPlus
                 DelegateInfo info = _shared.Find(_model.GetTypeInfo(node).ConvertedType);
                 if (info == null)
                     return null;
-                Error(node, $"'{info.Symbol.Name}' : ラムダ・匿名メソッドをデリゲートに入れることは、まだ未対応です。メソッドにして、メソッド名を入れてください");
+                if (node is LambdaExpressionSyntax lambda)
+                {
+                    SyntaxNode created = CreateLambda(lambda, info);
+                    if (created != node)
+                        return created;
+                    // エラーにしたもの：後の段（List・LINQ のラムダの書き換え）で同じ場所に別のエラーを出さないよう、null にしておく
+                    return Parse("null", node);
+                }
+                Error(node, $"'{info.Symbol.Name}' : 匿名メソッド（delegate {{ ... }}）をデリゲートに入れることは、まだ未対応です。ラムダで書いてください");
                 // 後の段（List・LINQ のラムダの書き換え）で同じ場所に別のエラーを出さないよう、null にしておく
                 return Parse("null", node);
             }

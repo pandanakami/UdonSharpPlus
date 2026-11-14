@@ -9,7 +9,7 @@ UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリ
 
 New
 
-- Delegates you declare yourself (`delegate int Calc(int x);`) can be used in variables, fields, parameters, return values, and arrays, and called with `d(x)` / `d.Invoke(x)`. A delegate can hold a static method or a method of the same `UdonSharpBehaviour`, and can be passed to and called from another `UdonSharpBehaviour`. Lambdas, `+=` / `-=`, and `Action` / `Func` / `Predicate` are not supported yet (they are compile errors). See Documentation~/delegates.md.
+- Delegates you declare yourself (`delegate int Calc(int x);`) can be used in variables, fields, parameters, return values, and arrays, and called with `d(x)` / `d.Invoke(x)`. A delegate can hold a static method, a method of the same `UdonSharpBehaviour`, or a lambda that does not use local variables or parameters from outside it, and can be passed to and called from another `UdonSharpBehaviour`. Lambdas that use outer local variables, `+=` / `-=`, and `Action` / `Func` / `Predicate` are not supported yet (they are compile errors). See Documentation~/delegates.md.
 
 Fixes
 
@@ -24,7 +24,7 @@ Clearer errors
 
 新しく使えるもの
 
-- 自分で宣言したデリゲート（`delegate int Calc(int x);`）を、変数・フィールド・引数・戻り値・配列に入れ、`d(x)`・`d.Invoke(x)` で呼べるようになりました。入れられるのは static メソッドと、その `UdonSharpBehaviour` のメソッドです。別の `UdonSharpBehaviour` に渡して、向こうで呼ぶこともできます。ラムダ・`+=` / `-=`・`Action` / `Func` / `Predicate` は、まだ未対応です（コンパイルエラーになります）。詳しくは Documentation~/delegates.md を見てください。
+- 自分で宣言したデリゲート（`delegate int Calc(int x);`）を、変数・フィールド・引数・戻り値・配列に入れ、`d(x)`・`d.Invoke(x)` で呼べるようになりました。入れられるのは static メソッド・その `UdonSharpBehaviour` のメソッド・外のローカル変数や引数を使わないラムダです。別の `UdonSharpBehaviour` に渡して、向こうで呼ぶこともできます。外のローカル変数を使うラムダ・`+=` / `-=`・`Action` / `Func` / `Predicate` は、まだ未対応です（コンパイルエラーになります）。詳しくは Documentation~/delegates.md を見てください。
 
 不具合の修正
 

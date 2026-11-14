@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 17;
+        public const int Count = 18;
 
         public int caseId;
         public bool started;
@@ -73,6 +73,7 @@ namespace FeatureTests.Syntax
                 case 14: return "null delegate array element call";
                 case 15: return "null delegate returned by method call";
                 case 16: return "null delegate property call";
+                case 17: return "exception inside lambda";
             }
             return "?";
         }
@@ -117,6 +118,14 @@ namespace FeatureTests.Syntax
                 case 14: observed = "" + _calcs[0](1); break;
                 case 15: observed = "" + GetNullCalc()(1); break;
                 case 16: observed = "" + NullCalc(1); break;
+                case 17:
+                    FeatureTests.Delegate.Calc lambda = x =>
+                    {
+                        int zero = x - x;
+                        return 10 / zero;   // ここ（#120：ラムダの中の例外は元の行）
+                    };
+                    observed = "" + lambda(3);
+                    break;
             }
             finished = true;
             Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);

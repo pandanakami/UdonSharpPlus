@@ -15,7 +15,7 @@ namespace FeatureTests.Delegate
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果
-        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True";
+        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True;12,5,8,c3!,9,15,8,120,8,12";
 
         // UdonSharpBehaviour の中で宣言したデリゲート（名前空間の直下に移して書き換える）
         public delegate bool Check(int x);
@@ -38,6 +38,8 @@ namespace FeatureTests.Delegate
         private string Label(int x) => "n" + x;
         private int Apply(Calc c, int x) => c(x);
         private Calc Pick(bool square) => square ? (Calc)Square : DelegateMath.Twice;
+        private Calc MakeTripler() => x => x * 3;
+        private Calc _rec;
 
         private void Start() { Run(); }
 
@@ -68,7 +70,22 @@ namespace FeatureTests.Delegate
             // string を返す
             _describe = Label; s += _describe(3) + ";";
             // null との比較
-            Calc none = null; s += (none == null) + "," + (_calc != null);
+            Calc none = null; s += (none == null) + "," + (_calc != null) + ";";
+            // #120 ラムダ（外の変数を使わないもの）：式・ブロック・フィールドを使う・void・捨てる引数・引数に渡す・戻り値・
+            // 別の UdonSharpBehaviour に渡す・再帰（フィールドを通して）・ラムダの中のラムダ・List のラムダの中で作る
+            _calc = x => x * 3; s += _calc(4) + ",";
+            _calc = x => { if (x > 0) return x; return -x; }; s += _calc(-5) + ",";
+            _base = 7; _calc = x => x + _base; s += _calc(1) + ",";
+            _log = ""; _notify = (it, t) => { _log += t + it.v; }; _notify(new DelegateItem(3), "c");
+            _notify = (_, _) => _log += "!"; _notify(null, null); s += _log + ",";
+            s += Apply(x => x - 1, 10) + "," + MakeTripler()(5) + ",";
+            holder.Store(x => x + _base); s += holder.CallStored(1) + ",";
+            _rec = n => n <= 1 ? 1 : n * _rec(n - 1); s += _rec(5) + ",";
+            Calc outerL = x => { Calc inner = y => y + 1; return inner(x) * 2; }; s += outerL(3) + ",";
+            var list = new System.Collections.Generic.List<int> { 1, 2, 3 };
+            int acc = 0;
+            list.ForEach(v => { Calc twice = y => y * 2; acc += twice(v); });
+            s += acc;
             return s;
         }
 

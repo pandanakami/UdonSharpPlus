@@ -164,8 +164,11 @@ public class Bad : UdonSharpBehaviour
             return UdonSharpTestCompiler.Compile(new TestSource("Bad.cs", src));
         }
 
-        [TestCase("void Start() { _calc = x => x; }", "ラムダ・匿名メソッドをデリゲートに入れることは、まだ未対応です")]
-        [TestCase("void Start() { _calc = delegate (int x) { return x; }; }", "ラムダ・匿名メソッドをデリゲートに入れることは、まだ未対応です")]
+        [TestCase("void Start() { int k = 1; _calc = x => x + k; }", "外のローカル変数・引数を使うラムダを、デリゲートに入れることは、まだ未対応です")]
+        [TestCase("void M(int k) { _calc = x => { return x * k; }; }", "'k' : 外のローカル変数・引数を使うラムダ")]
+        [TestCase("private Calc _init = x => x;", "フィールドの初期化子の中でラムダをデリゲートに入れることは未対応です")]
+        [TestCase("static void S() { Calc c = x => x; }", "static メソッドの中でラムダをデリゲートに入れることは未対応です")]
+        [TestCase("void Start() { _calc = delegate (int x) { return x; }; }", "匿名メソッド（delegate { ... }）をデリゲートに入れることは、まだ未対応です")]
         [TestCase("void Start() { _calc += Square; }", "デリゲートの += / -= は、まだ未対応です")]
         [TestCase("void Start() { _calc?.Invoke(1); }", "?.Invoke は未対応です")]
         [TestCase("void Start() { bool b = _calc == _calc; }", "デリゲートどうしの == / != は未対応です")]
@@ -191,6 +194,92 @@ public class Bad : UdonSharpBehaviour
             CompileResult r = CompileUser("void Start() { new Maker().Make(); }",
                 "public class Maker { static int Id(int x) => x; public Calc Make() => Id; }");
             Assert.That(r.Diagnostics.Any(d => d.Contains("普通のクラスの中でデリゲートを作ることは、まだ未対応です")), string.Join("\n", r.Diagnostics));
+        }
+
+        // ---- ラムダ（#120） ----------------------------------------------------
+
+        private const string LambdaUser = @"using UdonSharp;
+using UnityEngine;
+
+public delegate int Calc(int x);
+public delegate void Pair(int a, string b);
+
+public class LambdaUser : UdonSharpBehaviour
+{
+    private Calc _calc;
+    private Calc _rec;
+    private int _base = 10;
+
+    private int Apply(Calc c, int x) => c(x);
+
+    private void Start()
+    {
+        _calc = x => x * 2 + _base;
+        _calc = x =>
+        {
+            if (x > 0)
+                return x;
+            return -x;
+        };
+        _rec = n => n <= 1 ? 1 : n * _rec(n - 1);
+        Pair p = (_, _) => Debug.Log(_base);
+        Calc nested = x => { Calc inner = y => y + 1; return inner(x); };
+        Debug.Log(Apply(x => x - 1, 3) + _calc(-2) + _rec(4) + nested(1));
+        p(1, ""a"");
+    }
+}";
+
+        [Test]
+        public void LambdaCompilesAndKeepsLines()
+        {
+            string dir = Path.GetFullPath(Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusDelegateLambda"));
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+            try
+            {
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir, new TestSource("LambdaUser.cs", LambdaUser));
+                Assert.That(r.Diagnostics, Is.Empty);
+                string lowered = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "LambdaUser.cs"));
+                Assert.That(lowered.Split('\n').Length, Is.EqualTo(LambdaUser.Split('\n').Length), lowered);
+                Assert.That(lowered, Does.Contain("[global::UdonSharp.RecursiveMethod] private int __dlg_Calc__lambda2__LambdaUser__body(int n)"),
+                    "デリゲートを呼ぶラムダ（再帰できる）は [RecursiveMethod]");
+                Assert.That(lowered, Does.Contain("private int __dlg_Calc__lambda0__LambdaUser__body(int x)"));
+                Assert.That(lowered, Does.Not.Contain("[global::UdonSharp.RecursiveMethod] private int __dlg_Calc__lambda0__"));
+                Assert.That(lowered, Does.Contain("private void __dlg_Pair__lambda3__LambdaUser__body(int __a0, string __a1)"), "捨てる引数は名前を付け直す");
+                var entries = r.Programs.Single().EntryPoints.ToList();
+                Assert.That(entries, Does.Contain("__dlg_Calc__lambda0__LambdaUser"));
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
+
+        /// <summary>ラムダの本体の中のエラーは、元の行に出る（複数行のブロックの本体でも、文ごとの行）</summary>
+        [Test]
+        public void LambdaBodyErrorPointsToOriginalLine()
+        {
+            const string src = @"using UdonSharp;
+using UnityEngine;
+
+public delegate bool PathCheck(string p);
+
+public class LambdaError : UdonSharpBehaviour
+{
+    private void Start()
+    {
+        PathCheck c = p =>
+        {
+            Debug.Log(p);
+            return System.IO.File.Exists(p);
+        };
+        Debug.Log(c(""a""));
+    }
+}";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("LambdaError.cs", src));
+            Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics[0], Does.Contain("LambdaError.cs(13,"), "return の行（13 行目）");
         }
     }
 }
