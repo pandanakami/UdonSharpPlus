@@ -6,7 +6,7 @@ using IntFn = System.Func<int, int>;
 namespace FeatureTests.Delegate
 {
     // #125：.NET のデリゲートを受け取る、別の UdonSharpBehaviour（using の別名で書いても同じ型）
-    public class FuncPeer : UdonSharpBehaviour
+    public class FuncPeer : UdonSharpBehaviour, IFnSink
     {
         public int hp = 100;
         private IntFn _stored;
@@ -19,6 +19,10 @@ namespace FeatureTests.Delegate
         private int Priv(int x) => hp * x;
         public IntFn MakePriv() => Priv;
         public virtual int Rate(int x) => x * 2;
+
+        // IFnSink（#134）
+        public int Feed(IntFn f) => f(hp);
+        public IntFn Make(int k) => x => x * k;
 
         // 受け取った引数を LINQ に渡す
         public int ApplyAll(List<int> list, IntFn f) => list.Select(f).Sum();

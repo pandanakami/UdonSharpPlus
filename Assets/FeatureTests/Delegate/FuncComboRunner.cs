@@ -17,7 +17,7 @@ namespace FeatureTests.Delegate
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果（Scenario() を普通の C# として実行して確かめたもの）
-        private const string Expected = "True,4,2;False,0,False,112;44414466,1,3;634152,60,1.75,30,6,210,False,k2;a1b1a2b2,1,15,222;2,5,-3,642;4,26;39,3,4,16,210,69,42;2,7,5,7,2,a!,5;1,3,1,1;120,55,3;2003,6,1001,6";
+        private const string Expected = "True,4,2;False,0,False,112;44414466,1,3;634152,60,1.75,30,6,210,False,k2;a1b1a2b2,1,15,222;2,5,-3,642;4,26;39,3,4,16,210,69,42;2,7,5,7,2,a!,5;1,3,1,1;120,55,3;2,a!,6,b!,6,3,2,3,x!!;12,21,4,6,22;2003,6,1001,6";
 
         public FuncPeer peer;
         public FuncPeerDerived derived;
@@ -29,6 +29,7 @@ namespace FeatureTests.Delegate
 
         private Predicate<int> GetPred() { _gets++; return x => x > 4; }
         private Func<int, bool> GetFn() { _gets++; return x => x > 2; }
+        private T ApplyG<T>(Func<T, T> f, T x) => f(x);
 
         private void Start() { Run(); }
 
@@ -189,6 +190,22 @@ namespace FeatureTests.Delegate
             Func<int, int> fibBody = n => n < 2 ? n : fib(n - 1) + fib(n - 2);
             fib = fibBody;
             s += fact(5) + "," + fib(10) + "," + two.Select(fact).Sum() + ";";
+
+            // C9（#134）：Func を受け取る・返すジェネリックメソッド（普通のクラスの static・この UdonSharpBehaviour のメソッド。型引数ごと）
+            Func<int, int> inc = x => x + 1;
+            Func<string, string> bang = t => t + "!";
+            Func<string, int> lenOf = t => t.Length;
+            Func<int, bool> evenG = x => x % 2 == 0;
+            Func<string, bool> longG = t => t.Length > 1;
+            var strs = new List<string> { "a", "bb", "ccc" };
+            s += FnGen.Apply(inc, 1) + "," + FnGen.Apply(bang, "a") + "," + ApplyG(inc, 5) + "," + ApplyG(bang, "b") + "," + FnGen.Map(strs, lenOf).Sum() + ","
+                 + FnGen.CountIf(list, evenG) + "," + FnGen.CountIf(strs, longG) + "," + FnGen.Twice(inc)(1) + "," + FnGen.Twice(bang)("x") + ";";
+
+            // C10（#134）：インタフェースのメソッドの Func 引数・戻り値（普通のクラスの実装・UdonSharpBehaviour の実装）
+            IFnSink sink1 = new FnSinkPlain();
+            IFnSink sink2 = peer;
+            peer.hp = 20;
+            s += sink1.Feed(inc) + "," + sink2.Feed(inc) + "," + sink1.Make(3)(1) + "," + sink2.Make(3)(2) + "," + sink2.Feed(sink1.Make(2)) + ";";
 
             // C8：partial の別のファイル・別の UdonSharpBehaviour
             s += PartUse();
