@@ -1,0 +1,476 @@
+## Program: UdonSharpPlusTests.LocalFunctions.User
+### Uasm
+.data_start
+    __refl_typeid: %SystemInt64, null
+    __refl_typename: %SystemString, null
+    __intnl_returnJump_SystemUInt32_0: %SystemUInt32, null
+    __const_SystemUInt32_0: %SystemUInt32, null
+    __gintnl_SystemUInt32_0: %SystemUInt32, null
+    __0__intnlparam: %SystemInt32, null
+    __1__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_1: %SystemUInt32, null
+    __2__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_2: %SystemUInt32, null
+    __3__intnlparam: %SystemInt32, null
+    __4__intnlparam: %SystemInt32, null
+    __5__intnlparam: %SystemInt32, null
+    __const_SystemInt32_0: %SystemInt32, null
+    __const_SystemInt32_1: %SystemInt32, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
+    __6__intnlparam: %SystemInt32, null
+    __7__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __8__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_5: %SystemUInt32, null
+    __9__intnlparam: %SystemString, null
+    __10__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_6: %SystemUInt32, null
+    __11__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_7: %SystemUInt32, null
+    __12__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_8: %SystemUInt32, null
+    __13__intnlparam: %SystemInt32, null
+    __14__intnlparam: %SystemObjectArray, null
+    __15__intnlparam: %SystemInt32, null
+    __const_SystemInt32_2: %SystemInt32, null
+    __const_SystemInt32_3: %SystemInt32, null
+    __const_SystemString_0: %SystemString, null
+    __gintnl_SystemUInt32_9: %SystemUInt32, null
+    __16__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_10: %SystemUInt32, null
+    __17__intnlparam: %SystemInt32, null
+    __18__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_11: %SystemUInt32, null
+    __19__intnlparam: %SystemInt32, null
+    __20__intnlparam: %SystemObjectArray, null
+    __const_SystemString_1: %SystemString, null
+    __gintnl_SystemUInt32_12: %SystemUInt32, null
+    __21__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_13: %SystemUInt32, null
+    __22__intnlparam: %SystemString, null
+    __23__intnlparam: %SystemObjectArray, null
+    __const_SystemString_2: %SystemString, null
+    __gintnl_SystemUInt32_14: %SystemUInt32, null
+    __24__intnlparam: %SystemObjectArray, null
+    __intnl_SystemObject_0: %SystemObject, null
+    __intnl_SystemInt32_0: %SystemInt32, null
+    __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl___env0_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl___this_SystemObjectArray_1: %SystemObjectArray, null
+    __lcl___this_SystemObjectArray_2: %SystemObjectArray, null
+    __intnl_SystemObject_1: %SystemObject, null
+    __intnl_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemObject_2: %SystemObject, null
+    __intnl_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemObject_3: %SystemObject, null
+    __intnl_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemObject_4: %SystemObject, null
+    __intnl_SystemObject_5: %SystemObject, null
+.data_end
+.code_start
+    .export _start
+    _start:
+        PUSH, __const_SystemUInt32_0  ; 4294967295
+#
+# UdonSharpPlusTests.LocalFunctions.User.Start()
+#
+        PUSH, __gintnl_SystemUInt32_0  ; -> L1
+        PUSH, __gintnl_SystemUInt32_1  ; -> L0
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter__ctor()
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Counter__ctor()>
+    L0:
+        PUSH, __2__intnlparam
+        PUSH, __1__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter__AddTwice(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Counter__AddTwice(object[])>
+    L1:
+        PUSH, __0__intnlparam
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_2  ; -> L2
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __4__intnlparam
+        COPY
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __5__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Util__Sum__int__int(int, int)
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Util__Sum__int__int(int, int)>
+    L2:
+        PUSH, __3__intnlparam
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_3  ; -> L4
+        PUSH, __gintnl_SystemUInt32_4  ; -> L3
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int__ctor()
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__int__ctor()>
+    L3:
+        PUSH, __8__intnlparam
+        PUSH, __7__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int__Get(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__int__Get(object[])>
+    L4:
+        PUSH, __6__intnlparam
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_5  ; -> L6
+        PUSH, __gintnl_SystemUInt32_6  ; -> L5
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string__ctor()
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__string__ctor()>
+    L5:
+        PUSH, __11__intnlparam
+        PUSH, __10__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string__Get(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__string__Get(object[])>
+    L6:
+        PUSH, __9__intnlparam
+        EXTERN, "UnityEngineDebug.__Log__SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter__AddTwice(object[])
+#
+        PUSH, __gintnl_SystemUInt32_7  ; -> L0
+        PUSH, __1__intnlparam
+        PUSH, __12__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter____lf_Add__0_0(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Counter____lf_Add__0_0(object[])>
+    L0:
+        PUSH, __gintnl_SystemUInt32_8  ; -> L1
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __intnl_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_0
+        PUSH, __intnl_SystemInt32_0
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __1__intnlparam
+        PUSH, __14__intnlparam
+        COPY
+        PUSH, __intnl_SystemInt32_0
+        PUSH, __15__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter____lf_Twice__0_1__int(object[], int)
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Counter____lf_Twice__0_1__int(object[], int)>
+    L1:
+        PUSH, __13__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter__ctor()
+#
+        PUSH, __const_SystemInt32_2  ; 3
+        PUSH, __lcl___this_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 0
+        PUSH, __const_SystemString_0  ; "UdonSharpPlusTests.LocalFunctions.Counter"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_9  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __16__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter__init(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Counter__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_0
+        PUSH, __2__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Util__Sum__int__int(int, int)
+#
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __lcl___env0_SystemObjectArray_0
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___env0_SystemObjectArray_0
+        PUSH, __const_SystemInt32_3  ; 0
+        PUSH, __4__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___env0_SystemObjectArray_0
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __5__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_10  ; -> L0
+        PUSH, __lcl___env0_SystemObjectArray_0
+        PUSH, __18__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Util____lf_Plus__0_2__objectArray(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Util____lf_Plus__0_2__objectArray(object[])>
+    L0:
+        PUSH, __17__intnlparam
+        PUSH, __3__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int__Get(object[])
+#
+        PUSH, __gintnl_SystemUInt32_11  ; -> L0
+        PUSH, __7__intnlparam
+        PUSH, __20__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int____lf_Inner__0_3(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__int____lf_Inner__0_3(object[])>
+    L0:
+        PUSH, __19__intnlparam
+        PUSH, __6__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int__ctor()
+#
+        PUSH, __const_SystemInt32_2  ; 3
+        PUSH, __lcl___this_SystemObjectArray_1
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_3  ; 0
+        PUSH, __const_SystemString_1  ; "UdonSharpPlusTests.LocalFunctions.Box__int"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_12  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __21__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int__init(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__int__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_1
+        PUSH, __8__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string__Get(object[])
+#
+        PUSH, __gintnl_SystemUInt32_13  ; -> L0
+        PUSH, __10__intnlparam
+        PUSH, __23__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string____lf_Inner__0_4(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__string____lf_Inner__0_4(object[])>
+    L0:
+        PUSH, __22__intnlparam
+        PUSH, __9__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string__ctor()
+#
+        PUSH, __const_SystemInt32_2  ; 3
+        PUSH, __lcl___this_SystemObjectArray_2
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __const_SystemInt32_3  ; 0
+        PUSH, __const_SystemString_2  ; "UdonSharpPlusTests.LocalFunctions.Box__string"
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __const_SystemInt32_3  ; 0
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemUInt32_14  ; -> L0
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __24__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string__init(object[])
+        JUMP, <__cls_UdonSharpPlusTests_LocalFunctions_Box__string__init(object[])>
+    L0:
+        PUSH, __lcl___this_SystemObjectArray_2
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter____lf_Add__0_0(object[])
+#
+        PUSH, __12__intnlparam
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __intnl_SystemObject_1
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_1
+        PUSH, __intnl_SystemInt32_1
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __12__intnlparam
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __intnl_SystemInt32_2
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter____lf_Twice__0_1__int(object[], int)
+#
+        PUSH, __15__intnlparam
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __13__intnlparam
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Counter__init(object[])
+#
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Util____lf_Plus__0_2__objectArray(object[])
+#
+        PUSH, __18__intnlparam
+        PUSH, __const_SystemInt32_3  ; 0
+        PUSH, __intnl_SystemObject_2
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __18__intnlparam
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __intnl_SystemInt32_4
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
+        PUSH, __17__intnlparam
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int____lf_Inner__0_3(object[])
+#
+        PUSH, __20__intnlparam
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __intnl_SystemObject_4
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_4
+        PUSH, __19__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__int__init(object[])
+#
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string____lf_Inner__0_4(object[])
+#
+        PUSH, __23__intnlparam
+        PUSH, __const_SystemInt32_1  ; 2
+        PUSH, __intnl_SystemObject_5
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_5
+        PUSH, __22__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.LocalFunctions.User.__cls_UdonSharpPlusTests_LocalFunctions_Box__string__init(object[])
+#
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+.code_end
+
+### HeapDefaults
+__const_SystemInt32_0 = 1
+__const_SystemInt32_1 = 2
+__const_SystemInt32_2 = 3
+__const_SystemInt32_3 = 0
+__const_SystemString_0 = "UdonSharpPlusTests.LocalFunctions.Counter"
+__const_SystemString_1 = "UdonSharpPlusTests.LocalFunctions.Box__int"
+__const_SystemString_2 = "UdonSharpPlusTests.LocalFunctions.Box__string"
+__const_SystemUInt32_0 = 4294967295
+__gintnl_SystemUInt32_0 = -> Start():L1
+__gintnl_SystemUInt32_1 = -> Start():L0
+__gintnl_SystemUInt32_10 = -> __cls_UdonSharpPlusTests_LocalFunctions_Util__Sum__int__int(int, int):L0
+__gintnl_SystemUInt32_11 = -> __cls_UdonSharpPlusTests_LocalFunctions_Box__int__Get(object[]):L0
+__gintnl_SystemUInt32_12 = -> __cls_UdonSharpPlusTests_LocalFunctions_Box__int__ctor():L0
+__gintnl_SystemUInt32_13 = -> __cls_UdonSharpPlusTests_LocalFunctions_Box__string__Get(object[]):L0
+__gintnl_SystemUInt32_14 = -> __cls_UdonSharpPlusTests_LocalFunctions_Box__string__ctor():L0
+__gintnl_SystemUInt32_2 = -> Start():L2
+__gintnl_SystemUInt32_3 = -> Start():L4
+__gintnl_SystemUInt32_4 = -> Start():L3
+__gintnl_SystemUInt32_5 = -> Start():L6
+__gintnl_SystemUInt32_6 = -> Start():L5
+__gintnl_SystemUInt32_7 = -> __cls_UdonSharpPlusTests_LocalFunctions_Counter__AddTwice(object[]):L0
+__gintnl_SystemUInt32_8 = -> __cls_UdonSharpPlusTests_LocalFunctions_Counter__AddTwice(object[]):L1
+__gintnl_SystemUInt32_9 = -> __cls_UdonSharpPlusTests_LocalFunctions_Counter__ctor():L0
+__refl_typeid = 3718224119434974525
+__refl_typename = "UdonSharpPlusTests.LocalFunctions.User"
+### NetworkEvents
+
+## Diagnostics
+## Logs

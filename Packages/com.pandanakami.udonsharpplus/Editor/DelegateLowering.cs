@@ -45,8 +45,9 @@ namespace UdonSharpPlus
             public IMethodSymbol Invoke => Symbol.DelegateInvokeMethod;
         }
 
+        /// <summary>ソースのデリゲートの宣言か、ローカル関数（#123。UdonSharp が未対応なので、メソッドに移す）があるか</summary>
         public static bool MayHaveDelegates(IEnumerable<SyntaxTree> trees) =>
-            trees.Any(t => t.GetRoot().DescendantNodes(n => !(n is BlockSyntax)).OfType<DelegateDeclarationSyntax>().Any());
+            trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is DelegateDeclarationSyntax || n is LocalFunctionStatementSyntax));
 
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
@@ -57,7 +58,7 @@ namespace UdonSharpPlus
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var delegates = CollectDelegates(compilation, trees);
-            if (delegates.Count == 0)
+            if (delegates.Count == 0 && !trees.Any(t => t.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Any()))
                 return trees;
 
             var shared = new Shared(delegates, diagnostics);
@@ -208,7 +209,7 @@ namespace UdonSharpPlus
 
             /// <summary>
             /// a - b（#122）：C# の Delegate.Remove と同じく、b の組の並びが a の中に続けて現れる最後の場所を外す。
-            /// 組は、呼ぶ相手・メソッドの名前・外の変数の環境（参照）がすべて同じなら同じとみなす。全部外れたら null、見つからなければ a
+            /// 組は、呼ぶ相手・メソッドの名前・外の変数の環境（一覧の中の各 object[] の参照）がすべて同じなら同じとみなす。全部外れたら null、見つからなければ a
             /// </summary>
             private const string RemoveCode =
                 "public static object[] __remove(object[] __a, object[] __b) { " +
@@ -217,14 +218,20 @@ namespace UdonSharpPlus
                 "for (int __i = __na - __nb; __i >= 0; __i -= 3) { " +
                 "bool __same = true; " +
                 "for (int __j = 0; __j < __nb; __j += 3) { " +
-                "if (__a[__i + __j] != __b[__j] || (string)__a[__i + __j + 1] != (string)__b[__j + 1] || __a[__i + __j + 2] != __b[__j + 2]) { __same = false; break; } } " +
+                "if (__a[__i + __j] != __b[__j] || (string)__a[__i + __j + 1] != (string)__b[__j + 1] || !__sameEnv(__a[__i + __j + 2], __b[__j + 2])) { __same = false; break; } } " +
                 "if (!__same) continue; " +
                 "if (__na == __nb) return null; " +
                 "object[] __r = new object[__na - __nb]; " +
                 "for (int __k = 0; __k < __i; __k++) __r[__k] = __a[__k]; " +
                 "for (int __k = __i + __nb; __k < __na; __k++) __r[__k - __nb] = __a[__k]; " +
                 "return __r; } " +
-                "return __a; }";
+                "return __a; } " +
+                // 外の変数の環境の一覧は、作るたびに新しい配列になる。C# と同じく、同じ範囲の環境（中の object[] が同じもの）なら同じとみなす
+                "private static bool __sameEnv(object __x, object __y) { " +
+                "if (__x == __y) return true; if (__x == null || __y == null) return false; " +
+                "object[] __ex = (object[])__x; object[] __ey = (object[])__y; if (__ex.Length != __ey.Length) return false; " +
+                "for (int __i = 0; __i < __ex.Length; __i++) if (__ex[__i] != __ey[__i]) return false; " +
+                "return true; }";
 
             /// <summary>中継メソッドが使う、引数・戻り値のフィールド（1 行ずつ）</summary>
             public IEnumerable<string> FieldCode(DelegateInfo info)
@@ -367,45 +374,99 @@ namespace UdonSharpPlus
 
             private sealed class Scope
             {
-                public SyntaxNode Node;     // Block・ForEachStatement・MethodDeclaration（引数）・ラムダ（引数）
+                public SyntaxNode Node;     // Block・ForEachStatement・MethodDeclaration（引数）・ラムダ／匿名メソッド／ローカル関数（引数）
                 public string Name;         // __envN
                 public readonly List<ISymbol> Vars = new List<ISymbol>();
             }
 
+            /// <summary>
+            /// ローカル関数（#123）。UdonSharp は未対応なので、同じクラスのメソッドに移す（Hoisted）。外の変数は、使う環境を
+            /// 環境と同じ名前の引数で受け取る（private R __lf_F__t_n(object[] __env0, ..., 元の引数)）。呼び出しはその環境を渡す
+            /// </summary>
+            private sealed class LocalFunc
+            {
+                public LocalFunctionStatementSyntax Node;
+                public IMethodSymbol Symbol;
+                public string Hoisted;
+                public bool IsStatic;
+                public bool Recursive;
+            }
+
             private readonly Dictionary<ISymbol, (Scope Scope, int Index)> _captured = new Dictionary<ISymbol, (Scope, int)>(SymbolEqualityComparer.Default);
             private readonly Dictionary<SyntaxNode, Scope> _scopes = new Dictionary<SyntaxNode, Scope>();
-            /// <summary>デリゲートに入れるラムダ → 外から受け取る環境（中のラムダが使うものも含む）</summary>
-            private readonly Dictionary<LambdaExpressionSyntax, List<Scope>> _lambdaOuter = new Dictionary<LambdaExpressionSyntax, List<Scope>>();
-            private readonly HashSet<LambdaExpressionSyntax> _lambdaErrors = new HashSet<LambdaExpressionSyntax>();
+            /// <summary>
+            /// デリゲートに入れるラムダ・匿名メソッドと、ローカル関数 → 外から受け取る環境
+            /// （中のラムダ・呼ぶローカル関数が使うものも含む）
+            /// </summary>
+            private readonly Dictionary<SyntaxNode, List<Scope>> _needs = new Dictionary<SyntaxNode, List<Scope>>();
+            private readonly HashSet<SyntaxNode> _funcErrors = new HashSet<SyntaxNode>();
+            private readonly Dictionary<ISymbol, LocalFunc> _localFuncs = new Dictionary<ISymbol, LocalFunc>(SymbolEqualityComparer.Default);
             private int _envCount;
+
+            private static SyntaxNode BodyOf(SyntaxNode function) =>
+                function is AnonymousFunctionExpressionSyntax a ? (SyntaxNode)a.Body
+                : function is LocalFunctionStatementSyntax l ? (SyntaxNode)l.Body ?? l.ExpressionBody : null;
+
+            private LocalFunc LocalFuncOf(ISymbol symbol) =>
+                symbol is IMethodSymbol m && m.MethodKind == MethodKind.LocalFunction && _localFuncs.TryGetValue(m.OriginalDefinition, out var f) ? f : null;
 
             private void AnalyzeClosures(SyntaxNode root)
             {
-                var lambdas = new List<LambdaExpressionSyntax>();
-                foreach (LambdaExpressionSyntax lambda in root.DescendantNodes().OfType<LambdaExpressionSyntax>())
+                var functions = new List<SyntaxNode>();
+                int localCount = 0;
+                foreach (SyntaxNode n in root.DescendantNodes())
                 {
-                    DelegateInfo info = _shared.Find(_model.GetTypeInfo(lambda).ConvertedType);
-                    if (info != null && info.Unsupported == null && HostOf(lambda, out _) != null)
-                        lambdas.Add(lambda);
+                    if (n is AnonymousFunctionExpressionSyntax a)
+                    {
+                        DelegateInfo info = _shared.Find(_model.GetTypeInfo(a).ConvertedType);
+                        if (info != null && info.Unsupported == null && HostOf(a, out _) != null)
+                            functions.Add(a);
+                    }
+                    else if (n is LocalFunctionStatementSyntax l && _model.GetDeclaredSymbol(l) is IMethodSymbol symbol)
+                    {
+                        functions.Add(l);
+                        ISymbol member = symbol.ContainingSymbol;
+                        while (member is IMethodSymbol mm && (mm.MethodKind == MethodKind.LocalFunction || mm.MethodKind == MethodKind.AnonymousFunction))
+                            member = mm.ContainingSymbol;
+                        _localFuncs[symbol] = new LocalFunc
+                        {
+                            Node = l,
+                            Symbol = symbol,
+                            Hoisted = $"__lf_{symbol.Name}__{_treeIndex}_{localCount++}",
+                            IsStatic = symbol.IsStatic || member.IsStatic,
+                        };
+                    }
                 }
-                var delegateLambdas = new HashSet<LambdaExpressionSyntax>(lambdas);
+                var functionSet = new HashSet<SyntaxNode>(functions);
 
-                foreach (LambdaExpressionSyntax lambda in lambdas)
+                var calls = new Dictionary<SyntaxNode, List<LocalFunc>>();
+                var invokesDelegate = new HashSet<SyntaxNode>();
+                foreach (SyntaxNode f in functions)
                 {
-                    var outer = new List<Scope>();
-                    foreach (IdentifierNameSyntax id in lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+                    var direct = new List<Scope>();
+                    var called = new List<LocalFunc>();
+                    SyntaxNode body = BodyOf(f);
+                    if (body == null)
+                        continue;
+                    foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                     {
                         ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                        if (LocalFuncOf(symbol) is LocalFunc callee)
+                        {
+                            if (!called.Contains(callee))
+                                called.Add(callee);
+                            continue;
+                        }
                         if (!(symbol is ILocalSymbol || symbol is IParameterSymbol p && !p.IsThis))
                             continue;
                         if (symbol is ILocalSymbol constant && constant.IsConst)
                             continue;   // 定数は値をそのまま書く
-                        if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == lambda.SyntaxTree && lambda.Span.Contains(r.Span)))
+                        if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == f.SyntaxTree && f.Span.Contains(r.Span)))
                             continue;
-                        Scope scope = ScopeOf(symbol, delegateLambdas, out string error);
+                        Scope scope = ScopeOf(symbol, functionSet, out string error);
                         if (scope == null)
                         {
-                            if (_lambdaErrors.Add(lambda))
+                            if (_funcErrors.Add(f))
                                 Error(id, $"'{symbol.Name}' : {error}");
                             continue;
                         }
@@ -414,30 +475,70 @@ namespace UdonSharpPlus
                             _captured[symbol] = (scope, scope.Vars.Count);
                             scope.Vars.Add(symbol);
                         }
-                        if (!outer.Contains(scope))
-                            outer.Add(scope);
+                        if (!direct.Contains(scope))
+                            direct.Add(scope);
                     }
-                    _lambdaOuter[lambda] = outer;
+                    if (body.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Any(inv => DelegateOf(inv.Expression) != null
+                        || inv.Expression is MemberAccessExpressionSyntax ma && ma.Name.Identifier.ValueText == "Invoke" && DelegateOf(ma.Expression) != null))
+                        invokesDelegate.Add(f);
+                    _needs[f] = direct;
+                    calls[f] = called;
+                }
+
+                // 呼ぶローカル関数が使う環境も受け取る（その関数の中で宣言したものは除く）。再帰があるので、増えなくなるまで繰り返す
+                bool grown = true;
+                while (grown)
+                {
+                    grown = false;
+                    foreach (var pair in calls)
+                        foreach (LocalFunc callee in pair.Value)
+                            if (_needs.TryGetValue(callee.Node, out var calleeNeeds))
+                                foreach (Scope s in calleeNeeds.ToList())
+                                    if (!pair.Key.Span.Contains(s.Node.Span) && !_needs[pair.Key].Contains(s))
+                                    {
+                                        _needs[pair.Key].Add(s);
+                                        grown = true;
+                                    }
+                }
+
+                // 自分を（ほかのローカル関数を通しても）呼ぶローカル関数・デリゲートを呼ぶローカル関数は [RecursiveMethod] にする
+                foreach (LocalFunc lf in _localFuncs.Values)
+                {
+                    var seen = new HashSet<SyntaxNode>();
+                    var stack = new Stack<SyntaxNode>();
+                    stack.Push(lf.Node);
+                    while (stack.Count > 0 && !lf.Recursive)
+                    {
+                        SyntaxNode current = stack.Pop();
+                        if (!calls.TryGetValue(current, out var next))
+                            continue;
+                        foreach (LocalFunc callee in next)
+                        {
+                            if (callee == lf)
+                                lf.Recursive = true;
+                            else if (seen.Add(callee.Node))
+                                stack.Push(callee.Node);
+                        }
+                    }
+                    if (invokesDelegate.Contains(lf.Node))
+                        lf.Recursive = true;
                 }
             }
 
             /// <summary>外の変数を置く環境（宣言した範囲）。置けない変数なら null と理由</summary>
-            private Scope ScopeOf(ISymbol symbol, HashSet<LambdaExpressionSyntax> delegateLambdas, out string error)
+            private Scope ScopeOf(ISymbol symbol, HashSet<SyntaxNode> functions, out string error)
             {
+                const string user = "デリゲートに入れるラムダ・ローカル関数で使うことは未対応です";
                 error = null;
                 SyntaxNode decl = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
                 SyntaxNode node = null;
                 if (symbol is IParameterSymbol)
                 {
                     SyntaxNode owner = !(decl is ParameterSyntax ps) ? null : ps.Parent is ParameterListSyntax pl ? pl.Parent : ps.Parent;
-                    if (owner is MethodDeclarationSyntax)
-                        node = owner;
-                    else if (owner is LambdaExpressionSyntax l && delegateLambdas.Contains(l))
+                    if (owner is MethodDeclarationSyntax || owner != null && functions.Contains(owner))
                         node = owner;
                     else if (owner is LambdaExpressionSyntax)
-                        error = "List・LINQ のメソッドに渡すラムダの引数を、デリゲートに入れるラムダで使うことは未対応です。ローカル変数に入れてから使ってください";
-                    else
-                        error = "この引数を、デリゲートに入れるラムダで使うことは未対応です。ローカル変数に入れてから使ってください";
+                        error = $"List・LINQ のメソッドに渡すラムダの引数を、{user}。ローカル変数に入れてから使ってください";
                 }
                 else if (symbol is ILocalSymbol)
                 {
@@ -447,15 +548,15 @@ namespace UdonSharpPlus
                     else if (decl is ForEachStatementSyntax fe)
                         node = fe;
                     else
-                        error = "この場所で宣言した変数（for の変数・switch の中・out var・パターン・catch の変数など）を、デリゲートに入れるラムダで使うことは未対応です。ブロックの中で別のローカル変数に入れてから使ってください";
+                        error = $"この場所で宣言した変数（for の変数・switch の中・out var・パターン・catch の変数など）を、{user}。ブロックの中で別のローカル変数に入れてから使ってください";
                 }
                 else
                 {
-                    error = "この変数を、デリゲートに入れるラムダで使うことは未対応です";
+                    error = $"この変数を、{user}";
                 }
                 if (node == null)
                 {
-                    error = error ?? "この引数を、デリゲートに入れるラムダで使うことは未対応です。ローカル変数に入れてから使ってください";
+                    error = error ?? $"この引数を、{user}。ローカル変数に入れてから使ってください";
                     return null;
                 }
                 if (!_scopes.TryGetValue(node, out Scope scope))
@@ -734,7 +835,7 @@ namespace UdonSharpPlus
                 if (node.Parent is QualifiedNameSyntax q && q.Right == node || node.Parent is AliasQualifiedNameSyntax
                     || node.Parent is MemberAccessExpressionSyntax m && m.Name == node)
                     return base.VisitIdentifierName(node);
-                return CapturedRead(node) ?? MethodGroup(node) ?? TypeReference(node) ?? base.VisitIdentifierName(node);
+                return CapturedRead(node) ?? MethodGroup(node) ?? LocalFunctionReference(node) ?? TypeReference(node) ?? base.VisitIdentifierName(node);
             }
 
             // ---- 外の変数の読み書き（#121） -----------------------------------------
@@ -748,7 +849,7 @@ namespace UdonSharpPlus
 
                 ISymbol symbol = _model.GetSymbolInfo(node).Symbol;
                 if (symbol is ILocalSymbol constant && constant.IsConst && constant.HasConstantValue
-                    && node.Ancestors().OfType<LambdaExpressionSyntax>().Any(l => _lambdaOuter.ContainsKey(l)
+                    && node.Ancestors().Any(l => _needs.ContainsKey(l)
                         && !constant.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == l.SyntaxTree && l.Span.Contains(r.Span))))
                 {
                     string value = SymbolDisplay.FormatPrimitive(constant.ConstantValue, true, false) ?? "null";
@@ -897,17 +998,125 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitBlock(BlockSyntax node)
             {
-                if (!_scopes.TryGetValue(node, out Scope scope))
+                bool hasScope = _scopes.TryGetValue(node, out Scope scope);
+                if (!hasScope && !node.Statements.Any(s => s is LocalFunctionStatementSyntax))
                     return base.VisitBlock(node);
                 var statements = new List<StatementSyntax>();
+                var pending = new List<SyntaxTrivia>();
                 foreach (StatementSyntax s in node.Statements)
                 {
-                    if (s is LocalDeclarationStatementSyntax l && l.Declaration.Variables.Any(v => TryCaptured(v, out _, out _)))
-                        statements.AddRange(SplitDeclaration(l));
-                    else
-                        statements.Add((StatementSyntax)Visit(s));
+                    // ローカル関数はメソッドに移し、ここからは消す。前後の trivia は次の文（なければ閉じ括弧）に回し、行をずらさない
+                    if (s is LocalFunctionStatementSyntax lf)
+                    {
+                        Hoist(lf);
+                        pending.AddRange(lf.GetLeadingTrivia());
+                        pending.AddRange(BlankTrivia(lf));
+                        pending.AddRange(lf.GetTrailingTrivia());
+                        continue;
+                    }
+                    List<StatementSyntax> produced = s is LocalDeclarationStatementSyntax l && l.Declaration.Variables.Any(v => TryCaptured(v, out _, out _))
+                        ? SplitDeclaration(l)
+                        : new List<StatementSyntax> { (StatementSyntax)Visit(s) };
+                    if (pending.Count > 0)
+                    {
+                        produced[0] = produced[0].WithLeadingTrivia(pending.Concat(produced[0].GetLeadingTrivia()));
+                        pending.Clear();
+                    }
+                    statements.AddRange(produced);
                 }
-                return WithPrologue(node.WithStatements(SyntaxFactory.List(statements)), CreateEnv(scope));
+                Changed = true;
+                BlockSyntax result = node.WithStatements(SyntaxFactory.List(statements));
+                if (pending.Count > 0)
+                    result = result.WithCloseBraceToken(result.CloseBraceToken.WithLeadingTrivia(pending.Concat(result.CloseBraceToken.LeadingTrivia)));
+                return hasScope ? WithPrologue(result, CreateEnv(scope)) : result;
+            }
+
+            // ---- ローカル関数（#123） -----------------------------------------------
+
+            /// <summary>
+            /// ローカル関数を、同じクラスのメソッドに移す（閉じ括弧の行に置く。本体の文ごとに元の位置の印を付ける）：
+            ///   [属性] private (static) R __lf_F__t_n(object[] __env0, ..., 元の引数) { 本体 }
+            /// 外の変数は、使う環境を同じ名前の引数で受け取るので、本体はそのまま ((T)__env0[i]) で読み書きできる
+            /// </summary>
+            private void Hoist(LocalFunctionStatementSyntax node)
+            {
+                if (!(LocalFuncOf(_model.GetDeclaredSymbol(node)) is LocalFunc local) || _funcErrors.Contains(node))
+                    return;
+                string name = node.Identifier.ValueText;
+                if (node.TypeParameterList != null)
+                {
+                    Error(node, $"'{name}' : ジェネリックのローカル関数は未対応です。メソッドにしてください");
+                    return;
+                }
+                if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword) || m.IsKind(SyntaxKind.ExternKeyword) || m.IsKind(SyntaxKind.UnsafeKeyword)))
+                {
+                    Error(node, $"'{name}' : async・extern・unsafe のローカル関数は未対応です");
+                    return;
+                }
+
+                CSharpSyntaxNode body = (CSharpSyntaxNode)node.Body ?? node.ExpressionBody?.Expression;
+                if (body == null)
+                    return;
+                string bodyText = LambdaBodyText(body, local.Symbol);
+                if (bodyText == null)
+                    return;
+                // ローカル関数の引数を中のラムダ・ローカル関数が使うなら、本体の先頭で環境を作る
+                if (_scopes.TryGetValue(node, out Scope own))
+                    bodyText = "{ " + CreateEnv(own, s => Ident(s.Name)) + " " + bodyText.Substring(1).TrimStart();
+
+                List<Scope> needs = _needs.TryGetValue(node, out var n) ? n : new List<Scope>();
+                string returnType = Flatten(Visit(node.ReturnType), node.ReturnType);
+                string parameterList = Flatten(Visit(node.ParameterList), node.ParameterList);
+                if (returnType == null || parameterList == null)
+                    return;
+                string userParameters = parameterList.Substring(1, parameterList.Length - 2).Trim();
+                string parameters = string.Join(", ", needs.Select(s => $"{ValueType} {s.Name}")
+                    .Concat(userParameters.Length > 0 ? new[] { userParameters } : new string[0]));
+
+                var attributes = new StringBuilder();
+                foreach (AttributeListSyntax list in node.AttributeLists)
+                    attributes.Append(Flatten(Visit(list), list)).Append(' ');
+                if (local.Recursive && !node.AttributeLists.SelectMany(l => l.Attributes).Any(a => a.Name.ToString().Contains("RecursiveMethod")))
+                    attributes.Append("[global::UdonSharp.RecursiveMethod] ");
+
+                string code = $"{SourceMap.MarkerFor(node)}{attributes}private {(local.IsStatic ? "static " : "")}{returnType} {local.Hoisted}({parameters}) {bodyText}";
+                HostInfo entry = _shared.HostOf(local.Symbol.ContainingType);
+                entry.Members[local.Hoisted] = (code, DeclOf(node));
+                Changed = true;
+            }
+
+            /// <summary>ブロックの直下でないローカル関数（switch のラベルの直下など）</summary>
+            public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+            {
+                Error(node, $"'{node.Identifier.ValueText}' : この場所のローカル関数は未対応です。{{ }} で囲んでください");
+                return node;
+            }
+
+            /// <summary>ローカル関数の呼び出し F(x) → __lf_F__t_n(環境..., x)</summary>
+            private SyntaxNode LocalFunctionCall(InvocationExpressionSyntax node, LocalFunc callee)
+            {
+                List<Scope> needs = _needs.TryGetValue(callee.Node, out var n) ? n : new List<Scope>();
+                var args = needs.Select(s => s.Name).Concat(node.ArgumentList.Arguments.Select(a => Text(Visit(a))));
+                return Parse($"{callee.Hoisted}({string.Join(", ", args)})", node);
+            }
+
+            /// <summary>
+            /// 呼び出し・デリゲートへの変換のほかでローカル関数の名前を使うところ（List・LINQ のメソッドに渡す list.ForEach(F) など）。
+            /// 外の変数を使わなければ、移したメソッドの名前にする
+            /// </summary>
+            private SyntaxNode LocalFunctionReference(IdentifierNameSyntax node)
+            {
+                if (!(LocalFuncOf(_model.GetSymbolInfo(node).Symbol) is LocalFunc local))
+                    return null;
+                if (node.Parent is ArgumentSyntax nameArg && nameArg.Parent?.Parent is InvocationExpressionSyntax inv
+                    && inv.Expression is IdentifierNameSyntax nameofId && nameofId.Identifier.ValueText == "nameof")
+                    return null;
+                if (_needs.TryGetValue(local.Node, out var needs) && needs.Count > 0)
+                {
+                    Error(node, $"'{node.Identifier.ValueText}' : 外の変数を使うローカル関数を、ここで使うことは未対応です（呼ぶか、ソースで宣言したデリゲートに入れてください）");
+                    return node;
+                }
+                return Parse(local.Hoisted, node);
             }
 
             public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
@@ -1041,11 +1250,6 @@ namespace UdonSharpPlus
                 if (method.MethodKind == MethodKind.DelegateInvoke && _shared.Find(method.ContainingType) == info && node is MemberAccessExpressionSyntax self)
                     return Visit(self.Expression);
 
-                if (method.MethodKind == MethodKind.LocalFunction)
-                {
-                    Error(node, $"'{name}' : ローカル関数をデリゲートに入れることは、まだ未対応です");
-                    return node;
-                }
                 if (method.IsGenericMethod)
                 {
                     Error(node, $"'{name}' : ジェネリックメソッドをデリゲートに入れることは未対応です");
@@ -1064,6 +1268,9 @@ namespace UdonSharpPlus
                     Error(node, $"'{name}' : {hostError}");
                     return node;
                 }
+
+                if (LocalFuncOf(method) is LocalFunc local)
+                    return CreateFromLocalFunction(node, info, local, host);
 
                 string callee;
                 if (method.IsStatic)
@@ -1089,6 +1296,31 @@ namespace UdonSharpPlus
                 return Parse($"new {ValueType} {{ this, \"{trampoline}\", null }}", node);
             }
 
+            /// <summary>
+            /// ローカル関数から作る（#123）：中継メソッドが、受け取った環境の一覧（__dlg_K__env）から、移したメソッドの環境の引数を取り出して呼ぶ
+            ///   public void __dlg_K__lf_F__t_n__C() { ret = this.__lf_F__t_n((object[])__dlg_K__env[0], ..., p0); }
+            /// </summary>
+            private SyntaxNode CreateFromLocalFunction(ExpressionSyntax node, DelegateInfo info, LocalFunc local, INamedTypeSymbol host)
+            {
+                if (_funcErrors.Contains(local.Node))
+                    return node;
+                List<Scope> needs = _needs.TryGetValue(local.Node, out var n) ? n : new List<Scope>();
+                IMethodSymbol invoke = info.Invoke;
+                string trampoline = $"__dlg_{info.Key}_{local.Hoisted}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(host))}";
+                HostInfo entry = _shared.HostOf(host);
+                entry.Delegates.Add(info);
+                if (!entry.Members.ContainsKey(trampoline))
+                {
+                    string args = string.Join(", ", needs.Select((s, j) => $"({ValueType}){info.EnvField}[{j}]")
+                        .Concat(Enumerable.Range(0, invoke.Parameters.Length).Select(info.ParamField)));
+                    string assign = invoke.ReturnsVoid ? "" : info.RetField + " = ";
+                    string callee = local.IsStatic ? local.Hoisted : "this." + local.Hoisted;
+                    entry.Members[trampoline] = ($"public void {trampoline}() {{ {SourceMap.MarkerFor(node)}{assign}{callee}({args}); }}", DeclOf(node));
+                }
+                string env = needs.Count > 0 ? $"new {ValueType} {{ {string.Join(", ", needs.Select(s => s.Name))} }}" : "null";
+                return Parse($"new {ValueType} {{ this, \"{trampoline}\", {env} }}", node);
+            }
+
             /// <summary>中継メソッド：public void T() { ret = callee(p0, p1); }</summary>
             private static string TrampolineCode(DelegateInfo info, string name, string marker, string callee, bool env = false)
             {
@@ -1107,7 +1339,7 @@ namespace UdonSharpPlus
             ///   public void __dlg_K__lambdaN__C() { ret = __dlg_K__lambdaN__C__body(p0); }
             /// 外のローカル変数・引数を使うもの（クロージャ）は、まだ未対応（#121）
             /// </summary>
-            private SyntaxNode CreateLambda(LambdaExpressionSyntax node, DelegateInfo info)
+            private SyntaxNode CreateLambda(AnonymousFunctionExpressionSyntax node, DelegateInfo info)
             {
                 if (info.Unsupported != null)
                 {
@@ -1116,13 +1348,13 @@ namespace UdonSharpPlus
                 }
                 if (node.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                 {
-                    Error(node, "async のラムダは未対応です");
+                    Error(node, "async のラムダ・匿名メソッドは未対応です");
                     return node;
                 }
                 INamedTypeSymbol host = HostOf(node, out string hostError);
                 if (host == null)
                 {
-                    Error(node, hostError.Replace("デリゲートを作る", "ラムダをデリゲートに入れる"));
+                    Error(node, hostError.Replace("デリゲートを作る", node is AnonymousMethodExpressionSyntax ? "匿名メソッドをデリゲートに入れる" : "ラムダをデリゲートに入れる"));
                     return node;
                 }
 
@@ -1139,6 +1371,13 @@ namespace UdonSharpPlus
                         names = p.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray();
                         body = p.Body;
                         break;
+                    case AnonymousMethodExpressionSyntax m:
+                        // delegate { ... } は引数を書かなくてよい（どの引数のデリゲートにも入る。本体からは使えない）
+                        names = m.ParameterList != null
+                            ? m.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray()
+                            : Enumerable.Range(0, invoke.Parameters.Length).Select(i => "__a" + i).ToArray();
+                        body = m.Block;
+                        break;
                     default:
                         return node;
                 }
@@ -1150,9 +1389,9 @@ namespace UdonSharpPlus
                         if (names[i] == "_")
                             names[i] = "__a" + i;
 
-                if (_lambdaErrors.Contains(node))
+                if (_funcErrors.Contains(node))
                     return node;   // 下調べでエラーにした
-                List<Scope> outer = _lambdaOuter.TryGetValue(node, out var o) ? o : new List<Scope>();
+                List<Scope> outer = _needs.TryGetValue(node, out var o) ? o : new List<Scope>();
                 _scopes.TryGetValue(node, out Scope own);
 
                 HostInfo entry = _shared.HostOf(host);
@@ -1242,9 +1481,16 @@ namespace UdonSharpPlus
             private INamedTypeSymbol HostOf(SyntaxNode node, out string error)
             {
                 ISymbol s = _model.GetEnclosingSymbol(node.SpanStart);
-                while (s is IMethodSymbol m && (m.MethodKind == MethodKind.AnonymousFunction || m.MethodKind == MethodKind.LocalFunction))
-                    s = s.ContainingSymbol;
                 error = null;
+                while (s is IMethodSymbol m && (m.MethodKind == MethodKind.AnonymousFunction || m.MethodKind == MethodKind.LocalFunction))
+                {
+                    if (m.MethodKind == MethodKind.LocalFunction && m.IsStatic)
+                    {
+                        error = "static のローカル関数の中でデリゲートを作ることは未対応です";
+                        return null;
+                    }
+                    s = s.ContainingSymbol;
+                }
                 if (!(s is IMethodSymbol enclosing))
                 {
                     error = "フィールドの初期化子の中でデリゲートを作ることは未対応です。Start などで代入してください";
@@ -1309,16 +1555,10 @@ namespace UdonSharpPlus
                 DelegateInfo info = _shared.Find(_model.GetTypeInfo(node).ConvertedType);
                 if (info == null)
                     return null;
-                if (node is LambdaExpressionSyntax lambda)
-                {
-                    SyntaxNode created = CreateLambda(lambda, info);
-                    if (created != node)
-                        return created;
-                    // エラーにしたもの：後の段（List・LINQ のラムダの書き換え）で同じ場所に別のエラーを出さないよう、null にしておく
-                    return Parse("null", node);
-                }
-                Error(node, $"'{info.Symbol.Name}' : 匿名メソッド（delegate {{ ... }}）をデリゲートに入れることは、まだ未対応です。ラムダで書いてください");
-                // 後の段（List・LINQ のラムダの書き換え）で同じ場所に別のエラーを出さないよう、null にしておく
+                SyntaxNode created = CreateLambda((AnonymousFunctionExpressionSyntax)node, info);
+                if (created != node)
+                    return created;
+                // エラーにしたもの：後の段（List・LINQ のラムダの書き換え）で同じ場所に別のエラーを出さないよう、null にしておく
                 return Parse("null", node);
             }
 
@@ -1326,6 +1566,8 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
+                if (node.Expression is IdentifierNameSyntax localId && LocalFuncOf(_model.GetSymbolInfo(localId).Symbol) is LocalFunc callee)
+                    return LocalFunctionCall(node, callee);
                 ExpressionSyntax target = null;
                 DelegateInfo info = DelegateOf(node.Expression);
                 if (info != null)

@@ -15,7 +15,7 @@ namespace FeatureTests.Delegate
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果
-        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True;12,5,8,c3!,9,15,8,120,8,12;1,11,21,107,107,6,8,3,10,10,15,10;105,205,51,0,1,2,i10,i21,6,7,6;10,105,a1!a,6,True,16,4;6,9,9,9,4;11,11,14,1009,105;ABC,A,A,ABC,A;1,32;3,3,B,B,null;null,A,A,null,A,null";
+        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True;12,5,8,c3!,9,15,8,120,8,12;1,11,21,107,107,6,8,3,10,10,15,10;105,205,51,0,1,2,i10,i21,6,7,6;10,105,a1!a,6,True,16,4;6,9,9,9,4;11,11,14,1009,105;ABC,A,A,ABC,A;1,32;3,3,B,B,null;null,A,A,null,A,null;3,4,3,120,8,113;11,21,42,0,5,10;26,25,50,17";
 
         // UdonSharpBehaviour の中で宣言したデリゲート（名前空間の直下に移して書き換える）
         public delegate bool Check(int x);
@@ -88,7 +88,58 @@ namespace FeatureTests.Delegate
             s += acc + ";";
             s += ClosureScenario() + ";";
             s += CombineScenario() + ";";
-            s += CombineMoreScenario();
+            s += CombineMoreScenario() + ";";
+            s += LocalScenario();
+            return s;
+        }
+
+        // #123 ローカル関数・匿名メソッド
+        private string LocalScenario()
+        {
+            string s = "";
+            // 呼ぶ（宣言より前で呼ぶ・外の変数を読み書き・再帰・static・ローカル関数の中のローカル関数・this のフィールド）
+            int k = 2;
+            s += Add(1) + ",";
+            int Add(int x) => x + k;
+            void Bump() { k++; }
+            Bump();
+            s += Add(1) + "," + k + ",";
+            int Fact(int n) => n <= 1 ? 1 : n * Fact(n - 1);
+            static int Twice(int x) => x * 2;
+            int Outer(int x)
+            {
+                int y = x * 10;
+                int Inner() => y + k + _base;
+                return Inner();
+            }
+            _base = 100;
+            s += Fact(5) + "," + Twice(4) + "," + Outer(1) + ";";
+            // デリゲートに入れる（別の UdonSharpBehaviour で呼ぶ・ラムダの中から呼ぶ・ループの 1 回ごとの変数）
+            Calc c = Add;
+            k = 10;
+            s += c(1) + ",";
+            holder.Store(Add);
+            k = 20;
+            s += holder.CallStored(1) + ",";
+            Calc viaLambda = x => Add(x) * 2;
+            s += viaLambda(1) + ",";
+            var arr = new Calc[3];
+            for (int i = 0; i < 3; i++)
+            {
+                int j = i;
+                int Mul(int x) => x * j;
+                arr[i] = Mul;
+            }
+            s += arr[0](5) + "," + arr[1](5) + "," + arr[2](5) + ";";
+            // 匿名メソッド（引数あり・なし・外の変数・+=）・普通のクラスのメソッドの中のローカル関数
+            Calc anon = delegate (int x) { return x + k; };
+            Notify any = delegate { k += 5; };
+            any(null, null);
+            s += anon(1) + "," + k + ",";
+            Calc chain = anon;
+            chain += delegate (int x) { return x * k; };
+            s += chain(2) + ",";
+            s += new DelegateItem(1).SumTo(3);
             return s;
         }
 

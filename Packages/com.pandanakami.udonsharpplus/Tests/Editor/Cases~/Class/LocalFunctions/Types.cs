@@ -1,6 +1,6 @@
-namespace UdonSharpPlusTests.LocalFunctionErrors
+namespace UdonSharpPlusTests.LocalFunctions
 {
-    // #87: 普通のクラスの中のローカル関数はエラー（1 つにつき 1 つ）
+    // #123: 普通のクラスの中のローカル関数（#87 ではエラーにしていた）。同じクラスのメソッドに移して使える
     public class Counter
     {
         public int v;
@@ -24,7 +24,7 @@ namespace UdonSharpPlusTests.LocalFunctionErrors
         }
     }
 
-    // ジェネリッククラスのコピーが 2 つあっても、同じ位置のエラーは 1 つ
+    // ジェネリッククラスのコピーが 2 つ
     public class Box<T>
     {
         public T value;
@@ -36,7 +36,7 @@ namespace UdonSharpPlusTests.LocalFunctionErrors
         }
     }
 
-    // 使わない：エラーにしない
+    // 使わないクラス
     public class Unused
     {
         public int Run()

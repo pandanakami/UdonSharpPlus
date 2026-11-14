@@ -1,7 +1,7 @@
 using UdonSharp;
 using UnityEngine;
 
-namespace UdonSharpPlusTests.LocalFunctionErrors
+namespace UdonSharpPlusTests.LocalFunctions
 {
     public class User : UdonSharpBehaviour
     {

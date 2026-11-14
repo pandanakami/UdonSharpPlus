@@ -43,7 +43,6 @@ Bullet[] pool = new Bullet[8];
 - 継承、abstract クラス、入れ子のクラス。ScriptableObject・MonoBehaviour・Exception などを継承したクラスも、UdonSharpBehaviour から使うと「`'Settings' : ScriptableObject を継承したクラスは、UdonSharpBehaviour の中で使えません`」のエラーになります（UdonSharp も対応しておらず、そのままだと内部の例外になるため）
 - ユーザー定義の構造体（struct）。UdonSharp も対応していません。UdonSharpBehaviour から使うと「`'Point' : ユーザー定義の構造体は未対応です`」のエラーになります（UdonSharp のままだと内部の例外になり、原因が分かりにくいため）
 - 演算子のオーバーロード、インデクサー、イベント、`ToString` などの override
-- ローカル関数（メソッドの中に書いたメソッド）。UdonSharp も対応していません。「`'Add' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください`」のエラーになります
 - partial メソッド（`partial void OnHit();` と、別の宣言に書いたその実装）。UdonSharp も対応していません。「`'Item.OnHit' : partial メソッドは未対応です（UdonSharp も対応していません）。普通のメソッドにしてください`」のエラーになります。partial クラス（宣言を複数に分けること）は使えます
 - インスタンスのメソッドを、メソッド名だけで渡すこと（`list.Find(b.IsHit)`）。ラムダで書いてください（`list.Find(x => b.IsHit(x))`）
 - オブジェクト初期化子（`new Bullet { damage = 1 }`）、`?.`、型パターン（`x is Bullet b`）、`typeof(Bullet)`

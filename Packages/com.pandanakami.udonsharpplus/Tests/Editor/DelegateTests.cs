@@ -168,10 +168,13 @@ public class Bad : UdonSharpBehaviour
         [TestCase("void Start() { var l = new System.Collections.Generic.List<int>(); l.ForEach(v => { _calc = x => x + v; }); }", "'v' : List・LINQ のメソッドに渡すラムダの引数")]
         [TestCase("void Start() { int k = 1; _calc = x => x + k; Inc(ref k); } void Inc(ref int a) { a++; }", "'k' : デリゲートに入れるラムダで使う変数は、ref / out / in で渡せません")]
         [TestCase("void Start() { Vector3 v = Vector3.zero; _calc = x => x + (int)v.x; v.x = 1; }", "'v' : デリゲートに入れるラムダで使う構造体の変数の、フィールド・プロパティへの代入は未対応です")]
-        [TestCase("int P { set { _calc = x => x + value; } }", "'value' : この引数を、デリゲートに入れるラムダで使うことは未対応です")]
+        [TestCase("int P { set { _calc = x => x + value; } }", "'value' : この引数を、デリゲートに入れるラムダ・ローカル関数で使うことは未対応です")]
         [TestCase("private Calc _init = x => x;", "フィールドの初期化子の中でラムダをデリゲートに入れることは未対応です")]
         [TestCase("static void S() { Calc c = x => x; }", "static メソッドの中でラムダをデリゲートに入れることは未対応です")]
-        [TestCase("void Start() { _calc = delegate (int x) { return x; }; }", "匿名メソッド（delegate { ... }）をデリゲートに入れることは、まだ未対応です")]
+        [TestCase("void Start() { int G<T>(int x) => x; G<int>(1); }", "'G' : ジェネリックのローカル関数は未対応です")]
+        [TestCase("void Start() { switch (1) { case 1: int F() => 1; break; } }", "'F' : この場所のローカル関数は未対応です")]
+        [TestCase("void Start() { static int F(int x) { Calc c = Square; return c(x); } F(1); }", "static のローカル関数の中でデリゲートを作ることは未対応です")]
+        [TestCase("void Start() { int k = 1; int F(int x) => x + k; System.Func<int, int> f = F; }", "'F' : 外の変数を使うローカル関数を、ここで使うことは未対応です")]
         [TestCase("Calc[] _cs = new Calc[2]; int Idx() => 0; void Start() { _cs[Idx()] += Square; }", "この形の受け側への += / -= は未対応です")]
         [TestCase("void Start() { _calc?.Invoke(1); }", "?.Invoke は未対応です")]
         [TestCase("void Start() { bool b = _calc == _calc; }", "デリゲートどうしの == / != は未対応です")]
@@ -353,6 +356,130 @@ public class ClosureLines : UdonSharpBehaviour
             r = UdonSharpTestCompiler.Compile(new TestSource("ClosureLines.cs", src.Replace("System.IO.File.Exists(\"a\")", "GetType().Name")));
             Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
             Assert.That(r.Diagnostics[0], Does.Contain("ClosureLines.cs(21,"), "複数行の式形式のメソッドのうしろ（21 行目）");
+        }
+
+        // ---- 匿名メソッド・ローカル関数（#123） -------------------------------------
+
+        private const string LocalUser = @"using UdonSharp;
+using UnityEngine;
+
+public delegate int Calc(int x);
+public delegate void Act();
+
+public class LocalUser : UdonSharpBehaviour
+{
+    private int _base = 10;
+
+    private void Start()
+    {
+        int k = 2;
+        int Add(int x) => x + k;
+        int Fact(int n)
+        {
+            if (n <= 1)
+                return 1;
+            return n * Fact(n - 1);
+        }
+        void Bump() { k++; }
+        static int Twice(int x) => x * 2;
+        Calc c = Add;
+        Calc anon = delegate (int x) { return x + k + _base; };
+        Act any = delegate { k += 10; };
+        Bump();
+        any();
+        Debug.Log(Add(1) + Fact(4) + Twice(3) + c(1) + anon(1));
+    }
+}";
+
+        [Test]
+        public void LocalFunctionsAndAnonymousMethodsCompileAndKeepLines()
+        {
+            string dir = Path.GetFullPath(Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusDelegateLocal"));
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+            try
+            {
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir, new TestSource("LocalUser.cs", LocalUser));
+                Assert.That(r.Diagnostics, Is.Empty);
+                string lowered = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "LocalUser.cs"));
+                Assert.That(lowered.Split('\n').Length, Is.EqualTo(LocalUser.Split('\n').Length), lowered);
+                Assert.That(lowered, Does.Contain("private int __lf_Add__0_0(object[] __env0, int x)"), "外の変数の環境を引数で受け取る");
+                Assert.That(lowered, Does.Contain("[global::UdonSharp.RecursiveMethod] private int __lf_Fact__0_1(int n)"), "自分を呼ぶローカル関数は [RecursiveMethod]");
+                Assert.That(lowered, Does.Contain("private static int __lf_Twice__0_3(int x)"));
+                Assert.That(lowered, Does.Not.Contain("int Add(int x)"));
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// ローカル関数・匿名メソッドの中のエラーが、元のファイル・行を指す（#123 の追加テスト 10）。
+        /// UdonSharp が対応していない System.IO.File.Exists をエラーの印にする。どれも 1 つのエラーだけ
+        /// </summary>
+        [TestCase("Plain", "Types.cs(9,")]
+        [TestCase("NestedInLambda", "Main.cs(14,")]
+        [TestCase("AnonymousInPartial", "Main.Part.cs(9,")]
+        [TestCase("LocalInLinq", "Main.cs(16,")]
+        [TestCase("AnonymousInPlainClass", "Types.cs(13,")]
+        public void LocalFunctionErrorsPointToOriginalLocation(string where, string location)
+        {
+            string Mark(string name, string code) => where == name ? code : "0";
+            string types = @"public delegate int Calc(int x);
+
+public class Plain
+{
+    public int Run(int x)
+    {
+        int Local(int y)
+        {
+            return y + (System.IO.File.Exists(""a"") ? 1 : " + Mark("Plain", "0") + @");
+        }
+        return Local(x);
+    }
+    public Calc Make() => " + (where == "AnonymousInPlainClass" ? "delegate (int x) { return x; }" : "null") + @";
+}";
+            if (where != "Plain")
+                types = types.Replace(@"System.IO.File.Exists(""a"")", "true");
+            string main = @"using UdonSharp;
+using System.Linq;
+
+public partial class Main : UdonSharpBehaviour
+{
+    private void Start()
+    {
+        int k = 1;
+        Calc c = x =>
+        {
+            int Inner(int y)
+            {
+                y += k;
+                return y + (" + Mark("NestedInLambda", @"System.IO.File.Exists(""b"") ? 1 : 0") + @");
+            }
+            int Env(int y) => y + k; var list = new System.Collections.Generic.List<int>(); var e = list.Select(" + (where == "LocalInLinq" ? "Env" : "y => y") + @");
+            return Inner(x) + Env(x);
+        };
+        UnityEngine.Debug.Log(c(1) + new Plain().Run(1) + Part(1));
+    }
+}";
+            string part = @"using UdonSharp;
+
+public partial class Main
+{
+    private int Part(int x)
+    {
+        Calc c = delegate (int y)
+        {
+            return y + (" + Mark("AnonymousInPartial", @"System.IO.File.Exists(""c"") ? 1 : 0") + @");
+        };
+        return c(x);
+    }
+}";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("Types.cs", types), new TestSource("Main.cs", main), new TestSource("Main.Part.cs", part));
+            Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics[0], Does.Contain(location), r.Diagnostics[0]);
         }
 
         // ---- += / -=（#122） ----------------------------------------------------

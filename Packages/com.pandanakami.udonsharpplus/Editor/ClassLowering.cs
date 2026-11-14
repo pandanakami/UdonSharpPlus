@@ -506,7 +506,8 @@ namespace UdonSharpPlus
 
             /// <summary>
             /// 普通のクラスの中のローカル関数はエラーにする（#87）。UdonSharp も対応しておらず（UdonSharpBehaviour の中なら UdonSharp がエラーにする）、
-            /// そのままだと呼び出しがコピーのメソッド名に置き換わって、分かりにくいエラーになるため。対応は #69 で行う
+            /// そのままだと呼び出しがコピーのメソッド名に置き換わって、分かりにくいエラーになるため。
+            /// ローカル関数は DelegateLowering がメソッドに移す（#123）ので、ここに来るのは移せなかったものだけ
             /// </summary>
             public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
             {

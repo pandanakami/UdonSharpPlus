@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 19;
+        public const int Count = 21;
 
         public int caseId;
         public bool started;
@@ -75,6 +75,8 @@ namespace FeatureTests.Syntax
                 case 16: return "null delegate property call";
                 case 17: return "exception inside lambda";
                 case 18: return "exception inside closure";
+                case 19: return "exception inside local function";
+                case 20: return "exception inside local function in anonymous method";
             }
             return "?";
         }
@@ -136,6 +138,32 @@ namespace FeatureTests.Syntax
                         return 10 / zero18;   // ここ（#129：外の変数を使うラムダの中の例外も元の行）
                     };
                     observed = "" + closure(3);
+                    break;
+                }
+                case 19:
+                {
+                    int zero19 = 0;
+                    int Divide(int x)
+                    {
+                        x += zero19;
+                        return 10 / zero19;   // ここ（#123：ローカル関数の中の例外も元の行）
+                    }
+                    observed = "" + Divide(3);
+                    break;
+                }
+                case 20:
+                {
+                    int zero20 = 0;
+                    FeatureTests.Delegate.Calc anon = delegate (int x)
+                    {
+                        int Inner(int y)
+                        {
+                            y += zero20;
+                            return 10 / zero20;   // ここ（#123：匿名メソッドの中のローカル関数の中の例外も元の行）
+                        }
+                        return Inner(x);
+                    };
+                    observed = "" + anon(3);
                     break;
                 }
             }
