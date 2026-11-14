@@ -189,9 +189,42 @@ namespace UdonSharpPlus
                 sb.Append("} ");
                 if (hasReturn)
                     sb.Append("return __r; ");
-                sb.Append("} }");
+                sb.Append("} ");
+                sb.Append(CombineCode).Append(' ').Append(RemoveCode);
+                sb.Append(" }");
                 return sb.ToString();
             }
+
+            /// <summary>
+            /// a + b（#122）：組を並べた新しい配列。C# と同じく、元の値は書き換えない。どちらかが null なら、もう片方
+            /// </summary>
+            private const string CombineCode =
+                "public static object[] __combine(object[] __a, object[] __b) { " +
+                "if (__a == null) return __b; if (__b == null) return __a; " +
+                "int __na = __a.Length; int __nb = __b.Length; object[] __r = new object[__na + __nb]; " +
+                "for (int __i = 0; __i < __na; __i++) __r[__i] = __a[__i]; " +
+                "for (int __i = 0; __i < __nb; __i++) __r[__na + __i] = __b[__i]; " +
+                "return __r; }";
+
+            /// <summary>
+            /// a - b（#122）：C# の Delegate.Remove と同じく、b の組の並びが a の中に続けて現れる最後の場所を外す。
+            /// 組は、呼ぶ相手・メソッドの名前・外の変数の環境（参照）がすべて同じなら同じとみなす。全部外れたら null、見つからなければ a
+            /// </summary>
+            private const string RemoveCode =
+                "public static object[] __remove(object[] __a, object[] __b) { " +
+                "if (__a == null) return null; if (__b == null) return __a; " +
+                "int __na = __a.Length; int __nb = __b.Length; " +
+                "for (int __i = __na - __nb; __i >= 0; __i -= 3) { " +
+                "bool __same = true; " +
+                "for (int __j = 0; __j < __nb; __j += 3) { " +
+                "if (__a[__i + __j] != __b[__j] || (string)__a[__i + __j + 1] != (string)__b[__j + 1] || __a[__i + __j + 2] != __b[__j + 2]) { __same = false; break; } } " +
+                "if (!__same) continue; " +
+                "if (__na == __nb) return null; " +
+                "object[] __r = new object[__na - __nb]; " +
+                "for (int __k = 0; __k < __i; __k++) __r[__k] = __a[__k]; " +
+                "for (int __k = __i + __nb; __k < __na; __k++) __r[__k - __nb] = __a[__k]; " +
+                "return __r; } " +
+                "return __a; }";
 
             /// <summary>中継メソッドが使う、引数・戻り値のフィールド（1 行ずつ）</summary>
             public IEnumerable<string> FieldCode(DelegateInfo info)
@@ -1353,11 +1386,9 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
-                if ((node.IsKind(SyntaxKind.AddAssignmentExpression) || node.IsKind(SyntaxKind.SubtractAssignmentExpression)) && DelegateOf(node.Left) is DelegateInfo info)
-                {
-                    Error(node, $"'{info.Symbol.Name}' : デリゲートの += / -= は、まだ未対応です");
-                    return node;
-                }
+                bool combine = node.IsKind(SyntaxKind.AddAssignmentExpression) || node.IsKind(SyntaxKind.SubtractAssignmentExpression);
+                if (combine && DelegateOf(node.Left) is DelegateInfo info)
+                    return CombineAssignment(node, info);
                 if (Unparen(node.Left) is IdentifierNameSyntax id && TryCaptured(id, out ISymbol symbol, out var slot))
                 {
                     string right = Text(Visit(node.Right));
@@ -1370,14 +1401,65 @@ namespace UdonSharpPlus
                 return base.VisitAssignmentExpression(node);
             }
 
+            /// <summary>
+            /// h += x → h = __dlg_K.__combine(h, x)、h -= x → h = __dlg_K.__remove(h, x)（#122）。
+            /// 受け側は 2 回書くので、何度評価しても同じもの（変数・フィールド・プロパティ・定数の添字の配列の要素など）に限る
+            /// </summary>
+            private SyntaxNode CombineAssignment(AssignmentExpressionSyntax node, DelegateInfo info)
+            {
+                if (info.Unsupported != null)
+                {
+                    Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                    return node;
+                }
+                string helper = $"{info.HelperFull}.{(node.IsKind(SyntaxKind.AddAssignmentExpression) ? "__combine" : "__remove")}";
+                string right = Text(Visit(node.Right));
+                if (Unparen(node.Left) is IdentifierNameSyntax id && TryCaptured(id, out ISymbol symbol, out var slot))
+                    return CapturedWrite(node, symbol, slot, $"{helper}(({ValueType}){slot.Scope.Name}[{slot.Index}], {right})");
+                if (!IsRepeatable(node.Left))
+                {
+                    Error(node.Left, $"'{info.Symbol.Name}' : この形の受け側への += / -= は未対応です（受け側を 2 回評価するため）。いったん変数に入れてください");
+                    return node;
+                }
+                string left = Text(Visit(node.Left));
+                return Parse($"{left} = {helper}({left}, {right})", node);
+            }
+
+            /// <summary>何度評価しても結果と副作用が変わらない受け側か（変数・フィールド・プロパティ、添字が定数か変数の配列の要素）</summary>
+            private bool IsRepeatable(ExpressionSyntax e)
+            {
+                switch (e)
+                {
+                    case IdentifierNameSyntax _:
+                    case ThisExpressionSyntax _:
+                    case BaseExpressionSyntax _:
+                    case LiteralExpressionSyntax _:
+                        return true;
+                    case ParenthesizedExpressionSyntax p:
+                        return IsRepeatable(p.Expression);
+                    case MemberAccessExpressionSyntax ma when ma.IsKind(SyntaxKind.SimpleMemberAccessExpression):
+                        return _model.GetSymbolInfo(ma.Expression).Symbol is ITypeSymbol || IsRepeatable(ma.Expression);
+                    case ElementAccessExpressionSyntax el:
+                        return IsRepeatable(el.Expression) && el.ArgumentList.Arguments.All(a => IsRepeatable(a.Expression));
+                    default:
+                        return false;
+                }
+            }
+
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
             {
                 if (node.IsKind(SyntaxKind.AddExpression) || node.IsKind(SyntaxKind.SubtractExpression))
                 {
-                    if ((DelegateOf(node.Left) ?? DelegateOf(node.Right)) is DelegateInfo info)
+                    // 結果がデリゲート型のときだけ（"a" + h のような文字列の連結は別）
+                    if (_shared.Find(_model.GetTypeInfo(node).Type) is DelegateInfo info)
                     {
-                        Error(node, $"'{info.Symbol.Name}' : デリゲートの + / - は、まだ未対応です");
-                        return node;
+                        if (info.Unsupported != null)
+                        {
+                            Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                            return node;
+                        }
+                        string helper = node.IsKind(SyntaxKind.AddExpression) ? "__combine" : "__remove";
+                        return Parse($"{info.HelperFull}.{helper}({Text(Visit(node.Left))}, {Text(Visit(node.Right))})", node);
                     }
                 }
                 else if (node.IsKind(SyntaxKind.EqualsExpression) || node.IsKind(SyntaxKind.NotEqualsExpression))

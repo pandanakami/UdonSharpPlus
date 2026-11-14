@@ -15,7 +15,7 @@ namespace FeatureTests.Delegate
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果
-        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True;12,5,8,c3!,9,15,8,120,8,12;1,11,21,107,107,6,8,3,10,10,15,10;105,205,51,0,1,2,i10,i21,6,7,6";
+        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True;12,5,8,c3!,9,15,8,120,8,12;1,11,21,107,107,6,8,3,10,10,15,10;105,205,51,0,1,2,i10,i21,6,7,6;10,105,a1!a,6,True,16,4;6,9,9,9,4;11,11,14,1009,105;ABC,A,A,ABC,A;1,32;3,3,B,B,null;null,A,A,null,A,null";
 
         // UdonSharpBehaviour の中で宣言したデリゲート（名前空間の直下に移して書き換える）
         public delegate bool Check(int x);
@@ -86,7 +86,139 @@ namespace FeatureTests.Delegate
             int acc = 0;
             list.ForEach(v => { Calc twice = y => y * 2; acc += twice(v); });
             s += acc + ";";
-            s += ClosureScenario();
+            s += ClosureScenario() + ";";
+            s += CombineScenario() + ";";
+            s += CombineMoreScenario();
+            return s;
+        }
+
+        // #122 の追加テスト：呼ばれたものを _log に名前で残し、つないだ中身を確かめる
+        private int LA(int x) { _log += "A"; return x; }
+        private int LB(int x) { _log += "B"; return x; }
+        private int LC(int x) { _log += "C"; return x; }
+        private Calc MakeLogCounter() { int n = 0; return x => { n++; _log += n; return n; }; }
+        private Calc _propBack;
+        private int _gets, _sets;
+        private Calc LogProp { get { _gets++; return _propBack; } set { _sets++; _propBack = value; } }
+
+        private string Trace(Calc c)
+        {
+            if (c == null)
+                return "null";
+            _log = "";
+            c(0);
+            return _log;
+        }
+
+        private string CombineMoreScenario()
+        {
+            string s = "";
+            // 1. 同じ並びが複数あるときは、最後のものだけを外す
+            Calc ab = (Calc)LA + LB;
+            Calc t = ab + LC + ab;
+            t -= ab;
+            s += Trace(t) + ",";
+            // 2. 重なった並びは、うしろから外す
+            Calc aaa = (Calc)LA + LA + LA;
+            aaa -= (Calc)LA + LA;
+            s += Trace(aaa) + ",";
+            // 3. つなぐ・外すで、元の値は変わらない
+            Calc original = LA;
+            Calc combined = original + LB;
+            Calc removed = combined - LB;
+            combined += LC;
+            s += Trace(original) + "," + Trace(combined) + "," + Trace(removed) + ";";
+            // 4. 同じラムダでも、外の変数の環境が違えば外れない
+            Calc c1 = MakeLogCounter(), c2 = MakeLogCounter();
+            c1(0); c1(0);
+            Calc both = c1 + c2;
+            both -= c1;
+            s += Trace(both) + ",";
+            Calc both2 = c1 + c2;
+            both2 -= MakeLogCounter();
+            s += Trace(both2) + ";";
+            // 5. 副作用のあるプロパティ（get・set は 1 回ずつ）・配列の要素への += / -=
+            _gets = 0; _sets = 0; _propBack = null;
+            LogProp += LA;
+            LogProp += LB;
+            LogProp -= LA;
+            s += _gets + "," + _sets + "," + Trace(LogProp) + ",";
+            var arr = new Calc[2];
+            arr[1] += LA;
+            arr[1] += LB;
+            arr[1] -= LA;
+            s += Trace(arr[1]) + ",";
+            arr[1] -= LB;
+            s += Trace(arr[1]) + ";";
+            // null との + / -
+            Calc z = null;
+            Calc a = LA;
+            s += Trace(z + z) + "," + Trace(z + a) + "," + Trace(a + z) + "," + Trace(z - a) + "," + Trace(a - z) + "," + Trace(a - a);
+            return s;
+        }
+
+        // #122 += / -=、+ / -
+        private string CombineScenario()
+        {
+            string s = "";
+            _base = 100;
+            // 呼ぶ順番・戻り値は最後のもの・戻り値なし
+            Calc m = Square;
+            m += DelegateMath.Twice;
+            s += m(5) + ",";
+            m += AddBase;
+            s += m(5) + ",";
+            _log = "";
+            _notify = OnNotify;
+            _notify += (it, t) => _log += "!" + t;
+            _notify(new DelegateItem(1), "a");
+            s += _log + ",";
+            // -= は最後に現れるものを外す・全部外れたら null・ないものは外さない・null との組み合わせ
+            Calc m2 = Square;
+            m2 += DelegateMath.Twice;
+            m2 += Square;
+            m2 -= Square;
+            s += m2(3) + ",";
+            Calc one = Square;
+            one -= Square;
+            s += (one == null) + ",";
+            Calc one2 = Square;
+            one2 -= DelegateMath.Twice;
+            one2 -= null;
+            s += one2(4) + ",";
+            Calc n = null;
+            n += Square;
+            s += n(2) + ";";
+            // + / -、続けて並んだものを外す
+            Calc ab = (Calc)Square + DelegateMath.Twice;
+            s += ab(3) + "," + (ab - DelegateMath.Twice)(3) + ",";
+            Calc seq = (Calc)Square + DelegateMath.Twice + Square;
+            seq -= (Calc)Square + DelegateMath.Twice;
+            s += seq(3) + ",";
+            // ラムダ：同じ値は外れる・別の場所に書いた同じ式は外れない（C# と同じ）
+            Calc lam = x => x + 1;
+            Calc both = Square;
+            both += lam;
+            both -= lam;
+            s += both(3) + ",";
+            both += x => x + 1;
+            both -= x => x + 1;
+            s += both(3) + ";";
+            // クロージャ・外の変数への += ・普通のクラスのフィールドへの += ・別の UdonSharpBehaviour で呼ぶ
+            int hits = 0;
+            Calc hc = x => ++hits;
+            hc += x => hits += 10;
+            s += hc(0) + "," + hits + ",";
+            Calc cap = Square;
+            Calc useCap = x => cap(x);
+            cap += DelegateMath.Twice;
+            s += useCap(7) + ",";
+            var item = new DelegateItem(1000);
+            item.calc = DelegateMath.Twice;
+            item.calc += Square;
+            s += item.Apply(3) + ",";
+            holder.Store(m);
+            s += holder.CallStored(5);
             return s;
         }
 

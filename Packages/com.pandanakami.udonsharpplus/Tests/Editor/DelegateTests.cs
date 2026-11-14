@@ -172,7 +172,7 @@ public class Bad : UdonSharpBehaviour
         [TestCase("private Calc _init = x => x;", "フィールドの初期化子の中でラムダをデリゲートに入れることは未対応です")]
         [TestCase("static void S() { Calc c = x => x; }", "static メソッドの中でラムダをデリゲートに入れることは未対応です")]
         [TestCase("void Start() { _calc = delegate (int x) { return x; }; }", "匿名メソッド（delegate { ... }）をデリゲートに入れることは、まだ未対応です")]
-        [TestCase("void Start() { _calc += Square; }", "デリゲートの += / -= は、まだ未対応です")]
+        [TestCase("Calc[] _cs = new Calc[2]; int Idx() => 0; void Start() { _cs[Idx()] += Square; }", "この形の受け側への += / -= は未対応です")]
         [TestCase("void Start() { _calc?.Invoke(1); }", "?.Invoke は未対応です")]
         [TestCase("void Start() { bool b = _calc == _calc; }", "デリゲートどうしの == / != は未対応です")]
         [TestCase("void Start() { var m = _calc.Method; }", "デリゲートのメンバーは、Invoke のほかは未対応です")]
@@ -353,6 +353,95 @@ public class ClosureLines : UdonSharpBehaviour
             r = UdonSharpTestCompiler.Compile(new TestSource("ClosureLines.cs", src.Replace("System.IO.File.Exists(\"a\")", "GetType().Name")));
             Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
             Assert.That(r.Diagnostics[0], Does.Contain("ClosureLines.cs(21,"), "複数行の式形式のメソッドのうしろ（21 行目）");
+        }
+
+        // ---- += / -=（#122） ----------------------------------------------------
+
+        private const string CombineUser = @"using UdonSharp;
+using UnityEngine;
+
+public delegate int Calc(int x);
+
+public class Box { public Calc calc; }
+
+public class CombineUser : UdonSharpBehaviour
+{
+    private Calc _calc;
+    private Calc[] _calcs = new Calc[2];
+    private Calc Prop { get; set; }
+
+    private static int Square(int x) => x * x;
+
+    private void Start()
+    {
+        _calc += Square;
+        _calc -= Square;
+        _calcs[1] += x => x + 1;
+        Prop += Square;
+        var box = new Box();
+        box.calc += Square;
+        int k = 1;
+        Calc cap = null;
+        Calc use = x => cap(x) + k;
+        cap += Square;
+        Calc sum = _calc + Prop - cap;
+        string text = ""d"" + _calc;
+        Debug.Log(text + use(1) + sum(2) + (_calc = _calc + Square)(3));
+    }
+}";
+
+        [Test]
+        public void CombineCompilesAndKeepsLines()
+        {
+            string dir = Path.GetFullPath(Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusDelegateCombine"));
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+            try
+            {
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir, new TestSource("CombineUser.cs", CombineUser));
+                Assert.That(r.Diagnostics, Is.Empty);
+                string lowered = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "CombineUser.cs"));
+                Assert.That(lowered.Split('\n').Length, Is.EqualTo(CombineUser.Split('\n').Length), lowered);
+                Assert.That(lowered, Does.Contain("_calc = __cls___dlg_Calc____combine__objectArray__objectArray(_calc, "));
+                Assert.That(lowered, Does.Contain("_calc = __cls___dlg_Calc____remove__objectArray__objectArray(_calc, "));
+                Assert.That(lowered, Does.Contain("\"d\" + _calc"), "文字列の連結はそのまま");
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// 受け側を 2 回評価すると結果が変わる += / -= のエラーは、元の行の受け側を指す。添字が定数・変数の配列の要素は通る（#122 の追加テスト）
+        /// </summary>
+        [TestCase("+=")]
+        [TestCase("-=")]
+        public void CombineOnUnrepeatableReceiverPointsToOriginalLine(string op)
+        {
+            string src = @"using UdonSharp;
+
+public delegate int Calc(int x);
+
+public class CombineError : UdonSharpBehaviour
+{
+    private Calc[] _arr = new Calc[2];
+    private int _i;
+    private static int Square(int x) => x * x;
+    private int Next() => _i++;
+
+    private void Start()
+    {
+        _arr[0] += Square;
+        _arr[_i] -= Square;
+        _arr[Next()] " + op + @" Square;
+    }
+}";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("CombineError.cs", src));
+            Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics[0], Does.Contain("CombineError.cs(16,9)"), "_arr[Next()] の位置（16 行目の 9 列目）");
+            Assert.That(r.Diagnostics[0], Does.Contain("この形の受け側への += / -= は未対応です"));
         }
 
         /// <summary>ラムダの本体の中のエラーは、元の行に出る（複数行のブロックの本体でも、文ごとの行）</summary>
