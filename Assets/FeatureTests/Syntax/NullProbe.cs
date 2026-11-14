@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 27;
+        public const int Count = 31;
 
         public int caseId;
         public bool started;
@@ -83,6 +83,10 @@ namespace FeatureTests.Syntax
                 case 24: return "null Predicate variable passed to List method";
                 case 25: return "exception inside lambda passed to List method via variable";
                 case 26: return "null Func variable passed to LINQ on empty list";
+                case 27: return "member of null anonymous type variable";
+                case 28: return "ToString of null anonymous type variable";
+                case 29: return "Equals of null anonymous type variable";
+                case 30: return "exception inside anonymous type projection lambda";
             }
             return "?";
         }
@@ -209,6 +213,32 @@ namespace FeatureTests.Syntax
                     // #125：要素がなくても、null のデリゲートを渡すと C# と同じく止まる（C# では ArgumentNullException）
                     System.Func<int, bool> nullFn = null;
                     observed = "" + System.Linq.Enumerable.Count(new System.Collections.Generic.List<int>(), nullFn);   // ここ
+                    break;
+                }
+                case 27:
+                {
+                    // #70：null の匿名型の変数のメンバーを読むと、C# と同じく止まる
+                    var maybe = caseId > 100 ? new { A = 1 } : null;
+                    observed = "" + maybe.A;   // ここ
+                    break;
+                }
+                case 28:
+                {
+                    var maybe = caseId > 100 ? new { A = 1 } : null;
+                    observed = maybe.ToString();   // ここ（#70：null の匿名型の ToString は止まる。文字列の連結では空になる）
+                    break;
+                }
+                case 29:
+                {
+                    var maybe = caseId > 100 ? new { A = 1 } : null;
+                    observed = "" + maybe.Equals(new { A = 1 });   // ここ
+                    break;
+                }
+                case 30:
+                {
+                    var zeros = new System.Collections.Generic.List<int> { 0 };
+                    var rows = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(zeros, x => new { D = 10 / x }));   // ここ（#70：匿名型に射影するラムダの中の例外も元の行）
+                    observed = "" + rows.Count;
                     break;
                 }
             }

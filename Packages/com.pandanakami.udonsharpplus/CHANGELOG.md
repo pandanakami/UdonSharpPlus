@@ -3,6 +3,20 @@
 Changes in each version of UdonSharp Plus. Each section is used as the body of the GitHub release.
 UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリリースの本文になります。
 
+## [0.1.5]
+
+### English
+
+New
+
+- Anonymous types (`new { Name = "a", Score = 1 }`) can be used in `UdonSharpBehaviour` and plain classes. UdonSharp itself does not support them. You can read members, omit member names (`new { x.Name }`), nest them, return them from lambdas (`list.Select(x => new { x.Name, x.Hp })`), and keep them in arrays and `var` lists. `ToString()`, string concatenation and interpolation give the same text as C# (`{ Name = a, Score = 1 }`), and `Equals` compares by value. Using one as `object` (`Debug.Log(p)`), `GetHashCode()` and `GetType()` are compile errors. See Documentation~/anonymous-types.md.
+
+### 日本語
+
+新しく使えるもの
+
+- 匿名型（`new { Name = "a", Score = 1 }`）を、`UdonSharpBehaviour` と普通のクラスの中で使えるようになりました（UdonSharp 自体は対応していません）。メンバーを読む・メンバー名を省略する（`new { x.Name }`）・入れ子にする・ラムダの戻り値にする（`list.Select(x => new { x.Name, x.Hp })`）・配列や `var` で受けたリストに入れることができます。`ToString()`・文字列の連結・補間は C# と同じ文字列（`{ Name = a, Score = 1 }`）になり、`Equals` は値で比べます。`object` として使うこと（`Debug.Log(p)`）・`GetHashCode()`・`GetType()` は、コンパイルエラーです。詳しくは Documentation~/anonymous-types.md を見てください。
+
 ## [0.1.4]
 
 ### English

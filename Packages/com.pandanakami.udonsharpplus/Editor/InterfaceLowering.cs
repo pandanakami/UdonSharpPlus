@@ -90,6 +90,15 @@ namespace UdonSharpPlus
             List<SyntaxTree> current = original;
             SourceMap.RegisterTrees(current);
 
+            // 匿名型（new { ... }）→ メンバーの並びごとの普通のクラス（#70）。ジェネリクスの前に 1 回（匿名型を型引数にするジェネリックメソッドのため）、
+            // 型引数を使う匿名型はジェネリクスのあとにもう 1 回（型引数が決まってから）
+            int anonymousCount = 0;
+            if (AnonymousTypeLowering.MayHaveAnonymousTypes(current))
+            {
+                current = AnonymousTypeLowering.Run(current, diagnostics, GetMetadataReferences(), ref anonymousCount, beforeGenerics: true);
+                SourceMap.RegisterTrees(current);
+            }
+
             // 0) ユーザー定義のジェネリクス → 型引数ごとのコピー（#59）。後の段はジェネリクスのないコードを見る
             if (GenericLowering.MayHaveGenerics(current))
             {
@@ -100,6 +109,13 @@ namespace UdonSharpPlus
             // タプル（#81）は UdonSharp が対応していないのでエラーにする。書き換えの前に見るので、元のソースの位置に出る
             if (TupleCheck.MayHaveTuples(current))
                 TupleCheck.Run(current, diagnostics, GetMetadataReferences());
+
+            // 匿名型の 2 回目。デリゲートの段は、匿名型を知らなくてよいよう、その前に置く
+            if (AnonymousTypeLowering.MayHaveAnonymousTypes(current))
+            {
+                current = AnonymousTypeLowering.Run(current, diagnostics, GetMetadataReferences(), ref anonymousCount, beforeGenerics: false);
+                SourceMap.RegisterTrees(current);
+            }
 
             // ソースで宣言したデリゲート → object[] と、呼び出しの static クラス・中継メソッド（#69 / #119）。
             // 生成するコードは普通のクラス・インタフェースの型のままなので、それらの段より前に置く
@@ -791,6 +807,14 @@ namespace UdonSharpPlus
                 if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
                     return ReplaceType(node);
                 return base.VisitQualifiedName(node);
+            }
+
+            public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
+            {
+                // global::IFoo：右側だけを object にすると SimpleNameSyntax にならないので、全体を置き換える
+                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
+                    return ReplaceType(node);
+                return base.VisitAliasQualifiedName(node);
             }
 
             private SyntaxNode ReplaceType(SyntaxNode node)

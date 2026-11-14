@@ -19,6 +19,7 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Lambdas and LINQ | `list.Find(b => b.damage > 0)`, `list.Where(...).Select(...).ToList()`, `OrderBy`, `Sum` |
 | Delegates | `delegate int Calc(int x);`, `Action`, `Func`, `Predicate`, `Comparison`, `d = enemy.Hit`, `d = x => x * k`, `d += F`, `list.Where(isBig)` |
 | Local functions and anonymous methods | `int Twice(int x) => x * 2;` inside a method, `delegate (int x) { ... }` |
+| Anonymous types | `var p = new { Name = "a", Hp = 10 };`, `p.Hp`, `list.Select(x => new { x.Name, x.Hp })`, `ToString()`, `Equals` |
 
 ```csharp
 using System.Collections.Generic;
@@ -107,7 +108,6 @@ That's all. There is nothing to configure.
 
 These are planned but not supported yet. There is no fixed schedule, and the scope may change.
 
-- Anonymous types (`new { Name = "a", Hp = 10 }`), including lists of them
 - Tuples
 - Operator overloading
 - Coroutines

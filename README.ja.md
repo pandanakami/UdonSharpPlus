@@ -19,6 +19,7 @@ UdonSharp のコンパイラに Harmony でパッチを当て、UdonSharp がコ
 | ラムダ・LINQ | `list.Find(b => b.damage > 0)`、`list.Where(...).Select(...).ToList()`、`OrderBy`、`Sum` |
 | デリゲート | `delegate int Calc(int x);`、`Action`、`Func`、`Predicate`、`Comparison`、`d = enemy.Hit`、`d = x => x * k`、`d += F`、`list.Where(isBig)` |
 | ローカル関数・匿名メソッド | メソッドの中の `int Twice(int x) => x * 2;`、`delegate (int x) { ... }` |
+| 匿名型 | `var p = new { Name = "a", Hp = 10 };`、`p.Hp`、`list.Select(x => new { x.Name, x.Hp })`、`ToString()`、`Equals` |
 
 ```csharp
 using System.Collections.Generic;
@@ -107,7 +108,6 @@ UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、
 
 次のものに対応する予定です（まだ使えません）。時期は決まっておらず、内容も変わることがあります。
 
-- 匿名型（`new { Name = "a", Hp = 10 }`）と、そのリスト
 - タプル
 - 演算子のオーバーロード
 - コルーチン

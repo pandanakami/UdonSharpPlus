@@ -1367,7 +1367,7 @@ namespace UdonSharpPlus
                 {
                     IParameterSymbol p = method.Parameters[i];
                     ParameterSyntax ps = syntax != null && i < syntax.Parameters.Count ? syntax.Parameters[i] : null;
-                    string text = (p.IsParams ? "params " : "") + RefPrefix(p) + TypeText(p.Type) + " " + p.Name;
+                    string text = (p.IsParams ? "params " : "") + RefPrefix(p) + TypeText(p.Type) + " " + ParamName(p);
                     if (withDefaults && ps?.Default != null)
                         text += " = " + Flatten(Visit(ps.Default.Value), ps.Default.Value);
                     list.Add(text);
@@ -1434,10 +1434,15 @@ namespace UdonSharpPlus
                         sb.Append($"{ThisName}[{c.Slots[slot]}] = default({TypeText(type)}); ");
                 }
                 var args = new List<string> { ThisName };
-                args.AddRange(ctor.Parameters.Select(p => RefPrefix(p) + p.Name));
+                args.AddRange(ctor.Parameters.Select(p => RefPrefix(p) + ParamName(p)));
                 sb.Append($"{InitName(c, ctor)}({string.Join(", ", args)}); return {ThisName}; }}");
                 return sb.ToString();
             }
+
+            /// <summary>引数の名前（キーワードと同じ名前は @ を付けて書く。シンボルの名前には @ がない）</summary>
+            private static string ParamName(IParameterSymbol p) =>
+                SyntaxFacts.GetKeywordKind(p.Name) != SyntaxKind.None
+                    ? "@" + p.Name : p.Name;
 
             private static string RefPrefix(IParameterSymbol p) =>
                 p.RefKind == RefKind.Ref ? "ref " : p.RefKind == RefKind.Out ? "out " : p.RefKind == RefKind.In ? "in " : "";
