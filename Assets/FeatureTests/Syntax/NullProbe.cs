@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 21;
+        public const int Count = 24;
 
         public int caseId;
         public bool started;
@@ -77,6 +77,9 @@ namespace FeatureTests.Syntax
                 case 18: return "exception inside closure";
                 case 19: return "exception inside local function";
                 case 20: return "exception inside local function in anonymous method";
+                case 21: return "delegate from method of null instance";
+                case 22: return "exception inside lambda made in plain class";
+                case 23: return "exception inside local function in plain class";
             }
             return "?";
         }
@@ -166,6 +169,21 @@ namespace FeatureTests.Syntax
                     observed = "" + anon(3);
                     break;
                 }
+                case 21:
+                {
+                    // #124：null のインスタンスのメソッドからデリゲートを作ると、C# と同じく作るときに止まる
+                    FeatureTests.Delegate.CmCounter none = null;
+                    FeatureTests.Delegate.Calc fromNull = none.Peek;
+                    observed = "created";
+                    break;
+                }
+                case 22:
+                {
+                    FeatureTests.Delegate.Calc div = new FeatureTests.Delegate.MtBox(1).MakeDiv();
+                    observed = "" + div(3);
+                    break;
+                }
+                case 23: observed = "" + new FeatureTests.Delegate.MtBox(1).LocalDiv(3); break;
             }
             finished = true;
             Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);

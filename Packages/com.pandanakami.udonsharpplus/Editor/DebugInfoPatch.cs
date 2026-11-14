@@ -96,8 +96,11 @@ namespace UdonSharpPlus
             try
             {
                 SourceMap.Entry entry = SourceMap.Find(node.GetLocation());
-                // 別のクラスのコピーの印を拾ったら（メソッドの外の印）、メソッドの最初の印にする
-                if (entry == null || entry.TreeIndex != state.First.TreeIndex || entry.ClassName != state.First.ClassName)
+                // 別のクラスのコピーの印を拾ったら（メソッドの外の印）、メソッドの最初の印にする。
+                // クラス名のない印（ラムダの本体・ローカル関数を移したメソッドの印。#123・#124）は、同じファイルなら同じメソッドのものとみなす
+                // （普通のクラスの中のラムダは、最初の印がクラス名のない印、文ごとの印がクラス名のある印になる。#133）
+                if (entry == null || entry.TreeIndex != state.First.TreeIndex
+                    || entry.ClassName != null && state.First.ClassName != null && entry.ClassName != state.First.ClassName)
                     entry = state.First;
                 Record(__instance, context, entry.Line, entry.Character);
                 return false;

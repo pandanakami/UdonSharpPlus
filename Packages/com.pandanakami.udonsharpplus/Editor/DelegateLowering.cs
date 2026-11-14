@@ -61,7 +61,7 @@ namespace UdonSharpPlus
             if (delegates.Count == 0 && !trees.Any(t => t.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Any()))
                 return trees;
 
-            var shared = new Shared(delegates, diagnostics);
+            var shared = new Shared(delegates, diagnostics, trees);
             var result = new List<SyntaxTree>(trees.Count);
             for (int i = 0; i < trees.Count; i++)
             {
@@ -71,7 +71,7 @@ namespace UdonSharpPlus
                 result.Add(rewriter.Changed ? Reparse(newRoot, trees[i]) : trees[i]);
             }
 
-            return AddGeneratedMembers(result, trees, shared);
+            return AddStaticDispatchers(AddGeneratedMembers(result, trees, shared), shared);
         }
 
         private static SyntaxTree Reparse(SyntaxNode root, SyntaxTree original) =>
@@ -135,10 +135,53 @@ namespace UdonSharpPlus
                 return info;
             }
 
-            public Shared(Dictionary<INamedTypeSymbol, DelegateInfo> delegates, InterfaceLowering.LoweringDiagnostics diagnostics)
+            /// <summary>書き換え前の tree（ほかの tree のクラスに中継メソッドを置くとき、その位置を引く）</summary>
+            public readonly List<SyntaxTree> Originals;
+
+            /// <summary>
+            /// 呼ぶ相手（UdonSharpBehaviour）のない組（#124）：デリゲート型 → 名前 → 呼ぶ式。
+            /// 普通のクラスの中で作ったもの・普通のクラスとインタフェースのインスタンスのメソッドは、組の 1 つ目を null にし、
+            /// __invoke が SendCustomEvent ではなく static の振り分け（__static）で直接呼ぶ。外の変数の環境の一覧は __l
+            /// </summary>
+            public readonly Dictionary<DelegateInfo, SortedDictionary<string, string>> Statics = new Dictionary<DelegateInfo, SortedDictionary<string, string>>();
+
+            public void AddStatic(DelegateInfo info, string name, string call)
+            {
+                if (!Statics.TryGetValue(info, out var calls))
+                    Statics[info] = calls = new SortedDictionary<string, string>(StringComparer.Ordinal);
+                calls[name] = call;
+            }
+
+            public Shared(Dictionary<INamedTypeSymbol, DelegateInfo> delegates, InterfaceLowering.LoweringDiagnostics diagnostics, List<SyntaxTree> originals)
             {
                 Delegates = delegates;
                 Diagnostics = diagnostics;
+                Originals = originals;
+            }
+
+            /// <summary>
+            /// 振り分け（1 行。呼び出しの static クラスに、すべての tree を書き換えたあとで足す）：
+            ///   [RecursiveMethod] public static R __static(string __name, object __e, T0 __a0) { object[] __l = (object[])__e; if (__name == "...") return ...; ... }
+            /// 知らない名前（呼ぶ相手の UdonSharpBehaviour を Destroy したときも、ここに来る）は、実行時例外で止める
+            /// </summary>
+            public string StaticDispatcherCode(DelegateInfo info)
+            {
+                IMethodSymbol invoke = info.Invoke;
+                bool hasReturn = !invoke.ReturnsVoid;
+                string ret = hasReturn ? TypeText(invoke.ReturnType) : "void";
+                var sb = new StringBuilder();
+                sb.Append($"[global::UdonSharp.RecursiveMethod] public static {ret} __static(string __name, object __e");
+                for (int i = 0; i < invoke.Parameters.Length; i++)
+                    sb.Append($", {TypeText(invoke.Parameters[i].Type)} __a{i}");
+                sb.Append(") { object[] __l = (object[])__e; ");
+                if (Statics.TryGetValue(info, out var calls))
+                    foreach (var pair in calls)
+                        sb.Append(hasReturn ? $"if (__name == \"{pair.Key}\") return {pair.Value}; " : $"if (__name == \"{pair.Key}\") {{ {pair.Value}; return; }} ");
+                sb.Append("object[] __z = null; int __zn = __z.Length; ");
+                if (hasReturn)
+                    sb.Append($"return default({ret}); ");
+                sb.Append('}');
+                return sb.ToString();
             }
 
             public DelegateInfo Find(ITypeSymbol type) =>
@@ -180,6 +223,13 @@ namespace UdonSharpPlus
                     sb.Append($"{ret} __r = default({ret}); ");
                 sb.Append("for (int __i = 0; __i < __n; __i += 3) { ");
                 sb.Append($"{UsbType} __u = ({UsbType})__d[__i]; ");
+                // 呼ぶ相手のない組（#124）は、振り分けで直接呼ぶ
+                sb.Append("if (__u == null) { ");
+                sb.Append(hasReturn ? "__r = " : "");
+                sb.Append("__static((string)__d[__i + 1], __d[__i + 2]");
+                for (int i = 0; i < ps.Length; i++)
+                    sb.Append($", __a{i}");
+                sb.Append("); continue; } ");
                 for (int i = 0; i < ps.Length; i++)
                     sb.Append($"__u.SetProgramVariable(\"{info.ParamField(i)}\", __a{i}); ");
                 // 外の変数（#121）。使わないラムダ・メソッドでは null なので渡さない（中継メソッドも読まない）
@@ -191,10 +241,14 @@ namespace UdonSharpPlus
                 if (hasReturn)
                     sb.Append("return __r; ");
                 sb.Append("} ");
-                sb.Append(CombineCode).Append(' ').Append(RemoveCode);
+                sb.Append(CombineCode).Append(' ').Append(RemoveCode).Append(' ').Append(NotNullCode);
                 sb.Append(" }");
                 return sb.ToString();
             }
+
+            /// <summary>デリゲートを作るときのインスタンスが null なら、C# と同じく実行時例外で止める（#124）</summary>
+            private const string NotNullCode =
+                "public static object __nn(object __o) { if (__o == null) { object[] __z = null; int __zn = __z.Length; } return __o; }";
 
             /// <summary>
             /// a + b（#122）：組を並べた新しい配列。C# と同じく、元の値は書き換えない。どちらかが null なら、もう片方
@@ -341,6 +395,27 @@ namespace UdonSharpPlus
             return result;
         }
 
+        /// <summary>呼び出しの static クラス（__dlg_K）に、振り分け（__static）を足す（#124。どの tree で作った組も入れるので、最後に足す）</summary>
+        private static List<SyntaxTree> AddStaticDispatchers(List<SyntaxTree> trees, Shared shared)
+        {
+            var result = new List<SyntaxTree>(trees);
+            foreach (DelegateInfo info in shared.Delegates.Values.Where(d => d.Unsupported == null).OrderBy(d => d.Key, StringComparer.Ordinal))
+            {
+                for (int i = 0; i < result.Count; i++)
+                {
+                    SyntaxNode root = result[i].GetRoot();
+                    ClassDeclarationSyntax helper = root.DescendantNodes(n => !(n is BlockSyntax)).OfType<ClassDeclarationSyntax>()
+                        .FirstOrDefault(c => c.Identifier.ValueText == info.HelperClass);
+                    if (helper == null)
+                        continue;
+                    root = root.ReplaceNode(helper, GeneratedMembers.AppendOnClosingLine(helper, new[] { shared.StaticDispatcherCode(info) }));
+                    result[i] = Reparse(root, result[i]);
+                    break;
+                }
+            }
+            return result;
+        }
+
         // ------------------------------------------------------------------
 
         private sealed class Rewriter : CSharpSyntaxRewriter
@@ -419,7 +494,7 @@ namespace UdonSharpPlus
                     if (n is AnonymousFunctionExpressionSyntax a)
                     {
                         DelegateInfo info = _shared.Find(_model.GetTypeInfo(a).ConvertedType);
-                        if (info != null && info.Unsupported == null && HostOf(a, out _) != null)
+                        if (info != null && info.Unsupported == null && ContextOf(a, out _) != null)
                             functions.Add(a);
                     }
                     else if (n is LocalFunctionStatementSyntax l && _model.GetDeclaredSymbol(l) is IMethodSymbol symbol)
@@ -1079,7 +1154,9 @@ namespace UdonSharpPlus
                 if (local.Recursive && !node.AttributeLists.SelectMany(l => l.Attributes).Any(a => a.Name.ToString().Contains("RecursiveMethod")))
                     attributes.Append("[global::UdonSharp.RecursiveMethod] ");
 
-                string code = $"{SourceMap.MarkerFor(node)}{attributes}private {(local.IsStatic ? "static " : "")}{returnType} {local.Hoisted}({parameters}) {bodyText}";
+                // 普通のクラスでは、振り分け（呼び出しの static クラス）から呼べるよう public にする（#124）
+                string access = InterfaceLowering.IsUdonSharpBehaviour(local.Symbol.ContainingType) ? "private" : "public";
+                string code = $"{SourceMap.MarkerFor(node)}{attributes}{access} {(local.IsStatic ? "static " : "")}{returnType} {local.Hoisted}({parameters}) {bodyText}";
                 HostInfo entry = _shared.HostOf(local.Symbol.ContainingType);
                 entry.Members[local.Hoisted] = (code, DeclOf(node));
                 Changed = true;
@@ -1261,35 +1338,70 @@ namespace UdonSharpPlus
                     return node;
                 }
 
-                // 作る場所：UdonSharpBehaviour のインスタンスのメソッドの中（this を呼ぶ相手にする）
-                INamedTypeSymbol host = HostOf(node, out string hostError);
-                if (host == null)
+                Ctx ctx = ContextOf(node, out string ctxError);
+                if (ctx == null)
                 {
-                    Error(node, $"'{name}' : {hostError}");
+                    Error(node, $"'{name}' : {ctxError}");
                     return node;
                 }
 
                 if (LocalFuncOf(method) is LocalFunc local)
-                    return CreateFromLocalFunction(node, info, local, host);
+                    return CreateFromLocalFunction(node, info, local, ctx);
+
+                ExpressionSyntax receiver = node is MemberAccessExpressionSyntax rm ? rm.Expression : null;
+                bool typeReceiver = receiver != null && _model.GetSymbolInfo(receiver).Symbol is ITypeSymbol;
+                string mTag = TagName(method.ContainingType);
+
+                // ほかのインスタンスのメソッド（#124）
+                if (!method.IsStatic && receiver != null && !(receiver is ThisExpressionSyntax) && !(receiver is BaseExpressionSyntax) && !typeReceiver)
+                    return CreateFromInstance(node, info, method, receiver);
 
                 string callee;
                 if (method.IsStatic)
                 {
-                    callee = $"{method.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}.{name}";
+                    if (!ctx.Usb)
+                    {
+                        // 普通のクラスの中：呼ぶ相手のない組
+                        if (InterfaceLowering.IsUdonSharpBehaviour(method.ContainingType))
+                        {
+                            Error(node, $"'{name}' : 普通のクラスの中で、UdonSharpBehaviour の static メソッドをデリゲートに入れることは未対応です");
+                            return node;
+                        }
+                        string staticName = $"__dlg_{info.Key}__s_{mTag}_{name}";
+                        _shared.AddStatic(info, staticName, $"{FullName(method.ContainingType)}.{Callable(info, method)}({Args(info)})");
+                        return StaticValue(node, staticName, new string[0]);
+                    }
+                    callee = $"{FullName(method.ContainingType)}.{name}";
+                }
+                else if (!ctx.Usb)
+                {
+                    // 普通のクラスの this のメソッド：インスタンスを環境の一覧に入れる
+                    string thisName = $"__dlg_{info.Key}__s_{mTag}_{name}";
+                    _shared.AddStatic(info, thisName, $"(({FullName(method.ContainingType)})__l[0]).{Callable(info, method)}({Args(info)})");
+                    return StaticValue(node, thisName, new[] { "this" });
+                }
+                else if (receiver is BaseExpressionSyntax)
+                {
+                    // base.M：override ではなく基底の実装を呼ぶ（C# と同じ）
+                    string baseName = $"__dlg_{info.Key}__base_{mTag}_{name}__{TagName(ctx.Type)}";
+                    HostInfo baseEntry = _shared.HostOf(ctx.Type);
+                    baseEntry.Delegates.Add(info);
+                    if (!baseEntry.Members.ContainsKey(baseName))
+                        baseEntry.Members[baseName] = (TrampolineCode(info, baseName, SourceMap.MarkerFor(node), $"base.{name}"), DeclOf(node));
+                    return Parse($"new {ValueType} {{ this, \"{baseName}\", null }}", node);
                 }
                 else
                 {
-                    bool ownMember = node is IdentifierNameSyntax || node is MemberAccessExpressionSyntax ma && ma.Expression is ThisExpressionSyntax;
-                    if (!ownMember || !InterfaceLowering.IsUdonSharpBehaviour(method.ContainingType))
+                    if (!InterfaceLowering.IsUdonSharpBehaviour(method.ContainingType))
                     {
-                        Error(node, $"'{name}' : ほかのインスタンスのメソッド（クラスのメソッド）をデリゲートに入れることは、まだ未対応です。static メソッドか、この UdonSharpBehaviour のメソッドにしてください");
+                        Error(node, $"'{name}' : このメソッドをデリゲートに入れることは未対応です");
                         return node;
                     }
                     callee = $"this.{name}";
                 }
 
-                string trampoline = $"__dlg_{info.Key}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(method.ContainingType))}_{name}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(host))}";
-                HostInfo entry = _shared.HostOf(host);
+                string trampoline = $"__dlg_{info.Key}__{mTag}_{name}__{TagName(ctx.Type)}";
+                HostInfo entry = _shared.HostOf(ctx.Type);
                 entry.Delegates.Add(info);
                 if (!entry.Members.ContainsKey(trampoline))
                     entry.Members[trampoline] = (TrampolineCode(info, trampoline, SourceMap.MarkerFor(node), callee), DeclOf(node));
@@ -1297,15 +1409,68 @@ namespace UdonSharpPlus
             }
 
             /// <summary>
+            /// ほかのインスタンスのメソッドから作る（r.M。#124）。インスタンスが null なら、C# と同じく作るときに実行時例外で止める。
+            ///   - r が UdonSharpBehaviour：呼ぶ相手を r にし、メソッドを宣言したクラスに中継メソッドを置く（override も呼ばれる）
+            ///   - r が普通のクラス・インタフェース：呼ぶ相手のない組にし、r を環境の一覧に入れる（インタフェースは実行時に振り分ける）
+            /// </summary>
+            private SyntaxNode CreateFromInstance(ExpressionSyntax node, DelegateInfo info, IMethodSymbol method, ExpressionSyntax receiver)
+            {
+                string name = method.Name;
+                ITypeSymbol rType = _model.GetTypeInfo(receiver).Type;
+                string r = $"{info.HelperFull}.__nn({Text(Visit(receiver))})";
+                INamedTypeSymbol declaring = method.ContainingType;
+
+                if (rType is INamedTypeSymbol usb && InterfaceLowering.IsUdonSharpBehaviour(usb) && InterfaceLowering.IsUdonSharpBehaviour(declaring)
+                    && declaring.Locations.Any(l => l.IsInSource))
+                {
+                    DeclRef? decl = FirstDeclOf(declaring);
+                    if (decl == null)
+                    {
+                        Error(node, $"'{name}' : このメソッドをデリゲートに入れることは未対応です");
+                        return node;
+                    }
+                    string tag = TagName(declaring);
+                    string trampoline = $"__dlg_{info.Key}__{tag}_{name}__{tag}";
+                    HostInfo entry = _shared.HostOf(declaring);
+                    entry.Delegates.Add(info);
+                    if (!entry.Members.ContainsKey(trampoline))
+                        entry.Members[trampoline] = (TrampolineCode(info, trampoline, "", $"this.{name}"), decl.Value);
+                    return Parse($"new {ValueType} {{ {r}, \"{trampoline}\", null }}", node);
+                }
+
+                if (rType is INamedTypeSymbol other && other.Locations.Any(l => l.IsInSource)
+                    && (other.TypeKind == TypeKind.Interface || ClassLowering.IsPlainClass(other)))
+                {
+                    string staticName = $"__dlg_{info.Key}__s_{TagName(other)}_{name}";
+                    _shared.AddStatic(info, staticName, $"(({FullName(other)})__l[0]).{Callable(info, method)}({Args(info)})");
+                    return StaticValue(node, staticName, new[] { r });
+                }
+
+                Error(node, $"'{name}' : このインスタンスのメソッドをデリゲートに入れることは未対応です（UdonSharpBehaviour・普通のクラス・インタフェースのメソッドが入れられます）");
+                return node;
+            }
+
+            /// <summary>
             /// ローカル関数から作る（#123）：中継メソッドが、受け取った環境の一覧（__dlg_K__env）から、移したメソッドの環境の引数を取り出して呼ぶ
             ///   public void __dlg_K__lf_F__t_n__C() { ret = this.__lf_F__t_n((object[])__dlg_K__env[0], ..., p0); }
             /// </summary>
-            private SyntaxNode CreateFromLocalFunction(ExpressionSyntax node, DelegateInfo info, LocalFunc local, INamedTypeSymbol host)
+            private SyntaxNode CreateFromLocalFunction(ExpressionSyntax node, DelegateInfo info, LocalFunc local, Ctx ctx)
             {
                 if (_funcErrors.Contains(local.Node))
                     return node;
                 List<Scope> needs = _needs.TryGetValue(local.Node, out var n) ? n : new List<Scope>();
                 IMethodSymbol invoke = info.Invoke;
+                if (!ctx.Usb)
+                {
+                    // 普通のクラスの中（#124）：呼ぶ相手のない組。インスタンスのメソッドに移したものは、this を環境の一覧の先頭に入れる
+                    int offset = local.IsStatic ? 0 : 1;
+                    string type = FullName(local.Symbol.ContainingType);
+                    string args = string.Join(", ", needs.Select((sc, j) => $"({ValueType})__l[{j + offset}]").Concat(Enumerable.Range(0, invoke.Parameters.Length).Select(i => "__a" + i)));
+                    string staticName = $"__dlg_{info.Key}_{local.Hoisted}";
+                    _shared.AddStatic(info, staticName, local.IsStatic ? $"{type}.{local.Hoisted}({args})" : $"(({type})__l[0]).{local.Hoisted}({args})");
+                    return StaticValue(node, staticName, (local.IsStatic ? new string[0] : new[] { "this" }).Concat(needs.Select(sc => sc.Name)));
+                }
+                INamedTypeSymbol host = ctx.Type;
                 string trampoline = $"__dlg_{info.Key}_{local.Hoisted}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(host))}";
                 HostInfo entry = _shared.HostOf(host);
                 entry.Delegates.Add(info);
@@ -1351,12 +1516,13 @@ namespace UdonSharpPlus
                     Error(node, "async のラムダ・匿名メソッドは未対応です");
                     return node;
                 }
-                INamedTypeSymbol host = HostOf(node, out string hostError);
-                if (host == null)
+                Ctx ctx = ContextOf(node, out string ctxError);
+                if (ctx == null)
                 {
-                    Error(node, hostError.Replace("デリゲートを作る", node is AnonymousMethodExpressionSyntax ? "匿名メソッドをデリゲートに入れる" : "ラムダをデリゲートに入れる"));
+                    Error(node, ctxError.Replace("デリゲートを作る", node is AnonymousMethodExpressionSyntax ? "匿名メソッドをデリゲートに入れる" : "ラムダをデリゲートに入れる"));
                     return node;
                 }
+                INamedTypeSymbol host = ctx.Type;
 
                 IMethodSymbol invoke = info.Invoke;
                 string[] names;
@@ -1395,7 +1561,8 @@ namespace UdonSharpPlus
                 _scopes.TryGetValue(node, out Scope own);
 
                 HostInfo entry = _shared.HostOf(host);
-                entry.Delegates.Add(info);
+                if (ctx.Usb)
+                    entry.Delegates.Add(info);
                 string name = $"__dlg_{info.Key}__lambda{entry.LambdaCount++}__{InterfaceNaming.Sanitize(ClassLowering.TagOf(host))}";
                 string bodyName = name + "__body";
 
@@ -1408,20 +1575,32 @@ namespace UdonSharpPlus
                 string bodyText = LambdaBodyText(body, invoke);
                 if (bodyText == null)
                     return node;
-                // 本体の先頭：受け取った環境を、作った側と同じ名前の変数に取り出す。ラムダの引数を中のラムダが使うなら、その環境を作る
+                // 本体の先頭：受け取った環境を、作った側と同じ名前の変数に取り出す。ラムダの引数を中のラムダが使うなら、その環境を作る。
+                // 普通のクラスのインスタンスのメソッドの中（#124）では、環境の一覧の先頭が this
+                int offset = !ctx.Usb && ctx.HasThis ? 1 : 0;
                 var prologue = new StringBuilder();
                 for (int j = 0; j < outer.Count; j++)
-                    prologue.Append($"object[] {outer[j].Name} = ({ValueType})__env[{j}]; ");
+                    prologue.Append($"object[] {outer[j].Name} = ({ValueType})__env[{j + offset}]; ");
                 if (own != null)
                     prologue.Append(CreateEnv(own, s => Ident(names[((IParameterSymbol)s).Ordinal])) + " ");
                 if (prologue.Length > 0)
                     bodyText = "{ " + prologue + bodyText.Substring(1).TrimStart();
 
                 string ret = invoke.ReturnsVoid ? "void" : _shared.TypeText(invoke.ReturnType);
-                string parameters = string.Join(", ", (outer.Count > 0 ? new[] { $"{ValueType} __env" } : new string[0])
-                    .Concat(names.Select((n, i) => $"{_shared.TypeText(invoke.Parameters[i].Type)} {n}")));
                 string marker = SourceMap.MarkerFor(node);
                 string attribute = recursive ? "[global::UdonSharp.RecursiveMethod] " : "";
+                if (!ctx.Usb)
+                {
+                    // 普通のクラスの中（#124）：本体を普通のクラスの public メソッドにし、振り分けから呼ぶ。呼ぶ相手のない組
+                    string plainParameters = string.Join(", ", new[] { $"{ValueType} __env" }.Concat(names.Select((n, i) => $"{_shared.TypeText(invoke.Parameters[i].Type)} {n}")));
+                    entry.Members[name] = ($"{attribute}public {(ctx.HasThis ? "" : "static ")}{ret} {name}({plainParameters}) {bodyText}", DeclOf(node));
+                    string call = ctx.HasThis ? $"(({FullName(host)})__l[0]).{name}(__l{(names.Length > 0 ? ", " : "")}{Args(info)})"
+                        : $"{FullName(host)}.{name}(__l{(names.Length > 0 ? ", " : "")}{Args(info)})";
+                    _shared.AddStatic(info, name, call);
+                    return StaticValue(node, name, (ctx.HasThis ? new[] { "this" } : new string[0]).Concat(outer.Select(sc => sc.Name)));
+                }
+                string parameters = string.Join(", ", (outer.Count > 0 ? new[] { $"{ValueType} __env" } : new string[0])
+                    .Concat(names.Select((n, i) => $"{_shared.TypeText(invoke.Parameters[i].Type)} {n}")));
                 entry.Members[bodyName] = ($"{attribute}private {ret} {bodyName}({parameters}) {bodyText}", DeclOf(node));
                 entry.Members[name] = (TrampolineCode(info, name, marker, "this." + bodyName, outer.Count > 0), DeclOf(node));
                 string env = outer.Count > 0 ? $"new {ValueType} {{ {string.Join(", ", outer.Select(s => s.Name))} }}" : "null";
@@ -1477,18 +1656,27 @@ namespace UdonSharpPlus
                 return text;
             }
 
-            /// <summary>デリゲートを作れる場所なら、その UdonSharpBehaviour。そうでなければ null と理由</summary>
-            private INamedTypeSymbol HostOf(SyntaxNode node, out string error)
+            /// <summary>デリゲートを作る場所</summary>
+            private sealed class Ctx
+            {
+                public INamedTypeSymbol Type;   // 作る場所のクラス
+                public bool Usb;                // UdonSharpBehaviour のインスタンスのメソッドの中（this を呼ぶ相手にする）
+                public bool HasThis;            // 普通のクラスのインスタンスのメソッドの中（this を環境の一覧の先頭に入れる）
+            }
+
+            /// <summary>
+            /// デリゲートを作れる場所なら、その場所。UdonSharpBehaviour のインスタンスのメソッドの中と、普通のクラスの中（#124）。
+            /// そうでなければ null と理由
+            /// </summary>
+            private Ctx ContextOf(SyntaxNode node, out string error)
             {
                 ISymbol s = _model.GetEnclosingSymbol(node.SpanStart);
                 error = null;
+                bool staticLocal = false;
                 while (s is IMethodSymbol m && (m.MethodKind == MethodKind.AnonymousFunction || m.MethodKind == MethodKind.LocalFunction))
                 {
                     if (m.MethodKind == MethodKind.LocalFunction && m.IsStatic)
-                    {
-                        error = "static のローカル関数の中でデリゲートを作ることは未対応です";
-                        return null;
-                    }
+                        staticLocal = true;
                     s = s.ContainingSymbol;
                 }
                 if (!(s is IMethodSymbol enclosing))
@@ -1496,17 +1684,69 @@ namespace UdonSharpPlus
                     error = "フィールドの初期化子の中でデリゲートを作ることは未対応です。Start などで代入してください";
                     return null;
                 }
-                if (!InterfaceLowering.IsUdonSharpBehaviour(enclosing.ContainingType))
+                INamedTypeSymbol type = enclosing.ContainingType;
+                if (InterfaceLowering.IsUdonSharpBehaviour(type))
                 {
-                    error = "普通のクラスの中でデリゲートを作ることは、まだ未対応です。UdonSharpBehaviour の中で作って渡してください";
-                    return null;
+                    if (staticLocal)
+                        error = "UdonSharpBehaviour の static のローカル関数の中でデリゲートを作ることは未対応です";
+                    else if (enclosing.IsStatic)
+                        error = "UdonSharpBehaviour の static メソッドの中でデリゲートを作ることは未対応です";
+                    return error != null ? null : new Ctx { Type = type, Usb = true, HasThis = true };
                 }
-                if (enclosing.IsStatic)
+                if (ClassLowering.IsPlainClass(type) && type.Locations.Any(l => l.IsInSource))
+                    return new Ctx { Type = type, HasThis = !enclosing.IsStatic && !staticLocal };
+                error = "このクラスの中でデリゲートを作ることは未対応です";
+                return null;
+            }
+
+            private static string FullName(ITypeSymbol type) => type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+            private static string TagName(INamedTypeSymbol type) => InterfaceNaming.Sanitize(ClassLowering.TagOf(type));
+
+            /// <summary>呼ぶ相手のない組の、呼ぶ式の引数（a0, a1, ...）</summary>
+            private static string Args(DelegateInfo info) => string.Join(", ", Enumerable.Range(0, info.Invoke.Parameters.Length).Select(i => "__a" + i));
+
+            /// <summary>呼ぶ相手のない組の値：new object[] { null, "名前", 環境の一覧 }</summary>
+            private ExpressionSyntax StaticValue(SyntaxNode node, string name, IEnumerable<string> env)
+            {
+                var list = env.ToList();
+                string envText = list.Count > 0 ? $"new {ValueType} {{ {string.Join(", ", list)} }}" : "null";
+                return Parse($"new {ValueType} {{ null, \"{name}\", {envText} }}", node);
+            }
+
+            /// <summary>
+            /// 振り分け（呼び出しの static クラス）から呼ぶメソッドの名前。public でなければ、そのクラスに public の包みのメソッドを置き、その名前を返す
+            ///   public (static) R __dlgw_K_M(T0 __a0) => M(__a0);
+            /// </summary>
+            private string Callable(DelegateInfo info, IMethodSymbol method)
+            {
+                if (method.DeclaredAccessibility == Accessibility.Public)
+                    return method.Name;
+                INamedTypeSymbol type = method.ContainingType;
+                DeclRef? decl = FirstDeclOf(type);
+                if (decl == null)
+                    return method.Name;
+                string wrapper = $"__dlgw_{info.Key}_{method.Name}";
+                HostInfo entry = _shared.HostOf(type);
+                if (!entry.Members.ContainsKey(wrapper))
                 {
-                    error = "static メソッドの中でデリゲートを作ることは未対応です";
-                    return null;
+                    IMethodSymbol invoke = info.Invoke;
+                    string ret = invoke.ReturnsVoid ? "void" : _shared.TypeText(invoke.ReturnType);
+                    string ps = string.Join(", ", invoke.Parameters.Select((p, i) => $"{_shared.TypeText(p.Type)} __a{i}"));
+                    entry.Members[wrapper] = ($"public {(method.IsStatic ? "static " : "")}{ret} {wrapper}({ps}) => {method.Name}({Args(info)});", decl.Value);
                 }
-                return enclosing.ContainingType;
+                return wrapper;
+            }
+
+            /// <summary>クラスの最初の宣言の場所（ほかのクラス・ほかの tree に中継メソッドを置くとき）</summary>
+            private DeclRef? FirstDeclOf(INamedTypeSymbol type)
+            {
+                var first = type.DeclaringSyntaxReferences
+                    .Select(r => (Tree: _shared.Originals.IndexOf(r.SyntaxTree), Node: r.GetSyntax() as ClassDeclarationSyntax))
+                    .Where(r => r.Tree >= 0 && r.Node != null)
+                    .OrderBy(r => r.Tree).ThenBy(r => r.Node.SpanStart)
+                    .FirstOrDefault();
+                return first.Node == null ? (DeclRef?)null : new DeclRef(first.Tree, first.Node);
             }
 
             /// <summary>(Hoge)F：キャストの中のメソッド名</summary>

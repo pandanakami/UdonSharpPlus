@@ -9,7 +9,7 @@ UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリ
 
 New
 
-- Delegates you declare yourself (`delegate int Calc(int x);`) can be used in variables, fields, parameters, return values, and arrays, and called with `d(x)` / `d.Invoke(x)`. A delegate can hold a static method, a method of the same `UdonSharpBehaviour`, or a lambda, and can be passed to and called from another `UdonSharpBehaviour`. Lambdas can use local variables and parameters from outside them, with the same behavior as C# (a lambda made in a loop uses the variable of that iteration, and keeps it after the method returns). Delegates can be combined and removed with `+=` / `-=` and `+` / `-`, with the same behavior as C# (they are called in order and the last return value is used). Anonymous methods (`delegate (int x) { ... }`) and local functions can also be put in a delegate. `Action` / `Func` / `Predicate` are not supported yet (they are compile errors). See Documentation~/delegates.md.
+- Delegates you declare yourself (`delegate int Calc(int x);`) can be used in variables, fields, parameters, return values, and arrays, and called with `d(x)` / `d.Invoke(x)`. A delegate can hold a static method, a method of the same or another `UdonSharpBehaviour` (`enemy.Hit`), a method of a plain class or interface instance (`item.IsHit`), or a lambda, and can be passed to and called from another `UdonSharpBehaviour`. Delegates can also be created inside plain classes. Lambdas can use local variables and parameters from outside them, with the same behavior as C# (a lambda made in a loop uses the variable of that iteration, and keeps it after the method returns). Delegates can be combined and removed with `+=` / `-=` and `+` / `-`, with the same behavior as C# (they are called in order and the last return value is used). Anonymous methods (`delegate (int x) { ... }`) and local functions can also be put in a delegate. `Action` / `Func` / `Predicate` are not supported yet (they are compile errors). See Documentation~/delegates.md.
 - Local functions (methods written inside a method) can be used in `UdonSharpBehaviour` and plain classes, including ones that use outer local variables, recursion, and `static` local functions. UdonSharp itself does not support them. Before, they were an error.
 
 Fixes
@@ -26,7 +26,7 @@ Clearer errors
 
 新しく使えるもの
 
-- 自分で宣言したデリゲート（`delegate int Calc(int x);`）を、変数・フィールド・引数・戻り値・配列に入れ、`d(x)`・`d.Invoke(x)` で呼べるようになりました。入れられるのは static メソッド・その `UdonSharpBehaviour` のメソッド・ラムダです。別の `UdonSharpBehaviour` に渡して、向こうで呼ぶこともできます。ラムダでは、外のローカル変数・引数も C# と同じく使えます（ループの中で作ったラムダはその回の変数を使い、メソッドを抜けたあとも持ち続けます）。`+=` / `-=`・`+` / `-` で、C# と同じくつないだり外したりできます（つないだ順に呼ばれ、戻り値は最後のもの）。匿名メソッド（`delegate (int x) { ... }`）・ローカル関数も入れられます。`Action` / `Func` / `Predicate` は、まだ未対応です（コンパイルエラーになります）。詳しくは Documentation~/delegates.md を見てください。
+- 自分で宣言したデリゲート（`delegate int Calc(int x);`）を、変数・フィールド・引数・戻り値・配列に入れ、`d(x)`・`d.Invoke(x)` で呼べるようになりました。入れられるのは static メソッド・その `UdonSharpBehaviour` やほかの `UdonSharpBehaviour` のメソッド（`enemy.Hit`）・普通のクラスとインタフェースのインスタンスのメソッド（`item.IsHit`）・ラムダです。普通のクラスの中でも作れます。別の `UdonSharpBehaviour` に渡して、向こうで呼ぶこともできます。ラムダでは、外のローカル変数・引数も C# と同じく使えます（ループの中で作ったラムダはその回の変数を使い、メソッドを抜けたあとも持ち続けます）。`+=` / `-=`・`+` / `-` で、C# と同じくつないだり外したりできます（つないだ順に呼ばれ、戻り値は最後のもの）。匿名メソッド（`delegate (int x) { ... }`）・ローカル関数も入れられます。`Action` / `Func` / `Predicate` は、まだ未対応です（コンパイルエラーになります）。詳しくは Documentation~/delegates.md を見てください。
 - ローカル関数（メソッドの中に書いたメソッド）を、`UdonSharpBehaviour` と普通のクラスの中で使えるようになりました。外のローカル変数を使うもの・再帰するもの・`static` のローカル関数も使えます（UdonSharp 自体は対応していません）。これまではエラーでした。
 
 不具合の修正

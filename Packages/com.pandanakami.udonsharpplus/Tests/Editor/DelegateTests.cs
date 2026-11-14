@@ -186,7 +186,7 @@ public class Bad : UdonSharpBehaviour
         [TestCase("void Start() { ByRef g = null; }", "ref / out / in の引数を持つデリゲートは未対応です")]
         [TestCase("void Start() { var l = new System.Collections.Generic.List<Calc>(); }", "型引数（List<Calc> など）に使うことは、まだ未対応です")]
         [TestCase("void Start() { object o = null; bool b = o is Calc; }", "typeof・nameof・is・as・型パターンは未対応です")]
-        [TestCase("void Start() { Other o = null; _calc = o.Inc; }", "ほかのインスタンスのメソッド（クラスのメソッド）をデリゲートに入れることは、まだ未対応です")]
+        [TestCase("void Start() { _calc = new System.Random().Next; }", "'Next' : このインスタンスのメソッドをデリゲートに入れることは未対応です")]
         [TestCase("event Calc OnCalc;", "event は未対応です")]
         public void ReportsUnsupported(string body, string message)
         {
@@ -194,12 +194,22 @@ public class Bad : UdonSharpBehaviour
             Assert.That(r.Diagnostics.Any(d => d.Contains(message)), r.Diagnostics.Count == 0 ? "(no diagnostics)" : string.Join("\n", r.Diagnostics));
         }
 
+        /// <summary>普通のクラスの中で、UdonSharpBehaviour の static メソッドは入れられない（ほかのプログラムの static メソッドは呼べないため）</summary>
         [Test]
-        public void CreatingInPlainClassIsAnError()
+        public void UsbStaticMethodInPlainClassIsAnError()
         {
-            CompileResult r = CompileUser("void Start() { new Maker().Make(); }",
-                "public class Maker { static int Id(int x) => x; public Calc Make() => Id; }");
-            Assert.That(r.Diagnostics.Any(d => d.Contains("普通のクラスの中でデリゲートを作ることは、まだ未対応です")), string.Join("\n", r.Diagnostics));
+            CompileResult r = CompileUser("public static int Tick(int x) => x; void Start() { new Maker().MakeUsb(); }",
+                "public class Maker { public Calc MakeUsb() => Bad.Tick; }");
+            Assert.That(r.Diagnostics.Any(d => d.Contains("'Tick' : 普通のクラスの中で、UdonSharpBehaviour の static メソッドをデリゲートに入れることは未対応です")), string.Join("\n", r.Diagnostics));
+        }
+
+        /// <summary>普通のクラスの中で作る・ほかのインスタンスのメソッドを入れる（#124）は、コンパイルが通る</summary>
+        [Test]
+        public void CreatingInPlainClassCompiles()
+        {
+            CompileResult r = CompileUser("void Start() { var m = new Maker(); _calc = m.Make(); _calc = m.Inc; _calc = m.MakeLambda(2); Debug.Log(_calc(1)); }",
+                "public class Maker { int k = 1; static int Id(int x) => x; public Calc Make() => Id; public int Inc(int x) => x + k; public Calc MakeLambda(int b) => x => x + b + k; }");
+            Assert.That(r.Diagnostics, Is.Empty);
         }
 
         // ---- ラムダ（#120） ----------------------------------------------------
@@ -423,7 +433,6 @@ public class LocalUser : UdonSharpBehaviour
         [TestCase("NestedInLambda", "Main.cs(14,")]
         [TestCase("AnonymousInPartial", "Main.Part.cs(9,")]
         [TestCase("LocalInLinq", "Main.cs(16,")]
-        [TestCase("AnonymousInPlainClass", "Types.cs(13,")]
         public void LocalFunctionErrorsPointToOriginalLocation(string where, string location)
         {
             string Mark(string name, string code) => where == name ? code : "0";
@@ -478,6 +487,56 @@ public partial class Main
     }
 }";
             CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("Types.cs", types), new TestSource("Main.cs", main), new TestSource("Main.Part.cs", part));
+            Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics[0], Does.Contain(location), r.Diagnostics[0]);
+        }
+
+        /// <summary>
+        /// クラスのメソッドを入れたときのエラーが、元のファイル・行を指す（#124 の追加テスト 12・7）。
+        /// UdonSharp が対応していない System.IO.File.Exists をエラーの印にする。どれも 1 つのエラーだけ
+        /// </summary>
+        [TestCase("PlainMethod", "Types.cs(8,")]
+        [TestCase("PlainLambda", "Types.cs(12,")]
+        [TestCase("PrivateUsb", "Main.cs(9,")]
+        [TestCase("LinqMethodGroup", "Main.cs(17,")]
+        public void ClassMethodErrorsPointToOriginalLocation(string where, string location)
+        {
+            string Mark(string name) => where == name ? @"(System.IO.File.Exists(""a"") ? 1 : 0)" : "0";
+            string types = @"public delegate int Calc(int x);
+
+public class Box
+{
+    public int v;
+    public int Get(int x)
+    {
+        return x + v + " + Mark("PlainMethod") + @";
+    }
+    public Calc Make() => y =>
+    {
+        return y + " + Mark("PlainLambda") + @";
+    };
+}";
+            string main = @"using UdonSharp;
+using System.Linq;
+
+public class Main : UdonSharpBehaviour
+{
+    public int hp;
+    private int Priv(int x)
+    {
+        return x + hp + " + Mark("PrivateUsb") + @";
+    }
+
+    private void Start()
+    {
+        var box = new Box();
+        Calc a = box.Get, b = box.Make(), c = Priv;
+        var nums = new System.Collections.Generic.List<int> { 1 };
+        var e = nums.Select(" + (where == "LinqMethodGroup" ? "box.Get" : "x => x") + @").ToList();
+        UnityEngine.Debug.Log(a(1) + b(1) + c(1) + e.Count);
+    }
+}";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("Types.cs", types), new TestSource("Main.cs", main));
             Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
             Assert.That(r.Diagnostics[0], Does.Contain(location), r.Diagnostics[0]);
         }
