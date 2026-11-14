@@ -70,3 +70,4 @@ crashlytics-build.properties
 /Packages/com.vrchat*
 /Packages/com.vrchat.core.vpm-resolver/*
 /.mcp.json
+/.agents
