@@ -166,6 +166,100 @@ public class ChainProbe : UdonSharpBehaviour
             Assert.That(r.Diagnostics, Is.Empty, body + "\n" + string.Join("\n", r.Diagnostics));
         }
 
+        [TestCase("var r = new[] { new { A = 1 }, new { A = 2 } }.ToList(); int t = 0; foreach (var e in r) t += e.A;")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); r.Add(new { A = 9 }); r.Insert(0, new { A = 0 }); r.RemoveAt(1); int c = r.Count;")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var f = r.Find(e => e.A == 2); var i = r.FindIndex(e => e.A == 3); var ex = r.Exists(e => e.A > 1);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); r.Sort((a, b) => b.A - a.A); r.RemoveAll(e => e.A == 1); r.Reverse();")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var first = r[0]; r[1] = new { A = 5 }; bool has = r.Exists(e => e.A == first.A); int ix = r.FindIndex(e => e.A == 5);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToArray(); int t = 0; for (int i = 0; i < r.Length; i++) t += r[i].A;")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var a = r.First(); var b = r.FirstOrDefault(e => e.A > 5); var c = r.Last(); var d = r.Any(e => e.A > 1); var n = r.Count(e => e.A > 1);")]
+        [TestCase("var r = nums.Select(x => new { A = x, B = \"b\" + x }).OrderBy(e => e.B).ThenBy(e => e.A).ToList(); int s = r.Sum(e => e.A); int m = r.Max(e => e.A);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var q = r.Select(e => e.A).ToList(); var z = r.Where(e => e.A > 1).Select(e => new { e.A, D = e.A * 2 }).ToList();")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var r2 = r.GetRange(0, 2); var cp = new List<int>(); foreach (var e in r2) cp.Add(e.A);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var d = r.ToDictionary(e => e.A, e => e);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var d = r.ToDictionary(e => e.A); var d2 = r.ToDictionary(e => e.A, e => e); int n = d[1].A + d2.Count;")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var groups = new[] { r, r }.ToList(); bool c = groups.Contains(r); int i = groups.IndexOf(r); groups.Remove(r); int n = groups[0][0].A;")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var t = new { A = 2 }; bool a = r.Any(x => x.Equals(t)); int i = r.FindIndex(x => x.Equals(t)); int n = r.RemoveAll(x => x.Equals(t));")]
+        public void ProbeAnonList(string body)
+        {
+            const string head = @"using System.Collections.Generic;
+using System.Linq;
+using UdonSharp;
+
+public class ListProbe : UdonSharpBehaviour
+{
+    private void Start()
+    {
+        var nums = new List<int> { 1, 2, 3 };
+        ";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("ListProbe.cs", head + body + "\n    }\n}"));
+            Assert.That(r.Diagnostics, Is.Empty, body + "\n" + string.Join("\n", r.Diagnostics));
+        }
+
+        [TestCase("r.Contains(new { A = 1 })")]
+        [TestCase("r.IndexOf(new { A = 1 })")]
+        [TestCase("r.LastIndexOf(new { A = 1 })")]
+        [TestCase("r.Remove(new { A = 1 })")]
+        [TestCase("r.Select(a => new { a.A }).Distinct().ToList()")]
+        [TestCase("r.Contains(r[0])")]
+        [TestCase("r.IndexOf(new { A = 1 }, 1)")]
+        [TestCase("r.IndexOf(new { A = 1 }, 0, 2)")]
+        [TestCase("r.LastIndexOf(r[0], 1)")]
+        [TestCase("Enumerable.Contains(r, r[0])")]
+        [TestCase("Enumerable.Distinct(r).ToList()")]
+        [TestCase("(r).Contains((r[0]))")]
+        [TestCase("r.ToDictionary(e => e)")]
+        [TestCase("r.ToDictionary(e => e, e => e.A)")]
+        public void AnonymousElementEqualityMethodsAreErrors(string call)
+        {
+            string src = @"using System.Collections.Generic;
+using System.Linq;
+using UdonSharp;
+
+public class EqErr : UdonSharpBehaviour
+{
+    private void Start()
+    {
+        var nums = new List<int> { 1, 2, 3 };
+        var r = nums.Select(x => new { A = x }).ToList();
+        var z = " + call + @";
+    }
+}";
+            CompileResult res = UdonSharpTestCompiler.Compile(new TestSource("EqErr.cs", src));
+            Assert.That(res.Diagnostics, Has.Count.EqualTo(1), call + "\n" + string.Join("\n", res.Diagnostics));
+            Assert.That(res.Diagnostics[0], Does.Contain("EqErr.cs(11,"), "呼んだ行");
+            Assert.That(res.Diagnostics[0], Does.Contain("値（Equals）で比べ"));
+        }
+
+        /// <summary>#71：型引数が匿名型になるジェネリックメソッドの中の Contains なども、値で比べられないのでエラー（元の行）</summary>
+        [Test]
+        public void AnonymousElementEqualityInGenericMethodIsError()
+        {
+            const string types = "using System.Collections.Generic;\n\npublic static class G {\n    public static bool Has<T>(List<T> l, T x) => l.Contains(x);\n    public static int Size<T>(List<T> l) => l.Count;\n}";
+            const string main = "using System.Collections.Generic;\nusing System.Linq;\nusing UdonSharp;\n\npublic class GenEq : UdonSharpBehaviour\n{\n    private void Start()\n    {\n        var nums = new List<int> { 1 };\n        var r = nums.Select(x => new { A = x }).ToList();\n        bool ok = G.Has(nums, 1);\n        int n = G.Size(r);\n        bool b = G.Has(r, new { A = 1 });\n    }\n}";
+            CompileResult res = UdonSharpTestCompiler.Compile(new TestSource("GTypes.cs", types), new TestSource("GenEq.cs", main));
+            Assert.That(res.Diagnostics, Has.Count.EqualTo(1), string.Join("\n", res.Diagnostics));
+            Assert.That(res.Diagnostics[0], Does.Contain("GTypes.cs(4,"), res.Diagnostics[0]);
+            Assert.That(res.Diagnostics[0], Does.Contain("値（Equals）で比べ"));
+        }
+
+        /// <summary>#71：禁止している書き方のエラーは、普通のクラス・partial の中でも元のファイル・元の行に出る</summary>
+        [TestCase("Plain", "LTypes.cs(7,")]
+        [TestCase("Partial", "LErrPart.cs(8,")]
+        [TestCase("Linq", "LErr.cs(11,")]
+        public void AnonymousListErrorsPointToOriginalLocation(string where, string location)
+        {
+            string bad = "bool z = r.Contains(r[0]);", good = "int z = r.Count;";
+            string types = "using System.Collections.Generic;\nusing System.Linq;\n\npublic class LPlain\n{\n    public void Run(List<int> nums) { var r = nums.Select(x => new { A = x }).ToList();\n        " + (where == "Plain" ? bad : good) + " }\n}";
+            string main = "using System.Collections.Generic;\nusing System.Linq;\nusing UdonSharp;\n\npublic partial class LErr : UdonSharpBehaviour\n{\n    private void Start()\n    {\n        var nums = new List<int> { 1 };\n        var r = nums.Select(x => new { A = x }).ToList();\n"
+                + (where == "Linq" ? "        var q = r.Where(e => e.A > 0).Select(e => new { e.A }).Distinct().ToList();\n" : "        var q = r.Where(e => e.A > 0).ToList();\n")
+                + "        new LPlain().Run(nums);\n        Other(nums);\n    }\n}";
+            string part = "using System.Collections.Generic;\nusing System.Linq;\n\npublic partial class LErr\n{\n    private void Other(List<int> nums)\n    { var r = nums.Select(x => new { A = x }).ToList();\n        " + (where == "Partial" ? bad : good) + "\n    }\n}";
+            CompileResult res = UdonSharpTestCompiler.Compile(new TestSource("LTypes.cs", types), new TestSource("LErr.cs", main), new TestSource("LErrPart.cs", part));
+            Assert.That(res.Diagnostics, Has.Count.EqualTo(1), string.Join("\n", res.Diagnostics));
+            Assert.That(res.Diagnostics[0], Does.Contain(location), res.Diagnostics[0]);
+        }
+
         /// <summary>匿名型を、ジェネリックメソッドの型引数にする（推論で T が匿名型になる）</summary>
         [Test]
         public void AnonymousTypeAsGenericMethodArgument()

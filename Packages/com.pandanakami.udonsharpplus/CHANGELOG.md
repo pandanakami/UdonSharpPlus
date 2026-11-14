@@ -9,13 +9,25 @@ UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリ
 
 New
 
-- Anonymous types (`new { Name = "a", Score = 1 }`) can be used in `UdonSharpBehaviour` and plain classes. UdonSharp itself does not support them. You can read members, omit member names (`new { x.Name }`), nest them, return them from lambdas (`list.Select(x => new { x.Name, x.Hp })`), and keep them in arrays and `var` lists. `ToString()`, string concatenation and interpolation give the same text as C# (`{ Name = a, Score = 1 }`), and `Equals` compares by value. Using one as `object` (`Debug.Log(p)`), `GetHashCode()` and `GetType()` are compile errors. See Documentation~/anonymous-types.md.
+- Anonymous types (`new { Name = "a", Score = 1 }`) can be used in `UdonSharpBehaviour` and plain classes. UdonSharp itself does not support them. You can read members, omit member names (`new { x.Name }`), nest them, return them from lambdas (`list.Select(x => new { x.Name, x.Hp })`), and keep them in arrays and `var` lists. `ToString()`, string concatenation and interpolation give the same text as C# (`{ Name = a, Score = 1 }`), and `Equals` compares by value. Lists of anonymous types work with the usual `List` / LINQ methods, except `Contains` / `IndexOf` / `LastIndexOf` / `Remove` / `Distinct`, which compare by reference here and are compile errors (use `Exists` / `FindIndex` / `Any`). Using one as `object` (`Debug.Log(p)`), `GetHashCode()` and `GetType()` are compile errors. See Documentation~/anonymous-types.md.
+- More LINQ. New methods: `SelectMany`, `Reverse`, `Concat`, `Append`, `Prepend`, `TakeWhile`, `SkipWhile`, `ElementAt` / `ElementAtOrDefault`, `Single` / `SingleOrDefault`, and `Aggregate`. Lambdas with an index (`Select((x, i) => ...)`, `Where((x, i) => ...)`) can be used. LINQ can start from `Enumerable.Range`, `Enumerable.Repeat`, and `Enumerable.Empty`. A `List` or a LINQ result can be passed directly to `string.Join` / `string.Concat` (`string.Join(",", list.Select(x => x.name))`). Before, these were compile errors. See Documentation~/collections.md.
+
+Fixes
+
+- A constructor or method parameter of a plain class named with a C# keyword (`@class`, `@event`) no longer breaks the compile.
+- A plain class field whose type is written with `global::` (`public global::IFoo f;`) no longer stops the compile with an internal error.
 
 ### 日本語
 
 新しく使えるもの
 
-- 匿名型（`new { Name = "a", Score = 1 }`）を、`UdonSharpBehaviour` と普通のクラスの中で使えるようになりました（UdonSharp 自体は対応していません）。メンバーを読む・メンバー名を省略する（`new { x.Name }`）・入れ子にする・ラムダの戻り値にする（`list.Select(x => new { x.Name, x.Hp })`）・配列や `var` で受けたリストに入れることができます。`ToString()`・文字列の連結・補間は C# と同じ文字列（`{ Name = a, Score = 1 }`）になり、`Equals` は値で比べます。`object` として使うこと（`Debug.Log(p)`）・`GetHashCode()`・`GetType()` は、コンパイルエラーです。詳しくは Documentation~/anonymous-types.md を見てください。
+- 匿名型（`new { Name = "a", Score = 1 }`）を、`UdonSharpBehaviour` と普通のクラスの中で使えるようになりました（UdonSharp 自体は対応していません）。メンバーを読む・メンバー名を省略する（`new { x.Name }`）・入れ子にする・ラムダの戻り値にする（`list.Select(x => new { x.Name, x.Hp })`）・配列や `var` で受けたリストに入れることができます。`ToString()`・文字列の連結・補間は C# と同じ文字列（`{ Name = a, Score = 1 }`）になり、`Equals` は値で比べます。匿名型のリストは、普通の `List` / LINQ のメソッドが使えます（`Contains`・`IndexOf`・`LastIndexOf`・`Remove`・`Distinct` は、ここでは参照で比べてしまうので、コンパイルエラーです。`Exists`・`FindIndex`・`Any` を使ってください）。`object` として使うこと（`Debug.Log(p)`）・`GetHashCode()`・`GetType()` は、コンパイルエラーです。詳しくは Documentation~/anonymous-types.md を見てください。
+- LINQ で使えるものが増えました。メソッド：`SelectMany`・`Reverse`・`Concat`・`Append`・`Prepend`・`TakeWhile`・`SkipWhile`・`ElementAt`／`ElementAtOrDefault`・`Single`／`SingleOrDefault`・`Aggregate`。添字付きのラムダ（`Select((x, i) => ...)`・`Where((x, i) => ...)`）が使えます。`Enumerable.Range`・`Enumerable.Repeat`・`Enumerable.Empty` から LINQ を始められます。`List` や LINQ の結果を、`string.Join`／`string.Concat` にそのまま渡せます（`string.Join(",", list.Select(x => x.name))`）。これまでは、どれもコンパイルエラーでした。詳しくは Documentation~/collections.md を見てください。
+
+直したこと
+
+- 普通のクラスのコンストラクタ・メソッドの引数に、C# のキーワードと同じ名前（`@class`・`@event`）を使うと、コンパイルが壊れていたのを直しました。
+- 普通のクラスのフィールドの型を `global::` つきで書くと（`public global::IFoo f;`）、内部のエラーでコンパイルが止まっていたのを直しました。
 
 ## [0.1.4]
 

@@ -36,7 +36,13 @@ namespace UdonSharpPlus
                 method != null && (method.ReducedFrom ?? method).ContainingType?.ToDisplayString() == EnumerableName;
 
             private static readonly string[] LinqTerminals =
-                { "ToList", "ToArray", "ToDictionary", "Any", "All", "Count", "First", "FirstOrDefault", "Last", "LastOrDefault", "Sum", "Min", "Max", "Average", "Contains" };
+                { "ToList", "ToArray", "ToDictionary", "Any", "All", "Count", "First", "FirstOrDefault", "Last", "LastOrDefault", "Sum", "Min", "Max", "Average", "Contains",
+                  "ElementAt", "ElementAtOrDefault", "Single", "SingleOrDefault", "Aggregate" };
+
+            /// <summary>結果がシーケンスのままのメソッド（最後なら、新しい DataList に入れて返す）</summary>
+            private static readonly string[] LinqSequences =
+                { "Where", "Select", "SelectMany", "ToList", "Skip", "Take", "SkipWhile", "TakeWhile", "Distinct", "Reverse", "Concat", "Append", "Prepend",
+                  "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending" };
 
             /// <summary>LINQ の 1 回の呼び出し（受け側と、受け側を除いた引数）</summary>
             private sealed class LinqCallInfo
@@ -76,7 +82,7 @@ namespace UdonSharpPlus
                     case ParenthesizedExpressionSyntax p:
                         return IsDataListBacked(p.Expression);
                     case InvocationExpressionSyntax invocation when _model.GetSymbolInfo(invocation).Symbol is IMethodSymbol m && IsLinqMethod(m):
-                        return !IsLinqGenerator(m);
+                        return !IsLinqGenerator(m) || IsSupportedGenerator(m);
                 }
                 ITypeSymbol type = TypeOf(expression);
                 if (IsList(type) || IsDictionary(type))
@@ -98,8 +104,13 @@ namespace UdonSharpPlus
             private static bool IsLinqGenerator(IMethodSymbol method) =>
                 IsLinqMethod(method) && method.ReducedFrom == null && !method.IsExtensionMethod;
 
+            /// <summary>対応している生成のメソッド（#145）：Enumerable.Range(start, count)・Repeat(value, count)・Empty&lt;T&gt;()</summary>
+            private static bool IsSupportedGenerator(IMethodSymbol method) =>
+                IsLinqGenerator(method) && (method.Name == "Range" && method.Parameters.Length == 2 || method.Name == "Repeat" && method.Parameters.Length == 2
+                                            || method.Name == "Empty" && method.Parameters.Length == 0);
+
             private static string GeneratorMessage(IMethodSymbol method) =>
-                $"'{method.Name}' : Enumerable.{method.Name} は未対応です（LINQ は List・配列・Dictionary から始めてください）";
+                $"'{method.Name}' : Enumerable.{method.Name} は未対応です（LINQ は List・配列・Dictionary と、Enumerable.Range・Repeat・Empty から始めてください）";
 
             /// <summary>
             /// 中を回せない IEnumerable（DataList でない）を foreach・LINQ に渡したときのエラー。書き方に合わせて文言を変える（#99）。
@@ -146,10 +157,13 @@ namespace UdonSharpPlus
             private const string EnumerableConversionMessage =
                 "List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）";
 
+            /// <summary>SelectMany の集まりを返すラムダの return の式（戻り値の型は IEnumerable&lt;T&gt; だが、DataList のまま返してよい。#143）</summary>
+            private readonly HashSet<SyntaxNode> _collectionReturns = new HashSet<SyntaxNode>();
+
             /// <summary>中身が DataList の値を、IEnumerable&lt;T&gt; などのインタフェース型の場所に入れていればエラー（#62）</summary>
             private bool EnumerableConversion(ExpressionSyntax value)
             {
-                if (_helpers == null || value == null || !IsDataListBacked(value))
+                if (_helpers == null || value == null || _collectionReturns.Contains(value) || !IsDataListBacked(value))
                     return false;
                 ITypeSymbol target = _model.GetTypeInfo(value).ConvertedType;
                 if (target == null || target.TypeKind != TypeKind.Interface)
@@ -187,14 +201,22 @@ namespace UdonSharpPlus
                     calls.Insert(0, call);
                     current = call.Receiver;
                 }
-                if (calls.Count == 0)
+                ExpressionSyntax source = current;
+                // 元が Enumerable.Range・Repeat・Empty（#145）
+                ExpressionSyntax bare = source;
+                while (bare is ParenthesizedExpressionSyntax paren)
+                    bare = paren.Expression;
+                IMethodSymbol generator = bare is InvocationExpressionSyntax && _model.GetSymbolInfo(bare).Symbol is IMethodSymbol gm && IsLinqGenerator(gm) ? gm : null;
+                if (generator != null && !IsSupportedGenerator(generator))
                 {
-                    Error(node, _model.GetSymbolInfo(node).Symbol is IMethodSymbol generator && IsLinqGenerator(generator)
-                        ? GeneratorMessage(generator)
-                        : "この形の LINQ の呼び出しは未対応です");
+                    Error(bare, GeneratorMessage(generator));
                     return node;
                 }
-                ExpressionSyntax source = current;
+                if (calls.Count == 0 && generator == null)
+                {
+                    Error(node, "この形の LINQ の呼び出しは未対応です");
+                    return node;
+                }
 
                 // 元：List・配列・LINQ の結果（var で受けたもの。中身は DataList）・Dictionary・dict.Keys / dict.Values（#61）
                 ITypeSymbol sourceType = TypeOf(source);
@@ -245,7 +267,7 @@ namespace UdonSharpPlus
                     return node;
                 }
 
-                string terminalName = calls[calls.Count - 1].Name;
+                string terminalName = calls.Count == 0 ? generator.Name : calls[calls.Count - 1].Name;
                 string name = $"__linq_{terminalName}_{_lambdaCount++}";
                 bool isStatic = enclosing.IsStatic;
                 string modifiers = isStatic ? "private static" : "private";
@@ -265,6 +287,7 @@ namespace UdonSharpPlus
                 var stops = new List<string>();          // 今のループを止める印（Take）
                 string header;                           // 今のループの頭（{STOP} に止める条件が入る）
                 string returnType, post = "";
+                string aggregateType = null;             // Aggregate の結果の型
                 ITypeSymbol type = element;              // 今の段の要素の型
                 int v = 0;                               // 今の段の値の変数 __v{v}
                 int stage = 0;
@@ -277,18 +300,51 @@ namespace UdonSharpPlus
                         ? $"{DataListType} __keys = __src.GetKeys(); int __n0 = __keys.Count; for (int __i0 = 0; __i0 < __n0{{STOP}}; __i0++) {{ {DataTokenType} __v0 = __keys[__i0]; "
                         : $"int __n0 = __src.Count; for (int __i0 = 0; __i0 < __n0{{STOP}}; __i0++) {{ {TypeText(element)} __v0 = {Unwrap("__src[__i0]", element)}; ";
 
+                // 生成のメソッド（#145）：__src は Range の最初の値・Repeat の値（Empty は使わない）。回数は __gcount
+                if (generator != null)
+                {
+                    var generatorArgs = ((InvocationExpressionSyntax)bare).ArgumentList.Arguments;
+                    string elementText = TypeText(element);
+                    if (generator.Name == "Empty")
+                    {
+                        sourceParam = "int";
+                        sourceText = "0";
+                        header = $"for (int __i0 = 0; __i0 < 0{{STOP}}; __i0++) {{ {elementText} __v0 = default({elementText}); ";
+                    }
+                    else
+                    {
+                        sourceParam = generator.Name == "Range" ? "int" : elementText;
+                        sourceText = Text(Visit(generatorArgs[0].Expression));
+                        extraParams.Append(", int __gcount");
+                        extraArgs.Append(", ").Append(Text(Visit(generatorArgs[1].Expression)));
+                        preamble.Append($"if (__gcount < 0) {{ {Halt(generator.Name, "count が負です（C# では ArgumentOutOfRangeException）")}}} ");
+                        if (generator.Name == "Range")   // C# と同じく、最後の値が int の範囲を超えるなら、作る時点で止める
+                            preamble.Append($"if (__gcount > 0 && __src > {int.MaxValue} - (__gcount - 1)) {{ {Halt("Range", "start + count - 1 が int の範囲を超えます（C# では ArgumentOutOfRangeException）")}}} ");
+                        header = $"for (int __i0 = 0; __i0 < __gcount{{STOP}}; __i0++) {{ {elementText} __v0 = {(generator.Name == "Range" ? "__src + __i0" : "__src")}; ";
+                    }
+                }
+
                 // Dictionary の kv（キーとして流している今の値）
                 PairLoop CurrentPair() => new PairLoop { Dictionary = "__src", Key = $"__v{v}", KeyType = pairKey, ValueType = pairValue };
 
                 // 今の値（kv をキーとして流しているときは、外に出すために object[] にする。#61 決めたこと 2）
                 string ValueExpr() => pairMode ? PairObject(CurrentPair()) : $"__v{v}";
 
+                // SelectMany の内側のループ（今のループの本体の中で開いたもの）。From より前の止める印（Take）は、外側のループだけを止める
+                var nested = new List<(int Id, int From)>();
+
                 void CloseLoop(string tail)
                 {
-                    code.Append(header.Replace("{STOP}", string.Concat(stops.Select(s => $" && !{s}"))))
-                        .Append(body).Append(tail).Append("} ");
+                    string StopsFrom(int from) => string.Concat(stops.Skip(from).Select(s => $" && !{s}"));
+                    string text = body.ToString();
+                    foreach (var (id, from) in nested)
+                        text = text.Replace($"{{STOP:{id}}}", StopsFrom(from));
+                    code.Append(header.Replace("{STOP}", StopsFrom(0))).Append(text).Append(tail).Append("} ");
+                    for (int i = 0; i < nested.Count; i++)
+                        code.Append("} ");
                     body.Clear();
                     stops.Clear();
+                    nested.Clear();
                 }
 
                 // 呼び出し箇所ごとのテンポラリ（決めたこと 5）。static のメソッドの中はフィールドを使えないので、毎回作る
@@ -314,14 +370,15 @@ namespace UdonSharpPlus
                 }
 
                 // ラムダを 1 つ準備して、外の変数をまとめる
-                PreparedLambda Lambda(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType, out bool pairBound)
+                // arity：ラムダの引数の数。pairIndex：要素（kv）を受ける引数の番号（kv.Key / kv.Value の書き換えをしないなら -1）
+                PreparedLambda Lambda(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType, out bool pairBound, int arity, int pairIndex)
                 {
                     pairBound = false;
                     resultType = null;
                     if (!(_model.GetTypeInfo(fn).ConvertedType is INamedTypeSymbol delegateType) || delegateType.DelegateInvokeMethod == null
-                        || delegateType.DelegateInvokeMethod.Parameters.Length != 1)
+                        || delegateType.DelegateInvokeMethod.Parameters.Length != arity)
                     {
-                        Error(fn, $"'{call.Name}' : この形のラムダは未対応です（引数 1 つのラムダかメソッド名を渡してください。添字付きの (x, i) => ... は未対応です）");
+                        Error(fn, $"'{call.Name}' : この形のラムダは未対応です（ラムダかメソッド名を渡してください）");
                         return null;
                     }
                     resultType = delegateType.DelegateInvokeMethod.ReturnType;
@@ -330,11 +387,11 @@ namespace UdonSharpPlus
                     // kv をキーとして流しているときは、式の本体のラムダなら kv.Key / kv.Value をキーと dict[キー] に書き換える
                     // （本体のメソッドにするものやメソッド名は、object[] にして渡す）
                     ISymbol pairParameter = null;
-                    if (pairMode && !conflict && fn is LambdaExpressionSyntax pairLambda && !(pairLambda.Body is BlockSyntax))
+                    if (pairMode && pairIndex >= 0 && !conflict && fn is LambdaExpressionSyntax pairLambda && !(pairLambda.Body is BlockSyntax))
                     {
                         ParameterSyntax parameter = pairLambda is SimpleLambdaExpressionSyntax simple
-                            ? simple.Parameter
-                            : ((ParenthesizedLambdaExpressionSyntax)pairLambda).ParameterList.Parameters.FirstOrDefault();
+                            ? (pairIndex == 0 ? simple.Parameter : null)
+                            : ((ParenthesizedLambdaExpressionSyntax)pairLambda).ParameterList.Parameters.ElementAtOrDefault(pairIndex);
                         pairParameter = parameter == null ? null : _model.GetDeclaredSymbol(parameter);
                     }
                     if (pairParameter != null)
@@ -364,15 +421,52 @@ namespace UdonSharpPlus
                 }
 
                 // ラムダを今の値に当てはめて、結果を変数に入れる（ラムダの引数は、兄弟のブロックの中だけで宣言する）。結果の変数名を返す
-                string Apply(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType)
+                // 添字付きのラムダ（(x, i) => ...。Where・Select・SelectMany・TakeWhile・SkipWhile）なら、その段に来た要素を数えて 2 つ目の引数にする（#142）
+                string Apply(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType, System.Func<string, string> convert = null)
                 {
-                    PreparedLambda lambda = Lambda(call, fn, out resultType, out bool pairBound);
+                    bool indexed = _model.GetTypeInfo(fn).ConvertedType is INamedTypeSymbol d && d.DelegateInvokeMethod != null && d.DelegateInvokeMethod.Parameters.Length == 2;
+                    if (!indexed)
+                        return ApplyWith(call, fn, out resultType, 0, convert, (TypeText(type), ValueExpr()));
+                    string counter = $"__ix{stage}";
+                    preamble.Append($"int {counter} = -1; ");
+                    body.Append($"{counter}++; ");
+                    return ApplyWith(call, fn, out resultType, 0, convert, (TypeText(type), ValueExpr()), ("int", counter));
+                }
+
+                // ラムダの引数を binds の値にして評価し、結果を変数に入れる。結果の変数名を返す。convert は、評価した式を包む（配列を DataList にするなど）
+                string ApplyWith(LinqCallInfo call, ExpressionSyntax fn, out ITypeSymbol resultType, int pairIndex, System.Func<string, string> convert,
+                    params (string Type, string Value)[] binds)
+                {
+                    PreparedLambda lambda = Lambda(call, fn, out resultType, out bool pairBound, binds.Length, pairIndex);
                     if (lambda == null)
                         return null;
                     string result = $"__r{stage++}";
-                    string bind = pairBound ? "" : $"{TypeText(type)} {lambda.Names[0]} = {ValueExpr()}; ";
-                    body.Append($"{TypeText(resultType)} {result}; {{ {bind}{result} = ({lambda.Each}); }} ");
+                    var bind = new StringBuilder();
+                    for (int i = 0; i < binds.Length; i++)
+                        if (!(pairBound && i == pairIndex))
+                            bind.Append($"{binds[i].Type} {lambda.Names[i]} = {binds[i].Value}; ");
+                    string value = convert == null ? lambda.Each : convert(lambda.Each);
+                    body.Append($"{TypeText(resultType)} {result}; {{ {bind}{result} = ({value}); }} ");
                     return result;
+                }
+
+                // ここまでの値をテンポラリにためてループを閉じる（Reverse・Concat・Append・Prepend）。次のループは、ためたものを回す
+                string BufferSegment(bool backward, System.Action<string> beforeLoop, System.Action<string> afterLoop)
+                {
+                    int s = segment;
+                    string buffer = Temp($"b{s}", DataListType);
+                    beforeLoop?.Invoke(buffer);
+                    body.Append($"{buffer}.Add({(pairMode ? $"__v{v}" : Wrap($"__v{v}", type))}); ");   // kv はキーのまま
+                    CloseLoop("");
+                    afterLoop?.Invoke(buffer);
+                    segment++;
+                    int next = segment;
+                    v++;
+                    string item = pairMode ? $"{DataTokenType} __v{v} = {buffer}[__i{next}]; " : $"{TypeText(type)} __v{v} = {Unwrap($"{buffer}[__i{next}]", type)}; ";
+                    header = backward
+                        ? $"for (int __i{next} = {buffer}.Count - 1; __i{next} >= 0{{STOP}}; __i{next}--) {{ {item}"
+                        : $"int __m{s} = {buffer}.Count; for (int __i{next} = 0; __i{next} < __m{s}{{STOP}}; __i{next}++) {{ {item}";
+                    return buffer;
                 }
 
                 // Where：条件に合わなければ次の要素へ
@@ -496,6 +590,133 @@ namespace UdonSharpPlus
                             stage++;
                             continue;
                         }
+                        case "TakeWhile" when args.Count == 1:
+                        {
+                            // 条件に合わない要素が来たら、そこで止める（その先の要素は取りに行かない）
+                            string ok = Apply(call, args[0], out _);
+                            if (ok == null)
+                                return node;
+                            preamble.Append($"bool __stop{stage} = false; ");
+                            body.Append($"if (!{ok}) {{ __stop{stage} = true; continue; }} ");
+                            stops.Add($"__stop{stage}");
+                            stage++;
+                            continue;
+                        }
+                        case "SkipWhile" when args.Count == 1:
+                        {
+                            // 条件に合う間は飛ばす。合わない要素が来たら、その先は条件を呼ばない（C# と同じ）
+                            int start = body.Length;
+                            string ok = Apply(call, args[0], out _);
+                            if (ok == null)
+                                return node;
+                            string applied = body.ToString(start, body.Length - start);
+                            body.Length = start;
+                            preamble.Append($"bool __skipping{stage} = true; ");
+                            body.Append($"if (__skipping{stage}) {{ {applied}if ({ok}) continue; __skipping{stage} = false; }} ");
+                            stage++;
+                            continue;
+                        }
+                        case "SelectMany" when args.Count == 1 || args.Count == 2:
+                        {
+                            // 内側のループを開く（#143）。集まりは List・配列・LINQ の結果
+                            // 集まりの実際の型（デリゲートの戻り値の型は IEnumerable<T> なので、ラムダの本体・return の式から取る）
+                            var returned = new List<ExpressionSyntax>();
+                            bool block = false;
+                            if (args[0] is LambdaExpressionSyntax collectionLambda)
+                            {
+                                if (collectionLambda.Body is ExpressionSyntax collectionBody)
+                                    returned.Add(collectionBody);
+                                else
+                                {
+                                    block = true;
+                                    returned.AddRange(collectionLambda.Body.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax))
+                                        .OfType<ReturnStatementSyntax>().Where(r => r.Expression != null).Select(r => r.Expression));
+                                }
+                            }
+                            ITypeSymbol collection = returned.Count > 0 ? TypeOf(returned[0]) : (_model.GetSymbolInfo(args[0]).Symbol as IMethodSymbol)?.ReturnType;
+                            ITypeSymbol inner;
+                            System.Func<string, string> convert = null;
+                            if (collection is IArrayTypeSymbol innerArray && innerArray.Rank == 1 && !block)
+                            {
+                                inner = innerArray.ElementType;
+                                string fromArray = FromArrayHelper(inner);
+                                convert = e => $"{fromArray}({e})";
+                            }
+                            else if (IsList(collection) && returned.All(r => IsList(TypeOf(r)))
+                                     || IsEnumerable(collection) && returned.Count > 0 && returned.All(IsDataListBacked))
+                                inner = ((INamedTypeSymbol)collection).TypeArguments[0];
+                            else
+                            {
+                                Error(args[0], "'SelectMany' : 集まりを返すラムダは、List・配列・LINQ の結果を返してください（{ ... } の本体のラムダは、List か LINQ の結果を返してください）");
+                                return node;
+                            }
+                            foreach (ExpressionSyntax r in returned)
+                                _collectionReturns.Add(r);
+                            string outerType = TypeText(type), outerValue = ValueExpr();
+                            string list = Apply(call, args[0], out _, convert);
+                            if (list == null)
+                                return node;
+                            int id = stage++;
+                            string outer = $"__o{id}";
+                            if (args.Count == 2)
+                                body.Append($"{outerType} {outer} = {outerValue}; ");
+                            body.Append($"int __cn{id} = {list}.Count; for (int __ci{id} = 0; __ci{id} < __cn{id}{{STOP:{id}}}; __ci{id}++) {{ ")
+                                .Append($"{TypeText(inner)} __v{v + 1} = {Unwrap($"{list}[__ci{id}]", inner)}; ");
+                            nested.Add((id, stops.Count));
+                            v++;
+                            type = inner;
+                            pairMode = false;
+                            if (args.Count == 2)
+                            {
+                                // 結果を作るラムダ：(外側の要素, 内側の要素) => ...
+                                string mapped = ApplyWith(call, args[1], out ITypeSymbol resultType, -1, null, (outerType, outer), (TypeText(inner), $"__v{v}"));
+                                if (mapped == null)
+                                    return node;
+                                body.Append($"{TypeText(resultType)} __v{v + 1} = {mapped}; ");
+                                v++;
+                                type = resultType;
+                            }
+                            continue;
+                        }
+                        case "Reverse" when args.Count == 0:
+                            BufferSegment(true, null, null);
+                            continue;
+                        case "Concat" when args.Count == 1 && !pairMode:
+                        {
+                            ITypeSymbol other = TypeOf(args[0]);
+                            ExpressionSyntax otherArg = args[0];
+                            ITypeSymbol elementType = type;
+                            int id = stage++;
+                            if (other is IArrayTypeSymbol otherArray && otherArray.Rank == 1)
+                                BufferSegment(false, null, buffer =>
+                                {
+                                    string o = Extra(TypeText(other), $"__cat{id}", otherArg);
+                                    code.Append($"for (int __j = 0; __j < {o}.Length; __j++) {buffer}.Add({Wrap($"{o}[__j]", elementType)}); ");
+                                });
+                            else if (IsList(other) || IsEnumerable(other) && IsDataListBacked(otherArg))
+                                BufferSegment(false, null, buffer =>
+                                {
+                                    string o = Extra(DataListType, $"__cat{id}", otherArg);
+                                    code.Append($"for (int __j = 0; __j < {o}.Count; __j++) {buffer}.Add({o}[__j]); ");
+                                });
+                            else
+                            {
+                                Error(args[0], "'Concat' : つなぐ相手は、List・配列・LINQ の結果にしてください");
+                                return node;
+                            }
+                            continue;
+                        }
+                        case "Append" when args.Count == 1 && !pairMode:
+                        case "Prepend" when args.Count == 1 && !pairMode:
+                        {
+                            string item = Extra(TypeText(type), $"__item{stage++}", args[0]);
+                            string add = $".Add({Wrap(item, type)}); ";
+                            if (call.Name == "Append")
+                                BufferSegment(false, null, buffer => code.Append(buffer).Append(add));
+                            else
+                                BufferSegment(false, buffer => preamble.Append(buffer).Append(add), null);
+                            continue;
+                        }
                         case "Distinct" when args.Count == 0 && pairMode:
                             continue;   // KeyValuePair はキーが重ならないので、何もしない（#61 決めたこと 6）
                         case "Distinct" when args.Count == 0:
@@ -538,12 +759,12 @@ namespace UdonSharpPlus
                         break;
                     if (!last || !LinqTerminals.Contains(call.Name))
                     {
-                        Error(call.Node, $"'{call.Name}' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select / OrderBy / ThenBy / Distinct / Skip / Take と、{string.Join(" / ", LinqTerminals)} が使えます）");
+                        Error(call.Node, $"'{call.Name}' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select / SelectMany / OrderBy / ThenBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend と、{string.Join(" / ", LinqTerminals)} が使えます）");
                         return node;
                     }
 
                     // 最後の呼び出し：条件・変換のラムダを受け取るものは、Where / Select の段にしてから集計する
-                    bool takesPredicate = new[] { "Any", "Count", "First", "FirstOrDefault", "Last", "LastOrDefault" }.Contains(call.Name);
+                    bool takesPredicate = new[] { "Any", "Count", "First", "FirstOrDefault", "Last", "LastOrDefault", "Single", "SingleOrDefault" }.Contains(call.Name);
                     bool takesSelector = new[] { "Sum", "Min", "Max", "Average" }.Contains(call.Name);
                     if (args.Count == 1 && takesPredicate)
                     {
@@ -570,6 +791,32 @@ namespace UdonSharpPlus
                             return node;
                         }
                         Extra(TypeText(type), "__value", args[0]);
+                    }
+                    else if ((call.Name == "ElementAt" || call.Name == "ElementAtOrDefault") && args.Count == 1)
+                    {
+                        Extra("int", "__index", args[0]);
+                    }
+                    else if (call.Name == "Aggregate" && (args.Count == 1 || args.Count == 2))
+                    {
+                        // Aggregate(f)：最初の要素から始める。Aggregate(seed, f)：seed から始める
+                        string elementText = TypeText(type), elementValue = ValueExpr();
+                        string accText = elementText;
+                        if (args.Count == 1)
+                        {
+                            preamble.Append($"{accText} __acc = default({accText}); bool __found = false; ");
+                            body.Append($"if (!__found) {{ __acc = {elementValue}; __found = true; continue; }} ");
+                        }
+                        else
+                        {
+                            accText = TypeText(call.Method.TypeArguments[1]);
+                            string seed = Extra(accText, "__seed", args[0]);
+                            preamble.Append($"{accText} __acc = {seed}; ");
+                        }
+                        string next = ApplyWith(call, args[args.Count - 1], out _, -1, null, (accText, "__acc"), (elementText, elementValue));
+                        if (next == null)
+                            return node;
+                        body.Append($"__acc = {next}; ");
+                        aggregateType = accText;
                     }
                     else if (call.Name == "ToDictionary" && (args.Count == 1 || args.Count == 2))
                     {
@@ -598,25 +845,35 @@ namespace UdonSharpPlus
 
                 string currentValue = ValueExpr();
                 string valueText = TypeText(type);
-                LinqCallInfo terminal = calls[calls.Count - 1];
+                LinqCallInfo terminal = calls.Count == 0 ? null : calls[calls.Count - 1];
                 string each;
-                switch (terminal.Name)
+                switch (terminal == null || LinqSequences.Contains(terminal.Name) ? "ToList" : terminal.Name)
                 {
-                    case "Where":
-                    case "Select":
                     case "ToList":
-                    case "Skip":
-                    case "Take":
-                    case "Distinct":
-                    case "OrderBy":
-                    case "OrderByDescending":
-                    case "ThenBy":
-                    case "ThenByDescending":
                         // 結果のシーケンス：新しい DataList に入れる（決めたこと 5）
                         returnType = DataListType;
                         preamble.Append($"{DataListType} __result = new {DataListType}(); ");
                         each = $"__result.Add({Wrap(currentValue, type)}); ";
                         post = "return __result;";
+                        break;
+                    case "ElementAt":
+                    case "ElementAtOrDefault":
+                        returnType = valueText;
+                        preamble.Append("int __pos = 0; ");
+                        each = $"if (__pos == __index) return {currentValue}; __pos++; ";
+                        post = (terminal.Name == "ElementAt" ? Halt("ElementAt", "添字が範囲の外です（C# では ArgumentOutOfRangeException）") : "") + $"return default({valueText});";
+                        break;
+                    case "Single":
+                    case "SingleOrDefault":
+                        returnType = valueText;
+                        preamble.Append($"{valueText} __single = default({valueText}); bool __found = false; ");
+                        each = $"if (__found) {{ {Halt(terminal.Name, "要素が 2 つ以上あります（C# では InvalidOperationException）")}}} __single = {currentValue}; __found = true; ";
+                        post = "if (__found) return __single; " + (terminal.Name == "Single" ? Halt("Single", NoElement) : "") + $"return default({valueText});";
+                        break;
+                    case "Aggregate":
+                        returnType = aggregateType;
+                        each = "";
+                        post = (terminal.Args.Count == 1 ? $"if (!__found) {{ {Halt("Aggregate", NoElement)}}} " : "") + "return __acc;";
                         break;
                     case "ToArray":
                         returnType = valueText + "[]";
@@ -711,7 +968,7 @@ namespace UdonSharpPlus
 
             /// <summary>C# なら例外になるところ：エラーのログを出して、Udon の実行時例外にする</summary>
             private static string Halt(string op, string message) =>
-                $"global::UnityEngine.Debug.LogError(\"[UdonSharpPlus] {op} : {message}\"); {DataListType} __halt = null; __halt.Clear(); ";
+                $"{{ global::UnityEngine.Debug.LogError(\"[UdonSharpPlus] {op} : {message}\"); {DataListType} __halt = null; __halt.Clear(); }} ";   // 自分のブロックに入れる（同じメソッドに何回出ても、名前がぶつからない）
 
             /// <summary>並べ替えのキーの比較（負・0・正）。未対応の型なら null</summary>
             private static string CompareText(string a, string b, ITypeSymbol type)

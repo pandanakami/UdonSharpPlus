@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace FeatureTests.Anon
 {
-    // #70 の追加テスト：機能単体（U）と、ほかの機能との組み合わせ（C）
+    // #70 の追加テスト：機能単体（U）と、ほかの機能との組み合わせ（C）。#71：匿名型のリスト（L）
     public partial class AnonMoreRunner : UdonSharpBehaviour
     {
         // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
@@ -18,7 +18,7 @@ namespace FeatureTests.Anon
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果（Scenario() を普通の C# として実行して確かめたもの）
-        private const string Expected = "U1=123,3;U2=TrueFalseFalseFalseFalseFalse;U4=[]<>True;U5=197;U6=TrueFalseFalseFalseTrue;U7={ A = 1, Inner =  };U8=L5bob!3n,{ local = L, _bonus = 5, Label = bob!, class = 3, 名前 = n };U9={ by = 200, ui = 4000000000, ul = 18000000000000000000, fl = 1.5, db = 2.25, nan = NaN, inf = Infinity, ns = , sh = -3, sb = -4, ch = z, us = 65535 };U10=|           { A = 1 }||{ A = 1 }           |;U11=x{ A = 2 }{ A = 1 };U12=True,1;C1=101,201,301,301;C2=4,14,True,4;C3=1,1,t1,q;C4={ a = 1, b = x }{ a = y, b = 2 }{ a = 3, b = z };C5=holder4,31,6,68,bob,True,holder4;C6=n6n5n4n3n2,5;C7=100,1;C8=2,2,6,3,3;C10={ Score = 3, Name = a },{ Name = a, Score = 3 },False,True,{ Name = a, Score = 3 }True{ Score = 3, Name = a };C11={ Src = on, N = 1 }";
+        private const string Expected = "U1=123,3;U2=TrueFalseFalseFalseFalseFalse;U4=[]<>True;U5=197;U6=TrueFalseFalseFalseTrue;U7={ A = 1, Inner =  };U8=L5bob!3n,{ local = L, _bonus = 5, Label = bob!, class = 3, 名前 = n };U9={ by = 200, ui = 4000000000, ul = 18000000000000000000, fl = 1.5, db = 2.25, nan = NaN, inf = Infinity, ns = , sh = -3, sb = -4, ch = z, us = 65535 };U10=|           { A = 1 }||{ A = 1 }           |;U11=x{ A = 2 }{ A = 1 };U12=True,1;C1=101,201,301,301;C2=4,14,True,4;C3=1,1,t1,q;C4={ a = 1, b = x }{ a = y, b = 2 }{ a = 3, b = z };C5=holder4,31,6,68,bob,True,holder4;C6=n6n5n4n3n2,5;C7=100,1;C8=2,2,6,3,3;C10={ Score = 3, Name = a },{ Name = a, Score = 3 },False,True,{ Name = a, Score = 3 }True{ Score = 3, Name = a };C11={ Src = on, N = 1 };L1=3,3,029;L2=b2,2,True,True,6,3,13;L3=True250;L4=21,6;L5=1,True,6,True,4;L6=634152,21,6;L7={ A = 2 }{ A = 3 }56;L8=6";
 
         public GmPeer gm;
         public AnonPeer peer2;
@@ -188,7 +188,7 @@ namespace FeatureTests.Anon
 #endif
 #pragma warning restore 0219
 #endregion
-            s += "C11=" + pp;
+            s += "C11=" + pp + ";" + ListMore();
             return s;
         }
 

@@ -250,15 +250,14 @@
     __lcl___r0_SystemBoolean_4: %SystemBoolean, null
     __lcl_x_SystemInt32_4: %SystemInt32, null
     __lcl___n0_SystemInt32_9: %SystemInt32, null
-    __lcl___halt_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
     __lcl___i0_SystemInt32_9: %SystemInt32, null
     __intnl_SystemBoolean_11: %SystemBoolean, null
     __lcl___v0_SystemInt32_9: %SystemInt32, null
     __intnl_VRCSDK3DataDataToken_10: %VRCSDK3DataDataToken, null
     __lcl___r0_SystemBoolean_5: %SystemBoolean, null
     __lcl_x_SystemInt32_5: %SystemInt32, null
+    __lcl___halt_VRCSDK3DataDataList_1: %VRCSDK3DataDataList, null
     __lcl___n0_SystemInt32_10: %SystemInt32, null
-    __lcl___halt_VRCSDK3DataDataList_2: %VRCSDK3DataDataList, null
     __lcl___i0_SystemInt32_10: %SystemInt32, null
     __intnl_SystemBoolean_12: %SystemBoolean, null
     __lcl___v0_SystemObjectArray_0: %SystemObjectArray, null
@@ -268,12 +267,13 @@
     __lcl_e_SystemObjectArray_0: %SystemObjectArray, null
     __intnl_SystemObject_2: %SystemObject, null
     __intnl_SystemInt32_3: %SystemInt32, null
+    __lcl___halt_VRCSDK3DataDataList_2: %VRCSDK3DataDataList, null
     __lcl___n0_SystemInt32_11: %SystemInt32, null
-    __lcl___halt_VRCSDK3DataDataList_3: %VRCSDK3DataDataList, null
     __lcl___i0_SystemInt32_11: %SystemInt32, null
     __intnl_SystemBoolean_13: %SystemBoolean, null
     __lcl___v0_SystemInt32_10: %SystemInt32, null
     __intnl_VRCSDK3DataDataToken_12: %VRCSDK3DataDataToken, null
+    __lcl___halt_VRCSDK3DataDataList_3: %VRCSDK3DataDataList, null
     __lcl___last_SystemInt32_0: %SystemInt32, null
     __lcl___found_SystemBoolean_0: %SystemBoolean, null
     __lcl___n0_SystemInt32_12: %SystemInt32, null
@@ -286,10 +286,10 @@
     __lcl___last_SystemInt32_1: %SystemInt32, null
     __lcl___found_SystemBoolean_1: %SystemBoolean, null
     __lcl___n0_SystemInt32_13: %SystemInt32, null
-    __lcl___halt_VRCSDK3DataDataList_4: %VRCSDK3DataDataList, null
     __lcl___i0_SystemInt32_13: %SystemInt32, null
     __intnl_SystemBoolean_15: %SystemBoolean, null
     __lcl___v0_SystemInt32_12: %SystemInt32, null
+    __lcl___halt_VRCSDK3DataDataList_4: %VRCSDK3DataDataList, null
     __lcl___m_SystemInt32_0: %SystemInt32, null
     __lcl___found_SystemBoolean_2: %SystemBoolean, null
     __lcl___n0_SystemInt32_14: %SystemInt32, null

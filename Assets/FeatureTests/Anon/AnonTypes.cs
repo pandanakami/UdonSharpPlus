@@ -23,6 +23,18 @@ namespace FeatureTests.Anon
             l.Add(x);
             return l;
         }
+
+        // #71：匿名型のリストを受けて、新しいリストを返す
+        public static List<T> Copy<T>(List<T> list)
+        {
+            var r = new List<T>();
+            foreach (T x in list)
+                r.Add(x);
+            return r;
+        }
+
+        // #71：リストを作るデリゲートを受ける（T が匿名型になる）
+        public static List<T> Build<T>(System.Func<List<T>> make) => make();
     }
 
     // クラスの型引数とメソッドの型引数を、同時に匿名型のメンバーにする

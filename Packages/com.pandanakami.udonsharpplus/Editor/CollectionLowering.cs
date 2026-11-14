@@ -817,6 +817,11 @@ namespace UdonSharpPlus
                 if (_helpers != null && node.Expression != null)
                 {
                     TypeInfo info = _model.GetTypeInfo(node.Expression);
+                    // 外部のメソッドの IEnumerable<T> の引数（string.Join(",", list.Select(...)) など）には、配列にして渡す（#146）
+                    if ((IsEnumerable(info.Type) && IsDataListBacked(node.Expression) || IsList(info.Type)
+                         || info.Type is IArrayTypeSymbol argumentArray && argumentArray.Rank == 1 && argumentArray.ElementType.SpecialType != SpecialType.System_String)
+                        && ExternalEnumerableArgument(node, info) is ExpressionSyntax array)
+                        return node.WithExpression(array);
                     if (IsEnumerable(info.Type) && IsDataListBacked(node.Expression))
                     {
                         Error(node, $"'{Text(node.Expression)}' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）");
@@ -831,6 +836,47 @@ namespace UdonSharpPlus
                     }
                 }
                 return base.VisitArgument(node);
+            }
+
+            /// <summary>
+            /// List・LINQ の結果を、外部（.NET・Unity）のメソッドの IEnumerable&lt;T&gt; の引数に渡している → 配列にした式（#146）。当てはまらなければ null。
+            /// 配列は IEnumerable&lt;T&gt; として渡せる。string.Join&lt;T&gt;・string.Concat&lt;T&gt;（Udon にない）は、要素を文字列にした string[] を渡す
+            /// </summary>
+            private ExpressionSyntax ExternalEnumerableArgument(ArgumentSyntax node, TypeInfo info)
+            {
+                if (!(info.ConvertedType is INamedTypeSymbol target) || target.OriginalDefinition.ToDisplayString() != IEnumerableName)
+                    return null;
+                if (!(node.Parent is ArgumentListSyntax list) || !(_model.GetSymbolInfo(list.Parent).Symbol is IMethodSymbol method))
+                    return null;
+                // ソースにあるメソッド・LINQ・List / Dictionary のメソッドは対象外（引数の型が IEnumerable<T> のままでは、中を回せない）
+                if (method.DeclaringSyntaxReferences.Length > 0 || IsLinqMethod(method) || IsList(method.ContainingType) || IsDictionary(method.ContainingType))
+                    return null;
+                bool fromArray = info.Type is IArrayTypeSymbol;
+                ITypeSymbol element = fromArray ? ((IArrayTypeSymbol)info.Type).ElementType : ((INamedTypeSymbol)info.Type).TypeArguments[0];
+                bool toStrings = method.IsGenericMethod && method.ContainingType.SpecialType == SpecialType.System_String
+                                 && (method.Name == "Join" || method.Name == "Concat") && element.SpecialType != SpecialType.System_String;
+                if (fromArray && !toStrings)
+                    return null;   // 配列は、そのまま IEnumerable<T> として渡せる
+                string value = Text(Visit(node.Expression));
+                // 呼び出し箇所ごとの入口：null を渡したとき（C# では ArgumentNullException）に、元の行で止まるようにする
+                string site = $"__col_arg_{_lambdaCount++}";
+                string marker = SourceMap.MarkerFor(node.Expression);
+                if (!toStrings)
+                {
+                    _helpers[site] = $"private static {TypeText(element)}[] {site}({DataListType} __l) {{ {marker}int __n = __l.Count; return {ToArrayHelper(element)}(__l); }}";
+                    return Parse($"{site}({value})", node.Expression);
+                }
+                // string.Join<T>(sep, IEnumerable<T>)：C# は要素ごとに ToString() を呼ぶ。同じ文字列の string[] にして、string[] の Join に渡す
+                if (!element.IsValueType || element.TypeKind == TypeKind.Enum)
+                    return null;
+                string name = $"__col_ToStrings__{Token(element)}";
+                _helpers[name] = $"private static string[] {name}({DataListType} __l) {{ int __n = __l.Count; string[] __r = new string[__n]; "
+                                 + $"for (int __i = 0; __i < __n; __i++) {{ {TypeText(element)} __e = {Unwrap("__l[__i]", element)}; __r[__i] = __e.ToString(); }} return __r; }}";
+                // 配列（string.Join(",", intArray)）は、いったん DataList にしてから文字列にする
+                _helpers[site] = fromArray
+                    ? $"private static string[] {site}({TypeText(element)}[] __a) {{ {marker}int __n = __a.Length; return {name}({FromArrayHelper(element)}(__a)); }}"
+                    : $"private static string[] {site}({DataListType} __l) {{ {marker}int __n = __l.Count; return {name}(__l); }}";
+                return Parse($"{site}({value})", node.Expression);
             }
 
             // ---- foreach ---------------------------------------------------------

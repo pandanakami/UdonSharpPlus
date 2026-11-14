@@ -160,7 +160,6 @@
     __lcl___m0_SystemInt32_0: %SystemInt32, null
     __lcl___p0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
     __lcl___q0_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
-    __lcl___halt_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
     __lcl___i0_SystemInt32_0: %SystemInt32, null
     __intnl_SystemBoolean_1: %SystemBoolean, null
     __lcl___v0_SystemObjectArray_0: %SystemObjectArray, null
@@ -198,6 +197,7 @@
     __intnl_SystemBoolean_9: %SystemBoolean, null
     __lcl___i1_SystemInt32_0: %SystemInt32, null
     __lcl___v1_SystemObjectArray_0: %SystemObjectArray, null
+    __lcl___halt_VRCSDK3DataDataList_0: %VRCSDK3DataDataList, null
     __lcl___taken1_SystemInt32_0: %SystemInt32, null
     __lcl___stop1_SystemBoolean_0: %SystemBoolean, null
     __lcl___acc_SystemInt32_0: %SystemInt32, null

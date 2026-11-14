@@ -110,8 +110,9 @@ namespace UdonSharpPlus
             if (TupleCheck.MayHaveTuples(current))
                 TupleCheck.Run(current, diagnostics, GetMetadataReferences());
 
-            // 匿名型の 2 回目。デリゲートの段は、匿名型を知らなくてよいよう、その前に置く
-            if (AnonymousTypeLowering.MayHaveAnonymousTypes(current))
+            // 匿名型の 2 回目。デリゲートの段は、匿名型を知らなくてよいよう、その前に置く。
+            // 1 回目で匿名型を作っていれば、new { ... } が残っていなくても動かす（型引数が匿名型になった List<T>.Contains などを、コピーの中で見つけるため。#71）
+            if (anonymousCount > 0 || AnonymousTypeLowering.MayHaveAnonymousTypes(current))
             {
                 current = AnonymousTypeLowering.Run(current, diagnostics, GetMetadataReferences(), ref anonymousCount, beforeGenerics: false);
                 SourceMap.RegisterTrees(current);

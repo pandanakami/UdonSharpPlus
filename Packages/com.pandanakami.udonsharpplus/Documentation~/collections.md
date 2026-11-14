@@ -33,7 +33,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 
 - List / Dictionary 型のフィールドのシリアライズと同期（public、`[SerializeField]`、`[UdonSynced]`）。private にしてください
 - 未対応の LINQ のメソッド（下の「LINQ」）
-- `IEnumerable<T>` などとして扱うこと（`string.Join(",", list)` など。下の「IEnumerable」）、`GetEnumerator()`、`?.`
+- `IEnumerable<T>` などとして扱うこと（`IEnumerable<int> a = list;` など。下の「IEnumerable」）、`GetEnumerator()`、`?.`
 - `foreach (var (k, v) in dict)` の分解（[タプル](README.md#全体に共通すること)は未対応のため。`kv.Key`／`kv.Value` を使ってください）
 - `Keys`／`Values` を `foreach`、`.Count`、LINQ 以外で使うこと
 - 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、変数・フィールド・定数以外を書くこと（`Get()[0] += 1`、入れ子の `nested[0][1] += 1`）。いったん変数に入れてください（`List<int> row = nested[0]; row[1] += 1;`）。入れ子の要素への普通の代入（`nested[0][1] = 1`）は書けます
@@ -104,9 +104,13 @@ foreach (int s in big) { ... }
 
 対応している書き方：
 
-- `Where`、`Select`、`OrderBy`／`OrderByDescending`／`ThenBy`／`ThenByDescending`、`Distinct`、`Skip`、`Take`（つないで使えます）
-- `ToList`、`ToArray`、`ToDictionary`、`Any`、`All`、`Count`、`First`、`FirstOrDefault`、`Last`、`LastOrDefault`、`Contains`
-- `Sum`、`Min`、`Max`、`Average`（`int`、`long`、`float`、`double`）
+- `Where`、`Select`、`SelectMany`、`OrderBy`／`OrderByDescending`／`ThenBy`／`ThenByDescending`、`Distinct`、`Skip`、`Take`、`SkipWhile`、`TakeWhile`、`Reverse`、`Concat`、`Append`、`Prepend`（つないで使えます）
+- `ToList`、`ToArray`、`ToDictionary`、`Any`、`All`、`Count`、`First`、`FirstOrDefault`、`Last`、`LastOrDefault`、`Single`、`SingleOrDefault`、`ElementAt`、`ElementAtOrDefault`、`Contains`
+- `Sum`、`Min`、`Max`、`Average`（`int`、`long`、`float`、`double`）、`Aggregate`（`Aggregate((a, b) => ...)` と、最初の値を渡す `Aggregate(seed, (a, x) => ...)`）
+- 添字付きのラムダ（`Select((x, i) => ...)`、`Where((x, i) => ...)`、`SelectMany`・`TakeWhile`・`SkipWhile` も）。添字は、その段に来た要素の順番です
+- `SelectMany`：集まりを返すラムダは、List・配列・LINQ の結果を返します（`SelectMany(b => b.items)`、`SelectMany(b => b.items.Where(...))`、メソッド名）。結果を作るラムダつきの形（`SelectMany(b => b.items, (b, i) => ...)`）も使えます
+- `Enumerable.Range(start, count)`・`Enumerable.Repeat(value, count)`・`Enumerable.Empty<T>()` から始めること（`var` で受ける・`foreach` で回すこともできます）
+- List・LINQ の結果を、外部のメソッドの `IEnumerable<T>` の引数にそのまま渡すこと（`string.Join(",", list.Select(...))`、`string.Join(",", list)`、`string.Concat(...)`）。内部で配列にして渡します。`string.Join`・`string.Concat` の要素は、string と、数値などの値型（`enum` は除く）が使えます。数値などの配列も渡せます（`string.Join(",", intArray)`）。null の List を渡すと、C# と同じく、渡した行で実行時例外になります
 - 条件・変換は、ラムダかメソッド名で渡せます（`Any(x => x > 0)`、`Where(IsOdd)`）。ラムダの中から外の変数を読み書きできます（上の「ラムダ」と同じ）
 - 結果を `var` で受けて、`foreach` やほかの LINQ につなげること
 - Dictionary の要素（`KeyValuePair`）：ラムダの中で `kv.Key`／`kv.Value` を使えます。`First()` や `ToList()` で `KeyValuePair` を取り出すこともできます（上の「KeyValuePair」）。`ToDictionary(kv => kv.Key, kv => kv.Value)` で Dictionary に戻せます
@@ -115,6 +119,7 @@ foreach (int s in big) { ... }
 遅延評価にはしません。呼んだ時点で結果を作ります：
 
 - `Where` / `Select` / `Distinct` / `Skip` / `Take` は要素を 1 つずつ次に渡すので、途中のリストは作りません。`First`／`Any`／`Take` などは、C# と同じく必要な分を取った時点で止まり、ラムダを呼ぶ回数も C# と同じです
+- `Reverse`・`Concat`・`Append`・`Prepend` は、そこまでの値をためてから、次に渡します。C# と結果が変わるのは、そのあとを途中で止める書き方（`list.Select(f).Concat(other).First()` など）で、ラムダを呼ぶ回数だけです（C# は必要な分だけ、ここでは前の段を全部呼びます）
 - `OrderBy` は、そこまでの値とキーをためてから並べ替えます。ためる場所（`Distinct` の見たことのある値も）は、呼び出し箇所ごとのフィールドを使い回します。普通のクラスのメソッドの中（UdonSharp は static フィールドを使えないため）では、毎回作ります
 - 並べ替えは安定です（C# の `OrderBy` と同じ）。キーは要素ごとに 1 回だけ計算します。string のキーは `string.Compare`（C# の既定と同じく、カルチャに従う比較）で比べます
 - 結果を `var` で受けたとき、`ToList()`、`ToArray()` は、毎回新しいリスト・配列を作ります
@@ -130,18 +135,18 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 
 未対応の書き方（コンパイルエラーになります）：
 
-- `GroupBy`、`SelectMany`、`Reverse` など、上記以外のメソッド
+- `GroupBy`、`Join`、`Zip`、`Union`／`Except`／`Intersect` など、上記以外のメソッド
 - クエリ構文（`from x in list where x > 0 select x`）。メソッドの形（`list.Where(x => x > 0)`）で書いてください
-- `Enumerable.Range`・`Enumerable.Repeat`・`Enumerable.Empty` など、List・配列・Dictionary から始まらない LINQ
 - 比較子（`IComparer`／`IEqualityComparer`）を渡す形、数値・string・bool・char・enum 以外のキーでの並べ替え
-- 添字付きのラムダ（`Select((x, i) => ...)`）、`Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`
+- `Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`、結果を変換するラムダつきの `Aggregate`（引数 3 つ）
+- `SelectMany` の集まりが string・外部の `IEnumerable`、`{ ... }` の本体のラムダが配列を返す形。Dictionary の要素（`KeyValuePair`）への `Concat`・`Append`・`Prepend`
 - Dictionary の要素（`KeyValuePair`）の `Contains`（`ContainsKey` などを使ってください）
-- LINQ の結果を `IEnumerable<T>` 型の変数・フィールド・引数・戻り値に入れること、そのままメソッドに渡すこと（`string.Join(",", list.Select(...))`）。`var` で受けるか、`ToList()`／`ToArray()` にしてください（下の「IEnumerable」）
+- LINQ の結果を `IEnumerable<T>` 型の変数・フィールド・引数・戻り値に入れること、自分で書いたメソッドの `IEnumerable<T>` の引数にそのまま渡すこと。`var` で受けるか、`ToList()`／`ToArray()` にしてください（下の「IEnumerable」）
 - フィールドの初期化子の中の LINQ
 
 注意：
 
-- 要素がないときの `First`／`Last`／`Min`／`Max`／`Average` と、`ToDictionary` で同じキーがあったときは、C# の例外の代わりに、エラーのログを出して Udon の実行時例外になります
+- 要素がないときの `First`／`Last`／`Single`／`Min`／`Max`／`Average`／`Aggregate`（最初の値なし）、要素が 2 つ以上あるときの `Single`／`SingleOrDefault`、範囲の外の `ElementAt`、回数が負の `Enumerable.Range`／`Repeat`、最後の値が `int` の範囲を超える `Enumerable.Range`、`ToDictionary` で同じキーがあったときは、C# の例外の代わりに、エラーのログを出して Udon の実行時例外になります
 - `Distinct` は、普通のクラスなどの参照は同じインスタンスかどうかで比べます（C# の既定と同じ）。Dictionary の要素はキーが重ならないので、何もしません
 - `Contains` は `==` で比べます
 
@@ -154,8 +159,11 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
   ```csharp
   IEnumerable<int> a = new List<int>();          // エラー
   IEnumerable<int> b = list.Where(x => x > 0);   // エラー（var b = ... なら使える）
-  string s = string.Join(",", list);             // エラー（string.Join(",", list.ToArray()) なら使える）
+  void Show(IEnumerable<int> xs) { ... }
+  Show(list);                                    // エラー（自分で書いたメソッドの IEnumerable<T> の引数）
   ```
+
+- 外部（.NET・Unity）のメソッドの `IEnumerable<T>` の引数には、List・LINQ の結果をそのまま渡せます（`string.Join(",", list)`、`string.Join(",", list.Select(...))`）。内部で配列にして渡します
 
 - List・Dictionary の `GetEnumerator()` は、コンパイルエラーになります
 - 外部の関数が返す `IEnumerable`（`PlayerData.GetKeys()`、`ToggleGroup.ActiveToggles()` など）は、UdonSharp と同じく、変数・フィールド・引数・戻り値として受け渡しし、`string.Join`／`string.Concat` に渡せます。`foreach` や LINQ には使えず、コンパイルエラーになります（「外部の関数が返す IEnumerable は、Udon では中を回せません」）

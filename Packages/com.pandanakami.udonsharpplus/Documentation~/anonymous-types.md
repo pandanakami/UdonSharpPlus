@@ -15,6 +15,7 @@ Debug.Log(p.ToString());                              // { Name = bob, Score = 3
 
 - `new { ... }` を `var` で受ける・メンバーを読む・ラムダの戻り値にする・入れ子にする・メンバー名を省略する（`new { x.Name }`、フィールド・変数も）。同じ名前・型・並びなら同じ型で、`cond ? new { A = 1 } : new { A = 2 }` のように混ぜて使えます
 - 匿名型の配列（`new[] { new { K = "a" }, new { K = "b" } }`）・LINQ の射影（`Select(x => new { ... })`）・匿名型の `List`（`var` で受けたもの）
+- 匿名型のリスト（`var` で受けた `List`）：`foreach`・`for`、`Add`・`Insert`・`RemoveAt`・`RemoveAll`・`Sort`・`Reverse`・`GetRange`、インデクサー、`Find`・`FindIndex`・`Exists`、LINQ（`Where`・`Select`・`OrderBy`・`ThenBy`・`Skip`・`Take`・`First`・`Last`・`Any`・`Count`・`Sum`・`Max`・`ToArray`・`ToDictionary` など）が、普通のクラスのリストと同じに使えます。`ToList()` の結果は、`var` に入れて使います（フィールドや引数の型には書けません。C# も同じです）
 - ラムダ・匿名メソッド・ローカル関数・クロージャの中で使う（外の変数に入れて読む）。普通のクラスの中でも作って使えます
 - ジェネリックメソッドの型引数にする（`Id(new { A = 1 })`）、ジェネリッククラスの中で型引数をメンバーにする（`new { value }`。型引数ごとに別の型になります）
 - `ToString()`、文字列の連結（`"x" + p`、`s += p`）・補間（`$"{p}"`）：C# と同じ `{ Name = bob, Score = 3 }` の形になります。メンバーが数値・bool・char・string・外部の構造体（`Vector3` など）・匿名型のときだけ使えます
@@ -30,6 +31,8 @@ Debug.Log(p.ToString());                              // { Name = bob, Score = 3
 |---|---|
 | `object`・インタフェースとして使う（`Debug.Log(p)`、`object o = p;`、`string.Format("{0}", p)`） | `Debug.Log(p.ToString())` のように、`ToString()` か、メンバーを渡してください |
 | `GetHashCode()`・`GetType()` | — |
+| 匿名型のリストの `Contains`・`IndexOf`・`LastIndexOf`・`Remove`、LINQ の `Distinct`・`Contains`（C# は値で比べるが、リストの比較は参照になるため）。型引数が匿名型になるジェネリックメソッドの中の `list.Contains(x)` なども同じです | `Exists`・`FindIndex`・`Any`・`RemoveAll` などのラムダで比べてください（`list.Any(x => x.Equals(target))` は、C# と同じ値の比較になります） |
+| 匿名型をキーにする `ToDictionary`（`ToDictionary(e => e)`。C# はキーを値で比べるが、ここでは参照の比較になるため）。匿名型を値にするのは使えます（`ToDictionary(e => e.Id)`） | キーは、数値・string などのメンバーにしてください |
 | `ToString`・文字列の連結に、メンバーが普通のクラス・インタフェース・配列・`enum`・デリゲートの匿名型を使う | メンバーを数値・string などにするか、メンバーを個別に文字列にしてください |
 | `Equals` に、メンバーがデリゲートの匿名型を使う | — |
 | 型引数を使う匿名型を、型引数の決まらない場所（使われないジェネリックなど）で使う | — |

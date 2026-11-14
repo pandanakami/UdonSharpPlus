@@ -27,6 +27,9 @@ namespace UdonSharpPlus
     /// </summary>
     internal static class AnonymousTypeLowering
     {
+        /// <summary>生成するクラスの名前の先頭（__Anon_0 など）</summary>
+        internal const string GeneratedPrefix = "__Anon_";
+
         public static bool MayHaveAnonymousTypes(IEnumerable<SyntaxTree> trees) =>
             trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is AnonymousObjectCreationExpressionSyntax));
 
@@ -123,7 +126,7 @@ namespace UdonSharpPlus
                 if (_byKey.TryGetValue(key, out AnonInfo existing))
                     return existing;
 
-                var info = new AnonInfo { Name = "__Anon_" + (_start + Infos.Count), HomeTree = CurrentTree };
+                var info = new AnonInfo { Name = GeneratedPrefix + (_start + Infos.Count), HomeTree = CurrentTree };
                 _byKey[key] = info;
                 Infos.Add(info);
                 Generate(info, props, types);
@@ -335,6 +338,33 @@ namespace UdonSharpPlus
                 }
             }
 
+            /// <summary>要素を Equals で比べるメソッド（List の Contains・IndexOf・LastIndexOf・Remove、LINQ の Distinct・Contains）か。element は比べる要素の型</summary>
+            private static bool ComparesByEquals(IMethodSymbol m, out ITypeSymbol element)
+            {
+                element = null;
+                INamedTypeSymbol owner = m.ContainingType;
+                if (owner == null)
+                    return false;
+                if (owner.Name == "List" && owner.IsGenericType && owner.TypeArguments.Length == 1
+                    && (m.Name == "Contains" || m.Name == "IndexOf" || m.Name == "LastIndexOf" || m.Name == "Remove"))
+                {
+                    element = owner.TypeArguments[0];
+                    return true;
+                }
+                if (owner.Name == "Enumerable" && m.TypeArguments.Length == 1 && (m.Name == "Distinct" || m.Name == "Contains"))
+                {
+                    element = m.TypeArguments[0];
+                    return true;
+                }
+                // ToDictionary：キーの型（TKey は 2 つ目の型引数）
+                if (owner.Name == "Enumerable" && m.Name == "ToDictionary" && m.TypeArguments.Length >= 2)
+                {
+                    element = m.TypeArguments[1];
+                    return true;
+                }
+                return false;
+            }
+
             private static bool IsAnonymous(ITypeSymbol type) => type is INamedTypeSymbol n && n.IsAnonymousType;
 
             /// <summary>
@@ -436,6 +466,19 @@ namespace UdonSharpPlus
             /// <summary>p.ToString()・p.Equals(q)。そのほかの object のメソッド（GetHashCode・GetType など）はエラー</summary>
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
+                // List<匿名型> の Contains / IndexOf / LastIndexOf / Remove と、LINQ の Distinct / Contains：
+                // C# は値（Equals）で比べるが、リストの比較は参照なので結果が変わる。黙って違う結果にせず、エラーにする
+                if (_model.GetSymbolInfo(node).Symbol is IMethodSymbol cmp && ComparesByEquals(cmp, out ITypeSymbol element)
+                    && element is INamedTypeSymbol anonElement
+                    && (anonElement.IsAnonymousType && (!_defer || _shared.Get(anonElement, out _) != null)
+                        // ジェネリクスのコピーのあと：型引数が匿名型だった場所（List<T>.Contains(x) の T）は、生成したクラスになっている
+                        || !_defer && anonElement.Name.StartsWith(GeneratedPrefix, System.StringComparison.Ordinal)))
+                {
+                    Error(node, cmp.Name == "ToDictionary"
+                        ? "'ToDictionary' : 匿名型をキーにする Dictionary は未対応です（C# はキーを値（Equals）で比べますが、ここでは参照の比較になります）。キーは、数値・string などのメンバーにしてください"
+                        : $"'{cmp.Name}' : 匿名型の要素を値（Equals）で比べるメソッドは未対応です（リストの比較は参照になります）。Exists / FindIndex / Any / Where などで、メンバーを比べてください");
+                    return node;
+                }
                 if (node.Expression is MemberAccessExpressionSyntax access
                     && _model.GetTypeInfo(access.Expression).Type is INamedTypeSymbol receiverType && receiverType.IsAnonymousType
                     && _model.GetSymbolInfo(node).Symbol is IMethodSymbol method && method.ContainingType.SpecialType == SpecialType.System_Object)

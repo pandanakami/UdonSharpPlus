@@ -35,9 +35,9 @@ namespace FeatureTests.Syntax
         public int Constant => 42;                              // this を使わない本体付きプロパティ
     }
 
-    public class NullProbe : UdonSharpBehaviour
+    public partial class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 31;
+        public const int Count = 51;
 
         public int caseId;
         public bool started;
@@ -87,6 +87,26 @@ namespace FeatureTests.Syntax
                 case 28: return "ToString of null anonymous type variable";
                 case 29: return "Equals of null anonymous type variable";
                 case 30: return "exception inside anonymous type projection lambda";
+                case 31: return "ElementAt index past the end";
+                case 32: return "ElementAt negative index";
+                case 33: return "Single on empty";
+                case 34: return "Single with 2+ elements";
+                case 35: return "Single(predicate) with 2+ matches";
+                case 36: return "Aggregate without seed on empty";
+                case 37: return "Enumerable.Range negative count";
+                case 38: return "Enumerable.Repeat negative count";
+                case 39: return "Enumerable.Range past int.MaxValue";
+                case 40: return "SelectMany null inner collection";
+                case 41: return "Concat null second sequence";
+                case 42: return "string.Join null List";
+                case 43: return "anonymous list index out of range";
+                case 44: return "member of null element in anonymous list";
+                case 45: return "ToDictionary duplicate key (anonymous values)";
+                case 46: return "exception inside indexed lambda";
+                case 47: return "exception inside Select lambda passed to string.Join";
+                case 48: return "exception inside SelectMany result selector";
+                case 49: return "First on empty anonymous list";
+                case 50: return "SingleOrDefault with 2+ matches";
             }
             return "?";
         }
@@ -241,6 +261,9 @@ namespace FeatureTests.Syntax
                     observed = "" + rows.Count;
                     break;
                 }
+                default:
+                    RunLinq();   // 31 以降は NullProbe.Linq.cs
+                    break;
             }
             finished = true;
             Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);
