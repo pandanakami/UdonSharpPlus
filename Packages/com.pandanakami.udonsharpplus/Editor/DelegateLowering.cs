@@ -11,7 +11,8 @@ namespace UdonSharpPlus
     /// <summary>
     /// ソースで宣言したデリゲート（delegate void Hoge(int n);）を、UdonSharp が扱える形へ書き換える（Redmine #69 / #119）。
     ///
-    /// デリゲートの値は object[]。1 つのメソッドごとに 3 つの要素「呼ぶ相手の UdonSharpBehaviour・中継メソッドの名前・外の変数（今は null）」を並べる
+    /// デリゲートの値は object[]。1 つのメソッドごとに 3 つの要素「呼ぶ相手の UdonSharpBehaviour・中継メソッドの名前・外の変数の環境の一覧
+    /// （ラムダが使う外の変数を置いた object[] を並べたもの。使わなければ null。#121）」を並べる
     /// （+= でつなぐ（#122）と、この 3 つが続けて並ぶ。C# のデリゲートと同じく、値は書き換えない）。
     ///
     ///   - 型 Hoge → object[]（変数・フィールド・引数・戻り値・配列）
@@ -40,6 +41,7 @@ namespace UdonSharpPlus
             public string HelperFull;       // global::名前空間.__dlg_K
             public string ParamField(int i) => $"__dlg_{Key}__p{i}";
             public string RetField => $"__dlg_{Key}__ret";
+            public string EnvField => $"__dlg_{Key}__env";
             public IMethodSymbol Invoke => Symbol.DelegateInvokeMethod;
         }
 
@@ -179,6 +181,8 @@ namespace UdonSharpPlus
                 sb.Append($"{UsbType} __u = ({UsbType})__d[__i]; ");
                 for (int i = 0; i < ps.Length; i++)
                     sb.Append($"__u.SetProgramVariable(\"{info.ParamField(i)}\", __a{i}); ");
+                // 外の変数（#121）。使わないラムダ・メソッドでは null なので渡さない（中継メソッドも読まない）
+                sb.Append($"object __e = __d[__i + 2]; if (__e != null) __u.SetProgramVariable(\"{info.EnvField}\", __e); ");
                 sb.Append("__send(__u, (string)__d[__i + 1]); ");
                 if (hasReturn)
                     sb.Append($"__r = ({ret})__u.GetProgramVariable(\"{info.RetField}\"); ");
@@ -197,6 +201,7 @@ namespace UdonSharpPlus
                     yield return $"protected {TypeText(invoke.Parameters[i].Type)} {info.ParamField(i)};";
                 if (!invoke.ReturnsVoid)
                     yield return $"protected {TypeText(invoke.ReturnType)} {info.RetField};";
+                yield return $"protected {ValueType} {info.EnvField};";
             }
         }
 
@@ -316,6 +321,136 @@ namespace UdonSharpPlus
                 _shared = shared;
                 _model = model;
                 _treeIndex = treeIndex;
+                AnalyzeClosures(model.SyntaxTree.GetRoot());
+            }
+
+            // ---- クロージャ（#121）の下調べ -------------------------------------
+            //
+            // デリゲートに入れるラムダが使う外のローカル変数・引数は、C# と同じく、宣言した範囲（スコープ）ごとの object[]（環境）の
+            // 要素にする。環境は、その範囲に入るたびに作る（ブロックの先頭・foreach の 1 回ごと・メソッド／ラムダの本体の先頭）。
+            // 元のメソッドもラムダも、その変数を ((T)__envN[i]) で読み書きする。
+            // 環境の変数の名前（__envN）は、ファイルの中で一意にする。ラムダの本体のメソッドでは、受け取った環境の一覧（__env）から
+            // 同じ名前のローカル変数に取り出すので、どこでも同じ名前で書ける
+
+            private sealed class Scope
+            {
+                public SyntaxNode Node;     // Block・ForEachStatement・MethodDeclaration（引数）・ラムダ（引数）
+                public string Name;         // __envN
+                public readonly List<ISymbol> Vars = new List<ISymbol>();
+            }
+
+            private readonly Dictionary<ISymbol, (Scope Scope, int Index)> _captured = new Dictionary<ISymbol, (Scope, int)>(SymbolEqualityComparer.Default);
+            private readonly Dictionary<SyntaxNode, Scope> _scopes = new Dictionary<SyntaxNode, Scope>();
+            /// <summary>デリゲートに入れるラムダ → 外から受け取る環境（中のラムダが使うものも含む）</summary>
+            private readonly Dictionary<LambdaExpressionSyntax, List<Scope>> _lambdaOuter = new Dictionary<LambdaExpressionSyntax, List<Scope>>();
+            private readonly HashSet<LambdaExpressionSyntax> _lambdaErrors = new HashSet<LambdaExpressionSyntax>();
+            private int _envCount;
+
+            private void AnalyzeClosures(SyntaxNode root)
+            {
+                var lambdas = new List<LambdaExpressionSyntax>();
+                foreach (LambdaExpressionSyntax lambda in root.DescendantNodes().OfType<LambdaExpressionSyntax>())
+                {
+                    DelegateInfo info = _shared.Find(_model.GetTypeInfo(lambda).ConvertedType);
+                    if (info != null && info.Unsupported == null && HostOf(lambda, out _) != null)
+                        lambdas.Add(lambda);
+                }
+                var delegateLambdas = new HashSet<LambdaExpressionSyntax>(lambdas);
+
+                foreach (LambdaExpressionSyntax lambda in lambdas)
+                {
+                    var outer = new List<Scope>();
+                    foreach (IdentifierNameSyntax id in lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+                    {
+                        ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                        if (!(symbol is ILocalSymbol || symbol is IParameterSymbol p && !p.IsThis))
+                            continue;
+                        if (symbol is ILocalSymbol constant && constant.IsConst)
+                            continue;   // 定数は値をそのまま書く
+                        if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == lambda.SyntaxTree && lambda.Span.Contains(r.Span)))
+                            continue;
+                        Scope scope = ScopeOf(symbol, delegateLambdas, out string error);
+                        if (scope == null)
+                        {
+                            if (_lambdaErrors.Add(lambda))
+                                Error(id, $"'{symbol.Name}' : {error}");
+                            continue;
+                        }
+                        if (!_captured.ContainsKey(symbol))
+                        {
+                            _captured[symbol] = (scope, scope.Vars.Count);
+                            scope.Vars.Add(symbol);
+                        }
+                        if (!outer.Contains(scope))
+                            outer.Add(scope);
+                    }
+                    _lambdaOuter[lambda] = outer;
+                }
+            }
+
+            /// <summary>外の変数を置く環境（宣言した範囲）。置けない変数なら null と理由</summary>
+            private Scope ScopeOf(ISymbol symbol, HashSet<LambdaExpressionSyntax> delegateLambdas, out string error)
+            {
+                error = null;
+                SyntaxNode decl = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                SyntaxNode node = null;
+                if (symbol is IParameterSymbol)
+                {
+                    SyntaxNode owner = !(decl is ParameterSyntax ps) ? null : ps.Parent is ParameterListSyntax pl ? pl.Parent : ps.Parent;
+                    if (owner is MethodDeclarationSyntax)
+                        node = owner;
+                    else if (owner is LambdaExpressionSyntax l && delegateLambdas.Contains(l))
+                        node = owner;
+                    else if (owner is LambdaExpressionSyntax)
+                        error = "List・LINQ のメソッドに渡すラムダの引数を、デリゲートに入れるラムダで使うことは未対応です。ローカル変数に入れてから使ってください";
+                    else
+                        error = "この引数を、デリゲートに入れるラムダで使うことは未対応です。ローカル変数に入れてから使ってください";
+                }
+                else if (symbol is ILocalSymbol)
+                {
+                    if (decl is VariableDeclaratorSyntax v && v.Parent?.Parent is LocalDeclarationStatementSyntax lds
+                        && !lds.UsingKeyword.IsKind(SyntaxKind.UsingKeyword) && lds.Parent is BlockSyntax block)
+                        node = block;
+                    else if (decl is ForEachStatementSyntax fe)
+                        node = fe;
+                    else
+                        error = "この場所で宣言した変数（for の変数・switch の中・out var・パターン・catch の変数など）を、デリゲートに入れるラムダで使うことは未対応です。ブロックの中で別のローカル変数に入れてから使ってください";
+                }
+                else
+                {
+                    error = "この変数を、デリゲートに入れるラムダで使うことは未対応です";
+                }
+                if (node == null)
+                {
+                    error = error ?? "この引数を、デリゲートに入れるラムダで使うことは未対応です。ローカル変数に入れてから使ってください";
+                    return null;
+                }
+                if (!_scopes.TryGetValue(node, out Scope scope))
+                    _scopes[node] = scope = new Scope { Node = node, Name = "__env" + _envCount++ };
+                return scope;
+            }
+
+            private bool TryCaptured(SyntaxNode node, out ISymbol symbol, out (Scope Scope, int Index) slot)
+            {
+                slot = default;
+                symbol = node is VariableDeclaratorSyntax v ? _model.GetDeclaredSymbol(v) : _model.GetSymbolInfo(node).Symbol;
+                return symbol != null && _captured.TryGetValue(symbol, out slot);
+            }
+
+            private static ITypeSymbol VariableType(ISymbol symbol) =>
+                symbol is ILocalSymbol l ? l.Type : ((IParameterSymbol)symbol).Type;
+
+            private static string Ident(string name) =>
+                SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
+
+            /// <summary>環境を作る文（と、引数・foreach の変数を入れる文）</summary>
+            private static string CreateEnv(Scope scope, Func<ISymbol, string> initial = null)
+            {
+                var sb = new StringBuilder($"object[] {scope.Name} = new object[{scope.Vars.Count}];");
+                if (initial != null)
+                    for (int i = 0; i < scope.Vars.Count; i++)
+                        sb.Append($" {scope.Name}[{i}] = {initial(scope.Vars[i])};");
+                return sb.ToString();
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
@@ -497,6 +632,27 @@ namespace UdonSharpPlus
             /// <summary>[NetworkCallable] のメソッドの引数に、デリゲートは使えない（ほかのクライアントには、呼ぶ相手を送れないため）</summary>
             public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
             {
+                var visited = (MethodDeclarationSyntax)VisitMethodDeclarationCore(node);
+                // ラムダが使う引数（#121）：本体の先頭で環境を作り、引数の値を入れる
+                if (!_scopes.TryGetValue(node, out Scope scope) || visited.Body == null && visited.ExpressionBody == null)
+                    return visited;
+                string prologue = CreateEnv(scope, s => Ident(s.Name));
+                if (visited.Body != null)
+                    return visited.WithBody(WithPrologue(visited.Body, prologue));
+
+                // 式形式（=> x）は { return x; } にする。行は変えない
+                bool isVoid = _model.GetDeclaredSymbol(node) is IMethodSymbol m && m.ReturnsVoid;
+                ArrowExpressionClauseSyntax arrow = visited.ExpressionBody;
+                var block = (BlockSyntax)SyntaxFactory.ParseStatement($"{{ {prologue} {(isVoid ? "" : "return ")}{arrow.Expression.ToFullString()}; }}");
+                block = SourceMap.KeepLineCount(block.WithoutTrivia(), node.ExpressionBody);
+                block = block.WithLeadingTrivia(arrow.ArrowToken.LeadingTrivia)
+                    .WithTrailingTrivia(block.GetTrailingTrivia().AddRange(visited.SemicolonToken.TrailingTrivia));
+                Changed = true;
+                return visited.WithExpressionBody(null).WithSemicolonToken(default).WithBody(block);
+            }
+
+            private SyntaxNode VisitMethodDeclarationCore(MethodDeclarationSyntax node)
+            {
                 if (_model.GetDeclaredSymbol(node) is IMethodSymbol method
                     && method.GetAttributes().Any(a => a.AttributeClass?.Name == "NetworkCallableAttribute"))
                 {
@@ -545,7 +701,214 @@ namespace UdonSharpPlus
                 if (node.Parent is QualifiedNameSyntax q && q.Right == node || node.Parent is AliasQualifiedNameSyntax
                     || node.Parent is MemberAccessExpressionSyntax m && m.Name == node)
                     return base.VisitIdentifierName(node);
-                return MethodGroup(node) ?? TypeReference(node) ?? base.VisitIdentifierName(node);
+                return CapturedRead(node) ?? MethodGroup(node) ?? TypeReference(node) ?? base.VisitIdentifierName(node);
+            }
+
+            // ---- 外の変数の読み書き（#121） -----------------------------------------
+
+            /// <summary>環境に置いた変数の読み出し：x → ((T)__envN[i])。ラムダの中の定数は値にする</summary>
+            private SyntaxNode CapturedRead(IdentifierNameSyntax node)
+            {
+                if (node.Parent is ArgumentSyntax nameArg && nameArg.Parent?.Parent is InvocationExpressionSyntax inv
+                    && inv.Expression is IdentifierNameSyntax nameofId && nameofId.Identifier.ValueText == "nameof")
+                    return null;
+
+                ISymbol symbol = _model.GetSymbolInfo(node).Symbol;
+                if (symbol is ILocalSymbol constant && constant.IsConst && constant.HasConstantValue
+                    && node.Ancestors().OfType<LambdaExpressionSyntax>().Any(l => _lambdaOuter.ContainsKey(l)
+                        && !constant.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == l.SyntaxTree && l.Span.Contains(r.Span))))
+                {
+                    string value = SymbolDisplay.FormatPrimitive(constant.ConstantValue, true, false) ?? "null";
+                    return Parse($"(({_shared.TypeText(constant.Type)})({value}))", node);
+                }
+
+                if (symbol == null || !_captured.TryGetValue(symbol, out var slot))
+                    return null;
+                ITypeSymbol type = VariableType(symbol);
+                if (node.Parent is ArgumentSyntax a && !a.RefKindKeyword.IsKind(SyntaxKind.None))
+                {
+                    Error(node, $"'{symbol.Name}' : デリゲートに入れるラムダで使う変数は、ref / out / in で渡せません");
+                    return node;
+                }
+                if (type.IsValueType && IsMemberWrite(node))
+                {
+                    Error(node, $"'{symbol.Name}' : デリゲートに入れるラムダで使う構造体の変数の、フィールド・プロパティへの代入は未対応です。変数ごと代入してください");
+                    return node;
+                }
+                return Parse($"(({_shared.TypeText(type)}){slot.Scope.Name}[{slot.Index}])", node);
+            }
+
+            /// <summary>v.x = ...、v.x++ など、変数のメンバーに書く式の受け側か</summary>
+            private static bool IsMemberWrite(ExpressionSyntax node)
+            {
+                ExpressionSyntax e = node;
+                if (!(e.Parent is MemberAccessExpressionSyntax))
+                    return false;
+                while (e.Parent is MemberAccessExpressionSyntax ma && ma.Expression == e)
+                    e = ma;
+                while (e.Parent is ParenthesizedExpressionSyntax p)
+                    e = p;
+                switch (e.Parent)
+                {
+                    case AssignmentExpressionSyntax asg:
+                        return asg.Left == e;
+                    case PrefixUnaryExpressionSyntax pre:
+                        return pre.IsKind(SyntaxKind.PreIncrementExpression) || pre.IsKind(SyntaxKind.PreDecrementExpression);
+                    case PostfixUnaryExpressionSyntax _:
+                        return true;
+                    case ArgumentSyntax arg:
+                        return !arg.RefKindKeyword.IsKind(SyntaxKind.None);
+                    default:
+                        return false;
+                }
+            }
+
+            private static ExpressionSyntax Unparen(ExpressionSyntax e)
+            {
+                while (e is ParenthesizedExpressionSyntax p)
+                    e = p.Expression;
+                return e;
+            }
+
+            /// <summary>環境に置いた変数への書き込み（target = value）。式の値を使うところでは、値を T に戻す</summary>
+            private SyntaxNode CapturedWrite(ExpressionSyntax node, ISymbol symbol, (Scope Scope, int Index) slot, string value)
+            {
+                string type = _shared.TypeText(VariableType(symbol));
+                string assign = $"{slot.Scope.Name}[{slot.Index}] = ({type})({value})";
+                return Parse(InterfaceLowering.IsStatementExpression(node, _model) ? assign : $"(({type})({assign}))", node);
+            }
+
+            private static string CompoundOperator(SyntaxKind kind)
+            {
+                switch (kind)
+                {
+                    case SyntaxKind.AddAssignmentExpression: return "+";
+                    case SyntaxKind.SubtractAssignmentExpression: return "-";
+                    case SyntaxKind.MultiplyAssignmentExpression: return "*";
+                    case SyntaxKind.DivideAssignmentExpression: return "/";
+                    case SyntaxKind.ModuloAssignmentExpression: return "%";
+                    case SyntaxKind.AndAssignmentExpression: return "&";
+                    case SyntaxKind.OrAssignmentExpression: return "|";
+                    case SyntaxKind.ExclusiveOrAssignmentExpression: return "^";
+                    case SyntaxKind.LeftShiftAssignmentExpression: return "<<";
+                    case SyntaxKind.RightShiftAssignmentExpression: return ">>";
+                    case SyntaxKind.CoalesceAssignmentExpression: return "??";
+                    default: return null;
+                }
+            }
+
+            public override SyntaxNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
+            {
+                if ((node.IsKind(SyntaxKind.PreIncrementExpression) || node.IsKind(SyntaxKind.PreDecrementExpression))
+                    && Unparen(node.Operand) is IdentifierNameSyntax id && TryCaptured(id, out ISymbol symbol, out var slot))
+                {
+                    string type = _shared.TypeText(VariableType(symbol));
+                    string sign = node.IsKind(SyntaxKind.PreIncrementExpression) ? "+" : "-";
+                    return CapturedWrite(node, symbol, slot, $"(({type}){slot.Scope.Name}[{slot.Index}]) {sign} 1");
+                }
+                return base.VisitPrefixUnaryExpression(node);
+            }
+
+            public override SyntaxNode VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
+            {
+                if ((node.IsKind(SyntaxKind.PostIncrementExpression) || node.IsKind(SyntaxKind.PostDecrementExpression))
+                    && Unparen(node.Operand) is IdentifierNameSyntax id && TryCaptured(id, out ISymbol symbol, out var slot))
+                {
+                    string type = _shared.TypeText(VariableType(symbol));
+                    bool inc = node.IsKind(SyntaxKind.PostIncrementExpression);
+                    string target = $"{slot.Scope.Name}[{slot.Index}]";
+                    string assign = $"{target} = ({type})((({type}){target}) {(inc ? "+" : "-")} 1)";
+                    // 値を使うところでは、足したあとの値から戻す（x++ の値は足す前の値）
+                    return Parse(InterfaceLowering.IsStatementExpression(node, _model) ? assign
+                        : $"(({type})((({type})({assign})) {(inc ? "-" : "+")} 1))", node);
+                }
+                return base.VisitPostfixUnaryExpression(node);
+            }
+
+            /// <summary>環境に置いた変数の宣言を、要素への代入にする（int a = 1, b = 2; → __env0[0] = (int)(1); int b = 2;）</summary>
+            private List<StatementSyntax> SplitDeclaration(LocalDeclarationStatementSyntax node)
+            {
+                var parts = new List<string>();
+                string typeText = null;
+                foreach (VariableDeclaratorSyntax v in node.Declaration.Variables)
+                {
+                    ExpressionSyntax init = v.Initializer?.Value;
+                    if (TryCaptured(v, out ISymbol symbol, out var slot))
+                    {
+                        string type = _shared.TypeText(VariableType(symbol));
+                        string value = init == null ? $"default({type})"
+                            : init is InitializerExpressionSyntax ? $"new {type} {Text(Visit(init))}"
+                            : Text(Visit(init));
+                        parts.Add($"{slot.Scope.Name}[{slot.Index}] = ({type})({value});");
+                    }
+                    else
+                    {
+                        typeText = typeText ?? Text(Visit(node.Declaration.Type));
+                        parts.Add($"{typeText} {v.Identifier.Text}{(init != null ? " = " + Text(Visit(init)) : "")};");
+                    }
+                }
+
+                var result = parts.Select((p, i) => SyntaxFactory.ParseStatement(p).WithLeadingTrivia(i == 0 ? SyntaxFactory.TriviaList() : SyntaxFactory.TriviaList(SyntaxFactory.Space))).ToList();
+                SyntaxTriviaList leading = node.GetLeadingTrivia();
+                if (_statementMarkers != null && _statementMarkers.TryGetValue(node, out string marker))
+                    leading = leading.Add(SyntaxFactory.Comment(marker));
+                result[0] = result[0].WithLeadingTrivia(leading);
+                // 宣言の途中の改行（int a = 1,\n b = 2; など）で減った行を、うしろに足す
+                FileLinePositionSpan span = node.GetLocation().GetLineSpan();
+                int missing = span.EndLinePosition.Line - span.StartLinePosition.Line - parts.Sum(p => p.Count(c => c == '\n'));
+                var trailing = Enumerable.Repeat(SyntaxFactory.EndOfLine("\n"), Math.Max(0, missing)).Concat(node.GetTrailingTrivia());
+                result[result.Count - 1] = result[result.Count - 1].WithTrailingTrivia(trailing);
+                Changed = true;
+                return result;
+            }
+
+            public override SyntaxNode VisitBlock(BlockSyntax node)
+            {
+                if (!_scopes.TryGetValue(node, out Scope scope))
+                    return base.VisitBlock(node);
+                var statements = new List<StatementSyntax>();
+                foreach (StatementSyntax s in node.Statements)
+                {
+                    if (s is LocalDeclarationStatementSyntax l && l.Declaration.Variables.Any(v => TryCaptured(v, out _, out _)))
+                        statements.AddRange(SplitDeclaration(l));
+                    else
+                        statements.Add((StatementSyntax)Visit(s));
+                }
+                return WithPrologue(node.WithStatements(SyntaxFactory.List(statements)), CreateEnv(scope));
+            }
+
+            public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
+            {
+                if (!_scopes.TryGetValue(node, out Scope scope))
+                    return base.VisitForEachStatement(node);
+                // foreach の変数は 1 回ごとに別の変数（C# 5 から）なので、1 回ごとに環境を作り、名前を変えた変数から入れる
+                string loopVar = scope.Name.Replace("__env", "__fv");
+                var visited = (ForEachStatementSyntax)base.VisitForEachStatement(node);
+                visited = visited.WithIdentifier(SyntaxFactory.Identifier(loopVar).WithTriviaFrom(visited.Identifier));
+                return visited.WithStatement(WithPrologue(visited.Statement, CreateEnv(scope, _ => loopVar)));
+            }
+
+            /// <summary>
+            /// 本体の先頭に文を足す。ブロックなら「{」と同じ行に置く（「{」のうしろの改行はそのうしろに回す。次の行が #if などでもよいように）。
+            /// ブロックでなければ { ... } で囲む（同じ行のまま）
+            /// </summary>
+            private BlockSyntax WithPrologue(StatementSyntax body, string prologue)
+            {
+                Changed = true;
+                var added = ((BlockSyntax)SyntaxFactory.ParseStatement("{ " + prologue + " }")).Statements
+                    .Select(s => s.WithLeadingTrivia(SyntaxFactory.Space).WithTrailingTrivia(SyntaxFactory.TriviaList())).ToList();
+                if (body is BlockSyntax block)
+                {
+                    SyntaxTriviaList afterBrace = block.OpenBraceToken.TrailingTrivia;
+                    added[added.Count - 1] = added[added.Count - 1].WithTrailingTrivia(afterBrace);
+                    return block
+                        .WithOpenBraceToken(block.OpenBraceToken.WithTrailingTrivia(SyntaxFactory.TriviaList()))
+                        .WithStatements(SyntaxFactory.List(added.Concat(block.Statements)));
+                }
+                StatementSyntax inner = body.WithLeadingTrivia(SyntaxFactory.Space).WithTrailingTrivia(SyntaxFactory.TriviaList());
+                return SyntaxFactory.Block(SyntaxFactory.List(added.Concat(new[] { inner })))
+                    .WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(body.GetLeadingTrivia()))
+                    .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithLeadingTrivia(SyntaxFactory.Space).WithTrailingTrivia(body.GetTrailingTrivia()));
             }
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node) => TypeReference(node) ?? base.VisitQualifiedName(node);
@@ -694,10 +1057,11 @@ namespace UdonSharpPlus
             }
 
             /// <summary>中継メソッド：public void T() { ret = callee(p0, p1); }</summary>
-            private static string TrampolineCode(DelegateInfo info, string name, string marker, string callee)
+            private static string TrampolineCode(DelegateInfo info, string name, string marker, string callee, bool env = false)
             {
                 IMethodSymbol invoke = info.Invoke;
-                string args = string.Join(", ", Enumerable.Range(0, invoke.Parameters.Length).Select(info.ParamField));
+                string args = string.Join(", ", (env ? new[] { info.EnvField } : new string[0])
+                    .Concat(Enumerable.Range(0, invoke.Parameters.Length).Select(info.ParamField)));
                 string assign = invoke.ReturnsVoid ? "" : info.RetField + " = ";
                 return $"public void {name}() {{ {marker}{assign}{callee}({args}); }}";
             }
@@ -753,12 +1117,10 @@ namespace UdonSharpPlus
                         if (names[i] == "_")
                             names[i] = "__a" + i;
 
-                string captured = CapturedOuter(node, body);
-                if (captured != null)
-                {
-                    Error(node, $"'{captured}' : 外のローカル変数・引数を使うラムダを、デリゲートに入れることは、まだ未対応です。フィールドにするか、デリゲートの引数で渡してください");
-                    return node;
-                }
+                if (_lambdaErrors.Contains(node))
+                    return node;   // 下調べでエラーにした
+                List<Scope> outer = _lambdaOuter.TryGetValue(node, out var o) ? o : new List<Scope>();
+                _scopes.TryGetValue(node, out Scope own);
 
                 HostInfo entry = _shared.HostOf(host);
                 entry.Delegates.Add(info);
@@ -774,29 +1136,24 @@ namespace UdonSharpPlus
                 string bodyText = LambdaBodyText(body, invoke);
                 if (bodyText == null)
                     return node;
+                // 本体の先頭：受け取った環境を、作った側と同じ名前の変数に取り出す。ラムダの引数を中のラムダが使うなら、その環境を作る
+                var prologue = new StringBuilder();
+                for (int j = 0; j < outer.Count; j++)
+                    prologue.Append($"object[] {outer[j].Name} = ({ValueType})__env[{j}]; ");
+                if (own != null)
+                    prologue.Append(CreateEnv(own, s => Ident(names[((IParameterSymbol)s).Ordinal])) + " ");
+                if (prologue.Length > 0)
+                    bodyText = "{ " + prologue + bodyText.Substring(1).TrimStart();
+
                 string ret = invoke.ReturnsVoid ? "void" : _shared.TypeText(invoke.ReturnType);
-                string parameters = string.Join(", ", names.Select((n, i) => $"{_shared.TypeText(invoke.Parameters[i].Type)} {n}"));
+                string parameters = string.Join(", ", (outer.Count > 0 ? new[] { $"{ValueType} __env" } : new string[0])
+                    .Concat(names.Select((n, i) => $"{_shared.TypeText(invoke.Parameters[i].Type)} {n}")));
                 string marker = SourceMap.MarkerFor(node);
                 string attribute = recursive ? "[global::UdonSharp.RecursiveMethod] " : "";
                 entry.Members[bodyName] = ($"{attribute}private {ret} {bodyName}({parameters}) {bodyText}", DeclOf(node));
-                entry.Members[name] = (TrampolineCode(info, name, marker, "this." + bodyName), DeclOf(node));
-                return Parse($"new {ValueType} {{ this, \"{name}\", null }}", node);
-            }
-
-            /// <summary>ラムダの外で宣言したローカル変数・引数を使っていれば、その名前。なければ null</summary>
-            private string CapturedOuter(LambdaExpressionSyntax lambda, CSharpSyntaxNode body)
-            {
-                foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
-                {
-                    ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
-                    bool variable = symbol is ILocalSymbol || symbol is IParameterSymbol p && !p.IsThis;
-                    if (!variable)
-                        continue;
-                    if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == lambda.SyntaxTree && lambda.Span.Contains(r.Span)))
-                        continue;
-                    return symbol.Name;
-                }
-                return null;
+                entry.Members[name] = (TrampolineCode(info, name, marker, "this." + bodyName, outer.Count > 0), DeclOf(node));
+                string env = outer.Count > 0 ? $"new {ValueType} {{ {string.Join(", ", outer.Select(s => s.Name))} }}" : "null";
+                return Parse($"new {ValueType} {{ this, \"{name}\", {env} }}", node);
             }
 
             /// <summary>ラムダの本体を、1 行のメソッドの本体（{ ... }）にする。文ごとに元の位置の印を付ける</summary>
@@ -1000,6 +1357,15 @@ namespace UdonSharpPlus
                 {
                     Error(node, $"'{info.Symbol.Name}' : デリゲートの += / -= は、まだ未対応です");
                     return node;
+                }
+                if (Unparen(node.Left) is IdentifierNameSyntax id && TryCaptured(id, out ISymbol symbol, out var slot))
+                {
+                    string right = Text(Visit(node.Right));
+                    if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                        return CapturedWrite(node, symbol, slot, right);
+                    string op = CompoundOperator(node.Kind());
+                    if (op != null)
+                        return CapturedWrite(node, symbol, slot, $"(({_shared.TypeText(VariableType(symbol))}){slot.Scope.Name}[{slot.Index}]) {op} ({right})");
                 }
                 return base.VisitAssignmentExpression(node);
             }

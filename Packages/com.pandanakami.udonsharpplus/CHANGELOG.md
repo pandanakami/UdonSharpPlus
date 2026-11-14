@@ -9,12 +9,13 @@ UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリ
 
 New
 
-- Delegates you declare yourself (`delegate int Calc(int x);`) can be used in variables, fields, parameters, return values, and arrays, and called with `d(x)` / `d.Invoke(x)`. A delegate can hold a static method, a method of the same `UdonSharpBehaviour`, or a lambda that does not use local variables or parameters from outside it, and can be passed to and called from another `UdonSharpBehaviour`. Lambdas that use outer local variables, `+=` / `-=`, and `Action` / `Func` / `Predicate` are not supported yet (they are compile errors). See Documentation~/delegates.md.
+- Delegates you declare yourself (`delegate int Calc(int x);`) can be used in variables, fields, parameters, return values, and arrays, and called with `d(x)` / `d.Invoke(x)`. A delegate can hold a static method, a method of the same `UdonSharpBehaviour`, or a lambda, and can be passed to and called from another `UdonSharpBehaviour`. Lambdas can use local variables and parameters from outside them, with the same behavior as C# (a lambda made in a loop uses the variable of that iteration, and keeps it after the method returns). `+=` / `-=` and `Action` / `Func` / `Predicate` are not supported yet (they are compile errors). See Documentation~/delegates.md.
 
 Fixes
 
 - A public field of a plain class type in a `UdonSharpBehaviour` now starts as `null` even after UdonSharp's automatic upgrade (for example, when you create the U# program asset). Before, it started as an empty array, so `item == null` was false.
 - UdonSharp's automatic upgrade no longer adds `[OdinSerialize]` to your script for public fields of plain class, interface, and delegate types. These fields are not serialized.
+- In a `partial` `UdonSharpBehaviour`, when only one of the files used `is` / `as` on a plain class (including an interface call on a plain class that implements the interface), UdonSharp compilation sometimes failed with error CS0103 ("The name '__cls_..._is' does not exist"). Whether it failed depended on the order in which the files were compiled, so it could change from one compile to the next.
 
 Clearer errors
 
@@ -24,12 +25,13 @@ Clearer errors
 
 新しく使えるもの
 
-- 自分で宣言したデリゲート（`delegate int Calc(int x);`）を、変数・フィールド・引数・戻り値・配列に入れ、`d(x)`・`d.Invoke(x)` で呼べるようになりました。入れられるのは static メソッド・その `UdonSharpBehaviour` のメソッド・外のローカル変数や引数を使わないラムダです。別の `UdonSharpBehaviour` に渡して、向こうで呼ぶこともできます。外のローカル変数を使うラムダ・`+=` / `-=`・`Action` / `Func` / `Predicate` は、まだ未対応です（コンパイルエラーになります）。詳しくは Documentation~/delegates.md を見てください。
+- 自分で宣言したデリゲート（`delegate int Calc(int x);`）を、変数・フィールド・引数・戻り値・配列に入れ、`d(x)`・`d.Invoke(x)` で呼べるようになりました。入れられるのは static メソッド・その `UdonSharpBehaviour` のメソッド・ラムダです。別の `UdonSharpBehaviour` に渡して、向こうで呼ぶこともできます。ラムダでは、外のローカル変数・引数も C# と同じく使えます（ループの中で作ったラムダはその回の変数を使い、メソッドを抜けたあとも持ち続けます）。`+=` / `-=`・`Action` / `Func` / `Predicate` は、まだ未対応です（コンパイルエラーになります）。詳しくは Documentation~/delegates.md を見てください。
 
 不具合の修正
 
 - `UdonSharpBehaviour` の普通のクラス型の public フィールドが、UdonSharp の自動アップグレード（U# のプログラムアセットを作ったときなど）のあとでも、`null` で始まるようにしました。これまでは空の配列で始まり、`item == null` が false になっていました。
 - UdonSharp の自動アップグレードが、普通のクラス型・インタフェース型・デリゲート型の public フィールドに `[OdinSerialize]` を足して、スクリプトを書き換えないようにしました（これらのフィールドはシリアライズしません）。
+- `partial` の `UdonSharpBehaviour` で、片方のファイルだけが普通のクラスの `is` / `as`（普通のクラスが実装するインタフェースの呼び出しも）を使うと、UdonSharp のコンパイルが、ときどきエラー CS0103（「The name '__cls_..._is' does not exist」）になっていたのを直しました。ファイルを処理する順番によって起きたため、コンパイルのたびに起きたり起きなかったりしていました。
 
 分かりやすいエラーにしたもの
 

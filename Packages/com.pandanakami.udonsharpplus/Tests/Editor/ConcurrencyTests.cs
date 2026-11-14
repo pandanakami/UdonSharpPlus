@@ -168,12 +168,18 @@ namespace UdonSharpPlusTests.ConcurrencyDelegate
         private static int Twice(int x) => x * 2;
         private int Add(int x) => x + {i};
 
+        private Calc Adder(int k) => x => x + k + {i};
+
         void Start()
         {{
             Calc c = Twice;
             var h = new Holder();
             h.calc = Add;
-            Debug.Log(c({i}) + h.Run(1));
+            int k = {i};
+            Calc closure = x => {{ k += x; return k; }};
+            Calc[] loop = new Calc[2];
+            for (int j = 0; j < 2; j++) {{ int jj = j; loop[j] = x => x * jj + k; }}
+            Debug.Log(c({i}) + h.Run(1) + closure(1) + Adder(2)(3) + loop[1](2));
         }}
     }}
 }}";
@@ -181,7 +187,7 @@ namespace UdonSharpPlusTests.ConcurrencyDelegate
         private static string Uasm(CompileResult result) =>
             string.Join("\n", result.Programs.OrderBy(p => p.TypeName, StringComparer.Ordinal).Select(p => p.TypeName + "\n" + p.Uasm));
 
-        /// <summary>デリゲートの書き換え（中継メソッド・呼び出しの static クラスのコピー）は、並列で生成しても順番に生成したときと同じ</summary>
+        /// <summary>デリゲートの書き換え（中継メソッド・呼び出しの static クラスのコピー・クロージャ。#129 D4）は、並列で生成しても順番に生成したときと同じ</summary>
         [Test]
         public void ParallelEmitKeepsDelegatePrograms()
         {

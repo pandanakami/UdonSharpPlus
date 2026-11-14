@@ -15,7 +15,7 @@ namespace FeatureTests.Delegate
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果
-        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True;12,5,8,c3!,9,15,8,120,8,12";
+        private const string Expected = "9,8,105,205;36,14,49;True,False;a1b2;20;212;16,15;n3;True,True;12,5,8,c3!,9,15,8,120,8,12;1,11,21,107,107,6,8,3,10,10,15,10;105,205,51,0,1,2,i10,i21,6,7,6";
 
         // UdonSharpBehaviour の中で宣言したデリゲート（名前空間の直下に移して書き換える）
         public delegate bool Check(int x);
@@ -85,7 +85,74 @@ namespace FeatureTests.Delegate
             var list = new System.Collections.Generic.List<int> { 1, 2, 3 };
             int acc = 0;
             list.ForEach(v => { Calc twice = y => y * 2; acc += twice(v); });
-            s += acc;
+            s += acc + ";";
+            s += ClosureScenario();
+            return s;
+        }
+
+        // #121 クロージャ（外のローカル変数・引数を使うラムダ）
+        private Calc MakeAdder(int k) => x => x + k;
+        private Calc MakeCounter() { int n = 0; return x => { n += x; return n; }; }
+
+        private string ClosureScenario()
+        {
+            string s = "";
+            // ループの中で作る（1 回ごとに別の変数）・ラムダと元のメソッドが同じ変数を書き換える
+            var arr = new Calc[3];
+            for (int i = 0; i < 3; i++)
+            {
+                int j = i;
+                arr[i] = x => x + j * 10;
+            }
+            s += arr[0](1) + "," + arr[1](1) + "," + arr[2](1) + ",";
+            int total = 0;
+            Calc addTo = x => { total += x; return total; };
+            addTo(3); addTo(4); total += 100;
+            s += addTo(0) + "," + total + ",";
+            // メソッドを抜けたあとに呼ぶ（引数を使う・ローカル変数を持ち続ける）
+            Calc a5 = MakeAdder(5), a7 = MakeAdder(7);
+            s += a5(1) + "," + a7(1) + ",";
+            Calc c1 = MakeCounter(); c1(1); Calc c2 = MakeCounter();
+            s += c1(2) + "," + c2(10) + ",";
+            // foreach の変数・ラムダの中のラムダ（外のラムダの引数とローカル変数を使う）
+            foreach (int w in new int[] { 2, 3 })
+                arr[w - 2] = x => x * w;
+            s += arr[0](5) + "," + arr[1](5) + ",";
+            Calc outerC = x => { int m = x * 2; Calc inner = y => y + m + x; return inner(1); };
+            s += outerC(3) + ";";
+            // ラムダの引数と外の変数を、中のラムダで使う・別の UdonSharpBehaviour で呼ぶ
+            int bias = 100;
+            CalcMaker mk = k => y => y + k + bias;
+            s += mk(2)(3) + ",";
+            bias = 200;
+            s += mk(2)(3) + ",";
+            int off = 40;
+            holder.Store(x => x + off);
+            off = 50;
+            s += holder.CallStored(1) + ",";
+            // 値を使う ++・普通のクラス・構造体・List のラムダの中でも書き換える・デリゲートの変数
+            int hits = 0;
+            Calc hit = x => hits++;
+            s += hit(0) + "," + hit(0) + "," + hits + ",";
+            DelegateItem it = new DelegateItem(4);
+            Describe dsc = x => "i" + (it.v + x);
+            it = new DelegateItem(9);
+            s += dsc(1) + ",";
+            it.v = 20;
+            s += dsc(1) + ",";
+            Vector3 pos = new Vector3(1, 2, 3);
+            Calc py = x => x + (int)pos.y;
+            pos = new Vector3(0, 5, 0);
+            s += py(1) + ",";
+            int sum = 0;
+            Calc addS = x => sum + x;
+            var nums = new System.Collections.Generic.List<int> { 1, 2, 3 };
+            nums.ForEach(v => sum += v);
+            s += addS(1) + ",";
+            Calc inner2 = x => x + 1;
+            Calc wrap = x => inner2(x) * 2;
+            inner2 = x => x + 2;
+            s += wrap(1);
             return s;
         }
 

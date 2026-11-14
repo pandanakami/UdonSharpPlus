@@ -4,6 +4,7 @@ namespace FeatureTests.Delegate
     public delegate int Calc(int x);
     public delegate void Notify(DelegateItem item, string text);
     public delegate string Describe(int x);
+    public delegate Calc CalcMaker(int k);
 
     // デリゲート型のフィールドを持ち、メソッドの中で呼ぶ普通のクラス
     public class DelegateItem

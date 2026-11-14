@@ -215,6 +215,13 @@ namespace UdonSharpPlus
             /// <summary>同じく、外部のクラスを継承したユーザー定義クラス（#55）</summary>
             public readonly HashSet<INamedTypeSymbol> ExternalDerived = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
+            /// <summary>
+            /// UdonSharpBehaviour ごとの、置いた is / as / null 確認のヘルパーの名前。partial なら、宣言ごとに使うものを置くので、
+            /// ほかの宣言にすでに置いたものは置かない（#130）
+            /// </summary>
+            public readonly Dictionary<INamedTypeSymbol, HashSet<string>> EmittedHelpers =
+                new Dictionary<INamedTypeSymbol, HashSet<string>>(SymbolEqualityComparer.Default);
+
             /// <summary>型タグ → 型番号（インタフェースの段が振る。#65）</summary>
             private readonly IReadOnlyDictionary<string, int> _numbers;
 
@@ -571,20 +578,24 @@ namespace UdonSharpPlus
                 if (inner.Changed)
                     Changed = true;
 
-                if (_hosts == null || !_hosts.TryGetValue(symbol, out var host) || host.Host != node || host.Used.Count == 0)
-                    return visited;
-
                 var members = new List<string>();
-                foreach (ClassInfo c in host.Used.Where(c => c.Valid))
-                    members.AddRange(GenerateMembers(c, sink));
-                foreach (ClassInfo c in host.Used.Where(c => c.Valid))
+                // 汎用クラスのコピーは、partial の宣言のうち 1 つ（host）にだけ置く
+                if (_hosts != null && _hosts.TryGetValue(symbol, out var host) && host.Host == node)
+                    foreach (ClassInfo c in host.Used.Where(c => c.Valid))
+                        members.AddRange(GenerateMembers(c, sink));
+
+                // is / as / null 確認のヘルパーは、使う宣言に置く（host でない宣言だけが使うこともある。#130）。
+                // 同じクラスのほかの宣言にすでに置いたものは置かない（CS0111 にしない）
+                if (!_context.EmittedHelpers.TryGetValue(symbol, out var emitted))
+                    _context.EmittedHelpers[symbol] = emitted = new HashSet<string>();
+                foreach (ClassInfo c in sink.IsHelpers.Concat(sink.AsHelpers).Where(c => c.Valid).Distinct().OrderBy(c => c.Key, StringComparer.Ordinal))
                 {
-                    if (sink.IsHelpers.Contains(c) || sink.AsHelpers.Contains(c))
+                    if (emitted.Add(c.IsHelper))
                         members.Add(BuildIsHelper(c));
-                    if (sink.AsHelpers.Contains(c))
+                    if (sink.AsHelpers.Contains(c) && emitted.Add(c.AsHelper))
                         members.Add($"private static {InstanceType} {c.AsHelper}(object __o) {{ return {c.IsHelper}(__o) ? ({InstanceType})__o : null; }}");
                 }
-                if (sink.NotNullHelper)
+                if (sink.NotNullHelper && emitted.Add(NotNullHelper))
                     members.Add($"private static {InstanceType} {NotNullHelper}({InstanceType} __o) {{ if (__o.Length < 0) return null; return __o; }}");
 
                 if (members.Count == 0)

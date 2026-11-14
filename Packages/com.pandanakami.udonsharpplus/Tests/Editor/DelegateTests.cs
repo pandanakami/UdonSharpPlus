@@ -164,8 +164,11 @@ public class Bad : UdonSharpBehaviour
             return UdonSharpTestCompiler.Compile(new TestSource("Bad.cs", src));
         }
 
-        [TestCase("void Start() { int k = 1; _calc = x => x + k; }", "外のローカル変数・引数を使うラムダを、デリゲートに入れることは、まだ未対応です")]
-        [TestCase("void M(int k) { _calc = x => { return x * k; }; }", "'k' : 外のローカル変数・引数を使うラムダ")]
+        [TestCase("void Start() { for (int i = 0; i < 2; i++) _calc = x => x + i; }", "'i' : この場所で宣言した変数（for の変数")]
+        [TestCase("void Start() { var l = new System.Collections.Generic.List<int>(); l.ForEach(v => { _calc = x => x + v; }); }", "'v' : List・LINQ のメソッドに渡すラムダの引数")]
+        [TestCase("void Start() { int k = 1; _calc = x => x + k; Inc(ref k); } void Inc(ref int a) { a++; }", "'k' : デリゲートに入れるラムダで使う変数は、ref / out / in で渡せません")]
+        [TestCase("void Start() { Vector3 v = Vector3.zero; _calc = x => x + (int)v.x; v.x = 1; }", "'v' : デリゲートに入れるラムダで使う構造体の変数の、フィールド・プロパティへの代入は未対応です")]
+        [TestCase("int P { set { _calc = x => x + value; } }", "'value' : この引数を、デリゲートに入れるラムダで使うことは未対応です")]
         [TestCase("private Calc _init = x => x;", "フィールドの初期化子の中でラムダをデリゲートに入れることは未対応です")]
         [TestCase("static void S() { Calc c = x => x; }", "static メソッドの中でラムダをデリゲートに入れることは未対応です")]
         [TestCase("void Start() { _calc = delegate (int x) { return x; }; }", "匿名メソッド（delegate { ... }）をデリゲートに入れることは、まだ未対応です")]
@@ -254,6 +257,102 @@ public class LambdaUser : UdonSharpBehaviour
                 if (Directory.Exists(dir))
                     Directory.Delete(dir, recursive: true);
             }
+        }
+
+        // ---- クロージャ（#121） -------------------------------------------------
+
+        private const string ClosureUser = @"using UdonSharp;
+using UnityEngine;
+
+public delegate int Calc(int x);
+public delegate Calc MakeCalc(int k);
+
+public class ClosureUser : UdonSharpBehaviour
+{
+    private Calc[] _calcs = new Calc[3];
+
+    private Calc Adder(int k) => x => x + k;
+
+    private void Start()
+    {
+        int a = 1,
+            b = 2;
+        const int c = 5;
+        _calcs[0] = x => x + a + b + c;
+        a++;
+        a += 10;
+        int v = a++ + (b = 7);
+        for (int i = 0; i < 2; i++)
+        {
+            int j = i;
+            _calcs[i + 1] = x => x * j;
+        }
+        foreach (int w in new int[] { 3, 4 })
+            _calcs[2] = x => x - w;
+        MakeCalc mk = k => y => y + k + a;
+        Debug.Log(_calcs[0](1) + Adder(2)(3) + mk(1)(2) + v);
+    }
+}";
+
+        [Test]
+        public void ClosureCompilesAndKeepsLines()
+        {
+            string dir = Path.GetFullPath(Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusDelegateClosure"));
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+            try
+            {
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir, new TestSource("ClosureUser.cs", ClosureUser));
+                Assert.That(r.Diagnostics, Is.Empty);
+                string lowered = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "ClosureUser.cs"));
+                Assert.That(lowered.Split('\n').Length, Is.EqualTo(ClosureUser.Split('\n').Length), lowered);
+                Assert.That(lowered, Does.Contain("object __e = __d[__i + 2]; if (__e != null) __u.SetProgramVariable(\"__dlg_Calc__env\", __e);"));
+                Assert.That(lowered, Does.Contain("(object[])__env[0]"), "ラムダの本体で、受け取った環境を取り出す");
+                Assert.That(lowered, Does.Contain("((int)(5))"), "定数は値にする");
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// 環境に置く変数の複数行の宣言・式形式のメソッドを書き換えても、うしろのエラーは元の行に出る（#129 D3）。
+        /// UdonSharp が対応していない System.IO.File.Exists をエラーの印にする
+        /// </summary>
+        [Test]
+        public void ErrorsAfterClosureRewritesKeepLines()
+        {
+            const string src = @"using UdonSharp;
+using UnityEngine;
+
+public delegate int Calc(int x);
+
+public class ClosureLines : UdonSharpBehaviour
+{
+    private Calc Make(int k) =>
+        x =>
+            x + k;
+
+    private void Start()
+    {
+        int a = 1,
+            b = 2;
+        Calc c = x => x + a + b;
+        Debug.Log(System.IO.File.Exists(""a""));
+        Debug.Log(c(1) + Make(1)(2));
+    }
+
+    private void Update() { Debug.Log(System.IO.File.Exists(""b"")); }
+}";
+            // UdonSharp は最初のエラーで止まるので、1 つずつ確かめる
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("ClosureLines.cs", src.Replace("System.IO.File.Exists(\"b\")", "GetType().Name")));
+            Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics[0], Does.Contain("ClosureLines.cs(17,"), "複数行の宣言のうしろ（17 行目）");
+            r = UdonSharpTestCompiler.Compile(new TestSource("ClosureLines.cs", src.Replace("System.IO.File.Exists(\"a\")", "GetType().Name")));
+            Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics[0], Does.Contain("ClosureLines.cs(21,"), "複数行の式形式のメソッドのうしろ（21 行目）");
         }
 
         /// <summary>ラムダの本体の中のエラーは、元の行に出る（複数行のブロックの本体でも、文ごとの行）</summary>

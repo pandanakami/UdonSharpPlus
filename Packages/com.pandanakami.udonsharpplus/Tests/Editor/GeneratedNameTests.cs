@@ -96,6 +96,47 @@ namespace UdonSharpPlusTests.GeneratedName
             Assert.That(second, Does.Contain("__lambda_FindIndex_0__p2("));
         }
 
+        /// <summary>
+        /// partial の 2 つ目のファイルだけが、普通のクラスの is / as・null 確認のヘルパーを使う（#130）。
+        /// 汎用クラスのコピーは 1 つ目のファイルに置くが、ヘルパーは使う側に置く。両方が使うものは 1 つだけ置く
+        /// </summary>
+        [Test]
+        public void PartialHelperUsedOnlyInSecondFile()
+        {
+            const string types = @"public class Gem { public int v; public int Twice(int x) => x * 2; }
+public class Rock { }";
+            const string first = @"using UdonSharp;
+public partial class Mine : UdonSharpBehaviour
+{
+    private object _o;
+    private void Start() { var g = new Gem(); _o = g; Debug(); }
+}";
+            const string second = @"using UdonSharp;
+public partial class Mine
+{
+    private Gem[] _gems = new Gem[1];
+    private void Debug()
+    {
+        bool a = _o is Gem;
+        Gem g = _o as Gem;
+        Rock r = _o as Rock;
+        int v = GetGem().Twice(2);
+        UnityEngine.Debug.Log(a + "" "" + (g != null) + "" "" + (r != null) + v);
+    }
+    private Gem GetGem() => _gems[0];
+}";
+            CompileResult result = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, _dir,
+                new TestSource("Types.cs", types), new TestSource("Mine.cs", first), new TestSource("Mine.Second.cs", second));
+            Assert.That(result.Diagnostics, Is.Empty);
+            string dumpedFirst = Dumped("Mine.cs");
+            string dumpedSecond = Dumped("Mine.Second.cs");
+            Assert.That(dumpedFirst, Does.Contain("__cls_Gem__ctor"), "コピーは 1 つ目のファイル");
+            Assert.That(dumpedSecond, Does.Contain("private static bool __cls_Gem__is(object __o)"));
+            Assert.That(dumpedSecond, Does.Contain("__cls_Rock__as(object __o)"));
+            Assert.That(dumpedSecond, Does.Contain("__cls__notnull("));
+            Assert.That(dumpedFirst, Does.Not.Contain("__cls_Gem__is(object __o)"));
+        }
+
         /// <summary>A と #111 の組み合わせ：partial の派生クラスの 2 つのファイルと、基底の両方で使う</summary>
         [Test]
         public void PartialDerivedBehaviour()
