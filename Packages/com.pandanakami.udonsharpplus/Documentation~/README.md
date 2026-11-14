@@ -12,7 +12,7 @@ UdonSharp で書ける C# を増やすパッケージ、UdonSharp Plus の詳し
 | [普通のクラス](class.md) | UdonSharpBehaviour 以外の普通のクラスを、UdonSharpBehaviour の中で使う |
 | [ジェネリクス](generics.md) | ジェネリッククラス・ジェネリックメソッドを宣言して使う |
 | [List / Dictionary・ラムダ・LINQ](collections.md) | `List<T>`・`Dictionary<TKey, TValue>`、それらのメソッドに渡すラムダ、LINQ |
-| [デリゲート](delegates.md)（対応中） | 自分で宣言したデリゲートに、static メソッド・UdonSharpBehaviour のメソッドを入れて呼ぶ |
+| [デリゲート・ローカル関数](delegates.md) | 自分で宣言したデリゲートと `Action`・`Func`・`Predicate`・`Comparison` に、メソッド・ラムダ・匿名メソッド・ローカル関数を入れて呼ぶ。ローカル関数を使う |
 
 それぞれのページに、対応している書き方と、未対応の書き方（コンパイルエラーになるもの）を書いています。
 

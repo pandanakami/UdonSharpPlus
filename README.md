@@ -17,6 +17,8 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Generics | `class Pool<T>`, `static T Max<T>(List<T> list) where T : IComparable<T>` |
 | List / Dictionary | `List<int>`, `Dictionary<string, Bullet>`, `foreach`, `TryGetValue` |
 | Lambdas and LINQ | `list.Find(b => b.damage > 0)`, `list.Where(...).Select(...).ToList()`, `OrderBy`, `Sum` |
+| Delegates | `delegate int Calc(int x);`, `Action`, `Func`, `Predicate`, `Comparison`, `d = enemy.Hit`, `d = x => x * k`, `d += F`, `list.Where(isBig)` |
+| Local functions and anonymous methods | `int Twice(int x) => x * 2;` inside a method, `delegate (int x) { ... }` |
 
 ```csharp
 using System.Collections.Generic;
@@ -105,9 +107,6 @@ That's all. There is nothing to configure.
 
 These are planned but not supported yet. There is no fixed schedule, and the scope may change.
 
-- Delegates (`Action`, `Func`, `Predicate`, ...)
-- Anonymous methods (`delegate { ... }`)
-- Local functions (methods declared inside a method)
 - Anonymous types (`new { Name = "a", Hp = 10 }`), including lists of them
 - Tuples
 - Operator overloading

@@ -1,4 +1,4 @@
-# デリゲート（実験的・対応中）
+# デリゲート・ローカル関数（実験的）
 
 自分で宣言したデリゲートと、.NET の `Action`・`Func`・`Predicate`・`Comparison` を、UdonSharpBehaviour と普通のクラスの中で使えます。
 
