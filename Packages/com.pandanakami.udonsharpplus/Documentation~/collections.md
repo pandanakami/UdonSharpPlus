@@ -48,7 +48,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 
 ### ラムダ
 
-UdonSharp はラムダを扱えないので、ラムダは上記の List のメソッドと LINQ の引数としてだけ使えます。ループとラムダの本体は、呼び出しごとに生成するメソッドの中に入ります（ラムダを変数に入れる、後で呼ぶ、などはできません）。
+上記の List のメソッドと LINQ の引数に、ラムダを直接書けます。ループとラムダの本体は、呼び出しごとに生成するメソッドの中に入ります。ラムダを `Func`・`Predicate` などの変数に入れてから渡すこともできます（[デリゲート](delegates.md)）。
 
 ```csharp
 int limit = 4;
@@ -60,6 +60,7 @@ _scores.Sort((a, b) => b - a);
 
 - ラムダの中から、外のローカル変数・引数を読み書きできます。書き込みも C# と同じく、呼び出しの直後から外の変数に反映されます。フィールドもそのまま読み書きできます
 - 本体は式（`x => x > 0`）とブロック（`x => { ... }`）のどちらでも書けます。メソッド名を渡すこともできます（`_scores.Exists(IsOdd)`）
+- `Func`・`Predicate`・`Comparison`・`Action` の変数・フィールド・引数も渡せます（`_scores.Exists(isOdd)`、`_scores.Sort(compare)`。[デリゲート](delegates.md)）
 - 戻り値のないラムダ（`ForEach` など）の式の本体には、普通のクラスのフィールド・プロパティや、List / Dictionary の要素への代入・インクリメントも書けます（`_enemies.ForEach(e => e.hp -= 1)`、`_names.ForEach(n => _counts[n]++)`）
 - `Sort(Comparison)` は安定な並べ替え（マージソート）です（C# の `List.Sort` は安定とは限りません）
 - `FindIndex(start, count, match)` などで範囲外を指定したときは、C# の `ArgumentOutOfRangeException` ではなく、Udon の実行時例外か、見つからない結果（-1）になります
@@ -67,7 +68,8 @@ _scores.Sort((a, b) => b - a);
 
 未対応の書き方（コンパイルエラーになります）：
 
-- 上記の List のメソッドと LINQ の引数以外のラムダ（`Func<int, bool> f = x => x > 0;` など）、`delegate { ... }`、デリゲートの変数を渡すこと
+- 上記の List のメソッドと LINQ の引数に直接書いた `delegate { ... }`（変数に入れてから渡すことはできます）。ほかの .NET のメソッドの引数のラムダ（`Array.Exists(arr, x => x > 0)` など）
+- `ConvertAll` に `Converter` の変数を渡すこと（ラムダかメソッド名を直接書いてください）
 - フィールドの初期化子の中で、ラムダを渡す List のメソッドを呼ぶこと
 - `[RecursiveMethod]` を付けたメソッドの中で、外のローカル変数・引数に書き込むラムダ。外の変数は `ref` 引数で生成メソッドに渡しますが、UdonSharp は `[RecursiveMethod]` の中での `ref` 引数のメソッドの呼び出しに対応していないため、UdonSharp のエラー（`U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod`）になります。読むだけのラムダは使えます
 

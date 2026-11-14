@@ -1,5 +1,6 @@
 ## Diagnostics
 Error: Assets/UdonSharpPlusTests/BaseTarget.cs(9,21): [UdonSharpPlus] 'Target.Hit' : インタフェース（IHittable）の実装メソッドと同じ名前のメソッドは置けません（Udon 上の名前が元のメソッド名になるため。[NetworkCallable] と同じ制約です）
+Error: Assets/UdonSharpPlusTests/Types.cs(15,9): [UdonSharpPlus] event は未対応です。デリゲート型のフィールドにしてください
 Error: Assets/UdonSharpPlusTests/User.cs(12,13): [UdonSharpPlus] 'ReadIn' : ref/out/in/params 引数は未対応です
 Error: Assets/UdonSharpPlusTests/User.cs(13,13): [UdonSharpPlus] 'ReadParams' : ref/out/in/params 引数は未対応です
 Error: Assets/UdonSharpPlusTests/User.cs(14,27): [UdonSharpPlus] 'GetComponent<IHittable>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください

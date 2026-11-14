@@ -597,6 +597,9 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
+                if (_delegateArgs.TryGetValue(node, out string delegateArg))
+                    return SyntaxFactory.IdentifierName(delegateArg).WithTriviaFrom(node);
+
                 // LINQ（#58）：つないだ呼び出しの一番外側でまとめて書き換える
                 if (_helpers != null && _model.GetSymbolInfo(node).Symbol is IMethodSymbol linq && IsLinqMethod(linq))
                     return LinqCall(node);
@@ -1194,12 +1197,48 @@ namespace UdonSharpPlus
                 return result;
             }
 
+            /// <summary>
+            /// デリゲートの段（#125）が付けた印 __dlgarg(式)（list.Where(pred) の pred）→ 生成メソッドの引数の名前。
+            /// 式は呼び出し側で 1 回だけ評価して渡し、ラムダの本体ではその引数を使う
+            /// </summary>
+            private readonly Dictionary<SyntaxNode, string> _delegateArgs = new Dictionary<SyntaxNode, string>();
+            private int _delegateArgCount;
+
+            private static bool IsDelegateArg(InvocationExpressionSyntax inv)
+            {
+                if (inv.ArgumentList.Arguments.Count != 1)
+                    return false;
+                string name = inv.Expression is MemberAccessExpressionSyntax ma ? ma.Name.Identifier.ValueText
+                    : inv.Expression is IdentifierNameSyntax id ? id.Identifier.ValueText : null;
+                return name != null && (name == DelegateArgMethod || name.Contains("__" + DelegateArgMethod + "__"));
+            }
+
+            private const string DelegateArgMethod = "__dlgarg";
+
             /// <summary>ラムダの外の変数を、出てくる順に集める。書かれるかは Roslyn のデータフロー解析で判定する</summary>
             private List<Capture> Captures(ExpressionSyntax lambda, CSharpSyntaxNode body)
             {
                 var result = new List<Capture>();
                 if (body == null)
                     return result;
+
+                // このラムダの直下の印（中のラムダのものは、そのラムダを書き換えるときに扱う）
+                var marks = new HashSet<SyntaxNode>();
+                foreach (InvocationExpressionSyntax inv in body.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>())
+                {
+                    if (!IsDelegateArg(inv) || inv.Ancestors().OfType<AnonymousFunctionExpressionSyntax>().FirstOrDefault() != lambda)
+                        continue;
+                    string name = "__dv" + _delegateArgCount++;
+                    _delegateArgs[inv] = name;
+                    marks.Add(inv);
+                    result.Add(new Capture
+                    {
+                        Name = name,
+                        Type = _model.GetTypeInfo(inv).Type,
+                        TypeName = "object[]",
+                        Arg = $"{Text(inv.Expression)}({Text(Visit(inv.ArgumentList.Arguments[0].Expression))})",
+                    });
+                }
 
                 DataFlowAnalysis flow = null;
                 try
@@ -1221,6 +1260,8 @@ namespace UdonSharpPlus
                         : null;
                     if (type == null)
                         continue;
+                    if (marks.Count > 0 && id.Ancestors().Any(marks.Contains))
+                        continue;   // 印の中の式は、呼び出し側で評価する
                     // ラムダの中で宣言したもの（ラムダの引数も）は外の変数ではない
                     if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == lambda.SyntaxTree && lambda.Span.Contains(r.Span)))
                         continue;

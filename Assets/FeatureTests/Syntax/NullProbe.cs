@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 24;
+        public const int Count = 27;
 
         public int caseId;
         public bool started;
@@ -80,6 +80,9 @@ namespace FeatureTests.Syntax
                 case 21: return "delegate from method of null instance";
                 case 22: return "exception inside lambda made in plain class";
                 case 23: return "exception inside local function in plain class";
+                case 24: return "null Predicate variable passed to List method";
+                case 25: return "exception inside lambda passed to List method via variable";
+                case 26: return "null Func variable passed to LINQ on empty list";
             }
             return "?";
         }
@@ -184,6 +187,30 @@ namespace FeatureTests.Syntax
                     break;
                 }
                 case 23: observed = "" + new FeatureTests.Delegate.MtBox(1).LocalDiv(3); break;
+                case 24:
+                {
+                    // #125：null のデリゲートの変数を List のメソッドに渡すと、要素があれば止まる。止まる位置は渡した行
+                    System.Predicate<int> nullPred = null;
+                    observed = "" + new System.Collections.Generic.List<int> { 1 }.Exists(nullPred);   // ここ
+                    break;
+                }
+                case 25:
+                {
+                    System.Predicate<int> divPred = x =>
+                    {
+                        int zero = x - x;
+                        return 10 / zero > 0;   // ここ（#125：変数に入れて List のメソッドに渡したラムダの中の例外も元の行）
+                    };
+                    observed = "" + new System.Collections.Generic.List<int> { 1 }.Exists(divPred);
+                    break;
+                }
+                case 26:
+                {
+                    // #125：要素がなくても、null のデリゲートを渡すと C# と同じく止まる（C# では ArgumentNullException）
+                    System.Func<int, bool> nullFn = null;
+                    observed = "" + System.Linq.Enumerable.Count(new System.Collections.Generic.List<int>(), nullFn);   // ここ
+                    break;
+                }
             }
             finished = true;
             Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);

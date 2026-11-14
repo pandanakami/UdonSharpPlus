@@ -174,7 +174,7 @@ public class Bad : UdonSharpBehaviour
         [TestCase("void Start() { int G<T>(int x) => x; G<int>(1); }", "'G' : ジェネリックのローカル関数は未対応です")]
         [TestCase("void Start() { switch (1) { case 1: int F() => 1; break; } }", "'F' : この場所のローカル関数は未対応です")]
         [TestCase("void Start() { static int F(int x) { Calc c = Square; return c(x); } F(1); }", "static のローカル関数の中でデリゲートを作ることは未対応です")]
-        [TestCase("void Start() { int k = 1; int F(int x) => x + k; System.Func<int, int> f = F; }", "'F' : 外の変数を使うローカル関数を、ここで使うことは未対応です")]
+        [TestCase("void Start() { int k = 1; void F(int x) { k += x; } new System.Collections.Generic.List<int>().ForEach(F); }", "'F' : 外の変数を使うローカル関数を、ここで使うことは未対応です")]
         [TestCase("Calc[] _cs = new Calc[2]; int Idx() => 0; void Start() { _cs[Idx()] += Square; }", "この形の受け側への += / -= は未対応です")]
         [TestCase("void Start() { _calc?.Invoke(1); }", "?.Invoke は未対応です")]
         [TestCase("void Start() { bool b = _calc == _calc; }", "デリゲートどうしの == / != は未対応です")]
@@ -188,6 +188,15 @@ public class Bad : UdonSharpBehaviour
         [TestCase("void Start() { object o = null; bool b = o is Calc; }", "typeof・nameof・is・as・型パターンは未対応です")]
         [TestCase("void Start() { _calc = new System.Random().Next; }", "'Next' : このインスタンスのメソッドをデリゲートに入れることは未対応です")]
         [TestCase("event Calc OnCalc;", "event は未対応です")]
+        [TestCase("void Start() { System.Func<string> fs = () => \"\"; System.Func<object> fo = fs; }", "'Func<string>' : 型の違うデリゲート（'Func<object>'）への変換は未対応です")]
+        [TestCase("void Start() { System.EventHandler h = null; }", "'EventHandler' : この .NET のデリゲートは未対応です")]
+        [TestCase("void Start() { System.Converter<int, string> c = null; }", "'Converter<int, string>' : この .NET のデリゲートは未対応です")]
+        [TestCase("void Start() { System.Action<object> ao = null; System.Action<string> a = ao; }", "'Action<object>' : 型の違うデリゲート（'Action<string>'）への変換は未対応です")]
+        [TestCase("void Start() { System.Func<int, bool> f = null; System.Predicate<int> p = new System.Predicate<int>(f); }", "'Predicate<int>' : この形の new は未対応です")]
+        [TestCase("void Start() { var l = new System.Collections.Generic.List<System.Action>(); }", "型引数（List<Action> など）に使うことは、まだ未対応です")]
+        [TestCase("event System.Action<int> OnDone;", "event は未対応です")]
+        [TestCase("[SerializeField] private System.Action<int> _serializedAction;", "シリアライズ・同期できません")]
+        [TestCase("void Start() { System.Action a = null; a?.Invoke(); }", "?.Invoke は未対応です")]
         public void ReportsUnsupported(string body, string message)
         {
             CompileResult r = CompileUser(body, "public class Other { public int Inc(int x) => x + 1; }");
@@ -654,6 +663,158 @@ public class LambdaError : UdonSharpBehaviour
             CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("LambdaError.cs", src));
             Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
             Assert.That(r.Diagnostics[0], Does.Contain("LambdaError.cs(13,"), "return の行（13 行目）");
+        }
+
+        private const string FuncUser = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using UdonSharp;
+
+public class FuncHolder
+{
+    public Func<int, int> map;
+    public int Sum(List<int> l) => l.Select(map).Sum();
+}
+
+public class FuncUser : UdonSharpBehaviour
+{
+    private Func<int, bool> _big;
+    private Action<string> _log;
+    private Comparison<int> _cmp = null;
+    private static int Square(int x) => x * x;
+
+    private void Start()
+    {
+        var l = new List<int> { 3, 1, 2 };
+        int k = 1;
+        _big = x => x > k;
+        Action tick = () => k++;
+        tick();
+        Predicate<int> odd = x => x % 2 == 1;
+        Func<int, int> sq = Square;
+        _cmp = (a, b) => b - a;
+        _log += s => k += s.Length;
+        _log(""a"");
+        int n = l.Where(_big).Select(sq).Sum() + l.Count(x => x > 1) + l.Select(Square).Sum();
+        bool e = l.Exists(odd);
+        l.Sort(_cmp);
+        l.ForEach(x => k += x);
+        var h = new FuncHolder();
+        h.map = sq;
+        n += h.Sum(l);
+    }
+}";
+
+        private const string FuncOther = @"using UdonSharp;
+using IntFn = System.Func<int, int>;
+
+namespace Other.Space
+{
+    public class FuncOther : UdonSharpBehaviour
+    {
+        private IntFn _a;
+        private System.Func<int, int> _b;
+
+        private void Start()
+        {
+            _a = x => x + 1;
+            _b = _a;
+            int n = _b(1);
+        }
+    }
+}";
+
+        /// <summary>デリゲートの変数を、対応していない LINQ のメソッドに渡したときのエラーは、元の呼び出しの行に出る（#125）</summary>
+        [Test]
+        public void ExternalDelegatePassedToUnsupportedLinqPointsToOriginalLine()
+        {
+            const string src = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using UdonSharp;
+
+public class FuncLinqError : UdonSharpBehaviour
+{
+    private void Start()
+    {
+        Func<int, int> key = x => x % 2;
+        var l = new List<int> { 1 };
+        int ok = l.Select(key).Sum();
+        var g = l.GroupBy(key);
+    }
+}";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("FuncLinqError.cs", src));
+            Assert.That(r.Diagnostics.Count, Is.GreaterThan(0));
+            Assert.That(r.Diagnostics.All(d => d.Contains("FuncLinqError.cs(13,")), string.Join("\n", r.Diagnostics));
+        }
+
+        /// <summary>
+        /// .NET のデリゲート（Action・Func・Predicate・Comparison。#125）：型・作る・呼ぶ・+=・LINQ と List のメソッドに変数を渡す。
+        /// 同じ型の Func があっても、LINQ に直接書いたラムダ・メソッド名は今までどおり埋め込む。行は変えない
+        /// </summary>
+        [Test]
+        public void ExternalDelegatesCompileAndKeepLines()
+        {
+            string dir = Path.GetFullPath(Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusDelegateFunc"));
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+            try
+            {
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir,
+                    new TestSource("FuncUser.cs", FuncUser), new TestSource("FuncOther.cs", FuncOther));
+                Assert.That(r.Diagnostics, Is.Empty);
+                string lowered = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "FuncUser.cs"));
+                string other = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "FuncOther.cs"));
+                Assert.That(lowered.Split('\n').Length, Is.EqualTo(FuncUser.Split('\n').Length), lowered);
+                Assert.That(other.Split('\n').Length, Is.EqualTo(FuncOther.Split('\n').Length), other);
+                Assert.That(lowered, Does.Not.Contain("Func<"), lowered);
+                Assert.That(lowered, Does.Not.Contain("Predicate<"), lowered);
+                Assert.That(lowered, Does.Not.Contain("Comparison<"), lowered);
+
+                // 変数を渡したところだけ、デリゲートを呼ぶ形になる（渡すときに 1 回だけ評価して、生成メソッドの引数にする）。
+                // 直接書いたラムダ・メソッド名は、今までどおり本体を埋め込む
+                Assert.That(lowered, Does.Contain("__dv0"), lowered);
+                Assert.That(lowered, Does.Contain("__dlgarg"), lowered);
+                Assert.That(lowered, Does.Match(@"\(/\*cus@\d+\*/x > 1\)"), "直接書いたラムダは埋め込む\n" + lowered);
+                Assert.That(lowered, Does.Match(@"/\*cus@\d+\*/Square\(__a0\)"), "直接書いたメソッド名は埋め込む\n" + lowered);
+
+                // 同じ型（Func<int, int>）を、別のファイル・別の名前空間・完全修飾名・using の別名で使っても、呼び出しの static クラスは 1 つ
+                const string helper = "static class __dlg_System_Func_int__int_";
+                int count = System.Text.RegularExpressions.Regex.Matches(lowered + other, System.Text.RegularExpressions.Regex.Escape(helper) + @"\b").Count;
+                Assert.That(count, Is.EqualTo(1), lowered + "\n----\n" + other);
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
+
+        /// <summary>Func に入れたラムダの中のエラーは、元の行に出る（そのラムダの変数を LINQ に渡しても。#125）</summary>
+        [Test]
+        public void ExternalDelegateLambdaErrorPointsToOriginalLine()
+        {
+            const string src = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using UdonSharp;
+
+public class FuncError : UdonSharpBehaviour
+{
+    private void Start()
+    {
+        Func<string, bool> exists = p =>
+        {
+            int n = p.Length;
+            return System.IO.File.Exists(p);
+        };
+        var l = new List<string> { ""a"" };
+        int c = l.Where(exists).Count();
+    }
+}";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("FuncError.cs", src));
+            Assert.That(r.Diagnostics.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics[0], Does.Contain("FuncError.cs(13,"), "return の行（13 行目）");
         }
     }
 }

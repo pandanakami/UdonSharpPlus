@@ -30,6 +30,11 @@ namespace UdonSharpPlus.Tests
             yield return new TestCaseData(typeof(List<int>[]), "VRC.SDK3.Data.DataList[]");
             yield return new TestCaseData(typeof(SampleCalc), "System.Object[]");
             yield return new TestCaseData(typeof(SampleCalc[]), "System.Object[][]");
+            yield return new TestCaseData(typeof(Action<int>), "System.Object[]");   // #125
+            yield return new TestCaseData(typeof(Action), "System.Object[]");
+            yield return new TestCaseData(typeof(Func<int, string>[]), "System.Object[][]");
+            yield return new TestCaseData(typeof(Predicate<int>), "System.Object[]");
+            yield return new TestCaseData(typeof(Comparison<int>), "System.Object[]");
         }
 
         [TestCaseSource(nameof(Lowered))]
@@ -95,7 +100,7 @@ namespace UdonSharpPlus.Tests
         [TestCase(typeof(GameObject))]
         [TestCase(typeof(SampleBehaviour))]
         [TestCase(typeof(IDisposable))]
-        [TestCase(typeof(Action<int>))]   // ソースのデリゲートではない（#125 まで書き換えない）
+        [TestCase(typeof(EventHandler))]   // 対応する .NET のデリゲート（#125）のほかは書き換えない
         public void KeepsUdonSharpSerializer(Type type)
         {
             object serializer = CreatePooled(type);

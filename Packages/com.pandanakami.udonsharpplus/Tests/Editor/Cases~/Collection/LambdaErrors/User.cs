@@ -12,10 +12,10 @@ namespace UdonSharpPlusTests.CollectionLambdaErrors
 
         private void Start()
         {
-            System.Func<int, bool> f = x => x > 0;                      // List のメソッドの引数以外のラムダ
+            bool a = System.Array.Exists(new int[0], x => x > 0);       // List のメソッドの引数以外のラムダ（Func などの変数には #125 から入れられる）
             bool b = _list.Exists(delegate (int x) { return x > 0; });  // delegate { }
-            System.Predicate<int> p = null;
-            bool c = _list.Exists(p);                                   // デリゲートの変数
+            System.Converter<int, int> p = null;                        // 対応しない .NET のデリゲート（Func などの変数は #125 から渡せる）
+            var c = _list.ConvertAll(p);                                // 対応しないデリゲートの変数
             foreach (var kv in _dict)
                 _list.RemoveAll(x => x == kv.Value);                    // kv をラムダの中で使う（#61 から使える）
         }

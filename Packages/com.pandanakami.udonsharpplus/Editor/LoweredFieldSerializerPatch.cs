@@ -82,6 +82,14 @@ namespace UdonSharpPlus
                     return typeof(object[]);
             }
 
+            // .NET のデリゲート（Action・Func・Predicate・Comparison。#125）
+            if (typeof(Delegate).IsAssignableFrom(type) && type.Namespace == "System" && !type.IsNested)
+            {
+                string name = type.IsGenericType ? type.Name.Substring(0, type.Name.IndexOf('`')) : type.Name;
+                if (name == "Action" || name == "Func" || name == "Predicate" || name == "Comparison")
+                    return typeof(object[]);
+            }
+
             if (!IsFromSource(type))
                 return null;
             if (type.IsInterface)

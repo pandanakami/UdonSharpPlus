@@ -37,6 +37,10 @@ namespace UdonSharpPlus
             public INamedTypeSymbol Symbol;
             public string Key;              // 完全名を名前に使える形にしたもの
             public string Unsupported;      // 対応しない理由（null なら対応）
+            /// <summary>.NET のデリゲート（Action・Func・Predicate・Comparison。#125）。型引数ごとに 1 つ。呼び出しの static クラスは HomeTree の末尾（名前空間の外）に置く</summary>
+            public bool External;
+            public int HomeTree;
+            public string Name => External ? Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) : Symbol.Name;
             public string HelperClass => "__dlg_" + Key;
             public string HelperFull;       // global::名前空間.__dlg_K
             public string ParamField(int i) => $"__dlg_{Key}__p{i}";
@@ -47,7 +51,29 @@ namespace UdonSharpPlus
 
         /// <summary>ソースのデリゲートの宣言か、ローカル関数（#123。UdonSharp が未対応なので、メソッドに移す）があるか</summary>
         public static bool MayHaveDelegates(IEnumerable<SyntaxTree> trees) =>
-            trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is DelegateDeclarationSyntax || n is LocalFunctionStatementSyntax));
+            trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is DelegateDeclarationSyntax || n is LocalFunctionStatementSyntax
+                || n is SimpleNameSyntax s && ExternalNames.Contains(s.Identifier.ValueText)));
+
+        /// <summary>対応する .NET のデリゲート（System 名前空間。#125）</summary>
+        private static readonly HashSet<string> ExternalNames = new HashSet<string> { "Action", "Func", "Predicate", "Comparison" };
+
+        private static bool IsExternalDelegate(INamedTypeSymbol t) =>
+            t != null && t.TypeKind == TypeKind.Delegate && ExternalNames.Contains(t.Name)
+            && t.ContainingNamespace?.ToDisplayString() == "System" && t.ContainingType == null && !t.Locations.Any(l => l.IsInSource);
+
+        /// <summary>型引数を書き換えられるか（型引数そのもの・エラーの型・匿名型を含まない）</summary>
+        private static bool IsConcrete(ITypeSymbol t)
+        {
+            switch (t)
+            {
+                case IArrayTypeSymbol a:
+                    return IsConcrete(a.ElementType);
+                case INamedTypeSymbol n:
+                    return n.TypeKind != TypeKind.Error && !n.IsAnonymousType && !n.IsTupleType && n.TypeArguments.All(IsConcrete);
+                default:
+                    return t != null && t.TypeKind != TypeKind.TypeParameter && t.TypeKind != TypeKind.Error && t.TypeKind != TypeKind.Pointer;
+            }
+        }
 
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
@@ -100,12 +126,36 @@ namespace UdonSharpPlus
                     result.Add(symbol, info);
                 }
             }
+
+            // .NET のデリゲート（#125）：ソースに型として書いたもの（Func<int, int> f; など）を、型引数ごとに集める。
+            // LINQ・List のメソッドに直接書いたラムダの型は、ソースに書かれないので集まらない（そのラムダは後の段が埋め込む）
+            for (int i = 0; i < trees.Count; i++)
+            {
+                SemanticModel model = compilation.GetSemanticModel(trees[i]);
+                foreach (SimpleNameSyntax name in trees[i].GetRoot().DescendantNodes().OfType<SimpleNameSyntax>())
+                {
+                    if (!ExternalNames.Contains(name.Identifier.ValueText)
+                        || !(model.GetSymbolInfo(name).Symbol is INamedTypeSymbol symbol) || !IsExternalDelegate(symbol)
+                        || result.ContainsKey(symbol) || !symbol.TypeArguments.All(IsConcrete))
+                        continue;
+                    var info = new DelegateInfo
+                    {
+                        Symbol = symbol,
+                        Key = InterfaceNaming.Sanitize(ClassLowering.TagOf(symbol)),
+                        Unsupported = UnsupportedReason(symbol),
+                        External = true,
+                        HomeTree = i,
+                    };
+                    info.HelperFull = "global::" + info.HelperClass;
+                    result.Add(symbol, info);
+                }
+            }
             return result;
         }
 
         private static string UnsupportedReason(INamedTypeSymbol symbol)
         {
-            if (symbol.IsGenericType)
+            if (symbol.IsGenericType && !IsExternalDelegate(symbol))
                 return "ジェネリックのデリゲートは、まだ未対応です";
             IMethodSymbol invoke = symbol.DelegateInvokeMethod;
             if (invoke == null)
@@ -157,6 +207,7 @@ namespace UdonSharpPlus
                 Delegates = delegates;
                 Diagnostics = diagnostics;
                 Originals = originals;
+                HasExternal = delegates.Values.Any(d => d.External);
             }
 
             /// <summary>
@@ -184,8 +235,11 @@ namespace UdonSharpPlus
                 return sb.ToString();
             }
 
+            /// <summary>.NET のデリゲート（#125）は型引数ごと、ソースのデリゲートは宣言で引く</summary>
             public DelegateInfo Find(ITypeSymbol type) =>
-                type is INamedTypeSymbol named && Delegates.TryGetValue(named.OriginalDefinition, out var info) ? info : null;
+                type is INamedTypeSymbol named && (Delegates.TryGetValue(named, out var info) || Delegates.TryGetValue(named.OriginalDefinition, out info)) ? info : null;
+
+            public readonly bool HasExternal;
 
             /// <summary>生成するコードに書く型（ソースのデリゲート型は object[]）</summary>
             public string TypeText(ITypeSymbol type)
@@ -241,10 +295,18 @@ namespace UdonSharpPlus
                 if (hasReturn)
                     sb.Append("return __r; ");
                 sb.Append("} ");
-                sb.Append(CombineCode).Append(' ').Append(RemoveCode).Append(' ').Append(NotNullCode);
+                sb.Append(CombineCode).Append(' ').Append(RemoveCode).Append(' ').Append(NotNullCode).Append(' ').Append(ArgCode);
                 sb.Append(" }");
                 return sb.ToString();
             }
+
+            /// <summary>
+            /// List・LINQ のメソッドに渡すデリゲートの印（#125）。後の段（CollectionLowering）が、この呼び出しを生成メソッドの引数にする
+            /// （渡すときに 1 回だけ評価し、その値を使い続ける）。null なら、C# と同じく要素がなくても渡すときに実行時例外で止める
+            /// </summary>
+            public const string ArgMethod = "__dlgarg";
+            private const string ArgCode =
+                "public static object[] " + ArgMethod + "(object[] __d) { int __n = __d.Length; return __d; }";
 
             /// <summary>デリゲートを作るときのインスタンスが null なら、C# と同じく実行時例外で止める（#124）</summary>
             private const string NotNullCode =
@@ -494,7 +556,7 @@ namespace UdonSharpPlus
                     if (n is AnonymousFunctionExpressionSyntax a)
                     {
                         DelegateInfo info = _shared.Find(_model.GetTypeInfo(a).ConvertedType);
-                        if (info != null && info.Unsupported == null && ContextOf(a, out _) != null)
+                        if (info != null && info.Unsupported == null && !IsExternalArgument(a) && ContextOf(a, out _) != null)
                             functions.Add(a);
                     }
                     else if (n is LocalFunctionStatementSyntax l && _model.GetDeclaredSymbol(l) is IMethodSymbol symbol)
@@ -664,6 +726,8 @@ namespace UdonSharpPlus
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
+                if (_shared.HasExternal && node is ExpressionSyntax e && VarianceError(e))
+                    return node;
                 SyntaxNode visited = base.Visit(node);
                 if (_statementMarkers != null && node != null && visited != null && _statementMarkers.TryGetValue(node, out string marker))
                     visited = visited.WithLeadingTrivia(visited.GetLeadingTrivia().Insert(0, SyntaxFactory.Comment(marker)));
@@ -684,6 +748,74 @@ namespace UdonSharpPlus
 
             private DelegateInfo DelegateOf(ExpressionSyntax e) => _shared.Find(_model.GetTypeInfo(e).Type);
 
+            // ---- .NET のメソッドに渡すデリゲート（#125） ----------------------------------
+
+            /// <summary>
+            /// ソースにないメソッド（LINQ・List のメソッドなど）の引数か。そこに直接書いたラムダ・メソッド名は、今までどおり後の段が埋め込むので、
+            /// デリゲートの値にしない。デリゲートの呼び出し（d(x => ...)）は含めない
+            /// </summary>
+            private bool IsExternalArgument(ExpressionSyntax e)
+            {
+                SyntaxNode n = e;
+                while (n.Parent is ParenthesizedExpressionSyntax)
+                    n = n.Parent;
+                if (!(n.Parent is ArgumentSyntax arg) || !(arg.Parent?.Parent is ExpressionSyntax call)
+                    || !(call is InvocationExpressionSyntax || call is ObjectCreationExpressionSyntax))
+                    return false;
+                SymbolInfo si = _model.GetSymbolInfo(call);
+                return (si.Symbol ?? si.CandidateSymbols.FirstOrDefault()) is IMethodSymbol m
+                    && m.MethodKind != MethodKind.DelegateInvoke && !m.Locations.Any(l => l.IsInSource);
+            }
+
+            /// <summary>
+            /// LINQ・List のメソッドにデリゲートを渡す（list.Where(pred)）：デリゲートを呼ぶラムダにする
+            ///   list.Where((__dp0_0) => __dlg_K.__invoke(__dlg_K.__dlgarg(pred), __dp0_0))
+            /// そのラムダは、直接書いたラムダと同じく後の段が埋め込む。__dlgarg(...) は後の段が生成メソッドの引数にするので、
+            /// デリゲートの式は C# と同じく渡すときに 1 回だけ評価され、その値が使われ続ける
+            /// </summary>
+            public override SyntaxNode VisitArgument(ArgumentSyntax node)
+            {
+                ExpressionSyntax e = node.Expression;
+                if (e is AnonymousFunctionExpressionSyntax || !node.RefKindKeyword.IsKind(SyntaxKind.None)
+                    || _model.GetTypeInfo(e).ConvertedType?.TypeKind != TypeKind.Delegate || !(DelegateOf(e) is DelegateInfo info) || !IsExternalArgument(e))
+                    return base.VisitArgument(node);
+                if (info.Unsupported != null)
+                {
+                    Error(e, $"'{info.Name}' : {info.Unsupported}");
+                    return node;
+                }
+                int k = _wrapCount++;
+                string[] names = Enumerable.Range(0, info.Invoke.Parameters.Length).Select(i => $"__dp{_treeIndex}_{k}_{i}").ToArray();
+                string receiver = Text(Visit(e));
+                // 呼び出しと同じく、変数・フィールドなら、渡した行で null かを確かめる（そうでなければ、__dlgarg の中で止まる）
+                if (IsPure(e))
+                    receiver = $"((({receiver}).Length < 0) ? null : ({receiver}))";
+                receiver = $"{info.HelperFull}.{Shared.ArgMethod}({receiver})";
+                string lambda = $"({string.Join(", ", names)}) => {info.HelperFull}.__invoke({string.Join(", ", new[] { receiver }.Concat(names))})";
+                return node.WithExpression(Parse(lambda, e));
+            }
+
+            private int _wrapCount;
+
+            /// <summary>
+            /// 型の違うデリゲートへの変換（Func&lt;string&gt; → Func&lt;object&gt; など、.NET のデリゲートの変性）。
+            /// 中継メソッドの引数・戻り値のフィールドが型ごとに違うので、未対応
+            /// </summary>
+            private bool VarianceError(ExpressionSyntax e)
+            {
+                if (e is AnonymousFunctionExpressionSyntax)
+                    return false;
+                TypeInfo ti = _model.GetTypeInfo(e);
+                if (ti.Type == null || ti.ConvertedType == null || SymbolEqualityComparer.Default.Equals(ti.Type, ti.ConvertedType))
+                    return false;
+                DelegateInfo from = _shared.Find(ti.Type);
+                DelegateInfo to = _shared.Find(ti.ConvertedType);
+                if (from == null || to == null || from == to)
+                    return false;
+                Error(e, $"'{from.Name}' : 型の違うデリゲート（'{to.Name}'）への変換は未対応です");
+                return true;
+            }
+
             private static string Text(SyntaxNode node) => node.ToString();
 
             // ---- 宣言 ---------------------------------------------------------
@@ -691,7 +823,23 @@ namespace UdonSharpPlus
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
                 var visited = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
-                return visited.WithMembers(AppendHelperClasses(node.Members, visited.Members));
+                visited = visited.WithMembers(AppendHelperClasses(node.Members, visited.Members));
+
+                // .NET のデリゲート（#125）の呼び出しの static クラスは、最初に使った tree の最後のメンバーのうしろ（名前空間の外）に、同じ行で置く
+                var external = _shared.Delegates.Values.Where(d => d.External && d.Unsupported == null && d.HomeTree == _treeIndex)
+                    .OrderBy(d => d.Key, StringComparer.Ordinal).ToList();
+                if (external.Count == 0 || visited.Members.Count == 0)
+                    return visited;
+                var members = visited.Members.ToList();
+                MemberDeclarationSyntax last = members[members.Count - 1];
+                SyntaxTriviaList trailing = last.GetTrailingTrivia();
+                members[members.Count - 1] = last.WithTrailingTrivia(SyntaxFactory.TriviaList());
+                for (int k = 0; k < external.Count; k++)
+                    members.Add(SyntaxFactory.ParseMemberDeclaration(_shared.HelperClassCode(external[k]))
+                        .WithLeadingTrivia(SyntaxFactory.Space)
+                        .WithTrailingTrivia(k == external.Count - 1 ? trailing : SyntaxFactory.TriviaList()));
+                Changed = true;
+                return visited.WithMembers(SyntaxFactory.List(members));
             }
 
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
@@ -1256,25 +1404,36 @@ namespace UdonSharpPlus
             /// <summary>デリゲート型の参照を object[] にする。置き換えられない位置ならエラー</summary>
             private SyntaxNode TypeReference(NameSyntax node)
             {
-                if (!(_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type) || !_shared.Delegates.TryGetValue(type.OriginalDefinition, out DelegateInfo info))
+                if (!(_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type))
                     return null;
+                if (!(_shared.Find(type) is DelegateInfo info))
+                {
+                    // ソースにない、対応しないデリゲート（EventHandler・Converter・UnityAction など。#125）。UdonSharp もデリゲートを扱えない
+                    if (type.TypeKind != TypeKind.Delegate || type.Locations.Any(l => l.IsInSource))
+                        return null;
+                    string display = type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                    Error(node, IsExternalDelegate(type)
+                        ? $"'{display}' : 型引数の決まっていない .NET のデリゲートは未対応です"
+                        : $"'{display}' : この .NET のデリゲートは未対応です（Action・Func・Predicate・Comparison と、自分で宣言したデリゲートが使えます）");
+                    return node;
+                }
                 if (info.Unsupported != null)
                 {
-                    Error(node, $"'{type.Name}' : {info.Unsupported}");
+                    Error(node, $"'{info.Name}' : {info.Unsupported}");
                     return node;
                 }
 
                 SyntaxNode context = node.Parent;
                 if (context is TypeArgumentListSyntax)
                 {
-                    Error(node, $"'{type.Name}' : デリゲート型を型引数（List<{type.Name}> など）に使うことは、まだ未対応です。配列にしてください");
+                    Error(node, $"'{info.Name}' : デリゲート型を型引数（List<{info.Name}> など）に使うことは、まだ未対応です。配列にしてください");
                     return node;
                 }
                 if (context is TypeOfExpressionSyntax || context is BinaryExpressionSyntax b && (b.IsKind(SyntaxKind.IsExpression) || b.IsKind(SyntaxKind.AsExpression))
                     || context is TypePatternSyntax || context is DeclarationPatternSyntax || context is RecursivePatternSyntax
                     || context is ArgumentSyntax arg && arg.Parent?.Parent is InvocationExpressionSyntax inv && inv.Expression is IdentifierNameSyntax id && id.Identifier.ValueText == "nameof")
                 {
-                    Error(node, $"'{type.Name}' : デリゲート型の typeof・nameof・is・as・型パターンは未対応です");
+                    Error(node, $"'{info.Name}' : デリゲート型の typeof・nameof・is・as・型パターンは未対応です");
                     return node;
                 }
 
@@ -1309,7 +1468,7 @@ namespace UdonSharpPlus
                 if (!conversion.IsMethodGroup)
                     return null;
                 DelegateInfo info = _shared.Find(_model.GetTypeInfo(node).ConvertedType);
-                if (info == null || !(conversion.MethodSymbol is IMethodSymbol method))
+                if (info == null || !(conversion.MethodSymbol is IMethodSymbol method) || IsExternalArgument(node))
                     return null;
                 return Create(node, info, method);
             }
@@ -1319,7 +1478,7 @@ namespace UdonSharpPlus
                 string name = method.Name;
                 if (info.Unsupported != null)
                 {
-                    Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                    Error(node, $"'{info.Name}' : {info.Unsupported}");
                     return node;
                 }
 
@@ -1508,7 +1667,7 @@ namespace UdonSharpPlus
             {
                 if (info.Unsupported != null)
                 {
-                    Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                    Error(node, $"'{info.Name}' : {info.Unsupported}");
                     return node;
                 }
                 if (node.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
@@ -1780,7 +1939,7 @@ namespace UdonSharpPlus
                 if (arg != null && DelegateOf(arg) == info)
                     return Visit(arg).WithTriviaFrom(node);
 
-                Error(node, $"'{info.Symbol.Name}' : この形の new は未対応です");
+                Error(node, $"'{info.Name}' : この形の new は未対応です");
                 return node;
             }
 
@@ -1793,7 +1952,7 @@ namespace UdonSharpPlus
             private SyntaxNode Lambda(ExpressionSyntax node)
             {
                 DelegateInfo info = _shared.Find(_model.GetTypeInfo(node).ConvertedType);
-                if (info == null)
+                if (info == null || IsExternalArgument(node))
                     return null;
                 SyntaxNode created = CreateLambda((AnonymousFunctionExpressionSyntax)node, info);
                 if (created != node)
@@ -1822,7 +1981,7 @@ namespace UdonSharpPlus
 
                 if (info.Unsupported != null)
                 {
-                    Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                    Error(node, $"'{info.Name}' : {info.Unsupported}");
                     return node;
                 }
                 if (node.ArgumentList.Arguments.Any(a => a.NameColon != null || !a.RefKindKeyword.IsKind(SyntaxKind.None)))
@@ -1858,7 +2017,7 @@ namespace UdonSharpPlus
             {
                 if (DelegateOf(node.Expression) is DelegateInfo info)
                 {
-                    Error(node, $"'{info.Symbol.Name}' : ?.Invoke は未対応です（?. を UdonSharp Plus が扱えないため）。if (h != null) h(...); と書いてください");
+                    Error(node, $"'{info.Name}' : ?.Invoke は未対応です（?. を UdonSharp Plus が扱えないため）。if (h != null) h(...); と書いてください");
                     return node;
                 }
                 return base.VisitConditionalAccessExpression(node);
@@ -1891,7 +2050,7 @@ namespace UdonSharpPlus
             {
                 if (info.Unsupported != null)
                 {
-                    Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                    Error(node, $"'{info.Name}' : {info.Unsupported}");
                     return node;
                 }
                 string helper = $"{info.HelperFull}.{(node.IsKind(SyntaxKind.AddAssignmentExpression) ? "__combine" : "__remove")}";
@@ -1900,7 +2059,7 @@ namespace UdonSharpPlus
                     return CapturedWrite(node, symbol, slot, $"{helper}(({ValueType}){slot.Scope.Name}[{slot.Index}], {right})");
                 if (!IsRepeatable(node.Left))
                 {
-                    Error(node.Left, $"'{info.Symbol.Name}' : この形の受け側への += / -= は未対応です（受け側を 2 回評価するため）。いったん変数に入れてください");
+                    Error(node.Left, $"'{info.Name}' : この形の受け側への += / -= は未対応です（受け側を 2 回評価するため）。いったん変数に入れてください");
                     return node;
                 }
                 string left = Text(Visit(node.Left));
@@ -1937,7 +2096,7 @@ namespace UdonSharpPlus
                     {
                         if (info.Unsupported != null)
                         {
-                            Error(node, $"'{info.Symbol.Name}' : {info.Unsupported}");
+                            Error(node, $"'{info.Name}' : {info.Unsupported}");
                             return node;
                         }
                         string helper = node.IsKind(SyntaxKind.AddExpression) ? "__combine" : "__remove";
@@ -1950,7 +2109,7 @@ namespace UdonSharpPlus
                     bool rightNull = node.Right.IsKind(SyntaxKind.NullLiteralExpression);
                     if (!leftNull && !rightNull && (DelegateOf(node.Left) ?? DelegateOf(node.Right)) is DelegateInfo info)
                     {
-                        Error(node, $"'{info.Symbol.Name}' : デリゲートどうしの == / != は未対応です（null との比較はできます）");
+                        Error(node, $"'{info.Name}' : デリゲートどうしの == / != は未対応です（null との比較はできます）");
                         return node;
                     }
                 }
