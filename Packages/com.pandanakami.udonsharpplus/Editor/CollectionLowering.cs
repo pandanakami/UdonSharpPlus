@@ -718,12 +718,16 @@ namespace UdonSharpPlus
                         _pending.Add($"{typeText} {name.Identifier.ValueText} = {result};");
                         break;
                     case DeclarationExpressionSyntax _:
-                        _pending.Add($"{typeText} {token}_discard = {result};");   // out _
+                    case IdentifierNameSyntax discard when _model.GetSymbolInfo(discard).Symbol is IDiscardSymbol:
+                        _pending.Add($"{typeText} {token}_discard = {result};");   // out var _、out _（U# は捨てる _ への代入に対応しない）
                         break;
                     default:
                         _pending.Add($"{Text(Visit(outArg.Expression))} = {result};");
                         break;
                 }
+                // 戻り値を使わない文（dict.TryGetValue(k, out var v);）は、__ok; だけでは文にならないので、代入の形にする（#118 で見つけた不具合）
+                if (node.Parent is ExpressionStatementSyntax)
+                    return Parse($"{ok} = {ok}", node);
                 return Parse(ok, node);
             }
 

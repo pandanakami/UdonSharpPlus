@@ -62,6 +62,8 @@ public class LinqMore : UdonSharpBehaviour
         [TestCase("string a = string.Join(\",\", words.Select(w => w + \"!\")); string b = string.Join(\"-\", nums.Where(x => x > 1)); string c = string.Join(\"+\", words);")]
         [TestCase("string a = string.Join(\",\", nums); string b = string.Concat(words.Select(w => w + w)); string c = string.Join(\",\", Enumerable.Range(1, 3));")]
         // #141：引数に直接書いた匿名メソッド
+        // 戻り値を使わない TryGetValue の文（#118 で見つけた不具合。以前は CS0201）
+        [TestCase("dict.TryGetValue(\"a\", out int v); dict.TryGetValue(\"b\", out var w); int u; dict.TryGetValue(\"c\", out u); if (v > 0) dict.TryGetValue(\"d\", out _);")]
         [TestCase("nums.ForEach(delegate (int x) { arr[0] += x; }); int n = nums.RemoveAll(delegate (int x) { return x > 1; }); nums.Sort(delegate (int a, int b) { return b - a; });")]
         [TestCase("int a = nums.Count(delegate { return true; }); var b = nums.Where(delegate (int x, int i) { return i > 0; }).ToList(); var c = boxes.SelectMany(delegate (Box b2) { return b2.items; }).ToList();")]
         [TestCase("int a = nums.Aggregate(delegate (int x, int y) { return x - y; }); bool e = nums.Exists(delegate { return false; }); var f = nums.FindAll(delegate (int x) { if (x > 1) return true; return false; });")]

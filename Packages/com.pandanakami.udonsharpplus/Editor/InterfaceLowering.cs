@@ -90,6 +90,9 @@ namespace UdonSharpPlus
             List<SyntaxTree> current = original;
             SourceMap.RegisterTrees(current);
 
+            // コンパイル時の注意（#118）。書き換える前の元のソースから探し、最後にエラーがなければ出す
+            Notices.Found notices = Notices.Scan(original, GetMetadataReferences(), NoticeSettings.IsEnabled);
+
             // 匿名型（new { ... }）→ メンバーの並びごとの普通のクラス（#70）。ジェネリクスの前に 1 回（匿名型を型引数にするジェネリックメソッドのため）、
             // 型引数を使う匿名型はジェネリクスのあとにもう 1 回（型引数が決まってから）
             int anonymousCount = 0;
@@ -199,6 +202,15 @@ namespace UdonSharpPlus
             }
 
             diagnostics.Report(context, current);
+
+            Notices.AddRewritten(notices, original, current, NoticeSettings.IsEnabled);
+            if (!diagnostics.HasErrors && !notices.IsEmpty)
+            {
+                var paths = new List<string>(bindings.Length);
+                foreach (object b in bindings)
+                    paths.Add(UdonSharpInternals.BindingFilePath?.GetValue(b) as string);
+                notices.Report(paths, usedClasses);
+            }
         }
 
         /// <summary>インタフェースの段で中身を書き換えた汎用クラス（使われなければ元に戻す）</summary>

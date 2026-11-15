@@ -191,6 +191,10 @@ namespace UdonSharpPlus.Tests
             {
                 bool dump = InterfaceLowering.DumpEnabled;
                 string dir = InterfaceLowering.DumpDir;
+                // コンパイル時の注意（#118）は、注意のテスト（NoticeSettings.Override を決めるもの）のほかでは出さない
+                var notices = NoticeSettings.Override;
+                if (notices == null)
+                    NoticeSettings.Override = _ => false;
                 InterfaceLowering.DumpEnabled = dumpDir != null;
                 if (dumpDir != null)
                     InterfaceLowering.DumpDir = dumpDir;
@@ -202,6 +206,7 @@ namespace UdonSharpPlus.Tests
                 {
                     InterfaceLowering.DumpEnabled = dump;
                     InterfaceLowering.DumpDir = dir;
+                    NoticeSettings.Override = notices;
                 }
             }
         }
@@ -258,7 +263,16 @@ namespace UdonSharpPlus.Tests
             Property(contextType, "ModuleBindings").SetValue(context, bindings);
 
             // 本パッケージの書き換え（通常は LoadSyntaxTreesAndCreateModules の Postfix で行われる）
-            CaptureLogs(result.Logs, () => InterfaceLowering.Process(bindings, treeField, sourceTextField, context));
+            // コンパイル時の注意（#118）は、コンソールに出さずに Logs に入れる（テストの仮のファイルなので、コンソールのリンクは開けない）
+            Notices.Output = text => result.Logs.Add("Log: " + text);
+            try
+            {
+                CaptureLogs(result.Logs, () => InterfaceLowering.Process(bindings, treeField, sourceTextField, context));
+            }
+            finally
+            {
+                Notices.Output = null;
+            }
 
             // U# と同じく、ここでエラーがあれば止める（UdonSharpCompilerV1.Compile）
             if ((int)Property(contextType, "ErrorCount").GetValue(context) > 0)

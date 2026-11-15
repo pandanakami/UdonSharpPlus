@@ -104,13 +104,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func_int____Tuple_1___p0
+      Data: __dlg_System_Func_int____Tuple_4___p0
     - Name: $v
       Entry: 7
       Data: 5|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func_int____Tuple_1___p0
+      Data: __dlg_System_Func_int____Tuple_4___p0
     - Name: <UserType>k__BackingField
       Entry: 7
       Data: 6|System.RuntimeType, mscorlib
@@ -158,13 +158,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func_int____Tuple_1___ret
+      Data: __dlg_System_Func_int____Tuple_4___ret
     - Name: $v
       Entry: 7
       Data: 8|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func_int____Tuple_1___ret
+      Data: __dlg_System_Func_int____Tuple_4___ret
     - Name: <UserType>k__BackingField
       Entry: 7
       Data: 9|System.RuntimeType, mscorlib
@@ -212,13 +212,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func_int____Tuple_1___env
+      Data: __dlg_System_Func_int____Tuple_4___env
     - Name: $v
       Entry: 7
       Data: 11|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func_int____Tuple_1___env
+      Data: __dlg_System_Func_int____Tuple_4___env
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 9
