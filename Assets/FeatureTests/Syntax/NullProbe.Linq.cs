@@ -95,6 +95,63 @@ namespace FeatureTests.Syntax
                 case 50:
                     observed = "" + nums.SingleOrDefault(x => x > 1);   // ここ
                     break;
+                // #138：匿名型のリストの、範囲の合わない IndexOf・LastIndexOf（C# では ArgumentOutOfRangeException）
+                case 51:
+                {
+                    var rows = nums.Select(x => new { A = x }).ToList();
+                    observed = "" + rows.IndexOf(new { A = 1 }, -1);   // ここ
+                    break;
+                }
+                case 52:
+                {
+                    var rows = nums.Select(x => new { A = x }).ToList();
+                    observed = "" + rows.IndexOf(new { A = 1 }, 4);   // ここ
+                    break;
+                }
+                case 53:
+                {
+                    var rows = nums.Select(x => new { A = x }).ToList();
+                    observed = "" + rows.IndexOf(new { A = 1 }, 1, 3);   // ここ
+                    break;
+                }
+                case 54:
+                {
+                    var rows = nums.Select(x => new { A = x }).ToList();
+                    observed = "" + rows.IndexOf(new { A = 1 }, 0, -1);   // ここ
+                    break;
+                }
+                case 55:
+                {
+                    var rows = nums.Select(x => new { A = x }).ToList();
+                    observed = "" + rows.LastIndexOf(new { A = 1 }, 3);   // ここ
+                    break;
+                }
+                case 56:
+                {
+                    var rows = nums.Select(x => new { A = x }).ToList();
+                    observed = "" + rows.LastIndexOf(new { A = 1 }, 1, 3);   // ここ
+                    break;
+                }
+                // #141：匿名メソッドの中の例外は、本体の元の行
+                case 57:
+                    observed = "" + nums.Count(delegate (int x)
+                    {
+                        int zero = x - x;
+                        return 10 / zero > 0;   // ここ
+                    });
+                    break;
+                case 58:
+                {
+                    List<int> nothing = null;
+                    observed = "" + nums.SelectMany(delegate (int x) { return nothing; }).Count();   // ここ
+                    break;
+                }
+                case 59:
+                    nums.ForEach(delegate (int x)
+                    {
+                        observed = "" + 10 / (x - 1);   // ここ
+                    });
+                    break;
             }
         }
     }

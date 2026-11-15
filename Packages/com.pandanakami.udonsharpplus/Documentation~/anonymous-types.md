@@ -16,6 +16,7 @@ Debug.Log(p.ToString());                              // { Name = bob, Score = 3
 - `new { ... }` を `var` で受ける・メンバーを読む・ラムダの戻り値にする・入れ子にする・メンバー名を省略する（`new { x.Name }`、フィールド・変数も）。同じ名前・型・並びなら同じ型で、`cond ? new { A = 1 } : new { A = 2 }` のように混ぜて使えます
 - 匿名型の配列（`new[] { new { K = "a" }, new { K = "b" } }`）・LINQ の射影（`Select(x => new { ... })`）・匿名型の `List`（`var` で受けたもの）
 - 匿名型のリスト（`var` で受けた `List`）：`foreach`・`for`、`Add`・`Insert`・`RemoveAt`・`RemoveAll`・`Sort`・`Reverse`・`GetRange`、インデクサー、`Find`・`FindIndex`・`Exists`、LINQ（`Where`・`Select`・`OrderBy`・`ThenBy`・`Skip`・`Take`・`First`・`Last`・`Any`・`Count`・`Sum`・`Max`・`ToArray`・`ToDictionary` など）が、普通のクラスのリストと同じに使えます。`ToList()` の結果は、`var` に入れて使います（フィールドや引数の型には書けません。C# も同じです）
+- 匿名型のリストの `Contains`・`IndexOf`・`LastIndexOf`・`Remove`、LINQ の `Contains`・`Distinct` は、C# と同じく値（`Equals`）で比べます（null どうしは等しい）。LINQ の `Contains`・`Distinct` は、C# と同じく、必要な分だけ前の段を進めます。範囲の合わない `IndexOf`・`LastIndexOf` は、C# と同じく、呼んだ行で実行時例外になります
 - ラムダ・匿名メソッド・ローカル関数・クロージャの中で使う（外の変数に入れて読む）。普通のクラスの中でも作って使えます
 - ジェネリックメソッドの型引数にする（`Id(new { A = 1 })`）、ジェネリッククラスの中で型引数をメンバーにする（`new { value }`。型引数ごとに別の型になります）
 - `ToString()`、文字列の連結（`"x" + p`、`s += p`）・補間（`$"{p}"`）：C# と同じ `{ Name = bob, Score = 3 }` の形になります。メンバーが数値・bool・char・string・外部の構造体（`Vector3` など）・匿名型のときだけ使えます
@@ -31,7 +32,7 @@ Debug.Log(p.ToString());                              // { Name = bob, Score = 3
 |---|---|
 | `object`・インタフェースとして使う（`Debug.Log(p)`、`object o = p;`、`string.Format("{0}", p)`） | `Debug.Log(p.ToString())` のように、`ToString()` か、メンバーを渡してください |
 | `GetHashCode()`・`GetType()` | — |
-| 匿名型のリストの `Contains`・`IndexOf`・`LastIndexOf`・`Remove`、LINQ の `Distinct`・`Contains`（C# は値で比べるが、リストの比較は参照になるため）。型引数が匿名型になるジェネリックメソッドの中の `list.Contains(x)` なども同じです | `Exists`・`FindIndex`・`Any`・`RemoveAll` などのラムダで比べてください（`list.Any(x => x.Equals(target))` は、C# と同じ値の比較になります） |
+| 型引数が匿名型になるジェネリックメソッドの中の `list.Contains(x)`・`IndexOf`・`Remove`・`Distinct` など（参照の比較になるため）、メンバーがデリゲートの匿名型のリストの `Contains` など | 匿名型のリストに直接呼ぶか、`Exists`・`FindIndex`・`Any` などのラムダで比べてください |
 | 匿名型をキーにする `ToDictionary`（`ToDictionary(e => e)`。C# はキーを値で比べるが、ここでは参照の比較になるため）。匿名型を値にするのは使えます（`ToDictionary(e => e.Id)`） | キーは、数値・string などのメンバーにしてください |
 | `ToString`・文字列の連結に、メンバーが普通のクラス・インタフェース・配列・`enum`・デリゲートの匿名型を使う | メンバーを数値・string などにするか、メンバーを個別に文字列にしてください |
 | `Equals` に、メンバーがデリゲートの匿名型を使う | — |
@@ -41,5 +42,6 @@ Debug.Log(p.ToString());                              // { Name = bob, Score = 3
 
 - 匿名型は、メンバーの並び（名前と型）ごとに、普通のクラスになります（`__Anon_0` など）。`new { Name = "a", Score = 1 }` は `new __Anon_0("a", 1)` になり、あとは[普通のクラス](class.md)と同じに扱います（インスタンスは `object[]`、メソッドは使う UdonSharpBehaviour にコピーされます）。クラスは、最初に使ったファイルの最後に、1 行で置きます
 - 普通のクラスは `ToString`・`Equals` を override できないので、`p.ToString()` は `p.__ToString()`、`p.Equals(q)` は `p.__Equals(q)`、`"x" + p` は `__Anon_0.__Str(p)` に書き換えます
+- 匿名型のリストの `Contains` などは、生成するクラスの static メソッドの呼び出しにします（`list.Contains(x)` → `__Anon_0.__Contains(list, x)`。中で `Equals` と同じ比べ方をします）。使っているものだけを生成します。LINQ の `Contains`・`Distinct` は、LINQ の段のまま、値の比較を呼ぶ形にします
 - 匿名型は、ジェネリクスの前（`Id(new { A = 1 })` のため）と、ジェネリクスのコピーのあと（型引数を使うもの）の 2 回、書き換えます
 - 書き換え後のソースは、`Library/UdonSharpPlus/` で見られます

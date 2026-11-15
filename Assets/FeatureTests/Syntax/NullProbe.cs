@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public partial class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 51;
+        public const int Count = 60;
 
         public int caseId;
         public bool started;
@@ -107,6 +107,15 @@ namespace FeatureTests.Syntax
                 case 48: return "exception inside SelectMany result selector";
                 case 49: return "First on empty anonymous list";
                 case 50: return "SingleOrDefault with 2+ matches";
+                case 51: return "anonymous list IndexOf negative start";
+                case 52: return "anonymous list IndexOf start past Count";
+                case 53: return "anonymous list IndexOf count past the end";
+                case 54: return "anonymous list IndexOf negative count";
+                case 55: return "anonymous list LastIndexOf start at Count";
+                case 56: return "anonymous list LastIndexOf count past start";
+                case 57: return "exception inside anonymous method body";
+                case 58: return "SelectMany anonymous method returning null";
+                case 59: return "exception inside ForEach anonymous method";
             }
             return "?";
         }

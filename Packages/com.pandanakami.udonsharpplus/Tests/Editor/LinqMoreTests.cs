@@ -61,6 +61,10 @@ public class LinqMore : UdonSharpBehaviour
         // #146：LINQ の結果・List を、外部のメソッドの IEnumerable<T> の引数に渡す
         [TestCase("string a = string.Join(\",\", words.Select(w => w + \"!\")); string b = string.Join(\"-\", nums.Where(x => x > 1)); string c = string.Join(\"+\", words);")]
         [TestCase("string a = string.Join(\",\", nums); string b = string.Concat(words.Select(w => w + w)); string c = string.Join(\",\", Enumerable.Range(1, 3));")]
+        // #141：引数に直接書いた匿名メソッド
+        [TestCase("nums.ForEach(delegate (int x) { arr[0] += x; }); int n = nums.RemoveAll(delegate (int x) { return x > 1; }); nums.Sort(delegate (int a, int b) { return b - a; });")]
+        [TestCase("int a = nums.Count(delegate { return true; }); var b = nums.Where(delegate (int x, int i) { return i > 0; }).ToList(); var c = boxes.SelectMany(delegate (Box b2) { return b2.items; }).ToList();")]
+        [TestCase("int a = nums.Aggregate(delegate (int x, int y) { return x - y; }); bool e = nums.Exists(delegate { return false; }); var f = nums.FindAll(delegate (int x) { if (x > 1) return true; return false; });")]
         public void Compiles(string body)
         {
             CompileResult r = Compile(body);
@@ -87,11 +91,30 @@ public class LinqMore : UdonSharpBehaviour
         [TestCase("var a = groups.SelectMany(g => g.ActiveToggles()).ToList();", "'SelectMany' : 集まりを返すラムダは")]
         [TestCase("string a = string.Join(\",\", objs);", "として渡すのは未対応です")]
         [TestCase("var rows = nums.Select(x => new { A = x }).ToList(); string a = string.Join(\",\", rows);", "として渡すのは未対応です")]
+        [TestCase("var a = words.SelectMany(delegate (string w) { return w; }).ToList();", "'SelectMany' : 集まりを返すラムダは")]
+        [TestCase("var a = nums.Select(delegate (int x) { return (x, 1); }).ToList();", "タプル")]
         public void ReportsUnsupported(string body, string message)
         {
             CompileResult r = Compile(body);
             Assert.That(r.Diagnostics.Any(d => d.Contains(message) && d.Contains("LinqMore.cs(23,")),
                 body + "\n" + (r.Diagnostics.Count == 0 ? "(no diagnostics)" : string.Join("\n", r.Diagnostics)));
+        }
+
+        /// <summary>#141：複数行の匿名メソッドの本体の中のエラーは、本体の元の行に出る</summary>
+        [Test]
+        public void ErrorInsideAnonymousMethodBodyPointsToItsLine()
+        {
+            CompileResult r = Compile("var a = nums.Select(delegate (int x)\n        {\n            int y = x + 1;\n            return (y, 1);\n        }).ToList();");
+            Assert.That(r.Diagnostics.Any(d => d.Contains("タプル") && d.Contains("LinqMore.cs(26,")), string.Join("\n", r.Diagnostics));
+        }
+
+        /// <summary>#141：async の匿名メソッドは、内部のエラー（例外）にならずに、コンパイルエラーになる</summary>
+        [Test]
+        public void AsyncAnonymousMethodIsReported()
+        {
+            CompileResult r = Compile("var a = nums.Select(async delegate (int x) { return x; }).ToList();");
+            Assert.That(r.Diagnostics, Is.Not.Empty);
+            Assert.That(r.Diagnostics.Any(d => d.Contains("Exception")), Is.False, string.Join("\n", r.Diagnostics));
         }
     }
 }

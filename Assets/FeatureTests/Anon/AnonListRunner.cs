@@ -28,7 +28,41 @@ namespace FeatureTests.Anon
         public int Total(List<int> xs) => xs.Select(x => new { V = x }).Sum(e => e.V);
     }
 
-    // #71 の追加テスト：匿名型のリスト（A：機能単体、C：ほかの機能との組み合わせ）
+    // #138：普通のクラスの中で、匿名型のリストを値で比べる
+    public class AnEqUser
+    {
+        public string Run(List<int> src)
+        {
+            var rows = src.Select(x => new { A = x }).ToList();
+            var t = new { A = 3 };
+            bool c = rows.Contains(t);
+            int i = rows.IndexOf(t, 3);
+            bool rm = rows.Remove(t);
+            return "" + c + i + rm + rows.Count + rows.Distinct().Count() + rows.Select(e => new { e.A }).Contains(t);
+        }
+    }
+
+    // #138：ジェネリッククラスの中で、型引数を使う匿名型のリストを値で比べる
+    public class AnBag<T>
+    {
+        public List<T> items = new List<T>();
+
+        public bool Has(T v)
+        {
+            var rows = items.Select(x => new { x }).ToList();
+            return rows.Contains(new { x = v });
+        }
+
+        public int Uniq() => items.Select(x => new { x }).Distinct().Count();
+
+        public int Find(T v)
+        {
+            var rows = items.Select(x => new { x }).ToList();
+            return rows.LastIndexOf(new { x = v });
+        }
+    }
+
+    // #71 の追加テスト：匿名型のリスト（A：機能単体、C：ほかの機能との組み合わせ）。#138：値で比べるメソッド（B）
     public partial class AnonListRunner : UdonSharpBehaviour
     {
         // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
@@ -38,11 +72,13 @@ namespace FeatureTests.Anon
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果（Scenario() を普通の C# として実行して確かめたもの）
-        private const string Expected = "A1=0FalseTrueTrue00;A2=1,4,True,True13,2;A3=19826,59,986,62,2,035;A4=32,TrueTrueTrue;A6=True,1,2,False,24;A8=n33,Truen2,FalseTrue,1True;A10=bdac,dbca,acbd,acbd;A11=True2,False3,33,True6,32,22,24;A12=4,-3,7,2,4999999999,5000000000,-0.5,-2,-0.25,1000000000.25,1000000000,0;C1=3,3,65;C2=2,6True6,6;C4=203040,2;C5=66,23;C6=9531:3:41,9,21;C8=65,62,3;C9=25,32,True1,8;C10=622s;C11=61";
+        private const string Expected = "A1=0FalseTrueTrue00;A2=1,4,True,True13,2;A3=19826,59,986,62,2,035;A4=32,TrueTrueTrue;A5=TrueFalse,14-1-1,41-1,11,1203,TrueTrue3,TrueFalse510120,True132;A6=True,1,2,False,24;A8=n33,Truen2,FalseTrue,1True;A10=bdac,dbca,acbd,acbd;A11=True2,False3,33,True6,32,22,24;A12=4,-3,7,2,4999999999,5000000000,-0.5,-2,-0.25,1000000000.25,1000000000,0;C1=3,3,65;C2=2,6True6,6;C4=203040,2;C5=66,23;C6=9531:3:41,9,21;C8=65,62,3;C9=25,32,True1,8;C10=622s;C11=61;B2=1-1-114-1,4-141-1-1;B3=1,4;B4=TrueTrueFalseFalse,13123,6;B5=31True2,21,2;B6=TrueFalseFalseFalseFalse-1;BC1=True2,11;BC2=TrueFalse32,2;BC3=True5True53True;BC4=TrueFalse22,True1;BC5=2,3,6;BC6=2,3,True,1False";
 
         public Text display;
 
         private int _c;
+
+        private int Bump() { _c++; return 2; }
 
         private void Start() { Run(); }
 
@@ -86,6 +122,17 @@ namespace FeatureTests.Anon
             var oarr = orig.ToArray();
             var back = oarr.ToList();
             s += "A4=" + orig.Count + copy.Count + "," + (copy[0] == orig[1]) + (oarr[0] == orig[0]) + (back[2] == orig[2]) + ";";
+
+            // A5（#138）：Contains・IndexOf・LastIndexOf・Remove・Distinct は、C# と同じく値で比べる（引数は 1 回だけ評価する。null どうしは等しい）
+            var l5 = nums.Select(x => new { A = x % 3 }).ToList();
+            var t5 = new { A = 2 };
+            _c = 0;
+            s += "A5=" + l5.Contains(t5) + l5.Contains(new { A = 7 }) + "," + l5.IndexOf(t5) + l5.IndexOf(t5, 2) + l5.IndexOf(t5, 2, 2) + l5.IndexOf(new { A = 9 }) + "," + l5.LastIndexOf(t5) + l5.LastIndexOf(t5, 3) + l5.LastIndexOf(t5, 3, 2) + ","
+                 + l5.IndexOf(new { A = Bump() }) + _c + "," + string.Join("", l5.Distinct().Select(e => e.A)) + l5.Distinct().Count() + "," + l5.Where(e => e.A > 0).Contains(t5) + l5.ToArray().Contains(new { A = 0 }) + l5.Select(e => new { B = e.A }).Distinct().Count() + ",";
+            bool r5 = l5.Remove(t5);
+            bool r5b = l5.Remove(new { A = 9 });
+            var ln = new[] { new { A = 1 }, null, new { A = 1 }, null }.ToList();
+            s += r5 + "" + r5b + l5.Count + string.Join("", l5.Select(e => e.A)) + "," + ln.Contains(null) + ln.IndexOf(null) + ln.LastIndexOf(null) + ln.Distinct().Count() + ";";
 
             // A6：値で比べたいときの書き方（Equals をラムダの中で使う）
             var target = new { A = 2 };
@@ -173,7 +220,7 @@ namespace FeatureTests.Anon
 #else
             var pl = nums.Select(x => new { Off = x, Other = 1 }).ToList();
 #endif
-            s += "C11=" + pl.Count + pl[0].On;
+            s += "C11=" + pl.Count + pl[0].On + ";" + EqMore();
             return s;
         }
 

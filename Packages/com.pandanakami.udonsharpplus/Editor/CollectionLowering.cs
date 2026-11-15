@@ -1156,9 +1156,13 @@ namespace UdonSharpPlus
                         names = p.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray();
                         body = p.Body;
                         break;
-                    case AnonymousMethodExpressionSyntax _:
-                        Error(fn, "delegate { ... } の形は未対応です。ラムダ（x => ...）で書いてください");
-                        return null;
+                    case AnonymousMethodExpressionSyntax m:
+                        // delegate (int x) { ... }：引数の並びがなければ（delegate { ... }）、使わない名前を付ける（#141）
+                        names = m.ParameterList != null
+                            ? m.ParameterList.Parameters.Select(x => x.Identifier.ValueText).ToArray()
+                            : Enumerable.Range(0, arity).Select(i => $"__a{i}").ToArray();
+                        body = m.Block;
+                        break;
                     default:
                         if (!(_model.GetSymbolInfo(fn).Symbol is IMethodSymbol))
                         {

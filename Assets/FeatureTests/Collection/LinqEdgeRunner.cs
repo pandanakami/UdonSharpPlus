@@ -42,7 +42,7 @@ namespace FeatureTests.Collection
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果（Scenario() を普通の C# として実行して確かめたもの）
-        private const string Expected = "X1=0123,2345,0123,8,01;X2=46,012;X3=31,52;X4=01,66,00,01,61,06;X5=101,102,303;X6=a0,b1,c2|b|1|b;XC=012,7,45,642;Y1=x1x2z3,5,3;Y4=2px,2qx,1rz;Y5=00,12,12,True2,34;Y6=123,13,001012;Y7=x1,x2,z3,3,0;YC=32,99,6,36,3,12;Z2=0,False,True,False,True,True,6;Z3=7,5,-19,b<a<c,123456,21.5,21,5;Z4=0,7,0,77,1,2,61,6,c--a,a--c-a,-a--c-,33;Z6=3,11;ZC=32,34563,6,4,10;ZA=321,6,9,8,2;G1=0,5,0,x;G2=2147483647,2147483647,-6,-2147483647;G3=122,667;G4=--,True3,True1;G5=False0,True0,True0;G6=9,3,3,9;G7=00,01,31,True1;GC1=5555,03,2,3;GC2=001012,112;GC3=321,812007,24,4,13;GC4=44,n23;GC5=1+2+3,abab,[][];J1=[][7][][v7];J2=a,,c|a,,c|ac|[];J4=8,10,1,2;J5=1,20000000000|0.5,2|0.25,10000000000|True,False|x,y|xy|1.5,3,4.5,6,7.5,9;J6=123456|b, a, c|bac|b~\ta~\tc;J7=3,1,2|1,2,3,4,5,6|1,2|b,a,c;JC=6401|0b,1a,2c|{ A = 1 },{ A = 2 },{ A = 3 }|<1><2>|101,102|{1},{2}|/23//4/;P=11,6,15,2/3/4,1,2|3:6:6:3|15:12:12:6";
+        private const string Expected = "X1=0123,2345,0123,8,01;X2=46,012;X3=31,52;X4=01,66,00,01,61,06;X5=101,102,303;X6=a0,b1,c2|b|1|b;XC=012,7,45,642;Y1=x1x2z3,5,3;Y4=2px,2qx,1rz;Y5=00,12,12,True2,34;Y6=123,13,001012;Y7=x1,x2,z3,3,0;YC=32,99,6,36,3,12;Z2=0,False,True,False,True,True,6;Z3=7,5,-19,b<a<c,123456,21.5,21,5;Z4=0,7,0,77,1,2,61,6,c--a,a--c-a,-a--c-,33;Z6=3,11;ZC=32,34563,6,4,10;ZA=321,6,9,8,2;G1=0,5,0,x;G2=2147483647,2147483647,-6,-2147483647;G3=122,667;G4=--,True3,True1;G5=False0,True0,True0;G6=9,3,3,9;G7=00,01,31,True1;GC1=5555,03,2,3;GC2=001012,112;GC3=321,812007,24,4,13;GC4=44,n23;GC5=1+2+3,abab,[][];J1=[][7][][v7];J2=a,,c|a,,c|ac|[];J4=8,10,1,2;J5=1,20000000000|0.5,2|0.25,10000000000|True,False|x,y|xy|1.5,3,4.5,6,7.5,9;J6=123456|b, a, c|bac|b~\ta~\tc;J7=3,1,2|1,2,3,4,5,6|1,2|b,a,c;JC=6401|0b,1a,2c|{ A = 1 },{ A = 2 },{ A = 3 }|<1><2>|101,102|{1},{2}|/23//4/;D=2,120,True,0,123,-19;P=11,6,15,2/3/4,1,2|3:6:6:3|15:12:12:6";
 
         public Text display;
 
@@ -224,6 +224,10 @@ namespace FeatureTests.Collection
             int off = 100;
             s += "JC=" + string.Join("", boxes.SelectMany(b => b.items).Where(x => x > 1).Select(x => x * 2).Reverse().Concat(Enumerable.Range(0, 2))) + "|" + string.Join(",", words.Select((w, i) => i + w)) + "|" + string.Join(",", arows.Select(r => r.ToString())) + "|"
                  + string.Join("", nums.Take(2).Select(fmt)) + "|" + string.Join(",", nums.Take(2).Select(x => x + off)) + "|" + string.Join(",", nums.Take(2).Select(Fmt)) + "|" + string.Join("/", boxes.Select(b => string.Join("", b.items.Select(i => i + 1)))) + ";";
+
+            // ---- #141：List・LINQ の引数に直接書いた匿名メソッド（delegate { ... }） ----
+            s += "D=" + nums.FindAll(delegate (int x) { return x > 4; }).Count + "," + nums.Where(delegate (int x) { return x % 2 == 0; }).Select(delegate (int x) { return x * 10; }).Sum() + "," + nums.Exists(delegate { return true; }) + ","
+                 + nums.Count(delegate (int x) { return x > off; }) + "," + string.Join("", boxes.SelectMany(delegate (LmBox b) { return b.items; })) + "," + nums.Aggregate(delegate (int a, int b) { return a - b; }) + ";";
 
             // ---- 普通のクラス・ジェネリックメソッドの中 ----
             s += "P=" + new LeCalc().Run(nums.Take(3).ToList()) + "|" + LeGen.Describe(words) + "|" + LeGen.Describe(nums);

@@ -68,7 +68,7 @@ _scores.Sort((a, b) => b - a);
 
 未対応の書き方（コンパイルエラーになります）：
 
-- 上記の List のメソッドと LINQ の引数に直接書いた `delegate { ... }`（変数に入れてから渡すことはできます）。ほかの .NET のメソッドの引数のラムダ（`Array.Exists(arr, x => x > 0)` など）
+- ほかの .NET のメソッドの引数のラムダ（`Array.Exists(arr, x => x > 0)` など）
 - `ConvertAll` に `Converter` の変数を渡すこと（ラムダかメソッド名を直接書いてください）
 - フィールドの初期化子の中で、ラムダを渡す List のメソッドを呼ぶこと
 - `[RecursiveMethod]` を付けたメソッドの中で、外のローカル変数・引数に書き込むラムダ。外の変数は `ref` 引数で生成メソッドに渡しますが、UdonSharp は `[RecursiveMethod]` の中での `ref` 引数のメソッドの呼び出しに対応していないため、UdonSharp のエラー（`U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod`）になります。読むだけのラムダは使えます

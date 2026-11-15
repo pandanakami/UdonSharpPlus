@@ -180,6 +180,18 @@ public class ChainProbe : UdonSharpBehaviour
         [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var d = r.ToDictionary(e => e.A); var d2 = r.ToDictionary(e => e.A, e => e); int n = d[1].A + d2.Count;")]
         [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var groups = new[] { r, r }.ToList(); bool c = groups.Contains(r); int i = groups.IndexOf(r); groups.Remove(r); int n = groups[0][0].A;")]
         [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var t = new { A = 2 }; bool a = r.Any(x => x.Equals(t)); int i = r.FindIndex(x => x.Equals(t)); int n = r.RemoveAll(x => x.Equals(t));")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.Contains(new { A = 1 });")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.IndexOf(new { A = 1 });")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.LastIndexOf(new { A = 1 });")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.Remove(new { A = 1 });")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.Select(a => new { a.A }).Distinct().ToList();")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.Contains(r[0]);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.IndexOf(new { A = 1 }, 1);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.IndexOf(new { A = 1 }, 0, 2);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = r.LastIndexOf(r[0], 1);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = Enumerable.Contains(r, r[0]);")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = Enumerable.Distinct(r).ToList();")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = (r).Contains((r[0]));")]
         public void ProbeAnonList(string body)
         {
             const string head = @"using System.Collections.Generic;
@@ -196,18 +208,6 @@ public class ListProbe : UdonSharpBehaviour
             Assert.That(r.Diagnostics, Is.Empty, body + "\n" + string.Join("\n", r.Diagnostics));
         }
 
-        [TestCase("r.Contains(new { A = 1 })")]
-        [TestCase("r.IndexOf(new { A = 1 })")]
-        [TestCase("r.LastIndexOf(new { A = 1 })")]
-        [TestCase("r.Remove(new { A = 1 })")]
-        [TestCase("r.Select(a => new { a.A }).Distinct().ToList()")]
-        [TestCase("r.Contains(r[0])")]
-        [TestCase("r.IndexOf(new { A = 1 }, 1)")]
-        [TestCase("r.IndexOf(new { A = 1 }, 0, 2)")]
-        [TestCase("r.LastIndexOf(r[0], 1)")]
-        [TestCase("Enumerable.Contains(r, r[0])")]
-        [TestCase("Enumerable.Distinct(r).ToList()")]
-        [TestCase("(r).Contains((r[0]))")]
         [TestCase("r.ToDictionary(e => e)")]
         [TestCase("r.ToDictionary(e => e, e => e.A)")]
         public void AnonymousElementEqualityMethodsAreErrors(string call)
@@ -231,6 +231,40 @@ public class EqErr : UdonSharpBehaviour
             Assert.That(res.Diagnostics[0], Does.Contain("値（Equals）で比べ"));
         }
 
+        /// <summary>#138：値で比べるヘルパーは、使ったものだけを、匿名型ごとに 1 回だけ生成する（複数のファイルで使っても重ならない）</summary>
+        [Test]
+        public void ListHelpersAreGeneratedOnceAndOnlyWhenUsed()
+        {
+            const string main = "using System.Collections.Generic;\nusing System.Linq;\nusing UdonSharp;\n\npublic partial class Help1 : UdonSharpBehaviour\n{\n    private void Start()\n    {\n        var nums = new List<int> { 1 };\n        var r = nums.Select(x => new { A = x }).ToList();\n        bool z = r.Contains(r[0]);\n        int i = r.IndexOf(r[0], 0);\n        Other(nums);\n    }\n}";
+            const string part = "using System.Collections.Generic;\nusing System.Linq;\n\npublic partial class Help1\n{\n    private void Other(List<int> nums)\n    {\n        var r = nums.Select(x => new { A = x }).ToList();\n        bool z = r.Contains(null) && r.Remove(null);\n        var d = r.Distinct().ToList();\n    }\n}";
+            string lowered = CompileLowered("Help1", "public partial class Help1 { }", null, new TestSource("Help1Main.cs", main), new TestSource("Help1Part.cs", part));
+            foreach (string used in new[] { "__Contains(", "__IndexOf2(", "__Remove(" })
+                Assert.That(System.Text.RegularExpressions.Regex.Matches(lowered, "public static (bool|int|int" + System.Text.RegularExpressions.Regex.Escape("[]") + ") " + System.Text.RegularExpressions.Regex.Escape(used)).Count, Is.EqualTo(1), used);
+            foreach (string unused in new[] { "__IndexOf1(", "__IndexOf3(", "__LastIndexOf1(", "__LastIndexOf2(", "__LastIndexOf3(" })
+                Assert.That(lowered, Does.Not.Contain(unused), unused);
+        }
+
+        /// <summary>#138：比較子つきの形は、値で比べられないので、元の行でエラー</summary>
+        [TestCase("r.Contains(r[0], null)")]
+        [TestCase("r.Distinct(null).ToList()")]
+        public void AnonymousElementEqualityWithComparerIsError(string call)
+        {
+            string src = "using System.Collections.Generic;\nusing System.Linq;\nusing UdonSharp;\n\npublic class CmpErr : UdonSharpBehaviour\n{\n    private void Start()\n    {\n        var nums = new List<int> { 1 };\n        var r = nums.Select(x => new { A = x }).ToList();\n        var z = " + call + ";\n    }\n}";
+            CompileResult res = UdonSharpTestCompiler.Compile(new TestSource("CmpErr.cs", src));
+            Assert.That(res.Diagnostics.Any(d => d.Contains("CmpErr.cs(11,") && d.Contains("値（Equals）で比べ")), call + "\n" + string.Join("\n", res.Diagnostics));
+        }
+
+        /// <summary>#138：メンバーがデリゲートの匿名型は、比べ方が C# と違うので、値で比べるメソッドはエラーのまま</summary>
+        [Test]
+        public void AnonymousElementEqualityWithDelegateMemberIsError()
+        {
+            const string src = "using System.Collections.Generic;\nusing System.Linq;\nusing UdonSharp;\n\npublic class DelEq : UdonSharpBehaviour\n{\n    private void Start()\n    {\n        System.Func<int, int> f = y => y;\n        var r = new[] { new { F = f } }.ToList();\n        bool z = r.Contains(r[0]);\n    }\n}";
+            CompileResult res = UdonSharpTestCompiler.Compile(new TestSource("DelEq.cs", src));
+            Assert.That(res.Diagnostics, Has.Count.EqualTo(1), string.Join("\n", res.Diagnostics));
+            Assert.That(res.Diagnostics[0], Does.Contain("DelEq.cs(11,"), res.Diagnostics[0]);
+            Assert.That(res.Diagnostics[0], Does.Contain("値（Equals）で比べ"));
+        }
+
         /// <summary>#71：型引数が匿名型になるジェネリックメソッドの中の Contains なども、値で比べられないのでエラー（元の行）</summary>
         [Test]
         public void AnonymousElementEqualityInGenericMethodIsError()
@@ -249,15 +283,15 @@ public class EqErr : UdonSharpBehaviour
         [TestCase("Linq", "LErr.cs(11,")]
         public void AnonymousListErrorsPointToOriginalLocation(string where, string location)
         {
-            string bad = "bool z = r.Contains(r[0]);", good = "int z = r.Count;";
+            string bad = "var z = r.ToDictionary(e => e);", good = "int z = r.Count;";
             string types = "using System.Collections.Generic;\nusing System.Linq;\n\npublic class LPlain\n{\n    public void Run(List<int> nums) { var r = nums.Select(x => new { A = x }).ToList();\n        " + (where == "Plain" ? bad : good) + " }\n}";
             string main = "using System.Collections.Generic;\nusing System.Linq;\nusing UdonSharp;\n\npublic partial class LErr : UdonSharpBehaviour\n{\n    private void Start()\n    {\n        var nums = new List<int> { 1 };\n        var r = nums.Select(x => new { A = x }).ToList();\n"
-                + (where == "Linq" ? "        var q = r.Where(e => e.A > 0).Select(e => new { e.A }).Distinct().ToList();\n" : "        var q = r.Where(e => e.A > 0).ToList();\n")
+                + (where == "Linq" ? "        var q = r.Where(e => e.A > 0).Select(e => new { e.A }).ToDictionary(e => e);\n" : "        var q = r.Where(e => e.A > 0).ToList();\n")
                 + "        new LPlain().Run(nums);\n        Other(nums);\n    }\n}";
             string part = "using System.Collections.Generic;\nusing System.Linq;\n\npublic partial class LErr\n{\n    private void Other(List<int> nums)\n    { var r = nums.Select(x => new { A = x }).ToList();\n        " + (where == "Partial" ? bad : good) + "\n    }\n}";
             CompileResult res = UdonSharpTestCompiler.Compile(new TestSource("LTypes.cs", types), new TestSource("LErr.cs", main), new TestSource("LErrPart.cs", part));
-            Assert.That(res.Diagnostics, Has.Count.EqualTo(1), string.Join("\n", res.Diagnostics));
-            Assert.That(res.Diagnostics[0], Does.Contain(location), res.Diagnostics[0]);
+            Assert.That(res.Diagnostics.Any(d => d.Contains(location) && d.Contains("ToDictionary")), string.Join("\n", res.Diagnostics));
+            Assert.That(res.Diagnostics.All(d => d.Contains(location)), string.Join("\n", res.Diagnostics));
         }
 
         /// <summary>匿名型を、ジェネリックメソッドの型引数にする（推論で T が匿名型になる）</summary>

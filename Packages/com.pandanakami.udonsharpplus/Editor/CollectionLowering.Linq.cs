@@ -561,6 +561,16 @@ namespace UdonSharpPlus
 
                     switch (call.Name)
                     {
+                        case "Where" when args.Count == 1 && DistinctEquality(args[0]) is string equality:
+                        {
+                            // 匿名型の Distinct()（#138）：見たことのある値と、値の比較（__Eq）で比べる。最初に出たものを残す
+                            string seen = Temp($"seen{stage}", DataListType);
+                            body.Append($"bool __dup{stage} = false; int __sn{stage} = {seen}.Count; for (int __sj{stage} = 0; __sj{stage} < __sn{stage}; __sj{stage}++) {{ ")
+                                .Append($"if ({equality}({Unwrap($"{seen}[__sj{stage}]", type)}, __v{v})) {{ __dup{stage} = true; break; }} }} ")
+                                .Append($"if (__dup{stage}) continue; {seen}.Add({Wrap($"__v{v}", type)}); ");
+                            stage++;
+                            continue;
+                        }
                         case "Where" when args.Count == 1:
                             if (!Filter(call, args[0]))
                                 return node;
@@ -622,7 +632,7 @@ namespace UdonSharpPlus
                             // 集まりの実際の型（デリゲートの戻り値の型は IEnumerable<T> なので、ラムダの本体・return の式から取る）
                             var returned = new List<ExpressionSyntax>();
                             bool block = false;
-                            if (args[0] is LambdaExpressionSyntax collectionLambda)
+                            if (args[0] is AnonymousFunctionExpressionSyntax collectionLambda)
                             {
                                 if (collectionLambda.Body is ExpressionSyntax collectionBody)
                                     returned.Add(collectionBody);
@@ -965,6 +975,22 @@ namespace UdonSharpPlus
             }
 
             private const string NoElement = "要素がありません（C# では InvalidOperationException）";
+
+            /// <summary>
+            /// 匿名型の段（#138）が Distinct() の代わりに置いた印：Where(x => __cls___Anon_0____Eq…(x, x))（同じ引数を 2 つ渡す、生成したクラスの値の比較）。
+            /// 印なら、比較のメソッドの名前。そうでなければ null
+            /// </summary>
+            private static string DistinctEquality(ExpressionSyntax fn)
+            {
+                if (!(fn is SimpleLambdaExpressionSyntax lambda) || !(lambda.Body is InvocationExpressionSyntax call) || call.ArgumentList.Arguments.Count != 2)
+                    return null;
+                string parameter = lambda.Parameter.Identifier.ValueText;
+                if (!parameter.StartsWith("__de", System.StringComparison.Ordinal)
+                    || call.ArgumentList.Arguments.Any(a => !(a.Expression is IdentifierNameSyntax id) || id.Identifier.ValueText != parameter))
+                    return null;
+                string name = call.Expression.ToString();
+                return name.Contains(AnonymousTypeLowering.GeneratedPrefix) && name.Contains("__Eq") ? name : null;
+            }
 
             /// <summary>C# なら例外になるところ：エラーのログを出して、Udon の実行時例外にする</summary>
             private static string Halt(string op, string message) =>
