@@ -137,18 +137,18 @@ namespace UdonSharpPlus
                         switch (node)
                         {
                             case InterfaceDeclarationSyntax i when i.TypeParameterList != null:
-                                Error(i.TypeParameterList, $"'{i.Identifier.ValueText}' : ジェネリックなインタフェースは未対応です");
+                                Error(i.TypeParameterList, Loc.T($"'{i.Identifier.ValueText}' : ジェネリックなインタフェースは未対応です", $"'{i.Identifier.ValueText}' : Generic interfaces are not supported"));
                                 break;
 
                             case ClassDeclarationSyntax c when c.TypeParameterList != null:
                                 if (!(model.GetDeclaredSymbol(c) is INamedTypeSymbol type))
                                     break;
                                 if (InterfaceLowering.IsUdonSharpBehaviour(type))
-                                    Error(c.TypeParameterList, $"'{type.Name}' : ジェネリックな UdonSharpBehaviour は未対応です");
+                                    Error(c.TypeParameterList, Loc.T($"'{type.Name}' : ジェネリックな UdonSharpBehaviour は未対応です", $"'{type.Name}' : Generic UdonSharpBehaviours are not supported"));
                                 else if (type.ContainingType != null)
-                                    Error(c.TypeParameterList, $"'{type.Name}' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください");
+                                    Error(c.TypeParameterList, Loc.T($"'{type.Name}' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください", $"'{type.Name}' : Nested classes are not supported. Declare the class directly in a namespace"));
                                 else if (type.DeclaringSyntaxReferences.Length > 1)
-                                    Error(c.TypeParameterList, $"'{type.Name}' : ジェネリッククラスの partial は未対応です");
+                                    Error(c.TypeParameterList, Loc.T($"'{type.Name}' : ジェネリッククラスの partial は未対応です", $"'{type.Name}' : partial generic classes are not supported"));
                                 else if (ClassLowering.IsPlainClass(type))
                                     _classes[type] = c;
                                 break;
@@ -183,8 +183,8 @@ namespace UdonSharpPlus
                     case Accessibility.Internal:
                     case Accessibility.ProtectedOrInternal:
                         _diagnostics.Warning(declaration.Identifier.GetLocation(),
-                            $"'{method.Name}' : UdonSharpBehaviour のジェネリックメソッドは、別の UdonSharpBehaviour からは呼べません" +
-                            "（同じクラスと継承したクラスの中からだけ呼べます）。private か protected にしてください");
+                            Loc.T($"'{method.Name}' : UdonSharpBehaviour のジェネリックメソッドは、別の UdonSharpBehaviour からは呼べません", $"'{method.Name}' : A generic method of an UdonSharpBehaviour cannot be called from another UdonSharpBehaviour") +
+                            Loc.T("（同じクラスと継承したクラスの中からだけ呼べます）。private か protected にしてください", " (it can only be called from the same class and derived classes). Make it private or protected"));
                         break;
                 }
             }
@@ -358,7 +358,7 @@ namespace UdonSharpPlus
                 // 同じ行の複数の式から見つかるので、行ごとに 1 回
                 var line = at.GetLocation().GetLineSpan();
                 if (_deepReported.Add(line.Path + "|" + at.SyntaxTree.GetHashCode() + "|" + line.StartLinePosition.Line))
-                    Error(at, "ジェネリックの型引数の入れ子が深すぎます（型が際限なく増える再帰は未対応です）");
+                    Error(at, Loc.T("ジェネリックの型引数の入れ子が深すぎます（型が際限なく増える再帰は未対応です）", "Generic type arguments are nested too deeply (recursion that creates types without limit is not supported)"));
                 return true;
             }
 
@@ -482,13 +482,13 @@ namespace UdonSharpPlus
                 switch (node)
                 {
                     case TypeOfExpressionSyntax typeOf when typeOf.Type.DescendantNodesAndSelf().OfType<OmittedTypeArgumentSyntax>().Any():
-                        Error(node, "型引数を省いた typeof（typeof(Pool<>) など）は未対応です");
+                        Error(node, Loc.T("型引数を省いた typeof（typeof(Pool<>) など）は未対応です", "typeof without type arguments (typeof(Pool<>) and so on) is not supported"));
                         return null;
 
                     case MemberAccessExpressionSyntax access:
                         if (symbol is IPropertySymbol p && p.Name == "Default" && p.ContainingType.OriginalDefinition is INamedTypeSymbol owner
                             && (owner.ToDisplayString() == "System.Collections.Generic.EqualityComparer<T>" || owner.ToDisplayString() == "System.Collections.Generic.Comparer<T>"))
-                            Error(node, $"'{access}' : EqualityComparer<T>.Default / Comparer<T>.Default は未対応です（CompareTo・Equals を直接呼んでください）");
+                            Error(node, Loc.T($"'{access}' : EqualityComparer<T>.Default / Comparer<T>.Default は未対応です（CompareTo・Equals を直接呼んでください）", $"'{access}' : EqualityComparer<T>.Default / Comparer<T>.Default are not supported (call CompareTo / Equals directly)"));
                         return null;
 
                     case IdentifierNameSyntax _ when symbol is ITypeParameterSymbol parameter:
@@ -529,7 +529,7 @@ namespace UdonSharpPlus
                         sameClass = true;
                 if (sameReceiver && sameClass)
                     return true;
-                Error(name, $"'{definition.Name}' : 別の UdonSharpBehaviour のジェネリックメソッドを呼ぶのは未対応です（static クラスに移すか、型を決めたメソッドを用意してください）");
+                Error(name, Loc.T($"'{definition.Name}' : 別の UdonSharpBehaviour のジェネリックメソッドを呼ぶのは未対応です（static クラスに移すか、型を決めたメソッドを用意してください）", $"'{definition.Name}' : Calling a generic method of another UdonSharpBehaviour is not supported (move it to a static class, or add a method with concrete types)"));
                 return false;
             }
 
@@ -600,12 +600,12 @@ namespace UdonSharpPlus
             {
                 switch (member)
                 {
-                    case MethodDeclarationSyntax m: return $"メソッド {m.Identifier.ValueText}";
-                    case ConstructorDeclarationSyntax _: return "コンストラクタ";
-                    case PropertyDeclarationSyntax p: return $"プロパティ {p.Identifier.ValueText}";
-                    case FieldDeclarationSyntax f: return $"フィールド {string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.ValueText))}";
-                    case OperatorDeclarationSyntax o: return $"演算子 {o.OperatorToken.Text}";   // #105
-                    case ConversionOperatorDeclarationSyntax c: return $"変換 {c.ImplicitOrExplicitKeyword.Text} operator {c.Type}";
+                    case MethodDeclarationSyntax m: return Loc.T($"メソッド {m.Identifier.ValueText}", $"method {m.Identifier.ValueText}");
+                    case ConstructorDeclarationSyntax _: return Loc.T("コンストラクタ", "the constructor");
+                    case PropertyDeclarationSyntax p: return Loc.T($"プロパティ {p.Identifier.ValueText}", $"property {p.Identifier.ValueText}");
+                    case FieldDeclarationSyntax f: return Loc.T($"フィールド {string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.ValueText))}", $"field {string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.ValueText))}");
+                    case OperatorDeclarationSyntax o: return Loc.T($"演算子 {o.OperatorToken.Text}", $"operator {o.OperatorToken.Text}");   // #105
+                    case ConversionOperatorDeclarationSyntax c: return Loc.T($"変換 {c.ImplicitOrExplicitKeyword.Text} operator {c.Type}", $"conversion {c.ImplicitOrExplicitKeyword.Text} operator {c.Type}");
                     default: return null;
                 }
             }
@@ -633,7 +633,7 @@ namespace UdonSharpPlus
                 {
                     Map = MethodMap(instance),
                     ClassName = outer?.ClassName,
-                    Member = $"メソッド {decl.Identifier.ValueText}<{string.Join(", ", instance.Arguments.Select(Display))}>",
+                    Member = Loc.T($"メソッド {decl.Identifier.ValueText}<{string.Join(", ", instance.Arguments.Select(Display))}>", $"method {decl.Identifier.ValueText}<{string.Join(", ", instance.Arguments.Select(Display))}>"),
                 };
                 var edits = new List<Edit>
                 {
@@ -679,7 +679,7 @@ namespace UdonSharpPlus
                 MemberDeclarationSyntax member = SyntaxFactory.ParseMemberDeclaration(text, options: original.SyntaxTree?.Options);
                 if (member == null)
                 {
-                    Error(original, "ジェネリックのコピーを作れませんでした");
+                    Error(original, Loc.T("ジェネリックのコピーを作れませんでした", "Could not create the generic copy"));
                     return "";
                 }
 
@@ -692,7 +692,7 @@ namespace UdonSharpPlus
                 string result = flat.ToFullString().Trim();
                 if (result.Contains("\n"))
                 {
-                    Error(original, "ジェネリックなクラス・メソッドの中の、改行を含む補間文字列は未対応です");
+                    Error(original, Loc.T("ジェネリックなクラス・メソッドの中の、改行を含む補間文字列は未対応です", "Interpolated strings that contain a line break are not supported inside a generic class or method"));
                     return "";
                 }
                 return result;

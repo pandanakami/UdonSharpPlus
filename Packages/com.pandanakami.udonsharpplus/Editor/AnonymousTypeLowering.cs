@@ -260,7 +260,7 @@ namespace UdonSharpPlus
                     string why = Unsupported(p.Type);
                     if (why != null)
                     {
-                        error = $"'{p.Name}' : 匿名型のメンバーに、{why}は使えません";
+                        error = Loc.T($"'{p.Name}' : 匿名型のメンバーに、{why}は使えません", $"'{p.Name}' : {why} cannot be used as a member of an anonymous type");
                         return null;
                     }
                 }
@@ -285,12 +285,12 @@ namespace UdonSharpPlus
                     case IArrayTypeSymbol a:
                         return Unsupported(a.ElementType);
                     case ITypeParameterSymbol _:
-                        return "型引数（ジェネリクスのコピーのあとの段で、型引数が決まったものだけ使えます）";
+                        return Loc.T("型引数（ジェネリクスのコピーのあとの段で、型引数が決まったものだけ使えます）", "a type parameter (only allowed in the stage after generic copies, once the type argument is known)");
                     case IPointerTypeSymbol _:
-                        return "ポインター";
+                        return Loc.T("ポインター", "a pointer");
                     case INamedTypeSymbol n:
                         if (n.TypeKind == TypeKind.Error)
-                            return "解決できない型";
+                            return Loc.T("解決できない型", "an unresolved type");
                         foreach (ITypeSymbol arg in n.TypeArguments)
                         {
                             string why = Unsupported(arg);
@@ -392,7 +392,7 @@ namespace UdonSharpPlus
                     string value = ToStringOf(p.Type, Ident(p.Name));
                     if (value == null)
                     {
-                        info.ToStringError = $"メンバー '{p.Name}' の型（{p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}）の文字列を、C# と同じにできないため";
+                        info.ToStringError = Loc.T($"メンバー '{p.Name}' の型（{p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}）の文字列を、C# と同じにできないため", $"the type of member '{p.Name}' ({p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}) cannot be turned into the same text as C#");
                         break;
                     }
                     parts.Add($"\"{(parts.Count == 0 ? "" : ", ")}{p.Name} = \" + {value}");
@@ -413,7 +413,7 @@ namespace UdonSharpPlus
                 {
                     if (p.Type is INamedTypeSymbol d && d.TypeKind == TypeKind.Delegate)
                     {
-                        info.EqualsError = $"メンバー '{p.Name}' がデリゲートで、比べ方が C# と違うため";
+                        info.EqualsError = Loc.T($"メンバー '{p.Name}' がデリゲートで、比べ方が C# と違うため", $"member '{p.Name}' is a delegate and would be compared differently from C#");
                         break;
                     }
                     compares.Add(p.Type is INamedTypeSymbol a && a.IsAnonymousType && Get(a, out _) is AnonInfo inner
@@ -514,7 +514,7 @@ namespace UdonSharpPlus
                             }
                             if (anon.ToStringError != null)
                             {
-                                Error(e, $"匿名型の文字列への変換は、{anon.ToStringError}、使えません");
+                                Error(e, Loc.T($"匿名型の文字列への変換は、{anon.ToStringError}、使えません", $"Converting an anonymous type to a string cannot be used because {anon.ToStringError}"));
                                 return node;
                             }
                             return Parse($"{anon.Name}.__Str({Text(base.Visit(node))})", node);
@@ -523,7 +523,7 @@ namespace UdonSharpPlus
                         if (!(e.Parent is ParenthesizedExpressionSyntax) && info.ConvertedType != null
                             && !SymbolEqualityComparer.Default.Equals(info.Type, info.ConvertedType) && !IsReferenceComparison(e))
                         {
-                            Error(e, "匿名型を object・インタフェースとして使うことは未対応です（p.ToString() で文字列にするか、メンバーを渡してください）");
+                            Error(e, Loc.T("匿名型を object・インタフェースとして使うことは未対応です（p.ToString() で文字列にするか、メンバーを渡してください）", "Using an anonymous type as object or as an interface is not supported (turn it into a string with p.ToString(), or pass its members)"));
                             return node;
                         }
                     }
@@ -615,8 +615,8 @@ namespace UdonSharpPlus
                     if (anonElement.IsAnonymousType && ListComparison(node, cmp, anonElement) is SyntaxNode compared)
                         return compared;
                     Error(node, cmp.Name == "ToDictionary"
-                        ? "'ToDictionary' : 匿名型をキーにする Dictionary は未対応です（C# はキーを値（Equals）で比べますが、ここでは参照の比較になります）。キーは、数値・string などのメンバーにしてください"
-                        : $"'{cmp.Name}' : 匿名型の要素を値（Equals）で比べるこの形は未対応です（リストの比較は参照になります）。Exists / FindIndex / Any / Where などのラムダで比べてください");
+                        ? Loc.T("'ToDictionary' : 匿名型をキーにする Dictionary は未対応です（C# はキーを値（Equals）で比べますが、ここでは参照の比較になります）。キーは、数値・string などのメンバーにしてください", "'ToDictionary' : A Dictionary keyed by an anonymous type is not supported (C# compares keys by value (Equals), but here they would be compared by reference). Use a member such as a number or string as the key")
+                        : Loc.T($"'{cmp.Name}' : 匿名型の要素を値（Equals）で比べるこの形は未対応です（リストの比較は参照になります）。Exists / FindIndex / Any / Where などのラムダで比べてください", $"'{cmp.Name}' : This form, which compares anonymous type elements by value (Equals), is not supported (the list comparison would be by reference). Compare in a lambda with Exists / FindIndex / Any / Where instead"));
                     return node;
                 }
                 if (node.Expression is MemberAccessExpressionSyntax access
@@ -637,7 +637,7 @@ namespace UdonSharpPlus
                     {
                         if (info.ToStringError != null)
                         {
-                            Error(node, $"匿名型の ToString は、{info.ToStringError}、使えません");
+                            Error(node, Loc.T($"匿名型の ToString は、{info.ToStringError}、使えません", $"ToString on an anonymous type cannot be used because {info.ToStringError}"));
                             return node;
                         }
                         return Parse($"{Text(Visit(access.Expression))}.__ToString()", node);
@@ -646,14 +646,14 @@ namespace UdonSharpPlus
                     {
                         if (info.EqualsError != null)
                         {
-                            Error(node, $"匿名型の Equals は、{info.EqualsError}、使えません");
+                            Error(node, Loc.T($"匿名型の Equals は、{info.EqualsError}、使えません", $"Equals on an anonymous type cannot be used because {info.EqualsError}"));
                             return node;
                         }
                         ExpressionSyntax argument = node.ArgumentList.Arguments[0].Expression;
                         _allowed.Add(argument);
                         return Parse($"{Text(Visit(access.Expression))}.__Equals({Text(Visit(argument))})", node);
                     }
-                    Error(node, $"'{method.Name}' : 匿名型の {method.Name} は未対応です（ToString・Equals・メンバーの読み出しが使えます）");
+                    Error(node, Loc.T($"'{method.Name}' : 匿名型の {method.Name} は未対応です（ToString・Equals・メンバーの読み出しが使えます）", $"'{method.Name}' : {method.Name} on an anonymous type is not supported (ToString, Equals and reading members are supported)"));
                     return node;
                 }
                 return base.VisitInvocationExpression(node);

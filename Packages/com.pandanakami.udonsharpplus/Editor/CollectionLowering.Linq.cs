@@ -94,11 +94,11 @@ namespace UdonSharpPlus
                 return false;
             }
 
-            private const string ForeignEnumerableMessage =
-                "外部の関数が返す IEnumerable は、Udon では中を回せません（foreach・LINQ は使えません）";
+            private static string ForeignEnumerableMessage =>
+                Loc.T("外部の関数が返す IEnumerable は、Udon では中を回せません（foreach・LINQ は使えません）", "An IEnumerable returned by an external function cannot be iterated in Udon (foreach and LINQ cannot be used)");
 
-            private const string QueryMessage =
-                "クエリ構文（from … select）は未対応です。メソッドの形（list.Where(x => …).Select(x => …)）で書いてください";
+            private static string QueryMessage =>
+                Loc.T("クエリ構文（from … select）は未対応です。メソッドの形（list.Where(x => …).Select(x => …)）で書いてください", "Query syntax (from … select) is not supported. Use the method form (list.Where(x => …).Select(x => …))");
 
             /// <summary>Enumerable.Range・Repeat・Empty など、元（List・配列）を取らない生成のメソッド</summary>
             private static bool IsLinqGenerator(IMethodSymbol method) =>
@@ -110,7 +110,7 @@ namespace UdonSharpPlus
                                             || method.Name == "Empty" && method.Parameters.Length == 0);
 
             private static string GeneratorMessage(IMethodSymbol method) =>
-                $"'{method.Name}' : Enumerable.{method.Name} は未対応です（LINQ は List・配列・Dictionary と、Enumerable.Range・Repeat・Empty から始めてください）";
+                Loc.T($"'{method.Name}' : Enumerable.{method.Name} は未対応です（LINQ は List・配列・Dictionary と、Enumerable.Range・Repeat・Empty から始めてください）", $"'{method.Name}' : Enumerable.{method.Name} is not supported (start LINQ from a List, an array, a Dictionary, or Enumerable.Range / Repeat / Empty)");
 
             /// <summary>
             /// 中を回せない IEnumerable（DataList でない）を foreach・LINQ に渡したときのエラー。書き方に合わせて文言を変える（#99）。
@@ -135,7 +135,7 @@ namespace UdonSharpPlus
                         return null;
                     // 外部の関数の戻り値でなければ、自分で IEnumerable 型にした変数
                     if (!(value is InvocationExpressionSyntax))
-                        return $"'{local.Name}' : IEnumerable 型の変数は未対応です。List・配列の型のまま（または var で）使ってください";
+                        return Loc.T($"'{local.Name}' : IEnumerable 型の変数は未対応です。List・配列の型のまま（または var で）使ってください", $"'{local.Name}' : Variables of type IEnumerable are not supported. Keep the List or array type (or use var)");
                     return $"'{Text(source)}' : {ForeignEnumerableMessage}";
                 }
                 // LINQ・foreach に直接書いたクエリ構文は、ここで止めるので中は見ない。ここでクエリ構文のエラーにする
@@ -154,8 +154,8 @@ namespace UdonSharpPlus
                 return node;
             }
 
-            private const string EnumerableConversionMessage =
-                "List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）";
+            private static string EnumerableConversionMessage =>
+                Loc.T("List・Dictionary・LINQ の結果を IEnumerable<T> などの型として扱うのは未対応です（var で受けるか、List・配列にしてください）", "Using a List, Dictionary or LINQ result as IEnumerable<T> or a similar type is not supported (use var, or make it a List or array)");
 
             /// <summary>SelectMany の集まりを返すラムダの return の式（戻り値の型は IEnumerable&lt;T&gt; だが、DataList のまま返してよい。#143）</summary>
             private readonly HashSet<SyntaxNode> _collectionReturns = new HashSet<SyntaxNode>();
@@ -214,7 +214,7 @@ namespace UdonSharpPlus
                 }
                 if (calls.Count == 0 && generator == null)
                 {
-                    Error(node, "この形の LINQ の呼び出しは未対応です");
+                    Error(node, Loc.T("この形の LINQ の呼び出しは未対応です", "This form of LINQ call is not supported"));
                     return node;
                 }
 
@@ -256,14 +256,14 @@ namespace UdonSharpPlus
                 }
                 else
                 {
-                    Error(node, $"'{calls[0].Name}' : LINQ は List・配列・Dictionary にだけ使えます（{sourceType?.ToDisplayString() ?? "この型"} は未対応です）");
+                    Error(node, Loc.T($"'{calls[0].Name}' : LINQ は List・配列・Dictionary にだけ使えます（{sourceType?.ToDisplayString() ?? "この型"} は未対応です）", $"'{calls[0].Name}' : LINQ can only be used on a List, an array or a Dictionary ({sourceType?.ToDisplayString() ?? "this type"} is not supported)"));
                     return node;
                 }
 
                 IMethodSymbol enclosing = EnclosingMethod(node);
                 if (enclosing == null)
                 {
-                    Error(node, "LINQ は、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）");
+                    Error(node, Loc.T("LINQ は、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）", "LINQ is not supported inside a field initializer (call it inside a method)"));
                     return node;
                 }
 
@@ -317,9 +317,9 @@ namespace UdonSharpPlus
                         sourceText = Text(Visit(generatorArgs[0].Expression));
                         extraParams.Append(", int __gcount");
                         extraArgs.Append(", ").Append(Text(Visit(generatorArgs[1].Expression)));
-                        preamble.Append($"if (__gcount < 0) {{ {Halt(generator.Name, "count が負です（C# では ArgumentOutOfRangeException）")}}} ");
+                        preamble.Append(Loc.T($"if (__gcount < 0) {{ {Halt(generator.Name, "count が負です（C# では ArgumentOutOfRangeException）")}}} ", $"if (__gcount < 0) {{ {Halt(generator.Name, "count is negative (C#: ArgumentOutOfRangeException)")}}} "));
                         if (generator.Name == "Range")   // C# と同じく、最後の値が int の範囲を超えるなら、作る時点で止める
-                            preamble.Append($"if (__gcount > 0 && __src > {int.MaxValue} - (__gcount - 1)) {{ {Halt("Range", "start + count - 1 が int の範囲を超えます（C# では ArgumentOutOfRangeException）")}}} ");
+                            preamble.Append(Loc.T($"if (__gcount > 0 && __src > {int.MaxValue} - (__gcount - 1)) {{ {Halt("Range", "start + count - 1 が int の範囲を超えます（C# では ArgumentOutOfRangeException）")}}} ", $"if (__gcount > 0 && __src > {int.MaxValue} - (__gcount - 1)) {{ {Halt("Range", "start + count - 1 is out of the range of int (C#: ArgumentOutOfRangeException)")}}} "));
                         header = $"for (int __i0 = 0; __i0 < __gcount{{STOP}}; __i0++) {{ {elementText} __v0 = {(generator.Name == "Range" ? "__src + __i0" : "__src")}; ";
                     }
                 }
@@ -378,7 +378,7 @@ namespace UdonSharpPlus
                     if (!(_model.GetTypeInfo(fn).ConvertedType is INamedTypeSymbol delegateType) || delegateType.DelegateInvokeMethod == null
                         || delegateType.DelegateInvokeMethod.Parameters.Length != arity)
                     {
-                        Error(fn, $"'{call.Name}' : この形のラムダは未対応です（ラムダかメソッド名を渡してください）");
+                        Error(fn, Loc.T($"'{call.Name}' : この形のラムダは未対応です（ラムダかメソッド名を渡してください）", $"'{call.Name}' : This form of lambda is not supported (pass a lambda or a method name)"));
                         return null;
                     }
                     resultType = delegateType.DelegateInvokeMethod.ReturnType;
@@ -502,7 +502,7 @@ namespace UdonSharpPlus
                     {
                         if (call.Args.Count != 1)
                         {
-                            Error(call.Node, $"'{call.Name}' : 比較子を渡す形は未対応です（キーを返すラムダだけ渡してください）");
+                            Error(call.Node, Loc.T($"'{call.Name}' : 比較子を渡す形は未対応です（キーを返すラムダだけ渡してください）", $"'{call.Name}' : Passing a comparer is not supported (pass only a lambda that returns the key)"));
                             return false;
                         }
                         string key = Apply(call, call.Args[0], out ITypeSymbol keyType);
@@ -510,7 +510,7 @@ namespace UdonSharpPlus
                             return false;
                         if (CompareText("a", "b", keyType) == null)
                         {
-                            Error(call.Args[0], $"'{call.Name}' : この型のキー（{keyType.ToDisplayString()}）での並べ替えは未対応です（数値・string・bool・char・enum が使えます）");
+                            Error(call.Args[0], Loc.T($"'{call.Name}' : この型のキー（{keyType.ToDisplayString()}）での並べ替えは未対応です（数値・string・bool・char・enum が使えます）", $"'{call.Name}' : Sorting by a key of this type ({keyType.ToDisplayString()}) is not supported (numbers, string, bool, char and enum are supported)"));
                             return false;
                         }
                         string list = Temp($"k{s}_{keyLists.Count}", DataListType);
@@ -657,7 +657,7 @@ namespace UdonSharpPlus
                                 inner = ((INamedTypeSymbol)collection).TypeArguments[0];
                             else
                             {
-                                Error(args[0], "'SelectMany' : 集まりを返すラムダは、List・配列・LINQ の結果を返してください（{ ... } の本体のラムダは、List か LINQ の結果を返してください）");
+                                Error(args[0], Loc.T("'SelectMany' : 集まりを返すラムダは、List・配列・LINQ の結果を返してください（{ ... } の本体のラムダは、List か LINQ の結果を返してください）", "'SelectMany' : The lambda that returns the collection must return a List, an array or a LINQ result (a lambda with a { ... } body must return a List or a LINQ result)"));
                                 return node;
                             }
                             foreach (ExpressionSyntax r in returned)
@@ -711,7 +711,7 @@ namespace UdonSharpPlus
                                 });
                             else
                             {
-                                Error(args[0], "'Concat' : つなぐ相手は、List・配列・LINQ の結果にしてください");
+                                Error(args[0], Loc.T("'Concat' : つなぐ相手は、List・配列・LINQ の結果にしてください", "'Concat' : The sequence to append must be a List, an array or a LINQ result"));
                                 return node;
                             }
                             continue;
@@ -769,7 +769,7 @@ namespace UdonSharpPlus
                         break;
                     if (!last || !LinqTerminals.Contains(call.Name))
                     {
-                        Error(call.Node, $"'{call.Name}' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select / SelectMany / OrderBy / ThenBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend と、{string.Join(" / ", LinqTerminals)} が使えます）");
+                        Error(call.Node, Loc.T($"'{call.Name}' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select / SelectMany / OrderBy / ThenBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend と、{string.Join(" / ", LinqTerminals)} が使えます）", $"'{call.Name}' : This LINQ method (with these arguments) is not supported (Where / Select / SelectMany / OrderBy / ThenBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend and {string.Join(" / ", LinqTerminals)} are supported)"));
                         return node;
                     }
 
@@ -797,7 +797,7 @@ namespace UdonSharpPlus
                     {
                         if (pairMode)
                         {
-                            Error(call.Node, $"'{call.Name}' : Dictionary の要素（KeyValuePair）の Contains は未対応です（ContainsKey などを使ってください）");
+                            Error(call.Node, Loc.T($"'{call.Name}' : Dictionary の要素（KeyValuePair）の Contains は未対応です（ContainsKey などを使ってください）", $"'{call.Name}' : Contains on Dictionary elements (KeyValuePair) is not supported (use ContainsKey and so on)"));
                             return node;
                         }
                         Extra(TypeText(type), "__value", args[0]);
@@ -843,12 +843,12 @@ namespace UdonSharpPlus
                         }
                         preamble.Append($"{DataDictionaryType} __dict = new {DataDictionaryType}(); ");
                         body.Append($"{DataTokenType} __key = {Wrap(key, keyType)}; ")
-                            .Append($"if (__dict.ContainsKey(__key)) {{ {Halt("ToDictionary", "同じキーがあります（C# では ArgumentException）")}}} ")
+                            .Append(Loc.T($"if (__dict.ContainsKey(__key)) {{ {Halt("ToDictionary", "同じキーがあります（C# では ArgumentException）")}}} ", $"if (__dict.ContainsKey(__key)) {{ {Halt("ToDictionary", "the same key appears more than once (C#: ArgumentException)")}}} "))
                             .Append($"__dict.SetValue(__key, {Wrap(value, valueType)}); ");
                     }
                     else if (args.Count != 0)
                     {
-                        Error(call.Node, $"'{call.Name}' : この引数の形は未対応です");
+                        Error(call.Node, Loc.T($"'{call.Name}' : この引数の形は未対応です", $"'{call.Name}' : This form of arguments is not supported"));
                         return node;
                     }
                 }
@@ -871,13 +871,13 @@ namespace UdonSharpPlus
                         returnType = valueText;
                         preamble.Append("int __pos = 0; ");
                         each = $"if (__pos == __index) return {currentValue}; __pos++; ";
-                        post = (terminal.Name == "ElementAt" ? Halt("ElementAt", "添字が範囲の外です（C# では ArgumentOutOfRangeException）") : "") + $"return default({valueText});";
+                        post = (terminal.Name == "ElementAt" ? Halt("ElementAt", Loc.T("添字が範囲の外です（C# では ArgumentOutOfRangeException）", "the index is out of range (C#: ArgumentOutOfRangeException)")) : "") + $"return default({valueText});";
                         break;
                     case "Single":
                     case "SingleOrDefault":
                         returnType = valueText;
                         preamble.Append($"{valueText} __single = default({valueText}); bool __found = false; ");
-                        each = $"if (__found) {{ {Halt(terminal.Name, "要素が 2 つ以上あります（C# では InvalidOperationException）")}}} __single = {currentValue}; __found = true; ";
+                        each = Loc.T($"if (__found) {{ {Halt(terminal.Name, "要素が 2 つ以上あります（C# では InvalidOperationException）")}}} __single = {currentValue}; __found = true; ", $"if (__found) {{ {Halt(terminal.Name, "there are two or more elements (C#: InvalidOperationException)")}}} __single = {currentValue}; __found = true; ");
                         post = "if (__found) return __single; " + (terminal.Name == "Single" ? Halt("Single", NoElement) : "") + $"return default({valueText});";
                         break;
                     case "Aggregate":
@@ -937,7 +937,7 @@ namespace UdonSharpPlus
                     {
                         if (!IsNumeric(type))
                         {
-                            Error(terminal.Node, $"'{terminal.Name}' : 数値（int / long / float / double など）以外には未対応です");
+                            Error(terminal.Node, Loc.T($"'{terminal.Name}' : 数値（int / long / float / double など）以外には未対応です", $"'{terminal.Name}' : Only numbers (int / long / float / double and so on) are supported"));
                             return node;
                         }
                         returnType = TypeText(terminal.Method.ReturnType);
@@ -974,7 +974,7 @@ namespace UdonSharpPlus
                 return Parse($"{name}({sourceText ?? Text(Visit(source))}{extraArgs}{CaptureArgs(captures)})", node);
             }
 
-            private const string NoElement = "要素がありません（C# では InvalidOperationException）";
+            private static string NoElement => Loc.T("要素がありません（C# では InvalidOperationException）", "there are no elements (C#: InvalidOperationException)");
 
             /// <summary>
             /// 匿名型・タプルの段（#138・#82）が Distinct() の代わりに置いた印：Where(x => __cls___Anon_0____Eq…(x, x))（同じ引数を 2 つ渡す、生成したクラスの値の比較）。

@@ -191,10 +191,14 @@ namespace UdonSharpPlus.Tests
             {
                 bool dump = InterfaceLowering.DumpEnabled;
                 string dir = InterfaceLowering.DumpDir;
-                // コンパイル時の注意（#118）は、注意のテスト（NoticeSettings.Override を決めるもの）のほかでは出さない
-                var notices = NoticeSettings.Override;
+                // コンパイル時の注意（#118）は、注意のテスト（UdonSharpPlusSettings.NoticeOverride を決めるもの）のほかでは出さない
+                var notices = UdonSharpPlusSettings.NoticeOverride;
                 if (notices == null)
-                    NoticeSettings.Override = _ => false;
+                    UdonSharpPlusSettings.NoticeOverride = _ => false;
+                // 文言は日本語に固定する（期待値・ゴールデンが日本語のため。#67）。英語のテストは JapaneseOverride = false にしてから呼ぶ
+                bool? japanese = UdonSharpPlusSettings.JapaneseOverride;
+                if (japanese == null)
+                    UdonSharpPlusSettings.JapaneseOverride = true;
                 InterfaceLowering.DumpEnabled = dumpDir != null;
                 if (dumpDir != null)
                     InterfaceLowering.DumpDir = dumpDir;
@@ -206,7 +210,8 @@ namespace UdonSharpPlus.Tests
                 {
                     InterfaceLowering.DumpEnabled = dump;
                     InterfaceLowering.DumpDir = dir;
-                    NoticeSettings.Override = notices;
+                    UdonSharpPlusSettings.NoticeOverride = notices;
+                    UdonSharpPlusSettings.JapaneseOverride = japanese;
                 }
             }
         }

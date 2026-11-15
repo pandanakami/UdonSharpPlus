@@ -91,7 +91,7 @@ namespace UdonSharpPlus
             SourceMap.RegisterTrees(current);
 
             // コンパイル時の注意（#118）。書き換える前の元のソースから探し、最後にエラーがなければ出す
-            Notices.Found notices = Notices.Scan(original, GetMetadataReferences(), NoticeSettings.IsEnabled);
+            Notices.Found notices = Notices.Scan(original, GetMetadataReferences(), UdonSharpPlusSettings.IsEnabled);
 
             // 匿名型（new { ... }）→ メンバーの並びごとの普通のクラス（#70）。ジェネリクスの前に 1 回（匿名型を型引数にするジェネリックメソッドのため）、
             // 型引数を使う匿名型はジェネリクスのあとにもう 1 回（型引数が決まってから）
@@ -203,7 +203,7 @@ namespace UdonSharpPlus
 
             diagnostics.Report(context, current);
 
-            Notices.AddRewritten(notices, original, current, NoticeSettings.IsEnabled);
+            Notices.AddRewritten(notices, original, current, UdonSharpPlusSettings.IsEnabled);
             if (!diagnostics.HasErrors && !notices.IsEmpty)
             {
                 var paths = new List<string>(bindings.Length);
@@ -362,7 +362,7 @@ namespace UdonSharpPlus
                     severityType = UdonSharpInternals.DiagnosticSeverity;
                     add = UdonSharpInternals.AddDiagnosticWithLocation;
                     if (add == null)
-                        Debug.LogWarning(Prefix + "CompilationContext.AddDiagnostic が見つからないため、エラー・警告をログに出します。UdonSharp の内部が変わった可能性があります");
+                        Debug.LogWarning(Prefix + Loc.T("CompilationContext.AddDiagnostic が見つからないため、エラー・警告をログに出します。UdonSharp の内部が変わった可能性があります", "CompilationContext.AddDiagnostic was not found, so errors and warnings are written to the log. UdonSharp's internals may have changed"));
                 }
 
                 // 警告を先、エラーを後に（従来のログと同じ順）。同じ位置・内容の重複は 1 つにする
@@ -460,7 +460,7 @@ namespace UdonSharpPlus
                     IMethodSymbol own = group.FirstOrDefault(m => SymbolEqualityComparer.Default.Equals(m.ContainingType, info.Symbol));
                     if (own != null)
                         diagnostics.Error(own.Locations.FirstOrDefault(),
-                            $"'{info.Symbol.Name}.{group.Key}' : インタフェースのメソッドのオーバーロードは未対応です（Udon 上の名前が元のメソッド名になるため、名前を変えてください）");
+                            Loc.T($"'{info.Symbol.Name}.{group.Key}' : インタフェースのメソッドのオーバーロードは未対応です（Udon 上の名前が元のメソッド名になるため、名前を変えてください）", $"'{info.Symbol.Name}.{group.Key}' : Overloading interface methods is not supported (the name in Udon is the original method name, so use different names)"));
                 }
 
                 foreach (ISymbol member in info.Symbol.GetMembers())
@@ -468,7 +468,7 @@ namespace UdonSharpPlus
                     if (member is IMethodSymbol m && m.MethodKind == MethodKind.Ordinary)
                         info.Methods.Add(new MethodInfo { Symbol = m, Signature = InterfaceNaming.SignatureName(m, erase) });
                     else if (!(member is IMethodSymbol))
-                        diagnostics.Warning(member.Locations.FirstOrDefault(), $"'{member}' : インタフェースはメソッドのみ対応しています（プロパティ/イベントは未対応）");
+                        diagnostics.Warning(member.Locations.FirstOrDefault(), Loc.T($"'{member}' : インタフェースはメソッドのみ対応しています（プロパティ/イベントは未対応）", $"'{member}' : Interfaces support only methods (properties and events are not supported)"));
                 }
             }
 
@@ -523,7 +523,7 @@ namespace UdonSharpPlus
 
                             if (impl.ExplicitInterfaceImplementations.Length > 0)
                             {
-                                diagnostics.Error(impl.Locations.FirstOrDefault(), $"'{cls.Name}.{m.Symbol.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください");
+                                diagnostics.Error(impl.Locations.FirstOrDefault(), Loc.T($"'{cls.Name}.{m.Symbol.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください", $"'{cls.Name}.{m.Symbol.Name}' : Explicit interface implementations are not supported. Implement it as a public method"));
                                 continue;
                             }
 
@@ -558,7 +558,7 @@ namespace UdonSharpPlus
                 {
                     if (cls.FindImplementationForInterfaceMember(m.Symbol) is IMethodSymbol impl
                         && impl.ExplicitInterfaceImplementations.Length > 0 && reported.Add(impl))
-                        diagnostics.Error(impl.Locations.FirstOrDefault(), $"'{cls.Name}.{m.Symbol.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください",
+                        diagnostics.Error(impl.Locations.FirstOrDefault(), Loc.T($"'{cls.Name}.{m.Symbol.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください", $"'{cls.Name}.{m.Symbol.Name}' : Explicit interface implementations are not supported. Implement it as a public method"),
                             ClassLowering.TagOf(cls));
                 }
             }
@@ -587,8 +587,8 @@ namespace UdonSharpPlus
                         continue;
 
                     diagnostics.Error(other.Locations.FirstOrDefault(),
-                        $"'{cls.Name}.{impl.Name}' : インタフェース（{interfaceMethod.ContainingType.Name}）の実装メソッドと同じ名前のメソッドは置けません" +
-                        "（Udon 上の名前が元のメソッド名になるため。[NetworkCallable] と同じ制約です）");
+                        Loc.T($"'{cls.Name}.{impl.Name}' : インタフェース（{interfaceMethod.ContainingType.Name}）の実装メソッドと同じ名前のメソッドは置けません", $"'{cls.Name}.{impl.Name}' : A method with the same name as an implementation of interface {interfaceMethod.ContainingType.Name} cannot be declared") +
+                        Loc.T("（Udon 上の名前が元のメソッド名になるため。[NetworkCallable] と同じ制約です）", " (the name in Udon is the original method name; this is the same restriction as [NetworkCallable])"));
                 }
             }
         }
@@ -666,8 +666,8 @@ namespace UdonSharpPlus
         }
 
         internal static string GetComponentError(IMethodSymbol method, ITypeSymbol type) =>
-            $"'{method.Name}<{type.Name}>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。" +
-            "GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください";
+            Loc.T($"'{method.Name}<{type.Name}>' : インタフェース・普通のクラスは GetComponent 系で取得できません（実行時に例外になります）。", $"'{method.Name}<{type.Name}>' : Interfaces and plain classes cannot be retrieved with GetComponent and similar methods (it throws at runtime). ") +
+            Loc.T("GetComponent<UdonSharpBehaviour>() などで受けて、is / キャストしてください", "Receive it as GetComponent<UdonSharpBehaviour>() or similar, then use is / a cast");
 
         private static IEnumerable<MetadataReference> GetMetadataReferences()
         {
@@ -808,7 +808,7 @@ namespace UdonSharpPlus
                     && node.AttributeLists.SelectMany(l => l.Attributes).Any(a => IsSerializationAttribute(_model.GetSymbolInfo(a).Symbol?.ContainingType)))
                 {
                     foreach (VariableDeclaratorSyntax v in node.Declaration.Variables)
-                        Error(v, $"'{v.Identifier.ValueText}' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください");
+                        Error(v, Loc.T($"'{v.Identifier.ValueText}' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください", $"'{v.Identifier.ValueText}' : Fields of an interface type cannot be serialized or synced ([SerializeField] / [UdonSynced] cannot be used). To set it in the Inspector, receive it as an UdonSharpBehaviour and cast it"));
                 }
                 return base.VisitFieldDeclaration(node);
             }
@@ -860,7 +860,7 @@ namespace UdonSharpPlus
                     {
                         if (_states.Count == 0)
                         {
-                            Error(node, "is/as はクラス内でのみ対応しています");
+                            Error(node, Loc.T("is/as はクラス内でのみ対応しています", "is / as is only supported inside a class"));
                             return base.VisitBinaryExpression(node);
                         }
 
@@ -909,7 +909,7 @@ namespace UdonSharpPlus
 
                 if (!(node.Expression is MemberAccessExpressionSyntax) || _states.Count == 0)
                 {
-                    Error(node, $"'{method.Name}' : クラス内の x.Method(...) 形式以外のインタフェース呼び出しは未対応です（?. など）");
+                    Error(node, Loc.T($"'{method.Name}' : クラス内の x.Method(...) 形式以外のインタフェース呼び出しは未対応です（?. など）", $"'{method.Name}' : Interface calls other than the x.Method(...) form inside a class are not supported (?. and so on)"));
                     return base.VisitInvocationExpression(node);
                 }
 
@@ -963,13 +963,13 @@ namespace UdonSharpPlus
             {
                 if (m.IsGenericMethod)
                 {
-                    Error(where, $"'{m.Name}' : ジェネリックメソッドは未対応です");
+                    Error(where, Loc.T($"'{m.Name}' : ジェネリックメソッドは未対応です", $"'{m.Name}' : Generic methods are not supported"));
                     return false;
                 }
 
                 if (m.Parameters.Any(p => p.RefKind != RefKind.None || p.IsParams))
                 {
-                    Error(where, $"'{m.Name}' : ref/out/in/params 引数は未対応です");
+                    Error(where, Loc.T($"'{m.Name}' : ref/out/in/params 引数は未対応です", $"'{m.Name}' : ref / out / in / params parameters are not supported"));
                     return false;
                 }
 
@@ -1016,7 +1016,7 @@ namespace UdonSharpPlus
                     {
                         Changed = true;
                         if (!IsUdonSharpBehaviour(classSymbol) && !plainClass)
-                            Error(node, $"'{classSymbol.Name}' : UdonSharpBehaviour と普通のクラス以外でのインタフェース実装は未対応です");
+                            Error(node, Loc.T($"'{classSymbol.Name}' : UdonSharpBehaviour と普通のクラス以外でのインタフェース実装は未対応です", $"'{classSymbol.Name}' : Implementing an interface in anything other than an UdonSharpBehaviour or a plain class is not supported"));
 
                         // 行数を変えないよう、元の最後の型の後ろのトリビア（改行など）を引き継ぐ
                         SyntaxTriviaList trailing = node.BaseList.Types.Last().GetTrailingTrivia();

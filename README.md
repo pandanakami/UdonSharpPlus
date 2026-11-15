@@ -98,13 +98,13 @@ The rewrite happens only in the editor. What the Udon VM runs on the VRChat clie
 
 2. In your world project, open **Manage Project** and add **UdonSharp Plus**.
 
-That's all. There is nothing to configure.
+That's all. Nothing else is required. Optional settings (message language and compile-time notices) are in Project Settings > Udon Sharp Plus.
 
 ## Good to know
 
 - All features are experimental. If something does not work as expected, the rewritten source in your project's `Library/UdonSharpPlus/` shows what your code was turned into.
 - On an unsupported VRChat SDK, the console shows an error starting with `[UdonSharpPlus]` saying the package was disabled because UdonSharp internals changed. Update UdonSharp Plus when you see it.
-- The detailed documentation and the package's own error and warning messages are in Japanese for now.
+- The package's error, warning and notice messages are in English by default. You can switch them to Japanese in Project Settings > Udon Sharp Plus. The detailed documentation is in Japanese for now.
 
 ## Planned
 

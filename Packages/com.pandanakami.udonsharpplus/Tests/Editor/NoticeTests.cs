@@ -19,14 +19,14 @@ public class Use : UdonSharpBehaviour {
 
         private static CompileResult Compile(string id, params TestSource[] sources)
         {
-            NoticeSettings.Override = r => r.Id == id;
+            UdonSharpPlusSettings.NoticeOverride = r => r.Id == id;
             try
             {
                 return UdonSharpTestCompiler.Compile(sources);
             }
             finally
             {
-                NoticeSettings.Override = null;
+                UdonSharpPlusSettings.NoticeOverride = null;
             }
         }
 
@@ -140,7 +140,7 @@ public class Use : UdonSharpBehaviour {
         [Test]
         public void DisabledNoticesAreNotReported()
         {
-            NoticeSettings.Override = _ => false;
+            UdonSharpPlusSettings.NoticeOverride = _ => false;
             try
             {
                 CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("Use.cs", Head + "var q = list.Where(x => x > 1); bool b = shape != null;\n    }\n}"));
@@ -148,7 +148,7 @@ public class Use : UdonSharpBehaviour {
             }
             finally
             {
-                NoticeSettings.Override = null;
+                UdonSharpPlusSettings.NoticeOverride = null;
             }
         }
 

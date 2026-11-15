@@ -119,10 +119,10 @@ namespace UdonSharpPlus
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UdonSharpPlus] UdonSharp の自動アップグレードの印を消せませんでした：{e}");
+                Debug.LogError(Loc.T($"[UdonSharpPlus] UdonSharp の自動アップグレードの印を消せませんでした：{e}", $"[UdonSharpPlus] Could not clear UdonSharp's auto-upgrade flag: {e}"));
             }
-            Debug.LogError("[UdonSharpPlus] UdonSharp の自動アップグレードが例外で止まりました（" + exception.GetType().Name + "）。" +
-                           "毎フレームやり直さないよう、アップグレードを止めました。メニューの VRChat SDK > Udon Sharp > Force Upgrade でやり直せます");
+            Debug.LogError(Loc.T("[UdonSharpPlus] UdonSharp の自動アップグレードが例外で止まりました（", "[UdonSharpPlus] UdonSharp's auto-upgrade stopped with an exception (") + exception.GetType().Name + Loc.T("）。", "), ") +
+                           Loc.T("毎フレームやり直さないよう、アップグレードを止めました。メニューの VRChat SDK > Udon Sharp > Force Upgrade でやり直せます", "so the upgrade has been stopped to avoid retrying every frame. You can retry with VRChat SDK > Udon Sharp > Force Upgrade in the menu"));
         }
 
         /// <summary>

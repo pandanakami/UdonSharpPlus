@@ -391,7 +391,7 @@ namespace UdonSharpPlus
                                           || HasAttribute(field, "UnityEngine.SerializeField")
                                           || HasAttribute(field, "UdonSharp.UdonSyncedAttribute");
                         if (serialized)
-                            Error(v, $"'{field.Name}' : List / Dictionary 型のフィールドはシリアライズ・同期できません（public・[SerializeField]・[UdonSynced] は未対応です。private にしてください）");
+                            Error(v, Loc.T($"'{field.Name}' : List / Dictionary 型のフィールドはシリアライズ・同期できません（public・[SerializeField]・[UdonSynced] は未対応です。private にしてください）", $"'{field.Name}' : Fields of type List / Dictionary cannot be serialized or synced (public, [SerializeField] and [UdonSynced] are not supported; make it private)"));
                     }
                 }
                 return base.VisitFieldDeclaration(node);
@@ -441,7 +441,7 @@ namespace UdonSharpPlus
                         created = $"{FromArrayHelper(array.ElementType)}({value})";
                     else
                     {
-                        Error(node, $"'{Text(node)}' : List をこの形で作るのは未対応です（List・配列からのコピーだけ使えます）");
+                        Error(node, Loc.T($"'{Text(node)}' : List をこの形で作るのは未対応です（List・配列からのコピーだけ使えます）", $"'{Text(node)}' : Creating a List this way is not supported (only copying from a List or array is supported)"));
                         return node;
                     }
                 }
@@ -451,7 +451,7 @@ namespace UdonSharpPlus
                 }
                 else
                 {
-                    Error(node, $"'{Text(node)}' : List / Dictionary をこの形で作るのは未対応です");
+                    Error(node, Loc.T($"'{Text(node)}' : List / Dictionary をこの形で作るのは未対応です", $"'{Text(node)}' : Creating a List / Dictionary this way is not supported"));
                     return node;
                 }
 
@@ -482,7 +482,7 @@ namespace UdonSharpPlus
                                     values.Add(WrapExpr(a.Right, ValueOf(type)));
                                     break;
                                 default:
-                                    Error(e, "この形の Dictionary の初期化子は未対応です（{ キー, 値 } か [キー] = 値 を使ってください）");
+                                    Error(e, Loc.T("この形の Dictionary の初期化子は未対応です（{ キー, 値 } か [キー] = 値 を使ってください）", "This form of Dictionary initializer is not supported (use { key, value } or [key] = value)"));
                                     return node;
                             }
                         }
@@ -533,7 +533,7 @@ namespace UdonSharpPlus
                 var target = (ElementAccessExpressionSyntax)node.Left;
                 if (!InterfaceLowering.IsStatementExpression(node, _model))
                 {
-                    Error(node, "List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）");
+                    Error(node, Loc.T("List / Dictionary の要素への代入は、文としてだけ使えます（代入の値を式として使うのは未対応です）", "Assigning to an element of a List / Dictionary can only be used as a statement (using the assignment as a value is not supported)"));
                     return node;
                 }
 
@@ -545,7 +545,7 @@ namespace UdonSharpPlus
                 // 複合代入：受け側と添字を 2 回評価するので、副作用のない形に限る
                 if (!IsSimple(target.Expression) || !IsSimple(target.ArgumentList.Arguments[0].Expression))
                 {
-                    Error(node, "List / Dictionary の要素への複合代入は、受け側と添字が変数・フィールド・定数のときだけ使えます（いったん変数に入れてください）");
+                    Error(node, Loc.T("List / Dictionary の要素への複合代入は、受け側と添字が変数・フィールド・定数のときだけ使えます（いったん変数に入れてください）", "Compound assignment to an element of a List / Dictionary is only supported when the target and the index are variables, fields or constants (store them in variables first)"));
                     return node;
                 }
                 string op = node.OperatorToken.ValueText.TrimEnd('=');
@@ -566,7 +566,7 @@ namespace UdonSharpPlus
                 var target = (ElementAccessExpressionSyntax)operand;
                 if (!InterfaceLowering.IsStatementExpression(node, _model) || !IsSimple(target.Expression) || !IsSimple(target.ArgumentList.Arguments[0].Expression))
                 {
-                    Error(node, "List / Dictionary の要素の ++ / -- は、文として、受け側と添字が変数・フィールド・定数のときだけ使えます");
+                    Error(node, Loc.T("List / Dictionary の要素の ++ / -- は、文として、受け側と添字が変数・フィールド・定数のときだけ使えます", "++ / -- on an element of a List / Dictionary is only supported as a statement, when the target and the index are variables, fields or constants"));
                     return node;
                 }
                 ITypeSymbol element = ElementTypeOf(receiverType);
@@ -614,7 +614,7 @@ namespace UdonSharpPlus
 
                 if (method.ReducedFrom != null)
                 {
-                    Error(node, $"'{method.Name}' : List / Dictionary に対する拡張メソッド（LINQ など）は未対応です");
+                    Error(node, Loc.T($"'{method.Name}' : List / Dictionary に対する拡張メソッド（LINQ など）は未対応です", $"'{method.Name}' : Extension methods on a List / Dictionary (LINQ and so on) are not supported"));
                     return node;
                 }
 
@@ -675,7 +675,7 @@ namespace UdonSharpPlus
                     }
                 }
 
-                Error(node, $"'{receiverType.Name}.{method.Name}' : List / Dictionary のこのメソッド（この引数の形）は未対応です");
+                Error(node, Loc.T($"'{receiverType.Name}.{method.Name}' : List / Dictionary のこのメソッド（この引数の形）は未対応です", $"'{receiverType.Name}.{method.Name}' : This List / Dictionary method (with these arguments) is not supported"));
                 return node;
             }
 
@@ -688,7 +688,7 @@ namespace UdonSharpPlus
                     return value;
                 if (type is IArrayTypeSymbol array)
                     return $"{FromArrayHelper(array.ElementType)}({value})";
-                Error(argument, "List / 配列以外からの追加は未対応です");
+                Error(argument, Loc.T("List / 配列以外からの追加は未対応です", "Adding from anything other than a List or an array is not supported"));
                 return value;
             }
 
@@ -701,7 +701,7 @@ namespace UdonSharpPlus
             {
                 if (_pending == null || InLoopCondition(node))
                 {
-                    Error(node, "Dictionary.TryGetValue は、ループの条件やフィールドの初期化子の中では未対応です（前の文で呼んでください）");
+                    Error(node, Loc.T("Dictionary.TryGetValue は、ループの条件やフィールドの初期化子の中では未対応です（前の文で呼んでください）", "Dictionary.TryGetValue is not supported in a loop condition or a field initializer (call it in a previous statement)"));
                     return node;
                 }
 
@@ -788,7 +788,7 @@ namespace UdonSharpPlus
                         return base.VisitMemberAccessExpression(node);
                     if (HasCompileError(node.Parent ?? node))
                         return base.VisitMemberAccessExpression(node);
-                    Error(node, $"'{receiverType.Name}.{name}' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）");
+                    Error(node, Loc.T($"'{receiverType.Name}.{name}' : List / Dictionary のこのメンバーは未対応です（Keys / Values は foreach と .Count でだけ使えます）", $"'{receiverType.Name}.{name}' : This List / Dictionary member is not supported (Keys / Values can only be used with foreach and .Count)"));
                     return node;
                 }
 
@@ -809,7 +809,7 @@ namespace UdonSharpPlus
                 ITypeSymbol type = TypeOf(node.Expression);
                 if (_helpers != null && (IsList(type) || IsDictionary(type)))
                 {
-                    Error(node, "List / Dictionary への ?. は未対応です");
+                    Error(node, Loc.T("List / Dictionary への ?. は未対応です", "?. on a List / Dictionary is not supported"));
                     return node;
                 }
                 return base.VisitConditionalAccessExpression(node);
@@ -828,14 +828,14 @@ namespace UdonSharpPlus
                         return node.WithExpression(array);
                     if (IsEnumerable(info.Type) && IsDataListBacked(node.Expression))
                     {
-                        Error(node, $"'{Text(node.Expression)}' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）");
+                        Error(node, Loc.T($"'{Text(node.Expression)}' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）", $"'{Text(node.Expression)}' : Passing a LINQ result directly is not supported (use ToList() / ToArray())"));
                         return node;
                     }
                     if ((IsList(info.Type) || IsDictionary(info.Type)) && info.ConvertedType != null
                         && !SymbolEqualityComparer.Default.Equals(info.Type, info.ConvertedType)
                         && info.ConvertedType.SpecialType != SpecialType.System_Object)
                     {
-                        Error(node, $"'{Text(node.Expression)}' : List / Dictionary を {info.ConvertedType.ToDisplayString()} として渡すのは未対応です");
+                        Error(node, Loc.T($"'{Text(node.Expression)}' : List / Dictionary を {info.ConvertedType.ToDisplayString()} として渡すのは未対応です", $"'{Text(node.Expression)}' : Passing a List / Dictionary as {info.ConvertedType.ToDisplayString()} is not supported"));
                         return node;
                     }
                 }
@@ -920,7 +920,7 @@ namespace UdonSharpPlus
                     string source = node.Expression is MemberAccessExpressionSyntax access ? Text(Visit(access.Expression)) : null;
                     if (source == null)
                     {
-                        Error(node.Expression, "Keys / Values は dict.Keys の形で foreach に書いてください");
+                        Error(node.Expression, Loc.T("Keys / Values は dict.Keys の形で foreach に書いてください", "Write Keys / Values in a foreach as dict.Keys"));
                         return node;
                     }
                     string l = Temp("l");
@@ -987,7 +987,7 @@ namespace UdonSharpPlus
                     return null;
                 if (HasCompileError(node))
                     return null;
-                Error(node, "ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます");
+                Error(node, Loc.T("ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます", "Lambdas can only be used as arguments of List methods (Find / Exists / ForEach and so on) and LINQ"));
                 return node;
             }
 
@@ -1015,15 +1015,15 @@ namespace UdonSharpPlus
                     || args.Take(rangeCount).Any(a => IsDelegate(a.Expression))
                     || !(_model.GetTypeInfo(args[rangeCount].Expression).ConvertedType is INamedTypeSymbol delegateType) || delegateType.DelegateInvokeMethod == null)
                 {
-                    Error(node, $"'List.{op}' : ラムダを渡すこの形は未対応です（{string.Join(" / ", LambdaMethods)} に、ラムダかメソッド名を渡す形が使えます。"
-                                + "FindIndex / FindLastIndex は開始・個数の指定も使えます）");
+                    Error(node, Loc.T($"'List.{op}' : ラムダを渡すこの形は未対応です（{string.Join(" / ", LambdaMethods)} に、ラムダかメソッド名を渡す形が使えます。", $"'List.{op}' : This way of passing a lambda is not supported (you can pass a lambda or a method name to {string.Join(" / ", LambdaMethods)}. ")
+                                + Loc.T("FindIndex / FindLastIndex は開始・個数の指定も使えます）", "FindIndex / FindLastIndex also accept a start index and a count)"));
                     return node;
                 }
 
                 IMethodSymbol enclosing = EnclosingMethod(node);
                 if (enclosing == null)
                 {
-                    Error(node, "ラムダを渡す List のメソッドは、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）");
+                    Error(node, Loc.T("ラムダを渡す List のメソッドは、フィールドの初期化子の中では未対応です（メソッドの中で呼んでください）", "List methods that take a lambda are not supported inside a field initializer (call them inside a method)"));
                     return node;
                 }
 
@@ -1170,7 +1170,7 @@ namespace UdonSharpPlus
                     default:
                         if (!(_model.GetSymbolInfo(fn).Symbol is IMethodSymbol))
                         {
-                            Error(fn, "デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）");
+                            Error(fn, Loc.T("デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）", "Passing a delegate variable is not supported (write a lambda or a method name directly)"));
                             return null;
                         }
                         names = Enumerable.Range(0, arity).Select(i => $"__a{i}").ToArray();
@@ -1371,7 +1371,7 @@ namespace UdonSharpPlus
                 string text = flat.ToFullString().Trim();
                 if (text.Contains("\n"))
                 {
-                    Error(original, "ラムダの中の、改行を含む補間文字列は未対応です");
+                    Error(original, Loc.T("ラムダの中の、改行を含む補間文字列は未対応です", "Interpolated strings that contain a line break are not supported inside a lambda"));
                     return null;
                 }
                 return text;

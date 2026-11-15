@@ -120,7 +120,7 @@ namespace UdonSharpPlus
                 var elements = tuple.TupleElements;
                 if (elements.IsDefaultOrEmpty || elements.Length > 7)
                 {
-                    error = "要素が 8 個以上のタプルは未対応です";
+                    error = Loc.T("要素が 8 個以上のタプルは未対応です", "Tuples with 8 or more elements are not supported");
                     return null;
                 }
                 foreach (IFieldSymbol e in elements)
@@ -128,7 +128,7 @@ namespace UdonSharpPlus
                     string why = Unsupported(e.Type);
                     if (why != null)
                     {
-                        error = $"タプルの要素に、{why}は使えません";
+                        error = Loc.T($"タプルの要素に、{why}は使えません", $"{why} cannot be used as a tuple element");
                         return null;
                     }
                 }
@@ -152,18 +152,18 @@ namespace UdonSharpPlus
                     case IArrayTypeSymbol a:
                         return Unsupported(a.ElementType);
                     case ITypeParameterSymbol _:
-                        return "型引数（ジェネリクスのコピーのあとの段で、型引数が決まったものだけ使えます）";
+                        return Loc.T("型引数（ジェネリクスのコピーのあとの段で、型引数が決まったものだけ使えます）", "a type parameter (only allowed in the stage after generic copies, once the type argument is known)");
                     case IPointerTypeSymbol _:
-                        return "ポインター";
+                        return Loc.T("ポインター", "a pointer");
                     case INamedTypeSymbol n:
                         if (n.TypeKind == TypeKind.Error)
-                            return "解決できない型";
+                            return Loc.T("解決できない型", "an unresolved type");
                         if (n.IsAnonymousType)
-                            return "型引数を使う匿名型";   // 型の決まった匿名型は、匿名型の段が先にクラスにしている
+                            return Loc.T("型引数を使う匿名型", "an anonymous type that uses a type parameter");   // 型の決まった匿名型は、匿名型の段が先にクラスにしている
                         if (n.IsTupleType)
                         {
                             if (n.TupleElements.Length > 7)
-                                return "要素が 8 個以上のタプル";
+                                return Loc.T("要素が 8 個以上のタプル", "a tuple with 8 or more elements");
                             foreach (IFieldSymbol e in n.TupleElements)
                             {
                                 string why = Unsupported(e.Type);
@@ -271,7 +271,7 @@ namespace UdonSharpPlus
                     string value = ToStringOf(elementTypes[i], items[i]);
                     if (value == null)
                     {
-                        info.ToStringError = $"{i + 1} 番目の要素の型（{elementTypes[i].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}）の文字列を、C# と同じにできないため";
+                        info.ToStringError = Loc.T($"{i + 1} 番目の要素の型（{elementTypes[i].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}）の文字列を、C# と同じにできないため", $"the type of element {i + 1} ({elementTypes[i].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}) cannot be turned into the same text as C#");
                         break;
                     }
                     parts.Add((i == 0 ? "" : "\", \" + ") + value);
@@ -290,7 +290,7 @@ namespace UdonSharpPlus
                     ITypeSymbol t = elementTypes[i];
                     if (t is INamedTypeSymbol d && d.TypeKind == TypeKind.Delegate)
                     {
-                        info.EqualsError = $"{i + 1} 番目の要素がデリゲートで、比べ方が C# と違うため";
+                        info.EqualsError = Loc.T($"{i + 1} 番目の要素がデリゲートで、比べ方が C# と違うため", $"element {i + 1} is a delegate and would be compared differently from C#");
                         break;
                     }
                     compares.Add(t is INamedTypeSymbol nt && nt.IsTupleType && Get(nt, out _) is TupleInfo inner
@@ -413,7 +413,7 @@ namespace UdonSharpPlus
                                 return deferred ? base.Visit(node) : node;
                             if (tuple.ToStringError != null)
                             {
-                                Error(e, $"タプルの文字列への変換は、{tuple.ToStringError}、使えません");
+                                Error(e, Loc.T($"タプルの文字列への変換は、{tuple.ToStringError}、使えません", $"Converting a tuple to a string cannot be used because {tuple.ToStringError}"));
                                 return node;
                             }
                             return Parse($"{tuple.Name}.__Str({Text(base.Visit(node))})", node);
@@ -423,8 +423,8 @@ namespace UdonSharpPlus
                             && !SymbolEqualityComparer.Default.Equals(info.Type, info.ConvertedType) && !SameClass(info.Type, info.ConvertedType))
                         {
                             Error(e, IsTuple(info.ConvertedType)
-                                ? "要素の型を変えるタプルの変換は未対応です（要素を取り出して、タプルを作り直してください）"
-                                : "タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）");
+                                ? Loc.T("要素の型を変えるタプルの変換は未対応です（要素を取り出して、タプルを作り直してください）", "Tuple conversions that change element types are not supported (take the elements out and build a new tuple)")
+                                : Loc.T("タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）", "Using a tuple as object or as an interface is not supported (turn it into a string with t.ToString(), or pass its elements)"));
                             return node;
                         }
                     }
@@ -481,14 +481,14 @@ namespace UdonSharpPlus
             {
                 if (IsTuple(_model.GetTypeInfo(node.ElementType).Type))
                 {
-                    Error(node, "null 許容のタプル（(int, string)?）は未対応です");
+                    Error(node, Loc.T("null 許容のタプル（(int, string)?）は未対応です", "Nullable tuples ((int, string)?) are not supported"));
                     return node;
                 }
                 return base.VisitNullableType(node);
             }
 
-            private const string KeyMessage =
-                "タプルをキーにする Dictionary は未対応です（C# はキーを値で比べますが、ここでは参照の比較になります）。キーは、数値・string などにしてください";
+            private static string KeyMessage =>
+                Loc.T("タプルをキーにする Dictionary は未対応です（C# はキーを値で比べますが、ここでは参照の比較になります）。キーは、数値・string などにしてください", "A Dictionary keyed by a tuple is not supported (C# compares keys by value, but here they would be compared by reference). Use a number, string or similar as the key");
 
             /// <summary>タプルの型の表記（(int, string)・ValueTuple&lt;int, string&gt;）→ 生成するクラスの名前。タプルでなければ null</summary>
             private SyntaxNode ReplaceType(TypeSyntax node)
@@ -516,7 +516,7 @@ namespace UdonSharpPlus
                         return strDeferred ? base.VisitTupleExpression(node) : node;
                     if (str.ToStringError != null)
                     {
-                        Error(node, $"タプルの文字列への変換は、{str.ToStringError}、使えません");
+                        Error(node, Loc.T($"タプルの文字列への変換は、{str.ToStringError}、使えません", $"Converting a tuple to a string cannot be used because {str.ToStringError}"));
                         return node;
                     }
                     return Parse($"{str.Name}.__Str(new {str.Name}({string.Join(", ", node.Arguments.Select(x => Text(Visit(x.Expression))))}))", node);
@@ -525,15 +525,15 @@ namespace UdonSharpPlus
                 if (IsTuple(typeInfo.Type) && typeInfo.ConvertedType != null && !IsTuple(typeInfo.ConvertedType) && typeInfo.ConvertedType.TypeKind != TypeKind.Error
                     && !_allowed.Contains(node) && !(node.Parent is ParenthesizedExpressionSyntax))
                 {
-                    Error(node, "タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）");
+                    Error(node, Loc.T("タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）", "Using a tuple as object or as an interface is not supported (turn it into a string with t.ToString(), or pass its elements)"));
                     return node;
                 }
                 if (!IsTuple(type))
                 {
                     if (typeInfo.ConvertedType != null && typeInfo.ConvertedType.TypeKind != TypeKind.Error && typeInfo.Type != null)
-                        Error(node, "タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）");
+                        Error(node, Loc.T("タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）", "Using a tuple as object or as an interface is not supported (turn it into a string with t.ToString(), or pass its elements)"));
                     else
-                        Error(node, "型の決まらないタプル（null だけの要素など）は未対応です。要素の型が分かるように書いてください（(string)null など）");
+                        Error(node, Loc.T("型の決まらないタプル（null だけの要素など）は未対応です。要素の型が分かるように書いてください（(string)null など）", "Tuples whose type cannot be determined (elements that are only null and so on) are not supported. Write it so the element types are known ((string)null and so on)"));
                     return node;
                 }
                 TupleInfo info = InfoOf(type, node, out bool deferred);
@@ -569,7 +569,7 @@ namespace UdonSharpPlus
                     return Parse($"{info.Name}.__Default()", node);
                 if (args.Count != type.TupleElements.Length || node.Initializer != null)
                 {
-                    Error(node, "この形のタプルの new は未対応です（(1, \"a\") のように書いてください）");
+                    Error(node, Loc.T("この形のタプルの new は未対応です（(1, \"a\") のように書いてください）", "This form of new for a tuple is not supported (write it like (1, \"a\"))"));
                     return node;
                 }
                 return Parse($"new {info.Name}({string.Join(", ", args)})", node);
@@ -656,7 +656,7 @@ namespace UdonSharpPlus
                 {
                     if (IsWritten(node))
                     {
-                        Error(node, $"'{node.Name}' : タプルの要素への代入は未対応です（C# ではタプルは値型で、代入のたびにコピーされますが、ここでは参照になるため）。タプルを作り直してください（t = (5, t.Item2) など）");
+                        Error(node, Loc.T($"'{node.Name}' : タプルの要素への代入は未対応です（C# ではタプルは値型で、代入のたびにコピーされますが、ここでは参照になるため）。タプルを作り直してください（t = (5, t.Item2) など）", $"'{node.Name}' : Assigning to a tuple element is not supported (in C# tuples are value types and are copied on every assignment, but here they are references). Build a new tuple instead (t = (5, t.Item2) and so on)"));
                         return node;
                     }
                     string item = (field.CorrespondingTupleField ?? field).Name;
@@ -706,7 +706,7 @@ namespace UdonSharpPlus
                         ITypeSymbol target = !leftLiteral && left != null ? left : !rightLiteral && right != null ? right : left ?? right;
                         if (target == null)
                         {
-                            Error(node, "型の決まらないタプル（null だけの要素など）との == は未対応です。要素の型が分かるように書いてください");
+                            Error(node, Loc.T("型の決まらないタプル（null だけの要素など）との == は未対応です。要素の型が分かるように書いてください", "== with a tuple whose type cannot be determined (elements that are only null and so on) is not supported. Write it so the element types are known"));
                             return node;
                         }
                         TupleInfo a = InfoOf(target, node, out bool deferred);
@@ -725,7 +725,7 @@ namespace UdonSharpPlus
                         string l = Side(node.Left, left), r = Side(node.Right, right);
                         if (l == null || r == null)
                         {
-                            Error(node, "要素の型が違うタプルの == は未対応です（要素ごとに比べてください）");
+                            Error(node, Loc.T("要素の型が違うタプルの == は未対応です（要素ごとに比べてください）", "== between tuples with different element types is not supported (compare element by element)"));
                             return node;
                         }
                         _shared.UseOperator((INamedTypeSymbol)target);
@@ -801,7 +801,7 @@ namespace UdonSharpPlus
                     }
                     Error(node, method.Name == "ToDictionary"
                         ? KeyMessage
-                        : $"'{method.Name}' : タプルの要素を値（Equals）で比べるこの形は未対応です（リストの比較は参照になります）。Exists / FindIndex / Any / Where などのラムダで比べてください");
+                        : Loc.T($"'{method.Name}' : タプルの要素を値（Equals）で比べるこの形は未対応です（リストの比較は参照になります）。Exists / FindIndex / Any / Where などのラムダで比べてください", $"'{method.Name}' : This form, which compares tuple elements by value (Equals), is not supported (the list comparison would be by reference). Compare in a lambda with Exists / FindIndex / Any / Where instead"));
                     return node;
                 }
 
@@ -819,7 +819,7 @@ namespace UdonSharpPlus
                 if (method != null && method.ContainingType != null && method.ContainingType.Name == "List" && method.ContainingType.TypeArguments.Length == 1
                     && IsTuple(method.ContainingType.TypeArguments[0]) && (method.Name == "Sort" && method.Parameters.Length == 0 || method.Name == "BinarySearch"))
                 {
-                    Error(node, $"'{method.Name}' : タプルの大小の比較は未対応です（list.Sort((a, b) => ...) のように、比べ方を渡してください）");
+                    Error(node, Loc.T($"'{method.Name}' : タプルの大小の比較は未対応です（list.Sort((a, b) => ...) のように、比べ方を渡してください）", $"'{method.Name}' : Ordering tuples is not supported (pass a comparison, like list.Sort((a, b) => ...))"));
                     return node;
                 }
 
@@ -836,7 +836,7 @@ namespace UdonSharpPlus
                     {
                         if (info.ToStringError != null)
                         {
-                            Error(node, $"タプルの ToString は、{info.ToStringError}、使えません");
+                            Error(node, Loc.T($"タプルの ToString は、{info.ToStringError}、使えません", $"ToString on a tuple cannot be used because {info.ToStringError}"));
                             return node;
                         }
                         return Parse($"{Text(Visit(access.Expression))}.__ToString()", node);
@@ -845,14 +845,14 @@ namespace UdonSharpPlus
                     {
                         if (info.EqualsError != null)
                         {
-                            Error(node, $"タプルの Equals は、{info.EqualsError}、使えません");
+                            Error(node, Loc.T($"タプルの Equals は、{info.EqualsError}、使えません", $"Equals on a tuple cannot be used because {info.EqualsError}"));
                             return node;
                         }
                         ExpressionSyntax argument = node.ArgumentList.Arguments[0].Expression;
                         _allowed.Add(argument);
                         return Parse($"{Text(Visit(access.Expression))}.__Equals({Text(Visit(argument))})", node);
                     }
-                    Error(node, $"'{method.Name}' : タプルの {method.Name} は未対応です（ToString・Equals・==・要素の読み出しが使えます）");
+                    Error(node, Loc.T($"'{method.Name}' : タプルの {method.Name} は未対応です（ToString・Equals・==・要素の読み出しが使えます）", $"'{method.Name}' : {method.Name} on a tuple is not supported (ToString, Equals, == and reading elements are supported)"));
                     return node;
                 }
                 return base.VisitInvocationExpression(node);
@@ -864,7 +864,7 @@ namespace UdonSharpPlus
             {
                 if (node.Expression is TupleExpressionSyntax || IsTuple(_model.GetTypeInfo(node.Expression).Type))
                 {
-                    Error(node.Expression, "タプルの switch は未対応です（if で、要素ごとに比べてください）");
+                    Error(node.Expression, Loc.T("タプルの switch は未対応です（if で、要素ごとに比べてください）", "switch on a tuple is not supported (use if and compare element by element)"));
                     return node;
                 }
                 return base.VisitSwitchStatement(node);
@@ -874,7 +874,7 @@ namespace UdonSharpPlus
             {
                 if (node.Expression is TupleExpressionSyntax || IsTuple(_model.GetTypeInfo(node.Expression).Type))
                 {
-                    Error(node, "タプルのパターン（is）は未対応です（要素ごとに比べてください）");
+                    Error(node, Loc.T("タプルのパターン（is）は未対応です（要素ごとに比べてください）", "Tuple patterns (is) are not supported (compare element by element)"));
                     return node;
                 }
                 return base.VisitIsPatternExpression(node);
@@ -884,7 +884,7 @@ namespace UdonSharpPlus
             {
                 if (node.GoverningExpression is TupleExpressionSyntax || IsTuple(_model.GetTypeInfo(node.GoverningExpression).Type))
                 {
-                    Error(node.GoverningExpression, "タプルの switch は未対応です（if で、要素ごとに比べてください）");
+                    Error(node.GoverningExpression, Loc.T("タプルの switch は未対応です（if で、要素ごとに比べてください）", "switch on a tuple is not supported (use if and compare element by element)"));
                     return node;
                 }
                 return base.VisitSwitchExpression(node);
@@ -953,7 +953,7 @@ namespace UdonSharpPlus
             {
                 if (node.IsKind(SyntaxKind.SimpleAssignmentExpression) && IsDeconstructionTarget(node.Left))
                 {
-                    Error(node, "タプルの分解は、1 つの文として書いてください（式の中・for の初期化・式の本体のラムダの中では未対応です）");
+                    Error(node, Loc.T("タプルの分解は、1 つの文として書いてください（式の中・for の初期化・式の本体のラムダの中では未対応です）", "Write tuple deconstruction as a statement of its own (it is not supported inside an expression, in a for initializer or in an expression-bodied lambda)"));
                     return node;
                 }
                 return base.VisitAssignmentExpression(node);
@@ -970,14 +970,14 @@ namespace UdonSharpPlus
                 ITypeSymbol type = IsTuple(info.Type) ? info.Type : IsTuple(info.ConvertedType) ? info.ConvertedType : null;
                 if (type == null)
                 {
-                    Error(assign, "タプル以外の分解（Deconstruct メソッド・KeyValuePair など）は未対応です");
+                    Error(assign, Loc.T("タプル以外の分解（Deconstruct メソッド・KeyValuePair など）は未対応です", "Deconstructing anything other than a tuple (a Deconstruct method, KeyValuePair and so on) is not supported"));
                     return null;
                 }
                 TupleInfo tuple = InfoOf(type, assign, out bool deferred);
                 if (tuple == null)
                 {
                     if (deferred)
-                        Error(assign, "型引数を使うタプルの分解は未対応です（要素を Item1 などで読んでください）");
+                        Error(assign, Loc.T("型引数を使うタプルの分解は未対応です（要素を Item1 などで読んでください）", "Deconstructing a tuple that uses a type parameter is not supported (read the elements with Item1 and so on)"));
                     return null;
                 }
                 var sb = new StringBuilder();
@@ -1022,7 +1022,7 @@ namespace UdonSharpPlus
                     return Designations(all, type, source, sb);
                 if (!(left is TupleExpressionSyntax targets) || targets.Arguments.Count != elements.Length)
                 {
-                    Error(left, "この形の分解は未対応です");
+                    Error(left, Loc.T("この形の分解は未対応です", "This form of deconstruction is not supported"));
                     return false;
                 }
                 for (int i = 0; i < elements.Length; i++)
@@ -1049,7 +1049,7 @@ namespace UdonSharpPlus
                         default:
                             if (target is DeclarationExpressionSyntax || target is TupleExpressionSyntax)
                             {
-                                Error(target, "この形の分解は未対応です");
+                                Error(target, Loc.T("この形の分解は未対応です", "This form of deconstruction is not supported"));
                                 return false;
                             }
                             sb.Append($"{Location(target)} = {item}; ");
@@ -1101,7 +1101,7 @@ namespace UdonSharpPlus
                 var elements = type.TupleElements;
                 if (designation.Variables.Count != elements.Length)
                 {
-                    Error(designation, "この形の分解は未対応です");
+                    Error(designation, Loc.T("この形の分解は未対応です", "This form of deconstruction is not supported"));
                     return false;
                 }
                 for (int i = 0; i < elements.Length; i++)
@@ -1119,7 +1119,7 @@ namespace UdonSharpPlus
                                 return false;
                             break;
                         default:
-                            Error(designation, "この形の分解は未対応です");
+                            Error(designation, Loc.T("この形の分解は未対応です", "This form of deconstruction is not supported"));
                             return false;
                     }
                 }
@@ -1132,14 +1132,14 @@ namespace UdonSharpPlus
                 ITypeSymbol element = _model.GetForEachStatementInfo(node).ElementType;
                 if (!IsTuple(element))
                 {
-                    Error(node.Variable, "タプル以外の分解（Deconstruct メソッド・KeyValuePair など）は未対応です（foreach (var kv in dict) で、kv.Key／kv.Value を使ってください）");
+                    Error(node.Variable, Loc.T("タプル以外の分解（Deconstruct メソッド・KeyValuePair など）は未対応です（foreach (var kv in dict) で、kv.Key／kv.Value を使ってください）", "Deconstructing anything other than a tuple (a Deconstruct method, KeyValuePair and so on) is not supported (use foreach (var kv in dict) with kv.Key / kv.Value)"));
                     return node;
                 }
                 TupleInfo tuple = InfoOf(element, node.Variable, out bool deferred);
                 if (tuple == null)
                 {
                     if (deferred)
-                        Error(node.Variable, "型引数を使うタプルの分解は未対応です（要素を Item1 などで読んでください）");
+                        Error(node.Variable, Loc.T("型引数を使うタプルの分解は未対応です（要素を Item1 などで読んでください）", "Deconstructing a tuple that uses a type parameter is not supported (read the elements with Item1 and so on)"));
                     return node;
                 }
                 var sb = new StringBuilder();

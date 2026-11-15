@@ -57,7 +57,7 @@ namespace UdonSharpPlus
                 // U# のコンパイルの並列処理の中からも呼ばれるので、例外を外に出すとコンパイル全体が失敗する（#116）。
                 // U# の元の写し方に戻す（型を書き換えたフィールドでは、Play モードに入るときに「not compatible with serializer」が出うる）
                 if (System.Threading.Interlocked.Exchange(ref _warned, 1) == 0)
-                    Debug.LogWarning($"[UdonSharpPlus] フィールドの写し方を決めるところで例外が起きたため、UdonSharp の元の写し方に戻しました：{e.GetType().Name}: {e.Message}");
+                    Debug.LogWarning(Loc.T($"[UdonSharpPlus] フィールドの写し方を決めるところで例外が起きたため、UdonSharp の元の写し方に戻しました：{e.GetType().Name}: {e.Message}", $"[UdonSharpPlus] An exception occurred while choosing how to copy a field, so UdonSharp's original behavior is used: {e.GetType().Name}: {e.Message}"));
                 return true;
             }
         }

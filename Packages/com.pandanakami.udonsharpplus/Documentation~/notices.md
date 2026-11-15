@@ -13,6 +13,8 @@
 
 ## 設定
 
+文言は、既定では英語です（Project Settings > Udon Sharp Plus の「Language / 言語」で日本語にできます）。上のログの例は日本語のときのものです。
+
 **Project Settings > Udon Sharp Plus** で、注意ごとに出す・出さないを選べます。「注意を出す」を外すと、すべて出しません。設定は `ProjectSettings/UdonSharpPlusSettings.json` に保存されるので、リポジトリに入れればチームで揃えられます（既定から変えたものだけを記録します）。
 
 ## 注意の一覧

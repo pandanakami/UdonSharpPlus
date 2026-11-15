@@ -117,13 +117,13 @@ namespace UdonSharpPlus
 
             // ユーザー定義の構造体は未対応（U# も対応しておらず、使うと内部の例外になる）。使われるものだけエラーにする（#54）
             foreach (INamedTypeSymbol st in context.Structs.OrderBy(t => TagOf(t), StringComparer.Ordinal))
-                diagnostics.Error(st.Locations.FirstOrDefault(l => l.IsInSource), $"'{st.Name}' : ユーザー定義の構造体は未対応です");
+                diagnostics.Error(st.Locations.FirstOrDefault(l => l.IsInSource), Loc.T($"'{st.Name}' : ユーザー定義の構造体は未対応です", $"'{st.Name}' : User-defined structs are not supported"));
 
             // 外部のクラス（ScriptableObject・MonoBehaviour・Exception など）を継承したクラスも、U# では内部の例外になるのでエラーにする（#55）。
             // ソース上の普通のクラスを継承したものは、汎用クラスの検査（Validate）でエラーにしている
             foreach (INamedTypeSymbol cls in context.ExternalDerived.OrderBy(t => TagOf(t), StringComparer.Ordinal))
                 diagnostics.Error(cls.Locations.FirstOrDefault(l => l.IsInSource),
-                    $"'{cls.Name}' : {cls.BaseType?.Name} を継承したクラスは、UdonSharpBehaviour の中で使えません");
+                    Loc.T($"'{cls.Name}' : {cls.BaseType?.Name} を継承したクラスは、UdonSharpBehaviour の中で使えません", $"'{cls.Name}' : A class derived from {cls.BaseType?.Name} cannot be used in an UdonSharpBehaviour"));
 
             if (hosts.Values.All(h => h.Used.Count == 0))
                 return trees;
@@ -353,8 +353,8 @@ namespace UdonSharpPlus
                 if (!_nestedReported.Add(nested.OriginalDefinition))
                     return;
                 Diagnostics.Error(nested.Locations.FirstOrDefault(), nested.TypeKind == TypeKind.Class
-                    ? $"'{nested.Name}' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください"
-                    : $"'{nested.ContainingType.Name}.{nested.Name}' : クラスの中の型宣言は未対応です");
+                    ? Loc.T($"'{nested.Name}' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください", $"'{nested.Name}' : Nested classes are not supported. Declare the class directly in a namespace")
+                    : Loc.T($"'{nested.ContainingType.Name}.{nested.Name}' : クラスの中の型宣言は未対応です", $"'{nested.ContainingType.Name}.{nested.Name}' : Type declarations inside a class are not supported"));
             }
 
             /// <summary>未対応の書き方を調べ、フィールドの並びを決める（使われるクラスだけ、1 回だけ）</summary>
@@ -374,7 +374,7 @@ namespace UdonSharpPlus
                 }
 
                 if (s.BaseType != null && s.BaseType.SpecialType != SpecialType.System_Object)
-                    Fail(at, $"'{s.Name}' : 普通のクラスの継承は未対応です");
+                    Fail(at, Loc.T($"'{s.Name}' : 普通のクラスの継承は未対応です", $"'{s.Name}' : Inheritance between plain classes is not supported"));
                 if (s.IsGenericType)
                 {
                     // ジェネリッククラスは GenericLowering がコピーにするので、ここに残るのは GenericLowering がエラーにしたもの
@@ -382,7 +382,7 @@ namespace UdonSharpPlus
                     if (s.DeclaringSyntaxReferences.Length > 1)
                         c.Valid = false;
                     else
-                        Fail(at, $"'{s.Name}' : ジェネリッククラスは未対応です");
+                        Fail(at, Loc.T($"'{s.Name}' : ジェネリッククラスは未対応です", $"'{s.Name}' : Generic classes are not supported"));
                 }
                 if (s.ContainingType != null)
                 {
@@ -390,7 +390,7 @@ namespace UdonSharpPlus
                     c.Valid = false;
                 }
                 if (s.IsAbstract && !s.IsStatic)
-                    Fail(at, $"'{s.Name}' : abstract クラスは未対応です");
+                    Fail(at, Loc.T($"'{s.Name}' : abstract クラスは未対応です", $"'{s.Name}' : Abstract classes are not supported"));
 
                 foreach (ISymbol member in s.GetMembers())
                 {
@@ -402,20 +402,20 @@ namespace UdonSharpPlus
                         case IFieldSymbol f when f.IsConst:
                             break;
                         case IFieldSymbol f when f.IsStatic:
-                            Fail(loc, $"'{s.Name}.{f.Name}' : static フィールドは非対応です（UdonSharp と同じ）");
+                            Fail(loc, Loc.T($"'{s.Name}.{f.Name}' : static フィールドは非対応です（UdonSharp と同じ）", $"'{s.Name}.{f.Name}' : Static fields are not supported (same as UdonSharp)"));
                             break;
                         case IFieldSymbol f:
                             AddSlot(c, f);
                             break;
 
                         case IPropertySymbol p when p.IsIndexer:
-                            Fail(loc, $"'{s.Name}' : インデクサーは未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}' : インデクサーは未対応です", $"'{s.Name}' : Indexers are not supported"));
                             break;
                         case IPropertySymbol p when p.ExplicitInterfaceImplementations.Length > 0:
-                            Fail(loc, $"'{s.Name}.{p.ExplicitInterfaceImplementations[0].Name}' : 明示的インタフェース実装は未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}.{p.ExplicitInterfaceImplementations[0].Name}' : 明示的インタフェース実装は未対応です", $"'{s.Name}.{p.ExplicitInterfaceImplementations[0].Name}' : Explicit interface implementations are not supported"));
                             break;
                         case IPropertySymbol p when IsAutoProperty(p) && p.IsStatic:
-                            Fail(loc, $"'{s.Name}.{p.Name}' : static の自動実装プロパティは非対応です（static フィールドと同じ）");
+                            Fail(loc, Loc.T($"'{s.Name}.{p.Name}' : static の自動実装プロパティは非対応です（static フィールドと同じ）", $"'{s.Name}.{p.Name}' : Static auto-implemented properties are not supported (same as static fields)"));
                             break;
                         case IPropertySymbol p when IsAutoProperty(p):
                             AddSlot(c, p);
@@ -426,35 +426,35 @@ namespace UdonSharpPlus
                         case IMethodSymbol m when m.IsImplicitlyDeclared:
                             break;
                         case IMethodSymbol m when m.MethodKind == MethodKind.StaticConstructor:
-                            Fail(loc, $"'{s.Name}' : static コンストラクタは未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}' : static コンストラクタは未対応です", $"'{s.Name}' : Static constructors are not supported"));
                             break;
                         case IMethodSymbol m when m.MethodKind == MethodKind.UserDefinedOperator || m.MethodKind == MethodKind.Conversion:
-                            Fail(loc, $"'{s.Name}' : 演算子のオーバーロードは未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}' : 演算子のオーバーロードは未対応です", $"'{s.Name}' : Operator overloading is not supported"));
                             break;
                         case IMethodSymbol m when m.MethodKind == MethodKind.Destructor:
-                            Fail(loc, $"'{s.Name}' : ファイナライザーは未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}' : ファイナライザーは未対応です", $"'{s.Name}' : Finalizers are not supported"));
                             break;
                         case IMethodSymbol m when m.MethodKind == MethodKind.ExplicitInterfaceImplementation:
-                            Fail(loc, $"'{s.Name}.{m.ExplicitInterfaceImplementations.FirstOrDefault()?.Name ?? m.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください");
+                            Fail(loc, Loc.T($"'{s.Name}.{m.ExplicitInterfaceImplementations.FirstOrDefault()?.Name ?? m.Name}' : 明示的インタフェース実装は未対応です。public メソッドとして実装してください", $"'{s.Name}.{m.ExplicitInterfaceImplementations.FirstOrDefault()?.Name ?? m.Name}' : Explicit interface implementations are not supported. Implement it as a public method"));
                             break;
                         case IMethodSymbol m when m.IsGenericMethod:
-                            Fail(loc, $"'{s.Name}.{m.Name}' : ジェネリックメソッドは未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}.{m.Name}' : ジェネリックメソッドは未対応です", $"'{s.Name}.{m.Name}' : Generic methods are not supported"));
                             break;
                         case IMethodSymbol m when IsPartialMethod(m):
                             // 宣言と実装が別のメソッドとしてコピーされて二重になる。宣言だけなら空のメソッドとして通ってしまう（#117）
-                            Fail(loc, $"'{s.Name}.{m.Name}' : partial メソッドは未対応です（UdonSharp も対応していません）。普通のメソッドにしてください");
+                            Fail(loc, Loc.T($"'{s.Name}.{m.Name}' : partial メソッドは未対応です（UdonSharp も対応していません）。普通のメソッドにしてください", $"'{s.Name}.{m.Name}' : Partial methods are not supported (UdonSharp does not support them either). Use a normal method"));
                             break;
                         case IMethodSymbol m when m.IsOverride && m.Name != "ToString" && m.Name != "Equals" && m.Name != "GetHashCode":
-                            Fail(loc, $"'{s.Name}.{m.Name}' : override は未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}.{m.Name}' : override は未対応です", $"'{s.Name}.{m.Name}' : override is not supported"));
                             break;
                         case IMethodSymbol m when m.IsOverride:
-                            Fail(loc, $"'{s.Name}.{m.Name}' : {m.Name} の override は未対応です（インスタンスは object[] なので呼ばれません）");
+                            Fail(loc, Loc.T($"'{s.Name}.{m.Name}' : {m.Name} の override は未対応です（インスタンスは object[] なので呼ばれません）", $"'{s.Name}.{m.Name}' : Overriding {m.Name} is not supported (instances are object[], so it would never be called)"));
                             break;
                         case IMethodSymbol _:
                             break;
 
                         case IEventSymbol e:
-                            Fail(loc, $"'{s.Name}.{e.Name}' : イベントは未対応です");
+                            Fail(loc, Loc.T($"'{s.Name}.{e.Name}' : イベントは未対応です", $"'{s.Name}.{e.Name}' : Events are not supported"));
                             break;
                         case INamedTypeSymbol t:
                             ReportNested(t);
@@ -513,7 +513,7 @@ namespace UdonSharpPlus
             {
                 if (_self == null)
                     return base.VisitLocalFunctionStatement(node);
-                Error(node, $"'{node.Identifier.ValueText}' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください");
+                Error(node, Loc.T($"'{node.Identifier.ValueText}' : ローカル関数は未対応です（UdonSharp も対応していません）。メソッドにしてください", $"'{node.Identifier.ValueText}' : Local functions are not supported here (UdonSharp does not support them either). Use a method"));
                 return node;
             }
 
@@ -620,7 +620,7 @@ namespace UdonSharpPlus
                     .Select(a => _model.GetSymbolInfo(a).Symbol?.ContainingType?.Name).ToList();
                 if (attributes.Contains("SerializeField") || attributes.Contains("UdonSyncedAttribute") || attributes.Contains("SerializeReference"))
                 {
-                    Error(node, "普通のクラスの型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）");
+                    Error(node, Loc.T("普通のクラスの型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）", "Fields of a plain class type cannot be serialized or synced ([SerializeField] / [UdonSynced] cannot be used)"));
                     return base.VisitFieldDeclaration(node);
                 }
 
@@ -713,7 +713,7 @@ namespace UdonSharpPlus
                     return null;
                 if (!definition.IsStatic)
                 {
-                    Error(node, $"'{method.Name}' : 普通のクラスのインスタンスのメソッドを、メソッド名だけで渡すのは未対応です（ラムダで書いてください）");
+                    Error(node, Loc.T($"'{method.Name}' : 普通のクラスのインスタンスのメソッドを、メソッド名だけで渡すのは未対応です（ラムダで書いてください）", $"'{method.Name}' : Passing an instance method of a plain class by its name alone is not supported (write a lambda instead)"));
                     return node;
                 }
                 return Parse(MethodName(c, definition), node);
@@ -730,7 +730,7 @@ namespace UdonSharpPlus
             {
                 if (_context.InvolvesTarget(_model.GetTypeInfo(node.Type).Type))
                 {
-                    Error(node, "普通のクラスの typeof は未対応です");
+                    Error(node, Loc.T("普通のクラスの typeof は未対応です", "typeof of a plain class is not supported"));
                     return node;
                 }
                 return base.VisitTypeOfExpression(node);
@@ -955,7 +955,7 @@ namespace UdonSharpPlus
             {
                 if (_context.InvolvesTarget(_model.GetTypeInfo(node.Expression).Type))
                 {
-                    Error(node, "普通のクラスへの ?. は未対応です");
+                    Error(node, Loc.T("普通のクラスへの ?. は未対応です", "?. on a plain class is not supported"));
                     return node;
                 }
                 return base.VisitConditionalAccessExpression(node);
@@ -1084,12 +1084,12 @@ namespace UdonSharpPlus
             {
                 if (!IsStatementContext(node))
                 {
-                    Error(node, "普通のクラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）");
+                    Error(node, Loc.T("普通のクラスのフィールド・プロパティへの代入やインクリメントは、文としてだけ使えます（式の値としては使えません）", "Assigning to or incrementing a field or property of a plain class can only be used as a statement (not as the value of an expression)"));
                     return false;
                 }
                 if (readsReceiverTwice && !IsSimple(receiver))
                 {
-                    Error(node, "普通のクラスのフィールド・プロパティへの複合代入・インクリメントは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）");
+                    Error(node, Loc.T("普通のクラスのフィールド・プロパティへの複合代入・インクリメントは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）", "Compound assignment or increment of a field or property of a plain class is only supported when the target is a variable or field (store it in a variable first)"));
                     return false;
                 }
                 return true;
@@ -1124,7 +1124,7 @@ namespace UdonSharpPlus
                 TrySlot(slotExpr, out _, out int index, out ITypeSymbol type, out ExpressionSyntax receiver);
                 if (!IsSimple(receiver))
                 {
-                    Error(node, "値型のフィールドの一部の書き換えは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）");
+                    Error(node, Loc.T("値型のフィールドの一部の書き換えは、受け側が変数やフィールドのときだけ使えます（いったん変数に入れてください）", "Changing part of a value-type field is only supported when the target is a variable or field (store it in a variable first)"));
                     return node;
                 }
 
@@ -1166,7 +1166,7 @@ namespace UdonSharpPlus
 
                 if (initializer != null)
                 {
-                    Error(node, "普通のクラスのオブジェクト初期化子（new X { a = 1 }）は未対応です");
+                    Error(node, Loc.T("普通のクラスのオブジェクト初期化子（new X { a = 1 }）は未対応です", "Object initializers of a plain class (new X { a = 1 }) are not supported"));
                     return node;
                 }
 
@@ -1230,7 +1230,7 @@ namespace UdonSharpPlus
                             args.Add(ThisName);
                             break;
                         default:
-                            Error(node, $"'{method.Name}' : この形の普通のクラスのメソッド呼び出しは未対応です（?. など）");
+                            Error(node, Loc.T($"'{method.Name}' : この形の普通のクラスのメソッド呼び出しは未対応です（?. など）", $"'{method.Name}' : This form of plain class method call is not supported (?. and so on)"));
                             return node;
                     }
                 }
@@ -1275,7 +1275,7 @@ namespace UdonSharpPlus
             {
                 if (ReferencesTarget(node.Pattern))
                 {
-                    Error(node, "普通のクラスの型パターン（x is Bullet b など）は未対応です。is と キャストに分けてください");
+                    Error(node, Loc.T("普通のクラスの型パターン（x is Bullet b など）は未対応です。is と キャストに分けてください", "Type patterns on a plain class (x is Bullet b and so on) are not supported. Split it into is and a cast"));
                     return node;
                 }
                 return base.VisitIsPatternExpression(node);
@@ -1348,7 +1348,7 @@ namespace UdonSharpPlus
                 if (implicitCtor != null && !s.IsStatic)
                 {
                     var decl = (ClassDeclarationSyntax)s.DeclaringSyntaxReferences.First().GetSyntax();
-                    var body = new Rewriter(_context, _context.Compilation.GetSemanticModel(decl.SyntaxTree), c, sink, null) { _member = "コンストラクタ" };
+                    var body = new Rewriter(_context, _context.Compilation.GetSemanticModel(decl.SyntaxTree), c, sink, null) { _member = Loc.T("コンストラクタ", "the constructor") };
                     result.Add(body.BuildInit(c, implicitCtor, "", null, null));
                     result.Add(body.BuildCtor(c, implicitCtor, ""));
                 }
@@ -1359,7 +1359,7 @@ namespace UdonSharpPlus
             private string CopyMethod(ClassInfo c, MethodDeclarationSyntax method)
             {
                 IMethodSymbol symbol = _model.GetDeclaredSymbol(method);
-                _member = OperatorLowering.MemberLabel(symbol) ?? $"メソッド {symbol.Name}";   // 演算子を書き換えたメソッドは「演算子 +」（#105）
+                _member = OperatorLowering.MemberLabel(symbol) ?? Loc.T($"メソッド {symbol.Name}", $"method {symbol.Name}");   // 演算子を書き換えたメソッドは「演算子 +」（#105）
                 var sb = new StringBuilder();
                 if (symbol.GetAttributes().Any(a => a.AttributeClass?.Name == "RecursiveMethodAttribute"))
                     sb.Append("[global::UdonSharp.RecursiveMethod] ");
@@ -1395,7 +1395,7 @@ namespace UdonSharpPlus
             private IEnumerable<string> CopyConstructor(ClassInfo c, ConstructorDeclarationSyntax ctor)
             {
                 IMethodSymbol symbol = _model.GetDeclaredSymbol(ctor);
-                _member = "コンストラクタ";
+                _member = Loc.T("コンストラクタ", "the constructor");
                 string parameters = ParameterList(symbol, ctor.ParameterList, true);
                 yield return BuildInit(c, symbol, parameters, ctor.Initializer, ctor.Body != null ? (SyntaxNode)ctor.Body : ctor.ExpressionBody);
                 yield return BuildCtor(c, symbol, parameters);
@@ -1485,7 +1485,7 @@ namespace UdonSharpPlus
                     var rewriter = value.SyntaxTree == _model.SyntaxTree
                         ? this
                         : new Rewriter(_context, _context.Compilation.GetSemanticModel(value.SyntaxTree), c, _sink, null);
-                    string member = $"{(slot is IFieldSymbol ? "フィールド" : "プロパティ")} {slot.Name} の初期化子";
+                    string member = Loc.T($"{(slot is IFieldSymbol ? "フィールド" : "プロパティ")} {slot.Name} の初期化子", $"the initializer of {(slot is IFieldSymbol ? "field" : "property")} {slot.Name}");
                     // 配列の初期化子の省略形（int[] a = { 1, 2 };）は、代入の右辺に書けないので new T[] を付ける（#105 で見つけた）
                     string create = value is InitializerExpressionSyntax ? $"new {TypeText(type)} " : "";
                     sb.Append($"{rewriter.Marker(value, member)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({create}{rewriter.Flatten(rewriter.Visit(value), value)}); ");
@@ -1498,7 +1498,7 @@ namespace UdonSharpPlus
                 IPropertySymbol symbol = _model.GetDeclaredSymbol(property);
                 if (symbol == null || c.Slots.ContainsKey(symbol) || IsAutoProperty(symbol))
                     yield break;
-                _member = $"プロパティ {symbol.Name}";
+                _member = Loc.T($"プロパティ {symbol.Name}", $"property {symbol.Name}");
 
                 string type = TypeText(symbol.Type);
                 string self = symbol.IsStatic ? "" : $"{InstanceType} {ThisName}";
@@ -1547,7 +1547,7 @@ namespace UdonSharpPlus
                 string text = flat.ToFullString().Trim();
                 if (text.Contains("\n"))
                 {
-                    Error(original, "普通のクラスのメソッドの中の、改行を含む補間文字列は未対応です");
+                    Error(original, Loc.T("普通のクラスのメソッドの中の、改行を含む補間文字列は未対応です", "Interpolated strings that contain a line break are not supported inside a plain class method"));
                     return "";
                 }
                 return text;

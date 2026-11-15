@@ -48,7 +48,7 @@ namespace UdonSharpPlus
                     string name = MethodName(symbol);
                     if (symbol.ContainingType.GetMembers(name).Any())
                         diagnostics.Error(OperatorToken(decl).GetLocation(),
-                            $"'{symbol.ContainingType.Name}' : メンバーの名前 {name} は、この演算子の書き換えに使うので、ほかの名前にしてください");
+                            Loc.T($"'{symbol.ContainingType.Name}' : メンバーの名前 {name} は、この演算子の書き換えに使うので、ほかの名前にしてください", $"'{symbol.ContainingType.Name}' : The member name {name} is used for this operator, so choose another name"));
                     names[symbol] = name;
                 }
 
@@ -84,16 +84,16 @@ namespace UdonSharpPlus
                 case WellKnownMemberNames.TrueOperatorName:
                 case WellKnownMemberNames.FalseOperatorName:
                     // 普通のクラスのエラーは、UdonSharpBehaviour から使われるときだけ残す（ClassLowering の検査と同じ）
-                    diagnostics.Error(at, $"'{type.Name}' : true / false 演算子は未対応です。bool を返すメソッドかプロパティにしてください",
+                    diagnostics.Error(at, Loc.T($"'{type.Name}' : true / false 演算子は未対応です。bool を返すメソッドかプロパティにしてください", $"'{type.Name}' : true / false operators are not supported. Use a method or property that returns bool"),
                         InterfaceLowering.IsUdonSharpBehaviour(type) ? null : ClassLowering.TagOf(type.OriginalDefinition));
                     return;
             }
             if (!InterfaceLowering.IsUdonSharpBehaviour(type))
                 return;
             if (symbol.Name == WellKnownMemberNames.EqualityOperatorName || symbol.Name == WellKnownMemberNames.InequalityOperatorName)
-                diagnostics.Error(at, $"'{type.Name}' : UdonSharpBehaviour の == / != のオーバーロードは未対応です（UnityEngine.Object の比較（破棄したものを null とみなす）を置き換えてしまうため）。比べるメソッドにしてください");
+                diagnostics.Error(at, Loc.T($"'{type.Name}' : UdonSharpBehaviour の == / != のオーバーロードは未対応です（UnityEngine.Object の比較（破棄したものを null とみなす）を置き換えてしまうため）。比べるメソッドにしてください", $"'{type.Name}' : Overloading == / != on an UdonSharpBehaviour is not supported (it would replace the UnityEngine.Object comparison, which treats destroyed objects as null). Use a comparison method"));
             else if (symbol.MethodKind == MethodKind.Conversion && symbol.ReturnType is INamedTypeSymbol target && InterfaceLowering.IsUdonSharpBehaviour(target))
-                diagnostics.Error(at, $"'{type.Name}' : UdonSharpBehaviour の型への変換演算子は未対応です（UdonSharpBehaviour のキャストと区別できないため）。static メソッドにしてください");
+                diagnostics.Error(at, Loc.T($"'{type.Name}' : UdonSharpBehaviour の型への変換演算子は未対応です（UdonSharpBehaviour のキャストと区別できないため）。static メソッドにしてください", $"'{type.Name}' : Conversion operators to an UdonSharpBehaviour type are not supported (they cannot be told apart from UdonSharpBehaviour casts). Use a static method"));
         }
 
         private static SyntaxToken OperatorToken(BaseMethodDeclarationSyntax decl) =>
@@ -139,9 +139,9 @@ namespace UdonSharpPlus
                 return null;
             string head = name.Substring(0, cut);
             if (Tokens.TryGetValue(head, out string token))
-                return $"演算子 {token}";
+                return Loc.T($"演算子 {token}", $"operator {token}");
             if (head == WellKnownMemberNames.ImplicitConversionName || head == WellKnownMemberNames.ExplicitConversionName)
-                return $"変換 {(head == WellKnownMemberNames.ImplicitConversionName ? "implicit" : "explicit")} operator {method.ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}";
+                return Loc.T($"変換 {(head == WellKnownMemberNames.ImplicitConversionName ? "implicit" : "explicit")} operator {method.ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}", $"conversion {(head == WellKnownMemberNames.ImplicitConversionName ? "implicit" : "explicit")} operator {method.ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}");
             return null;
         }
 
@@ -310,7 +310,7 @@ namespace UdonSharpPlus
                     return base.VisitBinaryExpression(node);
                 if (node.IsKind(SyntaxKind.LogicalAndExpression) || node.IsKind(SyntaxKind.LogicalOrExpression))
                 {
-                    _diagnostics.Error(node.OperatorToken.GetLocation(), $"ユーザー定義の演算子を使う {node.OperatorToken.Text} は未対応です。& / | にするか、bool にしてから比べてください");
+                    _diagnostics.Error(node.OperatorToken.GetLocation(), Loc.T($"ユーザー定義の演算子を使う {node.OperatorToken.Text} は未対応です。& / | にするか、bool にしてから比べてください", $"{node.OperatorToken.Text} with user-defined operators is not supported. Use & / |, or convert to bool before comparing"));
                     return node;
                 }
                 var left = (ExpressionSyntax)Visit(node.Left);
@@ -342,12 +342,12 @@ namespace UdonSharpPlus
                 string op = method.Name == WellKnownMemberNames.IncrementOperatorName ? "++" : "--";
                 if (!prefix && !statement)
                 {
-                    Error(node, $"ユーザー定義の {op} を後置（x{op}）で書いて値を使うのは未対応です。前置（{op}x）にするか、文にしてください");
+                    Error(node, Loc.T($"ユーザー定義の {op} を後置（x{op}）で書いて値を使うのは未対応です。前置（{op}x）にするか、文にしてください", $"Using the value of a user-defined {op} written as postfix (x{op}) is not supported. Use prefix ({op}x), or write it as a statement"));
                     return node;
                 }
                 if (!IsRepeatable(operand))
                 {
-                    Error(node, $"ユーザー定義の {op} の受け側に、メソッドの呼び出しなどを書くのは未対応です。変数に入れてから使ってください");
+                    Error(node, Loc.T($"ユーザー定義の {op} の受け側に、メソッドの呼び出しなどを書くのは未対応です。変数に入れてから使ってください", $"Writing a method call or similar as the target of a user-defined {op} is not supported. Store it in a variable first"));
                     return node;
                 }
                 string target = Text(Visit(operand));
@@ -362,7 +362,7 @@ namespace UdonSharpPlus
                 // a += b → a = Vec.op_Addition__Vec__Vec(a, b)
                 if (!IsRepeatable(node.Left))
                 {
-                    Error(node, $"ユーザー定義の演算子を使う {node.OperatorToken.Text} の受け側に、メソッドの呼び出しなどを書くのは未対応です。変数に入れてから使ってください");
+                    Error(node, Loc.T($"ユーザー定義の演算子を使う {node.OperatorToken.Text} の受け側に、メソッドの呼び出しなどを書くのは未対応です。変数に入れてから使ってください", $"Writing a method call or similar as the target of {node.OperatorToken.Text} with a user-defined operator is not supported. Store it in a variable first"));
                     return node;
                 }
                 string target = Text(Visit(node.Left));

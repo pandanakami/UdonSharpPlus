@@ -28,7 +28,7 @@ UdonSharp で書ける C# を増やすパッケージ、UdonSharp Plus の詳し
 - **対応していない SDK**：UdonSharp の内部 API が見つからないときは自動で無効になり、コンソールに `[UdonSharpPlus] この VRChat SDK（…）では UdonSharp の内部が変わっているため、無効にしました` のエラーが出ます。そのときは素の UdonSharp と同じ動きになるので、UdonSharp Plus を更新してください。SDK のバージョンが動作を確かめた範囲の外のときは、`[UdonSharpPlus] この VRChat SDK（…）は、動作を確かめた範囲（…）の外です` の警告が出ます（動きは変わりません）。
 - **アセンブリ（asmdef）**：普通のクラス・インタフェース・ジェネリッククラスは、UdonSharp がコンパイルするアセンブリ（Assembly-CSharp か、U# Assembly Definition を付けた asmdef）に置いてください。その間なら、アセンブリをまたいで使えます。U# Assembly Definition のない asmdef に置くと書き換えの対象にならず、UdonSharp の「`Method is not exposed to Udon: 'new PlainHelper()'`」などのエラーになります
 - **プリプロセッサ指令（`#if` など）**：UdonSharp と同じシンボル（`COMPILER_UDONSHARP`、エディタでのコンパイルでは `UNITY_EDITOR` も）が定義された状態で読むので、`#if UNITY_EDITOR`・`#if !COMPILER_UDONSHARP` は UdonSharp と同じに使えます。普通のクラス・ジェネリッククラス・ラムダの中でも使えます（書き換えでは、有効な側のコードだけを使います）。`#region`・`#pragma` なども、どこに書いても使えます。
-- **文言**：本パッケージが出すエラー・警告の文言は日本語です。
+- **文言の言語**：本パッケージが出すエラー・警告・注意の文言と、書き換えたコードの中の実行時のログは、既定では英語です。Project Settings > Udon Sharp Plus の「Language / 言語」で日本語にできます（変えたあとのコンパイルから使います。実行時のログは、コンパイルしたときの言語になります）。このドキュメントに載せている文言の例は日本語のものです。
 
 ## 仕組み
 

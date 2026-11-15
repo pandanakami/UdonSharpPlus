@@ -27,7 +27,7 @@ namespace UdonSharpPlus
 
             if (!UdonSharpInternals.Resolve())
             {
-                ReportDisabled("見つからないもの：" + string.Join("、", UdonSharpInternals.Missing));
+                ReportDisabled(Loc.T("見つからないもの：", "not found: ") + string.Join(Loc.T("、", ", "), UdonSharpInternals.Missing));
                 return;
             }
 
@@ -48,13 +48,13 @@ namespace UdonSharpPlus
             {
                 // 引数名が変わった場合などは、当てるときに失敗する。当てた分も外して、中途半端な状態にしない
                 harmony.UnpatchAll(HarmonyId);
-                ReportDisabled("パッチを当てられませんでした：" + e.Message);
+                ReportDisabled(Loc.T("パッチを当てられませんでした：", "could not apply the patches: ") + e.Message);
             }
         }
 
         private static void ReportDisabled(string detail)
         {
-            Debug.LogError($"[UdonSharpPlus] この VRChat SDK（{SdkVersion()}）では UdonSharp の内部が変わっているため、無効にしました（{detail}）。UdonSharp Plus を更新してください");
+            Debug.LogError(Loc.T($"[UdonSharpPlus] この VRChat SDK（{SdkVersion()}）では UdonSharp の内部が変わっているため、無効にしました（{detail}）。UdonSharp Plus を更新してください", $"[UdonSharpPlus] UdonSharp's internals have changed in this VRChat SDK ({SdkVersion()}), so UdonSharp Plus has been disabled ({detail}). Update UdonSharp Plus"));
         }
 
         /// <summary>UdonSharp を含む VRChat SDK（com.vrchat.worlds）のバージョン</summary>
@@ -62,11 +62,11 @@ namespace UdonSharpPlus
         {
             try
             {
-                return UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(Serializer).Assembly)?.version ?? "不明";
+                return UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(Serializer).Assembly)?.version ?? Loc.T("不明", "unknown");
             }
             catch (Exception)
             {
-                return "不明";
+                return Loc.T("不明", "unknown");
             }
         }
 

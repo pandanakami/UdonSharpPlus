@@ -98,13 +98,13 @@ UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、
 
 2. ワールドのプロジェクトの **Manage Project** で、**UdonSharp Plus** を追加します。
 
-これだけで有効になります。設定は要りません。
+これだけで有効になります。ほかに必要な設定はありません。文言の言語とコンパイル時の注意は、Project Settings > Udon Sharp Plus で変えられます。
 
 ## 知っておいてほしいこと
 
 - どの機能も実験的です。思ったとおりに動かないときは、書き換え後のソース（プロジェクトの `Library/UdonSharpPlus/`）を見ると、何に書き換わったか分かります。
-- 対応していない VRChat SDK では、コンソールに `[UdonSharpPlus] この VRChat SDK（…）では UdonSharp の内部が変わっているため、無効にしました` のエラーが出ます。そのときは UdonSharp Plus を更新してください。
-- 詳しいドキュメントと、本パッケージが出すエラー・警告の文言は日本語です。
+- 対応していない VRChat SDK では、コンソールに `[UdonSharpPlus]` で始まる、UdonSharp の内部が変わっているため無効にした、というエラーが出ます。そのときは UdonSharp Plus を更新してください。
+- 本パッケージが出すエラー・警告・注意の文言は、既定では英語です。Project Settings > Udon Sharp Plus で日本語にできます。詳しいドキュメントは日本語です。
 
 ## 対応予定
 

@@ -108,7 +108,7 @@ namespace UdonSharpPlus.Tests
             cache.GetType().GetMethod("QueueUpgradePass").Invoke(cache, null);
             UdonSharpInternals.NeedsProgramUpgradePass.SetValue(null, true);
 
-            LogAssert.Expect(LogType.Error, new Regex("自動アップグレードが例外で止まりました"));
+            LogAssert.Expect(LogType.Error, new Regex("自動アップグレードが例外で止まりました|auto-upgrade stopped with an exception"));
             EnterUpgrade();
             var thrown = new InvalidCastException("test");
             object returned = LeaveUpgrade(thrown);

@@ -11,7 +11,7 @@ namespace UdonSharpPlus
     /// <summary>
     /// コンパイルエラーにはならないが、C# と動きが違うもの・気付きにくいものを使っているとき、コンパイルのたびに Info のログで知らせる（Redmine #118）。
     ///
-    /// - 注意ごとに ID（USP001 など）を付ける。出す・出さないは Project Settings > Udon Sharp Plus で ID ごとに選べる（NoticeSettings）
+    /// - 注意ごとに ID（USP001 など）を付ける。出す・出さないは Project Settings > Udon Sharp Plus で ID ごとに選べる（UdonSharpPlusSettings）
     /// - 同じ ID は、コンパイルごとに 1 回だけ、最初に使った位置（ファイルのパスの順、ファイルの中の位置の順）に出す
     /// - 書き換える前の元のソースを見るので、位置はそのまま元のソースの位置になる
     /// - 使われない普通のクラスの中のものは出さない（書き換えも検査もしないものなので。エラーと同じ）
@@ -21,71 +21,78 @@ namespace UdonSharpPlus
     {
         internal sealed class Rule
         {
-            public string Id;
-            public string Title;      // 設定の画面に出す短い説明
-            public bool DefaultOn;
-            public string Message;
-            public string Doc;        // 詳しい説明の場所
+            public readonly string Id;
+            public readonly bool DefaultOn;
+            private readonly string _titleJa, _titleEn, _messageJa, _messageEn, _docJa, _docEn;
 
-            public Rule(string id, bool defaultOn, string title, string message, string doc)
+            /// <summary>設定の画面に出す短い説明（設定の言語。#67）</summary>
+            public string Title => Loc.T(_titleJa, _titleEn);
+            public string Message => Loc.T(_messageJa, _messageEn);
+            /// <summary>詳しい説明の場所</summary>
+            public string Doc => Loc.T(_docJa, _docEn);
+
+            public Rule(string id, bool defaultOn, string titleJa, string titleEn, string messageJa, string messageEn, string docJa, string docEn = null)
             {
                 Id = id;
                 DefaultOn = defaultOn;
-                Title = title;
-                Message = message;
-                Doc = doc;
+                _titleJa = titleJa;
+                _titleEn = titleEn;
+                _messageJa = messageJa;
+                _messageEn = messageEn;
+                _docJa = docJa;
+                _docEn = docEn ?? docJa;   // ファイル名だけのものは同じ
             }
         }
 
         internal static readonly Rule[] Rules =
         {
-            new Rule("USP001", true, "LINQ の結果を変数に入れる（遅延評価にしない）",
-                "LINQ の結果を変数に入れています。UdonSharp Plus の LINQ は遅延評価にせず、呼んだ時点で結果を作ります。あとで元の List を変えても結果は変わらず、2 回使っても同じ結果です（C# では使うたびに計算し直します）",
-                "collections.md の「LINQ」"),
-            new Rule("USP002", false, "Concat・Append・Prepend のあとを途中で止める LINQ（ラムダを呼ぶ回数）",
-                "Concat・Append・Prepend のあとを途中で止める書き方です。結果は C# と同じですが、その前の段のラムダは、全部の要素で呼ばれます（C# では必要な分だけ）",
-                "collections.md の「LINQ」"),
-            new Rule("USP003", true, "foreach の中で、回している List / Dictionary を書き換える",
-                "foreach で回している List / Dictionary を、その中で書き換えています。C# の InvalidOperationException にはならず、Add した要素は回らず、Remove・Clear すると範囲外を読んで実行時例外で止まります",
-                "collections.md の「List / Dictionary」"),
-            new Rule("USP004", false, "Dictionary の foreach・LINQ の順番",
-                "Dictionary の foreach・LINQ の順番は、DataDictionary の GetKeys() の順番です。C# の Dictionary と同じとは限りません",
-                "collections.md の「List / Dictionary」"),
-            new Rule("USP005", true, "インタフェース型の値と null の比較",
-                "インタフェース型の値と null を比べています。参照の比較なので、Destroy した UdonSharpBehaviour は null になりません（UnityEngine.Object の比較とは違います）",
+            new Rule("USP001", true, "LINQ の結果を変数に入れる（遅延評価にしない）", "Keeping a LINQ result in a variable (no deferred execution)",
+                "LINQ の結果を変数に入れています。UdonSharp Plus の LINQ は遅延評価にせず、呼んだ時点で結果を作ります。あとで元の List を変えても結果は変わらず、2 回使っても同じ結果です（C# では使うたびに計算し直します）", "A LINQ result is kept in a variable. LINQ in UdonSharp Plus is not deferred: the result is built when it is called. Changing the source List later does not change the result, and using it twice gives the same result (in C# it is computed again each time it is used)",
+                "collections.md の「LINQ」", "collections.md"),
+            new Rule("USP002", false, "Concat・Append・Prepend のあとを途中で止める LINQ（ラムダを呼ぶ回数）", "LINQ that stops early after Concat / Append / Prepend (how often lambdas are called)",
+                "Concat・Append・Prepend のあとを途中で止める書き方です。結果は C# と同じですが、その前の段のラムダは、全部の要素で呼ばれます（C# では必要な分だけ）", "This LINQ stops early after Concat / Append / Prepend. The result is the same as C#, but the lambdas before it are called for every element (in C# only as many as needed)",
+                "collections.md の「LINQ」", "collections.md"),
+            new Rule("USP003", true, "foreach の中で、回している List / Dictionary を書き換える", "Changing the List / Dictionary being iterated inside foreach",
+                "foreach で回している List / Dictionary を、その中で書き換えています。C# の InvalidOperationException にはならず、Add した要素は回らず、Remove・Clear すると範囲外を読んで実行時例外で止まります", "The List / Dictionary being iterated by foreach is changed inside the loop. This does not throw InvalidOperationException as in C#: added elements are not visited, and Remove / Clear reads out of range and stops with a runtime exception",
+                "collections.md の「List / Dictionary」", "collections.md"),
+            new Rule("USP004", false, "Dictionary の foreach・LINQ の順番", "Order of foreach and LINQ over a Dictionary",
+                "Dictionary の foreach・LINQ の順番は、DataDictionary の GetKeys() の順番です。C# の Dictionary と同じとは限りません", "foreach and LINQ over a Dictionary use the order of DataDictionary.GetKeys(). It is not always the same as a C# Dictionary",
+                "collections.md の「List / Dictionary」", "collections.md"),
+            new Rule("USP005", true, "インタフェース型の値と null の比較", "Comparing an interface value with null",
+                "インタフェース型の値と null を比べています。参照の比較なので、Destroy した UdonSharpBehaviour は null になりません（UnityEngine.Object の比較とは違います）", "An interface value is compared with null. This is a reference comparison, so a destroyed UdonSharpBehaviour is not null (unlike the UnityEngine.Object comparison)",
                 "interface.md"),
-            new Rule("USP006", false, "普通のクラスの値型のフィールドのメソッド（自分を書き換えるもの）",
-                "普通のクラスの値型のフィールドで、戻り値のないメソッドを呼んでいます。フィールドのコピーに対して呼ばれるので、そのメソッドがフィールド自体を書き換えるもの（Normalize など）なら、反映されません。x = x.normalized; のように代入してください",
+            new Rule("USP006", false, "普通のクラスの値型のフィールドのメソッド（自分を書き換えるもの）", "Methods on a value-type field of a plain class (ones that change the field)",
+                "普通のクラスの値型のフィールドで、戻り値のないメソッドを呼んでいます。フィールドのコピーに対して呼ばれるので、そのメソッドがフィールド自体を書き換えるもの（Normalize など）なら、反映されません。x = x.normalized; のように代入してください", "A method with no return value is called on a value-type field of a plain class. It is called on a copy of the field, so if the method changes the field itself (Normalize and so on), the change is lost. Assign the result instead, like x = x.normalized;",
                 "class.md"),
-            new Rule("USP007", true, "UdonSharpBehaviour のデリゲート（Destroy したあとに呼ぶ）",
-                "UdonSharpBehaviour のメソッド、またはその中で作ったラムダなどのデリゲートです。相手の UdonSharpBehaviour を Destroy したあとに呼ぶと、実行時例外で止まります（C# ではそのまま呼ばれます）",
+            new Rule("USP007", true, "UdonSharpBehaviour のデリゲート（Destroy したあとに呼ぶ）", "Delegates of an UdonSharpBehaviour (calling after Destroy)",
+                "UdonSharpBehaviour のメソッド、またはその中で作ったラムダなどのデリゲートです。相手の UdonSharpBehaviour を Destroy したあとに呼ぶと、実行時例外で止まります（C# ではそのまま呼ばれます）", "This is a delegate of an UdonSharpBehaviour method, or of a lambda created in one. Calling it after the UdonSharpBehaviour is destroyed stops with a runtime exception (in C# the method is still called)",
                 "delegates.md"),
-            new Rule("USP008", false, "UdonSharpBehaviour の中の static メソッドのデリゲートの -=",
-                "UdonSharpBehaviour の中で作った static メソッドのデリゲートを -= しています。デリゲートは作った UdonSharpBehaviour ごとに別のものなので、別の UdonSharpBehaviour で作ったものは外れません（C# では外れます）",
+            new Rule("USP008", false, "UdonSharpBehaviour の中の static メソッドのデリゲートの -=", "-= with a delegate of a static method inside an UdonSharpBehaviour",
+                "UdonSharpBehaviour の中で作った static メソッドのデリゲートを -= しています。デリゲートは作った UdonSharpBehaviour ごとに別のものなので、別の UdonSharpBehaviour で作ったものは外れません（C# では外れます）", "A delegate of a static method created inside an UdonSharpBehaviour is removed with -=. Each UdonSharpBehaviour creates its own delegate, so one created in another UdonSharpBehaviour is not removed (in C# it is)",
                 "delegates.md"),
-            new Rule("USP009", false, "値がタプルの Dictionary の TryGetValue",
-                "値がタプルの Dictionary の TryGetValue です。見つからなかったときの out の値は null になります（C# では各要素が既定値のタプル）。見つかったときだけ使ってください",
+            new Rule("USP009", false, "値がタプルの Dictionary の TryGetValue", "TryGetValue on a Dictionary whose values are tuples",
+                "値がタプルの Dictionary の TryGetValue です。見つからなかったときの out の値は null になります（C# では各要素が既定値のタプル）。見つかったときだけ使ってください", "This is TryGetValue on a Dictionary whose values are tuples. When the key is not found, the out value is null (in C# it is a tuple of default values). Use it only when the key is found",
                 "tuples.md"),
-            new Rule("USP010", false, "== を宣言した型の List の Contains・IndexOf・Remove",
-                "== を宣言した型の List の Contains・IndexOf・LastIndexOf・Remove です。C# と同じく Equals で比べ、== は使われません。Equals の override は未対応なので、参照の比較になります",
+            new Rule("USP010", false, "== を宣言した型の List の Contains・IndexOf・Remove", "Contains / IndexOf / Remove on a List of a type that declares ==",
+                "== を宣言した型の List の Contains・IndexOf・LastIndexOf・Remove です。C# と同じく Equals で比べ、== は使われません。Equals の override は未対応なので、参照の比較になります", "This is Contains / IndexOf / LastIndexOf / Remove on a List of a type that declares ==. As in C#, they compare with Equals, not ==. Overriding Equals is not supported, so this is a reference comparison",
                 "operators.md"),
-            new Rule("USP011", false, "C# で例外になる場合に、例外の代わりにログを出して止まるメソッド",
-                "C# で例外になる場合（要素がない、キーがない、範囲の外など）、例外の代わりにエラーのログを出して、Udon の実行時例外で止まります（try / catch はできません）",
-                "collections.md の「LINQ」"),
-            new Rule("USP012", false, "インタフェース型の変数でメソッドを呼ぶ（null のときの例外の位置）",
-                "インタフェース型の値でメソッドを呼んでいます。値が null のときの実行時例外の位置は、呼び出した行ではなく、このクラスの閉じ括弧の行になります",
+            new Rule("USP011", false, "C# で例外になる場合に、例外の代わりにログを出して止まるメソッド", "Methods that log and stop instead of throwing where C# throws",
+                "C# で例外になる場合（要素がない、キーがない、範囲の外など）、例外の代わりにエラーのログを出して、Udon の実行時例外で止まります（try / catch はできません）", "Where C# would throw (no elements, missing key, out of range and so on), this logs an error and stops with an Udon runtime exception instead (try / catch is not possible)",
+                "collections.md の「LINQ」", "collections.md"),
+            new Rule("USP012", false, "インタフェース型の変数でメソッドを呼ぶ（null のときの例外の位置）", "Calling a method on an interface variable (exception position when null)",
+                "インタフェース型の値でメソッドを呼んでいます。値が null のときの実行時例外の位置は、呼び出した行ではなく、このクラスの閉じ括弧の行になります", "A method is called on an interface value. When the value is null, the runtime exception is reported on the closing brace line of this class, not on the calling line",
                 "interface.md"),
-            new Rule("USP013", false, "メソッドの呼び出しの結果で、普通のクラスのメソッドを呼ぶ（null のときの例外の位置）",
-                "メソッドの呼び出しの結果で、普通のクラスのメソッドを呼んでいます。結果が null のときの実行時例外の位置は、呼び出した行ではなく、このクラスの閉じ括弧の行になることがあります",
+            new Rule("USP013", false, "メソッドの呼び出しの結果で、普通のクラスのメソッドを呼ぶ（null のときの例外の位置）", "Calling a plain class method on the result of a method call (exception position when null)",
+                "メソッドの呼び出しの結果で、普通のクラスのメソッドを呼んでいます。結果が null のときの実行時例外の位置は、呼び出した行ではなく、このクラスの閉じ括弧の行になることがあります", "A plain class method is called on the result of a method call. When the result is null, the runtime exception may be reported on the closing brace line of this class, not on the calling line",
                 "class.md"),
-            new Rule("USP014", false, ".NET のデリゲート（Action・Func など）の例外の位置",
-                ".NET のデリゲート（Action・Func・Predicate・Comparison）を使っています。ソースに宣言がないので、宣言の行で止まる実行時例外の位置が、この型を最初に使ったファイルの最後の行になります",
+            new Rule("USP014", false, ".NET のデリゲート（Action・Func など）の例外の位置", "Exception position for .NET delegates (Action, Func and so on)",
+                ".NET のデリゲート（Action・Func・Predicate・Comparison）を使っています。ソースに宣言がないので、宣言の行で止まる実行時例外の位置が、この型を最初に使ったファイルの最後の行になります", "A .NET delegate (Action / Func / Predicate / Comparison) is used. It has no declaration in source, so a runtime exception reported at the declaration appears on the last line of the first file that uses this type",
                 "delegates.md"),
-            new Rule("USP015", false, "書き換えたファイルの、エラー・例外の列の位置",
-                "このファイルは UdonSharp Plus が書き換えています。書き換えた行の、コンパイルエラー・実行時例外の列の位置は、ずれることがあります（行は合います）",
-                "README.md の「全体に共通すること」"),
-            new Rule("USP016", false, "デリゲートの呼び出しの速さ",
-                "デリゲートの呼び出しは、普通のメソッドの呼び出しより遅くなります（UdonSharpBehaviour のメソッドは SendCustomEvent などを使い、ラムダで使う外の変数は object[] の要素の読み書きになります）。毎フレーム何度も呼ぶところでは気をつけてください",
+            new Rule("USP015", false, "書き換えたファイルの、エラー・例外の列の位置", "Column positions of errors and exceptions in rewritten files",
+                "このファイルは UdonSharp Plus が書き換えています。書き換えた行の、コンパイルエラー・実行時例外の列の位置は、ずれることがあります（行は合います）", "This file is rewritten by UdonSharp Plus. On rewritten lines, the column of compile errors and runtime exceptions may be off (the line is correct)",
+                "README.md の「全体に共通すること」", "README.md"),
+            new Rule("USP016", false, "デリゲートの呼び出しの速さ", "Speed of delegate calls",
+                "デリゲートの呼び出しは、普通のメソッドの呼び出しより遅くなります（UdonSharpBehaviour のメソッドは SendCustomEvent などを使い、ラムダで使う外の変数は object[] の要素の読み書きになります）。毎フレーム何度も呼ぶところでは気をつけてください", "Calling a delegate is slower than calling a normal method (UdonSharpBehaviour methods use SendCustomEvent and similar, and outer variables used in a lambda are read and written as object[] elements). Be careful where it is called many times per frame",
                 "delegates.md"),
         };
 
@@ -157,7 +164,7 @@ namespace UdonSharpPlus
             int line = start.Line + 1;
             string at = $"{path ?? "Unknown File"}({line},{start.Character + 1})";
             string link = path != null ? $"<a href=\"{path}\" line=\"{line}\">{at}</a>" : at;
-            return $"{Prefix}{link}: {rule.Id}: {rule.Message}（詳しくは {rule.Doc}。Project Settings > Udon Sharp Plus で、出さないようにできます）";
+            return Loc.T($"{Prefix}{link}: {rule.Id}: {rule.Message}（詳しくは {rule.Doc}。Project Settings > Udon Sharp Plus で、出さないようにできます）", $"{Prefix}{link}: {rule.Id}: {rule.Message} (see {rule.Doc}; you can turn this off in Project Settings > Udon Sharp Plus)");
         }
 
         private static string ProjectRelative(string path)
@@ -194,7 +201,7 @@ namespace UdonSharpPlus
             catch (Exception e)
             {
                 // 注意は付け足しの情報なので、探すところで何かあっても、コンパイルは止めない
-                Debug.LogWarning($"{Prefix}コンパイル時の注意を探すところで例外が起きたため、今回は注意を出しません：{e.GetType().Name}: {e.Message}");
+                Debug.LogWarning(Loc.T($"{Prefix}コンパイル時の注意を探すところで例外が起きたため、今回は注意を出しません：{e.GetType().Name}: {e.Message}", $"{Prefix}An exception occurred while looking for compile-time notices, so no notices are shown this time: {e.GetType().Name}: {e.Message}"));
                 return new Found();
             }
         }

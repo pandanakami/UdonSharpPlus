@@ -29,8 +29,8 @@ namespace UdonSharpPlus
                 if (range == null || !TryParse(version, out _))
                     return;
                 if (!InRange(version, range))
-                    Debug.LogWarning($"[UdonSharpPlus] この VRChat SDK（{version}）は、動作を確かめた範囲（{range}）の外です。" +
-                                     "うまく動かないときは、UdonSharp Plus を更新してください");
+                    Debug.LogWarning(Loc.T($"[UdonSharpPlus] この VRChat SDK（{version}）は、動作を確かめた範囲（{range}）の外です。", $"[UdonSharpPlus] This VRChat SDK ({version}) is outside the tested range ({range}). ") +
+                                     Loc.T("うまく動かないときは、UdonSharp Plus を更新してください", "If something does not work, update UdonSharp Plus"));
             }
             catch (Exception)
             {

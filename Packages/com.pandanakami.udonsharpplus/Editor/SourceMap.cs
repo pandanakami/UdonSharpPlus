@@ -167,11 +167,11 @@ namespace UdonSharpPlus
             if (entry?.ClassName == null)
                 return "";
             if (string.IsNullOrEmpty(entry.MemberName))
-                return $"（クラス {entry.ClassName} の中）";
+                return Loc.T($"（クラス {entry.ClassName} の中）", $" (in class {entry.ClassName})");
             // 「メソッド Exists の中」「演算子 + の中」（#105）のように、英数字・記号（ASCII）で終わるときだけ空白を入れる
             char last = entry.MemberName[entry.MemberName.Length - 1];
             string gap = last < 0x80 && !char.IsWhiteSpace(last) ? " " : "";
-            return $"（クラス {entry.ClassName} の{entry.MemberName}{gap}の中）";
+            return Loc.T($"（クラス {entry.ClassName} の{entry.MemberName}{gap}の中）", $" (in {entry.MemberName} of class {entry.ClassName})");
         }
 
         public static bool IsMarker(SyntaxTrivia trivia) =>

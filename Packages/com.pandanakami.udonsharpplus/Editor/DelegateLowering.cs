@@ -156,16 +156,16 @@ namespace UdonSharpPlus
         private static string UnsupportedReason(INamedTypeSymbol symbol)
         {
             if (symbol.IsGenericType && !IsExternalDelegate(symbol))
-                return "ジェネリックのデリゲートは、まだ未対応です";
+                return Loc.T("ジェネリックのデリゲートは、まだ未対応です", "Generic delegates are not supported yet");
             IMethodSymbol invoke = symbol.DelegateInvokeMethod;
             if (invoke == null)
-                return "このデリゲートは未対応です";
+                return Loc.T("このデリゲートは未対応です", "This delegate is not supported");
             if (invoke.ReturnsByRef || invoke.ReturnsByRefReadonly)
-                return "ref で返すデリゲートは未対応です";
+                return Loc.T("ref で返すデリゲートは未対応です", "Delegates that return by ref are not supported");
             if (invoke.Parameters.Any(p => p.RefKind != RefKind.None))
-                return "ref / out / in の引数を持つデリゲートは未対応です";
+                return Loc.T("ref / out / in の引数を持つデリゲートは未対応です", "Delegates with ref / out / in parameters are not supported");
             if (invoke.Parameters.Any(p => p.IsParams || p.HasExplicitDefaultValue))
-                return "params・既定値のある引数を持つデリゲートは未対応です";
+                return Loc.T("params・既定値のある引数を持つデリゲートは未対応です", "Delegates with params or optional parameters are not supported");
             return null;
         }
 
@@ -665,7 +665,7 @@ namespace UdonSharpPlus
             /// <summary>外の変数を置く環境（宣言した範囲）。置けない変数なら null と理由</summary>
             private Scope ScopeOf(ISymbol symbol, HashSet<SyntaxNode> functions, out string error)
             {
-                const string user = "デリゲートに入れるラムダ・ローカル関数で使うことは未対応です";
+                string user = Loc.T("デリゲートに入れるラムダ・ローカル関数で使うことは未対応です", "Using it in a lambda or local function stored in a delegate is not supported");
                 error = null;
                 SyntaxNode decl = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
                 SyntaxNode node = null;
@@ -675,7 +675,7 @@ namespace UdonSharpPlus
                     if (owner is MethodDeclarationSyntax || owner != null && functions.Contains(owner))
                         node = owner;
                     else if (owner is LambdaExpressionSyntax)
-                        error = $"List・LINQ のメソッドに渡すラムダの引数を、{user}。ローカル変数に入れてから使ってください";
+                        error = Loc.T($"List・LINQ のメソッドに渡すラムダの引数を、{user}。ローカル変数に入れてから使ってください", $"{user}: a parameter of a lambda passed to a List / LINQ method. Copy it into a local variable first");
                 }
                 else if (symbol is ILocalSymbol)
                 {
@@ -685,15 +685,15 @@ namespace UdonSharpPlus
                     else if (decl is ForEachStatementSyntax fe)
                         node = fe;
                     else
-                        error = $"この場所で宣言した変数（for の変数・switch の中・out var・パターン・catch の変数など）を、{user}。ブロックの中で別のローカル変数に入れてから使ってください";
+                        error = Loc.T($"この場所で宣言した変数（for の変数・switch の中・out var・パターン・catch の変数など）を、{user}。ブロックの中で別のローカル変数に入れてから使ってください", $"{user}: a variable declared here (a for variable, inside a switch, out var, a pattern, a catch variable and so on). Copy it into another local variable inside the block first");
                 }
                 else
                 {
-                    error = $"この変数を、{user}";
+                    error = Loc.T($"この変数を、{user}", $"{user}: this variable");
                 }
                 if (node == null)
                 {
-                    error = error ?? $"この引数を、{user}。ローカル変数に入れてから使ってください";
+                    error = error ?? Loc.T($"この引数を、{user}。ローカル変数に入れてから使ってください", $"{user}: this parameter. Copy it into a local variable first");
                     return null;
                 }
                 if (!_scopes.TryGetValue(node, out Scope scope))
@@ -812,7 +812,7 @@ namespace UdonSharpPlus
                 DelegateInfo to = _shared.Find(ti.ConvertedType);
                 if (from == null || to == null || from == to)
                     return false;
-                Error(e, $"'{from.Name}' : 型の違うデリゲート（'{to.Name}'）への変換は未対応です");
+                Error(e, Loc.T($"'{from.Name}' : 型の違うデリゲート（'{to.Name}'）への変換は未対応です", $"'{from.Name}' : Converting to a delegate of a different type ('{to.Name}') is not supported"));
                 return true;
             }
 
@@ -969,7 +969,7 @@ namespace UdonSharpPlus
                     && node.AttributeLists.SelectMany(l => l.Attributes).Any(a => IsSerializationAttribute(_model.GetSymbolInfo(a).Symbol?.ContainingType)))
                 {
                     foreach (VariableDeclaratorSyntax v in node.Declaration.Variables)
-                        Error(v, $"'{v.Identifier.ValueText}' : デリゲート型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）");
+                        Error(v, Loc.T($"'{v.Identifier.ValueText}' : デリゲート型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）", $"'{v.Identifier.ValueText}' : Fields of a delegate type cannot be serialized or synced ([SerializeField] / [UdonSynced] cannot be used)"));
                     return node;
                 }
 
@@ -1019,7 +1019,7 @@ namespace UdonSharpPlus
                         while (t is IArrayTypeSymbol a)
                             t = a.ElementType;
                         if (_shared.Find(t) != null)
-                            Error(node.ParameterList.Parameters[p.Ordinal], $"'{method.Name}' : [NetworkCallable] のメソッドの引数に、デリゲートは使えません（ほかのクライアントには送れません）");
+                            Error(node.ParameterList.Parameters[p.Ordinal], Loc.T($"'{method.Name}' : [NetworkCallable] のメソッドの引数に、デリゲートは使えません（ほかのクライアントには送れません）", $"'{method.Name}' : Delegates cannot be used as parameters of a [NetworkCallable] method (they cannot be sent to other clients)"));
                     }
                 }
                 return base.VisitMethodDeclaration(node);
@@ -1029,7 +1029,7 @@ namespace UdonSharpPlus
             {
                 if (_shared.Find(_model.GetTypeInfo(node.Declaration.Type).Type) != null)
                 {
-                    Error(node, "event は未対応です。デリゲート型のフィールドにしてください");
+                    Error(node, Loc.T("event は未対応です。デリゲート型のフィールドにしてください", "event is not supported. Use a field of a delegate type"));
                     return node;
                 }
                 return base.VisitEventFieldDeclaration(node);
@@ -1039,7 +1039,7 @@ namespace UdonSharpPlus
             {
                 if (_shared.Find(_model.GetTypeInfo(node.Type).Type) != null)
                 {
-                    Error(node, "event は未対応です。デリゲート型のフィールドにしてください");
+                    Error(node, Loc.T("event は未対応です。デリゲート型のフィールドにしてください", "event is not supported. Use a field of a delegate type"));
                     return node;
                 }
                 return base.VisitEventDeclaration(node);
@@ -1084,12 +1084,12 @@ namespace UdonSharpPlus
                 ITypeSymbol type = VariableType(symbol);
                 if (node.Parent is ArgumentSyntax a && !a.RefKindKeyword.IsKind(SyntaxKind.None))
                 {
-                    Error(node, $"'{symbol.Name}' : デリゲートに入れるラムダで使う変数は、ref / out / in で渡せません");
+                    Error(node, Loc.T($"'{symbol.Name}' : デリゲートに入れるラムダで使う変数は、ref / out / in で渡せません", $"'{symbol.Name}' : A variable used in a lambda stored in a delegate cannot be passed by ref / out / in"));
                     return node;
                 }
                 if (type.IsValueType && IsMemberWrite(node))
                 {
-                    Error(node, $"'{symbol.Name}' : デリゲートに入れるラムダで使う構造体の変数の、フィールド・プロパティへの代入は未対応です。変数ごと代入してください");
+                    Error(node, Loc.T($"'{symbol.Name}' : デリゲートに入れるラムダで使う構造体の変数の、フィールド・プロパティへの代入は未対応です。変数ごと代入してください", $"'{symbol.Name}' : Assigning to a field or property of a struct variable used in a lambda stored in a delegate is not supported. Assign the whole variable"));
                     return node;
                 }
                 return Parse($"(({_shared.TypeText(type)}){slot.Scope.Name}[{slot.Index}])", node);
@@ -1268,12 +1268,12 @@ namespace UdonSharpPlus
                 string name = node.Identifier.ValueText;
                 if (node.TypeParameterList != null)
                 {
-                    Error(node, $"'{name}' : ジェネリックのローカル関数は未対応です。メソッドにしてください");
+                    Error(node, Loc.T($"'{name}' : ジェネリックのローカル関数は未対応です。メソッドにしてください", $"'{name}' : Generic local functions are not supported. Use a method"));
                     return;
                 }
                 if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword) || m.IsKind(SyntaxKind.ExternKeyword) || m.IsKind(SyntaxKind.UnsafeKeyword)))
                 {
-                    Error(node, $"'{name}' : async・extern・unsafe のローカル関数は未対応です");
+                    Error(node, Loc.T($"'{name}' : async・extern・unsafe のローカル関数は未対応です", $"'{name}' : async, extern and unsafe local functions are not supported"));
                     return;
                 }
 
@@ -1313,7 +1313,7 @@ namespace UdonSharpPlus
             /// <summary>ブロックの直下でないローカル関数（switch のラベルの直下など）</summary>
             public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
             {
-                Error(node, $"'{node.Identifier.ValueText}' : この場所のローカル関数は未対応です。{{ }} で囲んでください");
+                Error(node, Loc.T($"'{node.Identifier.ValueText}' : この場所のローカル関数は未対応です。{{ }} で囲んでください", $"'{node.Identifier.ValueText}' : A local function in this position is not supported. Wrap it in {{ }}"));
                 return node;
             }
 
@@ -1338,7 +1338,7 @@ namespace UdonSharpPlus
                     return null;
                 if (_needs.TryGetValue(local.Node, out var needs) && needs.Count > 0)
                 {
-                    Error(node, $"'{node.Identifier.ValueText}' : 外の変数を使うローカル関数を、ここで使うことは未対応です（呼ぶか、ソースで宣言したデリゲートに入れてください）");
+                    Error(node, Loc.T($"'{node.Identifier.ValueText}' : 外の変数を使うローカル関数を、ここで使うことは未対応です（呼ぶか、ソースで宣言したデリゲートに入れてください）", $"'{node.Identifier.ValueText}' : Using a local function that uses outer variables here is not supported (call it, or store it in a delegate declared in source)"));
                     return node;
                 }
                 return Parse(local.Hoisted, node);
@@ -1413,8 +1413,8 @@ namespace UdonSharpPlus
                         return null;
                     string display = type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                     Error(node, IsExternalDelegate(type)
-                        ? $"'{display}' : 型引数の決まっていない .NET のデリゲートは未対応です"
-                        : $"'{display}' : この .NET のデリゲートは未対応です（Action・Func・Predicate・Comparison と、自分で宣言したデリゲートが使えます）");
+                        ? Loc.T($"'{display}' : 型引数の決まっていない .NET のデリゲートは未対応です", $"'{display}' : .NET delegates without type arguments are not supported")
+                        : Loc.T($"'{display}' : この .NET のデリゲートは未対応です（Action・Func・Predicate・Comparison と、自分で宣言したデリゲートが使えます）", $"'{display}' : This .NET delegate is not supported (Action, Func, Predicate, Comparison and delegates you declare are supported)"));
                     return node;
                 }
                 if (info.Unsupported != null)
@@ -1426,14 +1426,14 @@ namespace UdonSharpPlus
                 SyntaxNode context = node.Parent;
                 if (context is TypeArgumentListSyntax)
                 {
-                    Error(node, $"'{info.Name}' : デリゲート型を型引数（List<{info.Name}> など）に使うことは、まだ未対応です。配列にしてください");
+                    Error(node, Loc.T($"'{info.Name}' : デリゲート型を型引数（List<{info.Name}> など）に使うことは、まだ未対応です。配列にしてください", $"'{info.Name}' : Using a delegate type as a type argument (List<{info.Name}> and so on) is not supported yet. Use an array"));
                     return node;
                 }
                 if (context is TypeOfExpressionSyntax || context is BinaryExpressionSyntax b && (b.IsKind(SyntaxKind.IsExpression) || b.IsKind(SyntaxKind.AsExpression))
                     || context is TypePatternSyntax || context is DeclarationPatternSyntax || context is RecursivePatternSyntax
                     || context is ArgumentSyntax arg && arg.Parent?.Parent is InvocationExpressionSyntax inv && inv.Expression is IdentifierNameSyntax id && id.Identifier.ValueText == "nameof")
                 {
-                    Error(node, $"'{info.Name}' : デリゲート型の typeof・nameof・is・as・型パターンは未対応です");
+                    Error(node, Loc.T($"'{info.Name}' : デリゲート型の typeof・nameof・is・as・型パターンは未対応です", $"'{info.Name}' : typeof, nameof, is, as and type patterns on a delegate type are not supported"));
                     return node;
                 }
 
@@ -1452,7 +1452,7 @@ namespace UdonSharpPlus
                 // h.Invoke 以外のデリゲートのメンバー（Method・Target・GetInvocationList・DynamicInvoke など）
                 if (DelegateOf(node.Expression) is DelegateInfo && node.Name.Identifier.ValueText != "Invoke")
                 {
-                    Error(node, $"'{node.Name.Identifier.ValueText}' : デリゲートのメンバーは、Invoke のほかは未対応です");
+                    Error(node, Loc.T($"'{node.Name.Identifier.ValueText}' : デリゲートのメンバーは、Invoke のほかは未対応です", $"'{node.Name.Identifier.ValueText}' : Delegate members other than Invoke are not supported"));
                     return node;
                 }
                 return base.VisitMemberAccessExpression(node);
@@ -1488,12 +1488,12 @@ namespace UdonSharpPlus
 
                 if (method.IsGenericMethod)
                 {
-                    Error(node, $"'{name}' : ジェネリックメソッドをデリゲートに入れることは未対応です");
+                    Error(node, Loc.T($"'{name}' : ジェネリックメソッドをデリゲートに入れることは未対応です", $"'{name}' : Storing a generic method in a delegate is not supported"));
                     return node;
                 }
                 if (method.MethodKind == MethodKind.DelegateInvoke || method.ReducedFrom != null || method.IsExtensionMethod && !method.IsStatic)
                 {
-                    Error(node, $"'{name}' : このメソッドをデリゲートに入れることは、まだ未対応です");
+                    Error(node, Loc.T($"'{name}' : このメソッドをデリゲートに入れることは、まだ未対応です", $"'{name}' : Storing this method in a delegate is not supported yet"));
                     return node;
                 }
 
@@ -1523,7 +1523,7 @@ namespace UdonSharpPlus
                         // 普通のクラスの中：呼ぶ相手のない組
                         if (InterfaceLowering.IsUdonSharpBehaviour(method.ContainingType))
                         {
-                            Error(node, $"'{name}' : 普通のクラスの中で、UdonSharpBehaviour の static メソッドをデリゲートに入れることは未対応です");
+                            Error(node, Loc.T($"'{name}' : 普通のクラスの中で、UdonSharpBehaviour の static メソッドをデリゲートに入れることは未対応です", $"'{name}' : Storing a static method of an UdonSharpBehaviour in a delegate inside a plain class is not supported"));
                             return node;
                         }
                         string staticName = $"__dlg_{info.Key}__s_{mTag}_{name}";
@@ -1553,7 +1553,7 @@ namespace UdonSharpPlus
                 {
                     if (!InterfaceLowering.IsUdonSharpBehaviour(method.ContainingType))
                     {
-                        Error(node, $"'{name}' : このメソッドをデリゲートに入れることは未対応です");
+                        Error(node, Loc.T($"'{name}' : このメソッドをデリゲートに入れることは未対応です", $"'{name}' : Storing this method in a delegate is not supported"));
                         return node;
                     }
                     callee = $"this.{name}";
@@ -1585,7 +1585,7 @@ namespace UdonSharpPlus
                     DeclRef? decl = FirstDeclOf(declaring);
                     if (decl == null)
                     {
-                        Error(node, $"'{name}' : このメソッドをデリゲートに入れることは未対応です");
+                        Error(node, Loc.T($"'{name}' : このメソッドをデリゲートに入れることは未対応です", $"'{name}' : Storing this method in a delegate is not supported"));
                         return node;
                     }
                     string tag = TagName(declaring);
@@ -1605,7 +1605,7 @@ namespace UdonSharpPlus
                     return StaticValue(node, staticName, new[] { r });
                 }
 
-                Error(node, $"'{name}' : このインスタンスのメソッドをデリゲートに入れることは未対応です（UdonSharpBehaviour・普通のクラス・インタフェースのメソッドが入れられます）");
+                Error(node, Loc.T($"'{name}' : このインスタンスのメソッドをデリゲートに入れることは未対応です（UdonSharpBehaviour・普通のクラス・インタフェースのメソッドが入れられます）", $"'{name}' : Storing this instance method in a delegate is not supported (methods of UdonSharpBehaviours, plain classes and interfaces can be stored)"));
                 return node;
             }
 
@@ -1672,13 +1672,13 @@ namespace UdonSharpPlus
                 }
                 if (node.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                 {
-                    Error(node, "async のラムダ・匿名メソッドは未対応です");
+                    Error(node, Loc.T("async のラムダ・匿名メソッドは未対応です", "async lambdas and anonymous methods are not supported"));
                     return node;
                 }
                 Ctx ctx = ContextOf(node, out string ctxError);
                 if (ctx == null)
                 {
-                    Error(node, ctxError.Replace("デリゲートを作る", node is AnonymousMethodExpressionSyntax ? "匿名メソッドをデリゲートに入れる" : "ラムダをデリゲートに入れる"));
+                    Error(node, ctxError.Replace(Loc.T("デリゲートを作る", "Creating a delegate"), node is AnonymousMethodExpressionSyntax ? Loc.T("匿名メソッドをデリゲートに入れる", "Storing an anonymous method in a delegate") : Loc.T("ラムダをデリゲートに入れる", "Storing a lambda in a delegate")));
                     return node;
                 }
                 INamedTypeSymbol host = ctx.Type;
@@ -1809,7 +1809,7 @@ namespace UdonSharpPlus
                 string text = flat.ToFullString().Trim();
                 if (text.Contains("\n"))
                 {
-                    Error(original, "ラムダの中の、改行を含む補間文字列は未対応です");
+                    Error(original, Loc.T("ラムダの中の、改行を含む補間文字列は未対応です", "Interpolated strings that contain a line break are not supported inside a lambda"));
                     return null;
                 }
                 return text;
@@ -1840,21 +1840,21 @@ namespace UdonSharpPlus
                 }
                 if (!(s is IMethodSymbol enclosing))
                 {
-                    error = "フィールドの初期化子の中でデリゲートを作ることは未対応です。Start などで代入してください";
+                    error = Loc.T("フィールドの初期化子の中でデリゲートを作ることは未対応です。Start などで代入してください", "Creating a delegate in a field initializer is not supported. Assign it in Start or similar");
                     return null;
                 }
                 INamedTypeSymbol type = enclosing.ContainingType;
                 if (InterfaceLowering.IsUdonSharpBehaviour(type))
                 {
                     if (staticLocal)
-                        error = "UdonSharpBehaviour の static のローカル関数の中でデリゲートを作ることは未対応です";
+                        error = Loc.T("UdonSharpBehaviour の static のローカル関数の中でデリゲートを作ることは未対応です", "Creating a delegate inside a static local function of an UdonSharpBehaviour is not supported");
                     else if (enclosing.IsStatic)
-                        error = "UdonSharpBehaviour の static メソッドの中でデリゲートを作ることは未対応です";
+                        error = Loc.T("UdonSharpBehaviour の static メソッドの中でデリゲートを作ることは未対応です", "Creating a delegate inside a static method of an UdonSharpBehaviour is not supported");
                     return error != null ? null : new Ctx { Type = type, Usb = true, HasThis = true };
                 }
                 if (ClassLowering.IsPlainClass(type) && type.Locations.Any(l => l.IsInSource))
                     return new Ctx { Type = type, HasThis = !enclosing.IsStatic && !staticLocal };
-                error = "このクラスの中でデリゲートを作ることは未対応です";
+                error = Loc.T("このクラスの中でデリゲートを作ることは未対応です", "Creating a delegate inside this class is not supported");
                 return null;
             }
 
@@ -1939,7 +1939,7 @@ namespace UdonSharpPlus
                 if (arg != null && DelegateOf(arg) == info)
                     return Visit(arg).WithTriviaFrom(node);
 
-                Error(node, $"'{info.Name}' : この形の new は未対応です");
+                Error(node, Loc.T($"'{info.Name}' : この形の new は未対応です", $"'{info.Name}' : This form of new is not supported"));
                 return node;
             }
 
@@ -1986,7 +1986,7 @@ namespace UdonSharpPlus
                 }
                 if (node.ArgumentList.Arguments.Any(a => a.NameColon != null || !a.RefKindKeyword.IsKind(SyntaxKind.None)))
                 {
-                    Error(node, "デリゲートの呼び出しの、名前付きの引数は未対応です");
+                    Error(node, Loc.T("デリゲートの呼び出しの、名前付きの引数は未対応です", "Named arguments in a delegate call are not supported"));
                     return node;
                 }
 
@@ -2017,7 +2017,7 @@ namespace UdonSharpPlus
             {
                 if (DelegateOf(node.Expression) is DelegateInfo info)
                 {
-                    Error(node, $"'{info.Name}' : ?.Invoke は未対応です（?. を UdonSharp Plus が扱えないため）。if (h != null) h(...); と書いてください");
+                    Error(node, Loc.T($"'{info.Name}' : ?.Invoke は未対応です（?. を UdonSharp Plus が扱えないため）。if (h != null) h(...); と書いてください", $"'{info.Name}' : ?.Invoke is not supported (UdonSharp Plus cannot handle ?.). Write if (h != null) h(...);"));
                     return node;
                 }
                 return base.VisitConditionalAccessExpression(node);
@@ -2059,7 +2059,7 @@ namespace UdonSharpPlus
                     return CapturedWrite(node, symbol, slot, $"{helper}(({ValueType}){slot.Scope.Name}[{slot.Index}], {right})");
                 if (!IsRepeatable(node.Left))
                 {
-                    Error(node.Left, $"'{info.Name}' : この形の受け側への += / -= は未対応です（受け側を 2 回評価するため）。いったん変数に入れてください");
+                    Error(node.Left, Loc.T($"'{info.Name}' : この形の受け側への += / -= は未対応です（受け側を 2 回評価するため）。いったん変数に入れてください", $"'{info.Name}' : += / -= on this form of target is not supported (it would evaluate the target twice). Store it in a variable first"));
                     return node;
                 }
                 string left = Text(Visit(node.Left));
@@ -2109,7 +2109,7 @@ namespace UdonSharpPlus
                     bool rightNull = node.Right.IsKind(SyntaxKind.NullLiteralExpression);
                     if (!leftNull && !rightNull && (DelegateOf(node.Left) ?? DelegateOf(node.Right)) is DelegateInfo info)
                     {
-                        Error(node, $"'{info.Name}' : デリゲートどうしの == / != は未対応です（null との比較はできます）");
+                        Error(node, Loc.T($"'{info.Name}' : デリゲートどうしの == / != は未対応です（null との比較はできます）", $"'{info.Name}' : == / != between delegates is not supported (comparing with null is supported)"));
                         return node;
                     }
                 }
