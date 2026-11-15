@@ -13,11 +13,14 @@ New
 - More LINQ. New methods: `SelectMany`, `Reverse`, `Concat`, `Append`, `Prepend`, `TakeWhile`, `SkipWhile`, `ElementAt` / `ElementAtOrDefault`, `Single` / `SingleOrDefault`, and `Aggregate`. Lambdas with an index (`Select((x, i) => ...)`, `Where((x, i) => ...)`) can be used. LINQ can start from `Enumerable.Range`, `Enumerable.Repeat`, and `Enumerable.Empty`. A `List` or a LINQ result can be passed directly to `string.Join` / `string.Concat` (`string.Join(",", list.Select(x => x.name))`). Anonymous methods (`delegate (int x) { ... }`) can be written directly as arguments of `List` / LINQ methods. Before, these were compile errors. See Documentation~/collections.md.
 
 - Tuples (`(int, string)`, `(1, "a")`) can be used in `UdonSharpBehaviour` and plain classes. UdonSharp itself does not support them. You can read elements (`t.Item1`, `t.min`), deconstruct them (`var (x, y) = t;`, `(a, b) = (b, a);`, `foreach (var (k, v) in list)`), compare them with `==` / `Equals`, and turn them into strings (`(1, a)`, as in C#). They can be used for fields, parameters, return values, arrays, lists, and LINQ. Assigning to an element (`t.Item1 = 5`) is a compile error: tuples are value types in C#, but here they are references, so build a new tuple instead (`t = (5, t.Item2)`). Using a tuple as `object` (`Debug.Log(t)`) and tuple keys of a `Dictionary` are also compile errors. Before, all tuples were compile errors. See Documentation~/tuples.md.
+- Operator overloading. You can declare operators (`operator +`, `==`, `++`, ...) and conversions (`implicit operator` / `explicit operator`) in plain classes and `UdonSharpBehaviour`, and use them in expressions, compound assignments (`a += b`), `++` / `--`, lambdas and LINQ. UdonSharp itself does not support them; declaring one in an `UdonSharpBehaviour` used to stop the compile with an internal error. `true` / `false` operators, `==` / `!=` on an `UdonSharpBehaviour`, and using the value of a postfix `x++` are compile errors. See Documentation~/operators.md.
 
 Fixes
 
 - A constructor or method parameter of a plain class named with a C# keyword (`@class`, `@event`) no longer breaks the compile.
 - A plain class field whose type is written with `global::` (`public global::IFoo f;`) no longer stops the compile with an internal error.
+- A plain class field with a short array initializer (`public int[] n = { 1, 2 };`) no longer breaks the compile.
+- When a call to a plain class method spans several lines, an error or runtime exception in a later argument is now shown on that argument's line.
 
 ### 日本語
 
@@ -27,11 +30,14 @@ Fixes
 - LINQ で使えるものが増えました。メソッド：`SelectMany`・`Reverse`・`Concat`・`Append`・`Prepend`・`TakeWhile`・`SkipWhile`・`ElementAt`／`ElementAtOrDefault`・`Single`／`SingleOrDefault`・`Aggregate`。添字付きのラムダ（`Select((x, i) => ...)`・`Where((x, i) => ...)`）が使えます。`Enumerable.Range`・`Enumerable.Repeat`・`Enumerable.Empty` から LINQ を始められます。`List` や LINQ の結果を、`string.Join`／`string.Concat` にそのまま渡せます（`string.Join(",", list.Select(x => x.name))`）。匿名メソッド（`delegate (int x) { ... }`）を、`List`／LINQ のメソッドの引数に直接書けます。これまでは、どれもコンパイルエラーでした。詳しくは Documentation~/collections.md を見てください。
 
 - タプル（`(int, string)`、`(1, "a")`）を、`UdonSharpBehaviour` と普通のクラスの中で使えるようになりました（UdonSharp 自体は対応していません）。要素を読む（`t.Item1`、`t.min`）・分解する（`var (x, y) = t;`、`(a, b) = (b, a);`、`foreach (var (k, v) in list)`）・`==`／`Equals` で比べる・文字列にする（C# と同じ `(1, a)`）ことができ、フィールド・引数・戻り値・配列・リスト・LINQ に使えます。要素への代入（`t.Item1 = 5`）はコンパイルエラーです（C# ではタプルは値型ですが、ここでは参照になるため。`t = (5, t.Item2)` のように作り直してください）。`object` として使うこと（`Debug.Log(t)`）・タプルを `Dictionary` のキーにすることも、コンパイルエラーです。これまでは、タプルはすべてコンパイルエラーでした。詳しくは Documentation~/tuples.md を見てください。
+- 演算子のオーバーロードに対応しました。普通のクラスと `UdonSharpBehaviour` に、演算子（`operator +`・`==`・`++` など）と変換（`implicit operator`／`explicit operator`）を宣言して、式・複合代入（`a += b`）・`++`／`--`・ラムダ・LINQ の中で使えます。UdonSharp 自体は対応しておらず、`UdonSharpBehaviour` に宣言すると、内部のエラーでコンパイルが止まっていました。`true`／`false` 演算子・`UdonSharpBehaviour` の `==`／`!=`・後置の `x++` の値を使うことは、コンパイルエラーです。詳しくは Documentation~/operators.md を見てください。
 
 直したこと
 
 - 普通のクラスのコンストラクタ・メソッドの引数に、C# のキーワードと同じ名前（`@class`・`@event`）を使うと、コンパイルが壊れていたのを直しました。
 - 普通のクラスのフィールドの型を `global::` つきで書くと（`public global::IFoo f;`）、内部のエラーでコンパイルが止まっていたのを直しました。
+- 普通のクラスのフィールドに、配列の初期化子の省略形（`public int[] n = { 1, 2 };`）を書くと、コンパイルが壊れていたのを直しました。
+- 普通のクラスのメソッドの呼び出しを複数行に分けて書いたとき、2 行目以降の引数の中のエラー・実行時例外が、その引数の行に出るようにしました。
 
 ## [0.1.4]
 

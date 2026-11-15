@@ -1235,8 +1235,21 @@ namespace UdonSharpPlus
                     }
                 }
 
-                args.AddRange(node.ArgumentList.Arguments.Select(a => Text(Visit(a))));
-                return Parse($"{MethodName(c, definition)}({string.Join(", ", args)})", node);
+                // 引数の改行を残す（複数行の引数の中のエラー・実行時例外が、その引数の行に出るように。#105 で見つけた。new は #82 で直した）。
+                // 受け側（インスタンス・拡張メソッドの this）は先頭の引数にする
+                var visited = (ArgumentListSyntax)Visit(node.ArgumentList);
+                if (args.Count > 0)
+                {
+                    var list = new List<SyntaxNodeOrToken> { SyntaxFactory.Argument(SyntaxFactory.ParseExpression(args[0])) };
+                    if (visited.Arguments.Count > 0)
+                    {
+                        list.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.Space));
+                        list.AddRange(visited.Arguments.GetWithSeparators());
+                    }
+                    visited = visited.WithArguments(SyntaxFactory.SeparatedList<ArgumentSyntax>(list));
+                }
+                Changed = true;
+                return SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(MethodName(c, definition)), visited).WithTriviaFrom(node);
             }
 
             // ---- is / as -------------------------------------------------------
@@ -1346,7 +1359,7 @@ namespace UdonSharpPlus
             private string CopyMethod(ClassInfo c, MethodDeclarationSyntax method)
             {
                 IMethodSymbol symbol = _model.GetDeclaredSymbol(method);
-                _member = $"メソッド {symbol.Name}";
+                _member = OperatorLowering.MemberLabel(symbol) ?? $"メソッド {symbol.Name}";   // 演算子を書き換えたメソッドは「演算子 +」（#105）
                 var sb = new StringBuilder();
                 if (symbol.GetAttributes().Any(a => a.AttributeClass?.Name == "RecursiveMethodAttribute"))
                     sb.Append("[global::UdonSharp.RecursiveMethod] ");
@@ -1473,7 +1486,9 @@ namespace UdonSharpPlus
                         ? this
                         : new Rewriter(_context, _context.Compilation.GetSemanticModel(value.SyntaxTree), c, _sink, null);
                     string member = $"{(slot is IFieldSymbol ? "フィールド" : "プロパティ")} {slot.Name} の初期化子";
-                    sb.Append($"{rewriter.Marker(value, member)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({rewriter.Flatten(rewriter.Visit(value), value)}); ");
+                    // 配列の初期化子の省略形（int[] a = { 1, 2 };）は、代入の右辺に書けないので new T[] を付ける（#105 で見つけた）
+                    string create = value is InitializerExpressionSyntax ? $"new {TypeText(type)} " : "";
+                    sb.Append($"{rewriter.Marker(value, member)}{ThisName}[{c.Slots[slot]}] = ({TypeText(type)})({create}{rewriter.Flatten(rewriter.Visit(value), value)}); ");
                 }
                 return sb.ToString();
             }

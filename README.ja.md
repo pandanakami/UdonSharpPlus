@@ -21,6 +21,7 @@ UdonSharp のコンパイラに Harmony でパッチを当て、UdonSharp がコ
 | ローカル関数・匿名メソッド | メソッドの中の `int Twice(int x) => x * 2;`、`delegate (int x) { ... }` |
 | 匿名型 | `var p = new { Name = "a", Hp = 10 };`、`p.Hp`、`list.Select(x => new { x.Name, x.Hp })`、`ToString()`、`Equals` |
 | タプル | `(int, string)`、`(1, "a")`、`var (lo, hi) = Range(list);`・`(a, b) = (b, a);`、`==`・`ToString` |
+| 演算子のオーバーロード | `public static Vec operator +(Vec a, Vec b)`、`a + b`・`a += b`・`==`、`implicit operator Vec(int v)` |
 
 ```csharp
 using System.Collections.Generic;
@@ -109,7 +110,6 @@ UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、
 
 次のものに対応する予定です（まだ使えません）。時期は決まっておらず、内容も変わることがあります。
 
-- 演算子のオーバーロード
 - コルーチン
 
 ## 免責事項

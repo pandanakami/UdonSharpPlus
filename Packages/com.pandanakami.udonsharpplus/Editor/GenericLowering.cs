@@ -604,6 +604,8 @@ namespace UdonSharpPlus
                     case ConstructorDeclarationSyntax _: return "コンストラクタ";
                     case PropertyDeclarationSyntax p: return $"プロパティ {p.Identifier.ValueText}";
                     case FieldDeclarationSyntax f: return $"フィールド {string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.ValueText))}";
+                    case OperatorDeclarationSyntax o: return $"演算子 {o.OperatorToken.Text}";   // #105
+                    case ConversionOperatorDeclarationSyntax c: return $"変換 {c.ImplicitOrExplicitKeyword.Text} operator {c.Type}";
                     default: return null;
                 }
             }

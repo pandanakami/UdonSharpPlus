@@ -3,6 +3,15 @@ using System.Linq;
 
 namespace FeatureTests.Syntax
 {
+    // #105：演算子・変換の中で例外になる普通のクラス
+    public class NpVec
+    {
+        public int v;
+        public NpVec(int v) { this.v = v; }
+        public static NpVec operator +(NpVec a, NpVec b) => new NpVec(a.v + b.v);   // ここ（67：b が null）
+        public static implicit operator NpVec(int n) => new NpVec(10 / n);          // ここ（69：n が 0）
+    }
+
     // #71・#142〜#146：C# なら例外になる LINQ・匿名型のリストの使い方。Udon でも、元の行で実行時例外になって止まることを確かめる。
     // 止まる行は「ここ」の行（コンソールの「Udon runtime exception detected!」の位置で確かめる）
     public partial class NullProbe
@@ -199,6 +208,28 @@ namespace FeatureTests.Syntax
                 {
                     int zero = nums.Count - 3;
                     observed = "" + ((1, 2) == (1, 2 / zero));   // ここ
+                    break;
+                }
+                // #105：ユーザー定義の演算子・変換の中の例外は、元の行
+                case 67:
+                {
+                    var a = new NpVec(1);
+                    NpVec none = null;
+                    observed = "" + (a + none).v;
+                    break;
+                }
+                case 68:
+                {
+                    int zero = nums.Count - 3;
+                    var c = new NpVec(1)
+                        + new NpVec(10 / zero);   // ここ
+                    observed = "" + c.v;
+                    break;
+                }
+                case 69:
+                {
+                    NpVec v = 0;
+                    observed = "" + v.v;
                     break;
                 }
             }

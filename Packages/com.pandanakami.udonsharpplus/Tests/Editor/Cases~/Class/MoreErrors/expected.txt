@@ -1,6 +1,5 @@
 ## Diagnostics
 Error: Assets/UdonSharpPlusTests/Types.cs(15,22): [UdonSharpPlus] 'Inner' : 入れ子のクラスは未対応です。名前空間の直下に宣言してください
-Error: Assets/UdonSharpPlusTests/Types.cs(24,36): [UdonSharpPlus] 'Vec' : 演算子のオーバーロードは未対応です
 Error: Assets/UdonSharpPlusTests/Types.cs(30,20): [UdonSharpPlus] 'Grid' : インデクサーは未対応です
 Error: Assets/UdonSharpPlusTests/Types.cs(35,36): [UdonSharpPlus] 'Button.Clicked' : イベントは未対応です
 Error: Assets/UdonSharpPlusTests/Types.cs(35,9): [UdonSharpPlus] event は未対応です。デリゲート型のフィールドにしてください

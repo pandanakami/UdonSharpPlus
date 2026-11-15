@@ -80,6 +80,9 @@ namespace UdonSharpPlus
                     return UdonSharpInternals.DataDictionary;
                 if (definition == typeof(KeyValuePair<,>))
                     return typeof(object[]);
+                // タプル（(int, string)。#82 で普通のクラスに書き換える。#105 で見つけた写し方の漏れ）
+                if (definition.Namespace == "System" && definition.Name.StartsWith("ValueTuple`", StringComparison.Ordinal))
+                    return typeof(object[]);
             }
 
             // .NET のデリゲート（Action・Func・Predicate・Comparison。#125）

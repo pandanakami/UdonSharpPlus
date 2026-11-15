@@ -123,6 +123,14 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
+            // ユーザー定義の演算子・変換 → 名前の付いた static メソッドと、その呼び出し（#105）。ジェネリクスのコピーとタプルの段のあと
+            // （コピーの中の演算子と、タプルの == が生成する要素の == も書き換えるため）。普通のクラスの段より前（メソッドとしてコピーさせるため）
+            if (OperatorLowering.MayHaveOperators(current))
+            {
+                current = OperatorLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // ソースで宣言したデリゲート → object[] と、呼び出しの static クラス・中継メソッド（#69 / #119）。
             // 生成するコードは普通のクラス・インタフェースの型のままなので、それらの段より前に置く
             if (DelegateLowering.MayHaveDelegates(current))

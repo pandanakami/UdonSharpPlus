@@ -14,6 +14,7 @@ UdonSharp で書ける C# を増やすパッケージ、UdonSharp Plus の詳し
 | [List / Dictionary・ラムダ・LINQ](collections.md) | `List<T>`・`Dictionary<TKey, TValue>`、それらのメソッドに渡すラムダ、LINQ |
 | [匿名型](anonymous-types.md) | `new { Name = "a", Score = 1 }`、`var` で受ける・メンバーを読む・LINQ の射影・`ToString`・`Equals` |
 | [タプル](tuples.md) | `(int, string)`、`(1, "a")`、`var (x, y) = ...`・入れ替え・`foreach` の分解・`==`・`ToString` |
+| [演算子のオーバーロード](operators.md) | `operator +`・`==`・`++` など、`implicit`／`explicit` の変換を、普通のクラスと UdonSharpBehaviour に宣言して使う |
 | [デリゲート・ローカル関数](delegates.md) | 自分で宣言したデリゲートと `Action`・`Func`・`Predicate`・`Comparison` に、メソッド・ラムダ・匿名メソッド・ローカル関数を入れて呼ぶ。ローカル関数を使う |
 
 それぞれのページに、対応している書き方と、未対応の書き方（コンパイルエラーになるもの）を書いています。

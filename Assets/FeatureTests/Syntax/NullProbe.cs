@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public partial class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 67;
+        public const int Count = 70;
 
         public int caseId;
         public bool started;
@@ -123,6 +123,9 @@ namespace FeatureTests.Syntax
                 case 64: return "exception inside tuple projection lambda";
                 case 65: return "tuple list IndexOf start past Count";
                 case 66: return "exception inside tuple equality element";
+                case 67: return "exception inside user operator";
+                case 68: return "exception in second line of user operator";
+                case 69: return "exception inside user conversion";
             }
             return "?";
         }
