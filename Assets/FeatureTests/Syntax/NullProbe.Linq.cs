@@ -7,6 +7,12 @@ namespace FeatureTests.Syntax
     // 止まる行は「ここ」の行（コンソールの「Udon runtime exception detected!」の位置で確かめる）
     public partial class NullProbe
     {
+        private (int, int) TupleDiv(int d)
+        {
+            int one = 1;
+            return (one / d, 0);   // ここ
+        }
+
         private void RunLinq()
         {
             var nums = new List<int> { 1, 2, 3 };
@@ -152,6 +158,49 @@ namespace FeatureTests.Syntax
                         observed = "" + 10 / (x - 1);   // ここ
                     });
                     break;
+                // #82：タプルの中の例外は、元の行
+                case 60:
+                {
+                    int zero = nums.Count - 3;
+                    var t = (1,
+                        10 / zero);   // ここ
+                    observed = "" + t.Item2;
+                    break;
+                }
+                case 61:
+                {
+                    NullTarget nt = null;
+                    var t = (nt.v, 2);   // ここ
+                    observed = "" + t.Item1;
+                    break;
+                }
+                case 62:
+                    observed = "" + TupleDiv(0).Item1;
+                    break;
+                case 63:
+                {
+                    var (a, b) = (1, nums[5]);   // ここ
+                    observed = "" + a + b;
+                    break;
+                }
+                case 64:
+                {
+                    var rows = nums.Select(x => (x, 10 / (x - 1))).ToList();   // ここ
+                    observed = "" + rows.Count;
+                    break;
+                }
+                case 65:
+                {
+                    var rows = nums.Select(x => (x, 0)).ToList();
+                    observed = "" + rows.IndexOf((1, 0), 4);   // ここ
+                    break;
+                }
+                case 66:
+                {
+                    int zero = nums.Count - 3;
+                    observed = "" + ((1, 2) == (1, 2 / zero));   // ここ
+                    break;
+                }
             }
         }
     }

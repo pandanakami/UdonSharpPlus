@@ -1171,8 +1171,12 @@ namespace UdonSharpPlus
                 }
 
                 ClassInfo c = Target(ctor.ContainingType);
-                string args = arguments == null ? "" : string.Join(", ", arguments.Arguments.Select(a => Text(Visit(a))));
-                return Parse($"{CtorName(c, ctor)}({args})", node);
+                if (arguments == null)
+                    return Parse($"{CtorName(c, ctor)}()", node);
+                // 引数の改行を残す（複数行の new の引数の中のエラー・実行時例外が、その引数の行に出るように。#82 で見つけた）
+                var visited = (ArgumentListSyntax)Visit(arguments);
+                Changed = true;
+                return SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(CtorName(c, ctor)), visited).WithTriviaFrom(node);
             }
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)

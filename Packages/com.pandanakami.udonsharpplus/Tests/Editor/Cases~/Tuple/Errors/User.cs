@@ -14,14 +14,14 @@ namespace UdonSharpPlusTests.TupleErrors
 
         private void Start()
         {
-            var t = (1, "a");                                // タプルの式
-            (int x, string y) named = (2, "b");              // 名前付きのタプル（型と式で 1 つずつ）
-            ValueTuple<int, string> vt = default;            // ValueTuple
-            var (a, b) = Pair();                             // 分解
+            var t = (1, "a");                                // タプルの式（使える）
+            (int x, string y) named = (2, "b");              // 名前付きのタプル（使える）
+            t.Item1 = 5;                                     // 要素への代入：エラー
+            object o = t;                                    // object にする：エラー
             int c = 1, d = 2;
-            (c, d) = (d, c);                                 // 入れ替え
-            foreach (var (k, v) in _dict) { }               // foreach での分解
-            bool e = _ints.Exists(i => (i, i).Item1 == 0);  // ラムダの中
+            (c, d) = (d, c);                                 // 入れ替え（使える）
+            foreach (var (k, v) in _dict) { }               // KeyValuePair の分解：エラー
+            var keyed = new Dictionary<(int, int), int>();   // タプルをキーにする Dictionary：エラー
             Debug.Log(new Used().Range(1, 2));
             Debug.Log(new Pool<int>().Get(0));
             Debug.Log(new Pool<string>().Get(0));

@@ -977,7 +977,7 @@ namespace UdonSharpPlus
             private const string NoElement = "要素がありません（C# では InvalidOperationException）";
 
             /// <summary>
-            /// 匿名型の段（#138）が Distinct() の代わりに置いた印：Where(x => __cls___Anon_0____Eq…(x, x))（同じ引数を 2 つ渡す、生成したクラスの値の比較）。
+            /// 匿名型・タプルの段（#138・#82）が Distinct() の代わりに置いた印：Where(x => __cls___Anon_0____Eq…(x, x))（同じ引数を 2 つ渡す、生成したクラスの値の比較）。
             /// 印なら、比較のメソッドの名前。そうでなければ null
             /// </summary>
             private static string DistinctEquality(ExpressionSyntax fn)
@@ -989,7 +989,7 @@ namespace UdonSharpPlus
                     || call.ArgumentList.Arguments.Any(a => !(a.Expression is IdentifierNameSyntax id) || id.Identifier.ValueText != parameter))
                     return null;
                 string name = call.Expression.ToString();
-                return name.Contains(AnonymousTypeLowering.GeneratedPrefix) && name.Contains("__Eq") ? name : null;
+                return (name.Contains(AnonymousTypeLowering.GeneratedPrefix) || name.Contains(TupleLowering.GeneratedPrefix)) && name.Contains("__Eq") ? name : null;
             }
 
             /// <summary>C# なら例外になるところ：エラーのログを出して、Udon の実行時例外にする</summary>

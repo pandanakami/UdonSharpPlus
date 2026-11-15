@@ -1,19 +1,9 @@
 ## Diagnostics
-Error: Assets/UdonSharpPlusTests/Types.cs(11,16): [UdonSharpPlus] '(int min, int max)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/Types.cs(11,64): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/Types.cs(17,31): [UdonSharpPlus] 'var (x, _)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください（クラス Pool<int> のメソッド Get の中）
-Error: Assets/UdonSharpPlusTests/Types.cs(9,16): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(10,17): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(11,22): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(17,21): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(18,13): [UdonSharpPlus] '(int x, string y)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(18,39): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(19,13): [UdonSharpPlus] '(int, string)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(20,13): [UdonSharpPlus] 'var (a, b)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(22,13): [UdonSharpPlus] '(c, d)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(23,13): [UdonSharpPlus] 'var (k, v)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(24,40): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(30,17): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(30,44): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
-Error: Assets/UdonSharpPlusTests/User.cs(32,27): [UdonSharpPlus] '(int, int)' : タプルは未対応です（UdonSharp が対応していないため）。クラスにするか、別々の変数にしてください
+Error: Assets/UdonSharpPlusTests/Types.cs(11,99): [UdonSharpPlus] 'Item2' : タプルの要素への代入は未対応です（C# ではタプルは値型で、代入のたびにコピーされますが、ここでは参照になるため）。タプルを作り直してください（t = (5, t.Item2) など）
+Error: Assets/UdonSharpPlusTests/Types.cs(17,56): [UdonSharpPlus] 'Item1' : タプルの要素への代入は未対応です（C# ではタプルは値型で、代入のたびにコピーされますが、ここでは参照になるため）。タプルを作り直してください（t = (5, t.Item2) など）（クラス Pool<int> のメソッド Get の中）
+Error: Assets/UdonSharpPlusTests/User.cs(19,13): [UdonSharpPlus] 'Item1' : タプルの要素への代入は未対応です（C# ではタプルは値型で、代入のたびにコピーされますが、ここでは参照になるため）。タプルを作り直してください（t = (5, t.Item2) など）
+Error: Assets/UdonSharpPlusTests/User.cs(20,24): [UdonSharpPlus] タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）
+Error: Assets/UdonSharpPlusTests/User.cs(23,22): [UdonSharpPlus] タプル以外の分解（Deconstruct メソッド・KeyValuePair など）は未対応です（foreach (var kv in dict) で、kv.Key／kv.Value を使ってください）
+Error: Assets/UdonSharpPlusTests/User.cs(24,29): [UdonSharpPlus] タプルをキーにする Dictionary は未対応です（C# はキーを値で比べますが、ここでは参照の比較になります）。キーは、数値・string などにしてください
+Error: Assets/UdonSharpPlusTests/User.cs(25,23): [UdonSharpPlus] タプルを object・インタフェースとして使うことは未対応です（t.ToString() で文字列にするか、要素を渡してください）
 ## Logs

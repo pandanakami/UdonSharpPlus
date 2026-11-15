@@ -78,6 +78,104 @@ namespace UdonSharpPlus
             return result;
         }
 
+        private const string DistinctMarker = "(distinct)";
+
+        /// <summary>
+        /// List・LINQ の、要素を Equals で比べるメソッドの呼び出しを、生成したクラス（className。値で比べる __Eq を持つ）のヘルパーの呼び出しにしたコード（#138）。
+        /// 匿名型とタプル（#82）で共用する。書き換えられない形（比較子つき・ToDictionary のキーなど）は null。
+        /// helpers には、使ったヘルパーの名前を足す（クラスのコードに、使ったものだけを入れる）
+        /// </summary>
+        internal static string ListComparisonCode(InvocationExpressionSyntax node, IMethodSymbol method, SemanticModel model, string className,
+            ISet<string> helpers, Func<SyntaxNode, string> visit, ref int counter)
+        {
+            if (method.Name == "ToDictionary")
+                return null;
+            var args = node.ArgumentList.Arguments.Select(a => a.Expression).ToList();
+            ExpressionSyntax receiver;
+            if (method.ReducedFrom != null || !method.IsStatic)
+            {
+                if (!(node.Expression is MemberAccessExpressionSyntax access))
+                    return null;
+                receiver = access.Expression;
+            }
+            else
+            {
+                if (args.Count == 0)
+                    return null;
+                receiver = args[0];
+                args.RemoveAt(0);
+            }
+            bool linq = method.ContainingType.Name == "Enumerable";
+            string helper;
+            if (linq)
+                helper = method.Name == "Distinct" && args.Count == 0 ? DistinctMarker : method.Name == "Contains" && args.Count == 1 ? "__Contains" : null;
+            else if (method.Name == "Contains" || method.Name == "Remove")
+                helper = args.Count == 1 ? "__" + method.Name : null;
+            else
+                helper = args.Count >= 1 && args.Count <= 3 ? "__" + method.Name + args.Count : null;   // IndexOf・LastIndexOf
+            if (helper == null)
+                return null;
+            string list = visit(receiver);
+            if (helper == DistinctMarker)
+            {
+                // Distinct()：LINQ の段のまま、値で比べる。「x => __Anon_0.__Eq(x, x)」の Where を印にして、List・LINQ の段（CollectionLowering）が
+                // 「見たことのある値と __Eq で比べる」段にする（前の段のラムダを呼ぶ回数・止まり方は、C# の Distinct と同じ）
+                int id = counter++;
+                return $"global::System.Linq.Enumerable.Where({list}, __de{id} => {className}.__Eq(__de{id}, __de{id}))";
+            }
+            bool isList = model.GetTypeInfo(receiver).Type is INamedTypeSymbol rt && rt.Name == "List" && rt.ContainingNamespace?.ToDisplayString() == "System.Collections.Generic";
+            if (linq && !isList && helper == "__Contains")
+            {
+                // LINQ の結果・配列への Contains：C# と同じく、見つかった所で止める（前の段のラムダを、必要な分だけ呼ぶ）。
+                // 探す値は 1 回だけ評価して（Repeat の引数）、外側のラムダの引数として持つ
+                int id = counter++;
+                const string linqName = "global::System.Linq.Enumerable";
+                return $"{linqName}.Any({linqName}.Repeat<{className}>({visit(args[0])}, 1), __ct{id} => {linqName}.Any({list}, __ce{id} => {className}.__Eq(__ce{id}, __ct{id})))";
+            }
+            helpers.Add(helper);
+            string call = $"{className}.{helper}({string.Join(", ", new[] { list }.Concat(args.Select(visit)))})";
+            // 範囲つきの IndexOf・LastIndexOf は int[] を返す（範囲が合わなければ空）。[0] を読んで、呼んだ行で止める
+            bool ranged = (helper.StartsWith("__IndexOf", StringComparison.Ordinal) || helper.StartsWith("__LastIndexOf", StringComparison.Ordinal)) && !helper.EndsWith("1", StringComparison.Ordinal);
+            return ranged ? call + "[0]" : call;
+        }
+
+        /// <summary>要素を Equals で比べるメソッド（List の Contains・IndexOf・LastIndexOf・Remove、LINQ の Distinct・Contains・ToDictionary のキー）か。element は比べる要素の型</summary>
+        internal static bool ComparesByEquals(IMethodSymbol m, out ITypeSymbol element)
+        {
+            element = null;
+            INamedTypeSymbol owner = m.ContainingType;
+            if (owner == null)
+                return false;
+            if (owner.Name == "List" && owner.IsGenericType && owner.TypeArguments.Length == 1
+                && (m.Name == "Contains" || m.Name == "IndexOf" || m.Name == "LastIndexOf" || m.Name == "Remove"))
+            {
+                element = owner.TypeArguments[0];
+                return true;
+            }
+            if (owner.Name == "Enumerable" && m.TypeArguments.Length == 1 && (m.Name == "Distinct" || m.Name == "Contains"))
+            {
+                element = m.TypeArguments[0];
+                return true;
+            }
+            // ToDictionary：キーの型（TKey は 2 つ目の型引数）
+            if (owner.Name == "Enumerable" && m.Name == "ToDictionary" && m.TypeArguments.Length >= 2)
+            {
+                element = m.TypeArguments[1];
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>リストを値で比べるヘルパーのコード（生成するクラスの中に置く。使ったものだけ）</summary>
+        internal static string ListHelpersCode(IEnumerable<string> helpers, string className)
+        {
+            string list = "global::System.Collections.Generic.List<" + className + ">";
+            var sb = new StringBuilder();
+            foreach (string helper in helpers)
+                sb.Append(AnonInfo.ListHelper(helper, className, list)).Append(' ');
+            return sb.ToString();
+        }
+
         private static SyntaxTree Reparse(SyntaxNode root, SyntaxTree original) =>
             CSharpSyntaxTree.ParseText(root.ToFullString(), (CSharpParseOptions)original.Options, original.FilePath, Encoding.UTF8);
 
@@ -106,7 +204,7 @@ namespace UdonSharpPlus
             /// <summary>
             /// List&lt;匿名型&gt; を、C# と同じく値（__Eq：null どうしは等しい）で比べるメソッド（#138）
             /// </summary>
-            private static string ListHelper(string helper, string n, string list)
+            internal static string ListHelper(string helper, string n, string list)
             {
                 const string scan = "if (__Eq(l[i], x)) return i; ";
                 switch (helper)
@@ -248,6 +346,8 @@ namespace UdonSharpPlus
                 {
                     if (named.IsAnonymousType)
                         return Get(named, out _) is AnonInfo inner && inner.ToStringError == null ? $"{inner.Name}.__Str({expression})" : null;
+                    if (named.IsTupleType)
+                        return $"{expression}.ToString()";   // タプルの段（#82）が __ToString にする
                     if (named.TypeKind == TypeKind.Struct && !named.Locations.Any(l => l.IsInSource) && named.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T)
                         return expression;
                 }
@@ -318,6 +418,7 @@ namespace UdonSharpPlus
                     }
                     compares.Add(p.Type is INamedTypeSymbol a && a.IsAnonymousType && Get(a, out _) is AnonInfo inner
                         ? $"{inner.Name}.__Eq({Ident(p.Name)}, b.{Ident(p.Name)})"
+                        : p.Type.IsTupleType ? $"{Ident(p.Name)}.Equals(b.{Ident(p.Name)})"   // タプルの段（#82）が、値の比較にする
                         : $"__E({Ident(p.Name)}, b.{Ident(p.Name)})");
                 }
                 if (info.EqualsError == null)
@@ -385,33 +486,6 @@ namespace UdonSharpPlus
                 }
             }
 
-            /// <summary>要素を Equals で比べるメソッド（List の Contains・IndexOf・LastIndexOf・Remove、LINQ の Distinct・Contains）か。element は比べる要素の型</summary>
-            private static bool ComparesByEquals(IMethodSymbol m, out ITypeSymbol element)
-            {
-                element = null;
-                INamedTypeSymbol owner = m.ContainingType;
-                if (owner == null)
-                    return false;
-                if (owner.Name == "List" && owner.IsGenericType && owner.TypeArguments.Length == 1
-                    && (m.Name == "Contains" || m.Name == "IndexOf" || m.Name == "LastIndexOf" || m.Name == "Remove"))
-                {
-                    element = owner.TypeArguments[0];
-                    return true;
-                }
-                if (owner.Name == "Enumerable" && m.TypeArguments.Length == 1 && (m.Name == "Distinct" || m.Name == "Contains"))
-                {
-                    element = m.TypeArguments[0];
-                    return true;
-                }
-                // ToDictionary：キーの型（TKey は 2 つ目の型引数）
-                if (owner.Name == "Enumerable" && m.Name == "ToDictionary" && m.TypeArguments.Length >= 2)
-                {
-                    element = m.TypeArguments[1];
-                    return true;
-                }
-                return false;
-            }
-
             private static bool IsAnonymous(ITypeSymbol type) => type is INamedTypeSymbol n && n.IsAnonymousType;
 
             /// <summary>
@@ -420,7 +494,8 @@ namespace UdonSharpPlus
             /// </summary>
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (node is ExpressionSyntax e)
+                // a.b の b（名前の部分）は、a.b 全体で見る（名前の部分にも、外側の変換が出る。#82 で見つけた）
+                if (node is ExpressionSyntax e && !(e.Parent is MemberAccessExpressionSyntax ma && ma.Name == e) && !(e.Parent is MemberBindingExpressionSyntax))
                 {
                     TypeInfo info = _model.GetTypeInfo(e);
                     if (IsAnonymous(info.Type) && !_allowed.Contains(e))
@@ -515,60 +590,14 @@ namespace UdonSharpPlus
             /// 受け側と引数は、元の順に 1 回ずつ評価する。書き換えられない形（比較子つき・デリゲートのメンバーがある匿名型など）は null
             /// </summary>
             private int _containsCount;
-            private const string DistinctMarker = "(distinct)";
 
             private SyntaxNode ListComparison(InvocationExpressionSyntax node, IMethodSymbol method, INamedTypeSymbol element)
             {
                 AnonInfo info = _shared.Get(element, out _);
-                if (info == null || info.EqualsError != null || method.Name == "ToDictionary")
+                if (info == null || info.EqualsError != null)
                     return null;
-                var args = node.ArgumentList.Arguments.Select(a => a.Expression).ToList();
-                ExpressionSyntax receiver;
-                if (method.ReducedFrom != null || !method.IsStatic)
-                {
-                    if (!(node.Expression is MemberAccessExpressionSyntax access))
-                        return null;
-                    receiver = access.Expression;
-                }
-                else
-                {
-                    if (args.Count == 0)
-                        return null;
-                    receiver = args[0];
-                    args.RemoveAt(0);
-                }
-                bool linq = method.ContainingType.Name == "Enumerable";
-                string helper;
-                if (linq)
-                    helper = method.Name == "Distinct" && args.Count == 0 ? DistinctMarker : method.Name == "Contains" && args.Count == 1 ? "__Contains" : null;
-                else if (method.Name == "Contains" || method.Name == "Remove")
-                    helper = args.Count == 1 ? "__" + method.Name : null;
-                else
-                    helper = args.Count >= 1 && args.Count <= 3 ? "__" + method.Name + args.Count : null;   // IndexOf・LastIndexOf
-                if (helper == null)
-                    return null;
-                string list = Text(Visit(receiver));
-                if (helper == DistinctMarker)
-                {
-                    // Distinct()：LINQ の段のまま、値で比べる。「x => __Anon_0.__Eq(x, x)」の Where を印にして、List・LINQ の段（CollectionLowering）が
-                    // 「見たことのある値と __Eq で比べる」段にする（前の段のラムダを呼ぶ回数・止まり方は、C# の Distinct と同じ）
-                    int id = _containsCount++;
-                    return Parse($"global::System.Linq.Enumerable.Where({list}, __de{id} => {info.Name}.__Eq(__de{id}, __de{id}))", node);
-                }
-                bool isList = _model.GetTypeInfo(receiver).Type is INamedTypeSymbol rt && rt.Name == "List" && rt.ContainingNamespace?.ToDisplayString() == "System.Collections.Generic";
-                if (linq && !isList && helper == "__Contains")
-                {
-                    // LINQ の結果・配列への Contains：C# と同じく、見つかった所で止める（前の段のラムダを、必要な分だけ呼ぶ）。
-                    // 探す値は 1 回だけ評価して（Repeat の引数）、外側のラムダの引数として持つ
-                    int id = _containsCount++;
-                    const string linqName = "global::System.Linq.Enumerable";
-                    return Parse($"{linqName}.Any({linqName}.Repeat<{info.Name}>({Text(Visit(args[0]))}, 1), __ct{id} => {linqName}.Any({list}, __ce{id} => {info.Name}.__Eq(__ce{id}, __ct{id})))", node);
-                }
-                info.ListHelpers.Add(helper);
-                string call = $"{info.Name}.{helper}({string.Join(", ", new[] { list }.Concat(args.Select(a => Text(Visit(a)))))})";
-                // 範囲つきの IndexOf・LastIndexOf は int[] を返す（範囲が合わなければ空）。[0] を読んで、呼んだ行で止める
-                bool ranged = (helper.StartsWith("__IndexOf", StringComparison.Ordinal) || helper.StartsWith("__LastIndexOf", StringComparison.Ordinal)) && !helper.EndsWith("1", StringComparison.Ordinal);
-                return Parse(ranged ? call + "[0]" : call, node);
+                string code = ListComparisonCode(node, method, _model, info.Name, info.ListHelpers, n => Text(Visit(n)), ref _containsCount);
+                return code == null ? null : Parse(code, node);
             }
 
             /// <summary>p.ToString()・p.Equals(q)。そのほかの object のメソッド（GetHashCode・GetType など）はエラー</summary>

@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public partial class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 60;
+        public const int Count = 67;
 
         public int caseId;
         public bool started;
@@ -116,6 +116,13 @@ namespace FeatureTests.Syntax
                 case 57: return "exception inside anonymous method body";
                 case 58: return "SelectMany anonymous method returning null";
                 case 59: return "exception inside ForEach anonymous method";
+                case 60: return "exception inside tuple element";
+                case 61: return "null member access inside tuple element";
+                case 62: return "exception inside method returning tuple";
+                case 63: return "exception in deconstruction right side";
+                case 64: return "exception inside tuple projection lambda";
+                case 65: return "tuple list IndexOf start past Count";
+                case 66: return "exception inside tuple equality element";
             }
             return "?";
         }

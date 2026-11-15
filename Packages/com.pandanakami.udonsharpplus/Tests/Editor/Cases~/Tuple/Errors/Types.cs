@@ -8,13 +8,13 @@ namespace UdonSharpPlusTests.TupleErrors
     {
         public (int, string) pair;
 
-        public (int min, int max) Range(int a, int b) { return (Math.Min(a, b), Math.Max(a, b)); }
+        public (int min, int max) Range(int a, int b) { var r = (Math.Min(a, b), Math.Max(a, b)); r.Item2++; return r; }
     }
 
     // ジェネリッククラスのコピーが 2 つあっても、同じ位置のエラーは 1 つ
     public class Pool<T>
     {
-        public T Get(int i) { var (x, _) = (i, 0); return default(T); }
+        public T Get(int i) { var p = (i, default(T)); p.Item1 = 0; return p.Item2; }
     }
 
     // 使わない：エラーにしない

@@ -87,12 +87,12 @@ public class LinqMore : UdonSharpBehaviour
         [TestCase("var a = nums.DefaultIfEmpty().ToList();", "'DefaultIfEmpty' : この LINQ のメソッド")]
         [TestCase("var a = nums.Zip(arr, (x, y) => x + y).ToList();", "'Zip' : この LINQ のメソッド")]
         [TestCase("var a = nums.Join(arr, x => x, y => y, (x, y) => x + y).ToList();", "'Join' : この LINQ のメソッド")]
-        [TestCase("var a = nums.Select((x, i) => (x, i)).ToList();", "タプル")]
+        [TestCase("var a = nums.Select((x, i) => (x, i)).ToList(); object o = a[0];", "タプルを object")]
         [TestCase("var a = groups.SelectMany(g => g.ActiveToggles()).ToList();", "'SelectMany' : 集まりを返すラムダは")]
         [TestCase("string a = string.Join(\",\", objs);", "として渡すのは未対応です")]
         [TestCase("var rows = nums.Select(x => new { A = x }).ToList(); string a = string.Join(\",\", rows);", "として渡すのは未対応です")]
         [TestCase("var a = words.SelectMany(delegate (string w) { return w; }).ToList();", "'SelectMany' : 集まりを返すラムダは")]
-        [TestCase("var a = nums.Select(delegate (int x) { return (x, 1); }).ToList();", "タプル")]
+        [TestCase("var a = nums.Select(delegate (int x) { return (x, 1); }).ToList(); a[0].Item1 = 2;", "タプルの要素への代入")]
         public void ReportsUnsupported(string body, string message)
         {
             CompileResult r = Compile(body);
@@ -104,7 +104,7 @@ public class LinqMore : UdonSharpBehaviour
         [Test]
         public void ErrorInsideAnonymousMethodBodyPointsToItsLine()
         {
-            CompileResult r = Compile("var a = nums.Select(delegate (int x)\n        {\n            int y = x + 1;\n            return (y, 1);\n        }).ToList();");
+            CompileResult r = Compile("var a = nums.Select(delegate (int x)\n        {\n            int y = x + 1;\n            object o = (y, 1);\n            return y;\n        }).ToList();");
             Assert.That(r.Diagnostics.Any(d => d.Contains("タプル") && d.Contains("LinqMore.cs(26,")), string.Join("\n", r.Diagnostics));
         }
 

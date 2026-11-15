@@ -192,6 +192,7 @@ public class ChainProbe : UdonSharpBehaviour
         [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = Enumerable.Contains(r, r[0]);")]
         [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = Enumerable.Distinct(r).ToList();")]
         [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var z = (r).Contains((r[0]));")]
+        [TestCase("var r = nums.Select(x => new { A = x }).ToList(); var o = new { In = new { A = 1 } }; var arr = new[] { o }; string s = \"a\" + o.In + arr[0].In + $\"{o.In}\" + r[0];")]
         public void ProbeAnonList(string body)
         {
             const string head = @"using System.Collections.Generic;
@@ -497,8 +498,8 @@ public class Pp : UdonSharpBehaviour
             Assert.That(lowered, Does.Not.Contain("public int Other"), lowered);
         }
 
-        [TestCase("var p = new { T = (1, 2) };", "タプルは未対応です", "Tup.cs(8,")]
-        [TestCase("var p = (new { A = 1 }, 2);", "タプルは未対応です", "Tup.cs(8,")]
+        [TestCase("var p = new { T = (1, 2) }; object o = p.T;", "タプルを object", "Tup.cs(8,")]
+        [TestCase("var p = (new { A = 1 }, 2); p.Item2 = 3;", "タプルの要素への代入は未対応です", "Tup.cs(8,")]
         public void TuplesAreStillErrors(string body, string message, string location)
         {
             string src = "using UdonSharp;\n\npublic class Tup : UdonSharpBehaviour\n{\n    private void Start()\n    {\n        int before = 0;\n        " + body + "\n    }\n}";

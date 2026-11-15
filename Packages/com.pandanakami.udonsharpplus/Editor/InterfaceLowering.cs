@@ -106,15 +106,20 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
-            // タプル（#81）は UdonSharp が対応していないのでエラーにする。書き換えの前に見るので、元のソースの位置に出る
-            if (TupleCheck.MayHaveTuples(current))
-                TupleCheck.Run(current, diagnostics, GetMetadataReferences());
-
             // 匿名型の 2 回目。デリゲートの段は、匿名型を知らなくてよいよう、その前に置く。
             // 1 回目で匿名型を作っていれば、new { ... } が残っていなくても動かす（型引数が匿名型になった List<T>.Contains などを、コピーの中で見つけるため。#71）
             if (anonymousCount > 0 || AnonymousTypeLowering.MayHaveAnonymousTypes(current))
             {
                 current = AnonymousTypeLowering.Run(current, diagnostics, GetMetadataReferences(), ref anonymousCount, beforeGenerics: false);
+                SourceMap.RegisterTrees(current);
+            }
+
+            // タプル → 要素の型の並びごとの普通のクラス（#82）。ジェネリクスのコピーのあとに 1 回（タプルは型として書けるので、型引数のままコピーでき、
+            // ジェネリックメソッドの型の推論（Pick((3, 4))）も、元のタプルの型のまま行える）。匿名型の 2 回目のあと（匿名型を要素にするタプルのため）
+            if (TupleLowering.MayHaveTuples(current))
+            {
+                int tupleCount = 0;
+                current = TupleLowering.Run(current, diagnostics, GetMetadataReferences(), ref tupleCount, beforeGenerics: false);
                 SourceMap.RegisterTrees(current);
             }
 

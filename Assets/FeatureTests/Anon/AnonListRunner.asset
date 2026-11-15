@@ -386,13 +386,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_26____ret
+      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_9____ret
     - Name: $v
       Entry: 7
       Data: 22|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_26____ret
+      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_9____ret
     - Name: <UserType>k__BackingField
       Entry: 7
       Data: 23|System.RuntimeType, mscorlib
@@ -440,13 +440,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_26____env
+      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_9____env
     - Name: $v
       Entry: 7
       Data: 25|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_26____env
+      Data: __dlg_System_Func_System_Collections_Generic_List___Anon_9____env
     - Name: <UserType>k__BackingField
       Entry: 7
       Data: 26|System.RuntimeType, mscorlib
@@ -494,13 +494,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func___Anon_2____Anon_24___p0
+      Data: __dlg_System_Func___Anon_2____Anon_7___p0
     - Name: $v
       Entry: 7
       Data: 28|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func___Anon_2____Anon_24___p0
+      Data: __dlg_System_Func___Anon_2____Anon_7___p0
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 26
@@ -542,13 +542,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func___Anon_2____Anon_24___ret
+      Data: __dlg_System_Func___Anon_2____Anon_7___ret
     - Name: $v
       Entry: 7
       Data: 30|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func___Anon_2____Anon_24___ret
+      Data: __dlg_System_Func___Anon_2____Anon_7___ret
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 26
@@ -590,13 +590,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: __dlg_System_Func___Anon_2____Anon_24___env
+      Data: __dlg_System_Func___Anon_2____Anon_7___env
     - Name: $v
       Entry: 7
       Data: 32|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: __dlg_System_Func___Anon_2____Anon_24___env
+      Data: __dlg_System_Func___Anon_2____Anon_7___env
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 26
