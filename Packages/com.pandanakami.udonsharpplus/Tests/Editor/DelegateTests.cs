@@ -174,7 +174,7 @@ public class Bad : UdonSharpBehaviour
         [TestCase("void Start() { int G<T>(int x) => x; G<int>(1); }", "'G' : ジェネリックのローカル関数は未対応です")]
         [TestCase("void Start() { switch (1) { case 1: int F() => 1; break; } }", "'F' : この場所のローカル関数は未対応です")]
         [TestCase("void Start() { static int F(int x) { Calc c = Square; return c(x); } F(1); }", "static のローカル関数の中でデリゲートを作ることは未対応です")]
-        [TestCase("void Start() { int k = 1; void F(int x) { k += x; } new System.Collections.Generic.List<int>().ForEach(F); }", "'F' : 外の変数を使うローカル関数を、ここで使うことは未対応です")]
+        [TestCase("void Start() { int k = 1; void F(int x) { k += x; } new System.Collections.Generic.List<int>().ForEach(F); }", "'F' : 変数をキャプチャするローカル関数を、ここで使うことは未対応です")]
         [TestCase("Calc[] _cs = new Calc[2]; int Idx() => 0; void Start() { _cs[Idx()] += Square; }", "この形の受け側への += / -= は未対応です")]
         [TestCase("void Start() { _calc?.Invoke(1); }", "?.Invoke は未対応です")]
         [TestCase("void Start() { bool b = _calc == _calc; }", "デリゲートどうしの == / != は未対応です")]

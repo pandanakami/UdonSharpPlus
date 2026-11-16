@@ -1338,7 +1338,7 @@ namespace UdonSharpPlus
                     return null;
                 if (_needs.TryGetValue(local.Node, out var needs) && needs.Count > 0)
                 {
-                    Error(node, Loc.T($"'{node.Identifier.ValueText}' : 外の変数を使うローカル関数を、ここで使うことは未対応です（呼ぶか、ソースで宣言したデリゲートに入れてください）", $"'{node.Identifier.ValueText}' : Using a local function that uses outer variables here is not supported (call it, or store it in a delegate declared in source)"));
+                    Error(node, Loc.T($"'{node.Identifier.ValueText}' : 変数をキャプチャするローカル関数を、ここで使うことは未対応です（呼ぶか、ソースで宣言したデリゲートに入れてください）", $"'{node.Identifier.ValueText}' : Using a local function that captures variables here is not supported (call it, or store it in a delegate declared in source)"));
                     return node;
                 }
                 return Parse(local.Hoisted, node);

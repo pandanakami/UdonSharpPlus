@@ -92,7 +92,7 @@ namespace UdonSharpPlus
                 "このファイルは UdonSharp Plus が書き換えています。書き換えた行の、コンパイルエラー・実行時例外の列の位置は、ずれることがあります（行は合います）", "This file is rewritten by UdonSharp Plus. On rewritten lines, the column of compile errors and runtime exceptions may be off (the line is correct)",
                 "README.md の「全体に共通すること」", "README.md"),
             new Rule("USP016", false, "デリゲートの呼び出しの速さ", "Speed of delegate calls",
-                "デリゲートの呼び出しは、普通のメソッドの呼び出しより遅くなります（UdonSharpBehaviour のメソッドは SendCustomEvent などを使い、ラムダで使う外の変数は object[] の要素の読み書きになります）。毎フレーム何度も呼ぶところでは気をつけてください", "Calling a delegate is slower than calling a normal method (UdonSharpBehaviour methods use SendCustomEvent and similar, and outer variables used in a lambda are read and written as object[] elements). Be careful where it is called many times per frame",
+                "デリゲートの呼び出しは、普通のメソッドの呼び出しより遅くなります（UdonSharpBehaviour のメソッドは SendCustomEvent などを使い、ラムダがキャプチャした変数は object[] の要素の読み書きになります）。毎フレーム何度も呼ぶところでは気をつけてください", "Calling a delegate is slower than calling a normal method (UdonSharpBehaviour methods use SendCustomEvent and similar, and variables captured by a lambda are read and written as object[] elements). Be careful where it is called many times per frame",
                 "delegates.md"),
         };
 

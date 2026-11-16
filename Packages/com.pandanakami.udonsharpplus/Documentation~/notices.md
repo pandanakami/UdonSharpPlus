@@ -24,7 +24,7 @@
 | ID | 既定 | 出すとき | 内容 | 詳しく |
 |---|---|---|---|---|
 | USP001 | 出す | LINQ の結果（`Where`・`Select` など）を変数・フィールドに入れたとき | 遅延評価にしないので、あとで元の List を変えても結果は変わらず、2 回使っても同じ結果 | [LINQ](collections.md#linq) |
-| USP002 | － | `Concat`・`Append`・`Prepend` のあとを途中で止める（`First`・`Any` など）、その前にラムダを取る段がある LINQ | 結果は同じだが、前の段のラムダは全部の要素で呼ばれる | [LINQ](collections.md#linq) |
+| USP002 | － | `Concat`・`Append`・`Prepend` のあとを途中で止める（`First`・`Any` など）、その前にラムダを取るメソッドがある LINQ | 結果は同じだが、前のメソッドのラムダは全部の要素で呼ばれる | [LINQ](collections.md#linq) |
 | USP003 | 出す | `foreach` で回している List / Dictionary を、その中で書き換えたとき（`Add`・`Remove`・`Clear`・Dictionary の添字への代入など） | C# の `InvalidOperationException` にならない。Add した要素は回らず、Remove・Clear は範囲外の読み出しで止まる | [List / Dictionary](collections.md#list--dictionary) |
 | USP004 | － | Dictionary の `foreach`・LINQ | 順番は DataDictionary の順で、C# と同じとは限らない | [List / Dictionary](collections.md#list--dictionary) |
 | USP005 | 出す | インタフェース型の値と `null` を比べたとき（`==`・`!=`・`is null`） | 参照の比較なので、Destroy した UdonSharpBehaviour は null にならない | [インタフェース](interface.md) |
@@ -38,7 +38,7 @@
 | USP013 | － | メソッドの呼び出しの結果で、普通のクラスのメソッドを呼んだとき（`Get().M()`） | null のときの実行時例外の位置が、クラスの閉じ括弧の行になることがある | [普通のクラス](class.md) |
 | USP014 | － | .NET のデリゲート（`Action`・`Func`・`Predicate`・`Comparison`）を作ったとき | 宣言の行で止まる実行時例外の位置が、その型を最初に使ったファイルの最後の行になる | [デリゲート](delegates.md) |
 | USP015 | － | UdonSharp Plus が書き換えたファイル（最初に書き換えた行に出す） | 書き換えた行の、コンパイルエラー・実行時例外の列の位置がずれることがある（行は合う） | [全体に共通すること](README.md#全体に共通すること) |
-| USP016 | － | UdonSharpBehaviour のデリゲート（USP007 と同じ）と、外の変数を使うラムダ | デリゲートの呼び出しは、普通のメソッドの呼び出しより遅い | [デリゲート](delegates.md) |
+| USP016 | － | UdonSharpBehaviour のデリゲート（USP007 と同じ）と、変数をキャプチャするラムダ | デリゲートの呼び出しは、普通のメソッドの呼び出しより遅い | [デリゲート](delegates.md) |
 
 出すときの判定は、書き方から分かる範囲で行います。たとえば USP006 は、メソッドが本当にフィールドを書き換えるかどうかは見ないので、書き換えないメソッドでも出ます。
 
@@ -56,8 +56,8 @@
 ### USP002
 
 - 既定：－
-- 出すとき：`Concat`・`Append`・`Prepend` のあとを途中で止める（`First`・`Any` など）、その前にラムダを取る段がある LINQ
-- 内容：結果は同じだが、前の段のラムダは全部の要素で呼ばれる
+- 出すとき：`Concat`・`Append`・`Prepend` のあとを途中で止める（`First`・`Any` など）、その前にラムダを取るメソッドがある LINQ
+- 内容：結果は同じだが、前のメソッドのラムダは全部の要素で呼ばれる
 - 詳しく：[LINQ](collections.md#linq)
 
 ### USP003
@@ -154,6 +154,6 @@
 ### USP016
 
 - 既定：－
-- 出すとき：UdonSharpBehaviour のデリゲート（USP007 と同じ）と、外の変数を使うラムダ
+- 出すとき：UdonSharpBehaviour のデリゲート（USP007 と同じ）と、変数をキャプチャするラムダ
 - 内容：デリゲートの呼び出しは、普通のメソッドの呼び出しより遅い
 - 詳しく：[デリゲート](delegates.md)

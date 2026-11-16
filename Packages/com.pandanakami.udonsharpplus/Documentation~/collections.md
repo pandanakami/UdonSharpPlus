@@ -36,7 +36,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 - `IEnumerable<T>` などとして扱うこと（`IEnumerable<int> a = list;` など。下の「IEnumerable」）、`GetEnumerator()`、`?.`
 - `foreach (var (k, v) in dict)` の分解（`KeyValuePair` の分解は未対応のため。[タプル](tuples.md)の分解は使えます。`kv.Key`／`kv.Value` を使ってください）
 - `Keys`／`Values` を `foreach`、`.Count`、LINQ 以外で使うこと
-- 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの受け側・添字に、変数・フィールド・定数以外を書くこと（`Get()[0] += 1`、入れ子の `nested[0][1] += 1`）。いったん変数に入れてください（`List<int> row = nested[0]; row[1] += 1;`）。入れ子の要素への普通の代入（`nested[0][1] = 1`）は書けます
+- 要素への代入の値を式として使うこと（`x = list[0] = 1`）。複合代入とインクリメントの代入先・添字に、変数・フィールド・定数以外を書くこと（`Get()[0] += 1`、入れ子の `nested[0][1] += 1`）。いったん変数に入れてください（`List<int> row = nested[0]; row[1] += 1;`）。入れ子の要素への普通の代入（`nested[0][1] = 1`）は書けます
 - `TryGetValue` をループの条件の中で使うこと
 
 注意：
@@ -58,7 +58,7 @@ _scores.ForEach(s => total += s);
 _scores.Sort((a, b) => b - a);
 ```
 
-- ラムダの中から、外のローカル変数・引数を読み書きできます。書き込みも C# と同じく、呼び出しの直後から外の変数に反映されます。フィールドもそのまま読み書きできます
+- ラムダの中から、ローカル変数・引数を読み書きできます（ラムダが外側の変数を使うことを、キャプチャといいます）。書き込みも C# と同じく、呼び出しの直後からキャプチャした変数に反映されます。フィールドもそのまま読み書きできます
 - 本体は式（`x => x > 0`）とブロック（`x => { ... }`）のどちらでも書けます。メソッド名を渡すこともできます（`_scores.Exists(IsOdd)`）
 - `Func`・`Predicate`・`Comparison`・`Action` の変数・フィールド・引数も渡せます（`_scores.Exists(isOdd)`、`_scores.Sort(compare)`。[デリゲート](delegates.md)）
 - 戻り値のないラムダ（`ForEach` など）の式の本体には、普通のクラスのフィールド・プロパティや、List / Dictionary の要素への代入・インクリメントも書けます（`_enemies.ForEach(e => e.hp -= 1)`、`_names.ForEach(n => _counts[n]++)`）
@@ -71,11 +71,11 @@ _scores.Sort((a, b) => b - a);
 - ほかの .NET のメソッドの引数のラムダ（`Array.Exists(arr, x => x > 0)` など）
 - `ConvertAll` に `Converter` の変数を渡すこと（ラムダかメソッド名を直接書いてください）
 - フィールドの初期化子の中で、ラムダを渡す List のメソッドを呼ぶこと
-- `[RecursiveMethod]` を付けたメソッドの中で、外のローカル変数・引数に書き込むラムダ。外の変数は `ref` 引数で生成メソッドに渡しますが、UdonSharp は `[RecursiveMethod]` の中での `ref` 引数のメソッドの呼び出しに対応していないため、UdonSharp のエラー（`U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod`）になります。読むだけのラムダは使えます
+- `[RecursiveMethod]` を付けたメソッドの中で、ローカル変数・引数をキャプチャして書き込むラムダ。キャプチャした変数は `ref` 引数で生成メソッドに渡しますが、UdonSharp は `[RecursiveMethod]` の中での `ref` 引数のメソッドの呼び出しに対応していないため、UdonSharp のエラー（`U# does not yet support calling user methods with ref/out parameters from methods marked with RecursiveMethod`）になります。読むだけのラムダは使えます
 
 ### KeyValuePair
 
-`KeyValuePair<K, V>` は、普通のクラスと同じ形の `object[]`（先頭に型の印、続けてキーと値）になります。`Key`／`Value` は読み取り専用なので、値型の `KeyValuePair` と同じように使えます。
+`KeyValuePair<K, V>` は、普通のクラスと同じ形の `object[]`（先頭に型名、続けてキーと値）になります。`Key`／`Value` は読み取り専用なので、値型の `KeyValuePair` と同じように使えます。
 
 ```csharp
 foreach (var kv in _scores)
@@ -107,11 +107,11 @@ foreach (int s in big) { ... }
 - `Where`、`Select`、`SelectMany`、`OrderBy`／`OrderByDescending`／`ThenBy`／`ThenByDescending`、`Distinct`、`Skip`、`Take`、`SkipWhile`、`TakeWhile`、`Reverse`、`Concat`、`Append`、`Prepend`（つないで使えます）
 - `ToList`、`ToArray`、`ToDictionary`、`Any`、`All`、`Count`、`First`、`FirstOrDefault`、`Last`、`LastOrDefault`、`Single`、`SingleOrDefault`、`ElementAt`、`ElementAtOrDefault`、`Contains`
 - `Sum`、`Min`、`Max`、`Average`（`int`、`long`、`float`、`double`）、`Aggregate`（`Aggregate((a, b) => ...)` と、最初の値を渡す `Aggregate(seed, (a, x) => ...)`）
-- 添字付きのラムダ（`Select((x, i) => ...)`、`Where((x, i) => ...)`、`SelectMany`・`TakeWhile`・`SkipWhile` も）。添字は、その段に来た要素の順番です
+- 添字付きのラムダ（`Select((x, i) => ...)`、`Where((x, i) => ...)`、`SelectMany`・`TakeWhile`・`SkipWhile` も）。添字は、そのメソッドに来た要素の順番です
 - `SelectMany`：集まりを返すラムダは、List・配列・LINQ の結果を返します（`SelectMany(b => b.items)`、`SelectMany(b => b.items.Where(...))`、メソッド名）。結果を作るラムダつきの形（`SelectMany(b => b.items, (b, i) => ...)`）も使えます
 - `Enumerable.Range(start, count)`・`Enumerable.Repeat(value, count)`・`Enumerable.Empty<T>()` から始めること（`var` で受ける・`foreach` で回すこともできます）
 - List・LINQ の結果を、外部のメソッドの `IEnumerable<T>` の引数にそのまま渡すこと（`string.Join(",", list.Select(...))`、`string.Join(",", list)`、`string.Concat(...)`）。内部で配列にして渡します。`string.Join`・`string.Concat` の要素は、string と、数値などの値型（`enum` は除く）が使えます。数値などの配列も渡せます（`string.Join(",", intArray)`）。null の List を渡すと、C# と同じく、渡した行で実行時例外になります
-- 条件・変換は、ラムダかメソッド名で渡せます（`Any(x => x > 0)`、`Where(IsOdd)`）。ラムダの中から外の変数を読み書きできます（上の「ラムダ」と同じ）
+- 条件・変換は、ラムダかメソッド名で渡せます（`Any(x => x > 0)`、`Where(IsOdd)`）。ラムダの中から、キャプチャした変数を読み書きできます（上の「ラムダ」と同じ）
 - 結果を `var` で受けて、`foreach` やほかの LINQ につなげること
 - Dictionary の要素（`KeyValuePair`）：ラムダの中で `kv.Key`／`kv.Value` を使えます。`First()` や `ToList()` で `KeyValuePair` を取り出すこともできます（上の「KeyValuePair」）。`ToDictionary(kv => kv.Key, kv => kv.Value)` で Dictionary に戻せます
 - `Enumerable.Where(list, f)` の static の形
@@ -120,7 +120,7 @@ foreach (int s in big) { ... }
 遅延評価にはしません。呼んだ時点で結果を作ります：
 
 - `Where` / `Select` / `Distinct` / `Skip` / `Take` は要素を 1 つずつ次に渡すので、途中のリストは作りません。`First`／`Any`／`Take` などは、C# と同じく必要な分を取った時点で止まり、ラムダを呼ぶ回数も C# と同じです
-- `Reverse`・`Concat`・`Append`・`Prepend` は、そこまでの値をためてから、次に渡します。C# と結果が変わるのは、そのあとを途中で止める書き方（`list.Select(f).Concat(other).First()` など）で、ラムダを呼ぶ回数だけです（C# は必要な分だけ、ここでは前の段を全部呼びます）
+- `Reverse`・`Concat`・`Append`・`Prepend` は、そこまでの値をためてから、次に渡します。C# と結果が変わるのは、そのあとを途中で止める書き方（`list.Select(f).Concat(other).First()` など）で、ラムダを呼ぶ回数だけです（C# は必要な分だけ、ここでは前のメソッドを全部呼びます）
 - `OrderBy` は、そこまでの値とキーをためてから並べ替えます。ためる場所（`Distinct` の見たことのある値も）は、呼び出し箇所ごとのフィールドを使い回します。普通のクラスのメソッドの中（UdonSharp は static フィールドを使えないため）では、毎回作ります
 - 並べ替えは安定です（C# の `OrderBy` と同じ）。キーは要素ごとに 1 回だけ計算します。string のキーは `string.Compare`（C# の既定と同じく、カルチャに従う比較）で比べます
 - 結果を `var` で受けたとき、`ToList()`、`ToArray()` は、毎回新しいリスト・配列を作ります
