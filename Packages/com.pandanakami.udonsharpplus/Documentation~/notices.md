@@ -41,3 +41,119 @@
 | USP016 | － | UdonSharpBehaviour のデリゲート（USP007 と同じ）と、外の変数を使うラムダ | デリゲートの呼び出しは、普通のメソッドの呼び出しより遅い | [デリゲート](delegates.md) |
 
 出すときの判定は、書き方から分かる範囲で行います。たとえば USP006 は、メソッドが本当にフィールドを書き換えるかどうかは見ないので、書き換えないメソッドでも出ます。
+
+## 注意ごとの説明
+
+設定ページ（Project Settings > Udon Sharp Plus）の各注意の「?」から、ここの `#usp001` のような見出しに直接飛べます。
+
+### USP001
+
+- 既定：出す
+- 出すとき：LINQ の結果（`Where`・`Select` など）を変数・フィールドに入れたとき
+- 内容：遅延評価にしないので、あとで元の List を変えても結果は変わらず、2 回使っても同じ結果
+- 詳しく：[LINQ](collections.md#linq)
+
+### USP002
+
+- 既定：－
+- 出すとき：`Concat`・`Append`・`Prepend` のあとを途中で止める（`First`・`Any` など）、その前にラムダを取る段がある LINQ
+- 内容：結果は同じだが、前の段のラムダは全部の要素で呼ばれる
+- 詳しく：[LINQ](collections.md#linq)
+
+### USP003
+
+- 既定：出す
+- 出すとき：`foreach` で回している List / Dictionary を、その中で書き換えたとき（`Add`・`Remove`・`Clear`・Dictionary の添字への代入など）
+- 内容：C# の `InvalidOperationException` にならない。Add した要素は回らず、Remove・Clear は範囲外の読み出しで止まる
+- 詳しく：[List / Dictionary](collections.md#list--dictionary)
+
+### USP004
+
+- 既定：－
+- 出すとき：Dictionary の `foreach`・LINQ
+- 内容：順番は DataDictionary の順で、C# と同じとは限らない
+- 詳しく：[List / Dictionary](collections.md#list--dictionary)
+
+### USP005
+
+- 既定：出す
+- 出すとき：インタフェース型の値と `null` を比べたとき（`==`・`!=`・`is null`）
+- 内容：参照の比較なので、Destroy した UdonSharpBehaviour は null にならない
+- 詳しく：[インタフェース](interface.md)
+
+### USP006
+
+- 既定：－
+- 出すとき：普通のクラスの値型のフィールドで、戻り値のないメソッドを呼んだとき（`b.pos.Normalize()`）
+- 内容：フィールドのコピーに対して呼ばれるので、自分を書き換えるメソッドなら反映されない
+- 詳しく：[普通のクラス](class.md)
+
+### USP007
+
+- 既定：出す
+- 出すとき：UdonSharpBehaviour のメソッド、またはその中で作ったラムダなどをデリゲートにしたとき（List・LINQ のメソッドの引数に直接書いたものは除く）
+- 内容：相手の UdonSharpBehaviour を Destroy したあとに呼ぶと、実行時例外で止まる
+- 詳しく：[デリゲート](delegates.md)
+
+### USP008
+
+- 既定：－
+- 出すとき：UdonSharpBehaviour の中で、static メソッドのデリゲートを `-=` したとき
+- 内容：別の UdonSharpBehaviour で作ったものは外れない
+- 詳しく：[デリゲート](delegates.md)
+
+### USP009
+
+- 既定：－
+- 出すとき：値がタプルの Dictionary の `TryGetValue`
+- 内容：見つからなかったときの `out` の値が null になる
+- 詳しく：[タプル](tuples.md)
+
+### USP010
+
+- 既定：－
+- 出すとき：`==` を宣言した型の List の `Contains`・`IndexOf`・`LastIndexOf`・`Remove`
+- 内容：C# と同じく `Equals`（参照の比較）で比べ、`==` は使われない
+- 詳しく：[演算子のオーバーロード](operators.md)
+
+### USP011
+
+- 既定：－
+- 出すとき：`First`・`Last`・`Single`・`Min`・`Max`・`Average`・`Aggregate`（最初の値なし）・`ElementAt`・`ToDictionary`・`Enumerable.Range`・`Repeat`
+- 内容：C# で例外になる場合、例外の代わりにエラーのログを出して、Udon の実行時例外で止まる（try / catch はできない）
+- 詳しく：[LINQ](collections.md#linq)
+
+### USP012
+
+- 既定：－
+- 出すとき：インタフェース型の値でメソッドを呼んだとき
+- 内容：null のときの実行時例外の位置が、クラスの閉じ括弧の行になる
+- 詳しく：[インタフェース](interface.md)
+
+### USP013
+
+- 既定：－
+- 出すとき：メソッドの呼び出しの結果で、普通のクラスのメソッドを呼んだとき（`Get().M()`）
+- 内容：null のときの実行時例外の位置が、クラスの閉じ括弧の行になることがある
+- 詳しく：[普通のクラス](class.md)
+
+### USP014
+
+- 既定：－
+- 出すとき：.NET のデリゲート（`Action`・`Func`・`Predicate`・`Comparison`）を作ったとき
+- 内容：宣言の行で止まる実行時例外の位置が、その型を最初に使ったファイルの最後の行になる
+- 詳しく：[デリゲート](delegates.md)
+
+### USP015
+
+- 既定：－
+- 出すとき：UdonSharp Plus が書き換えたファイル（最初に書き換えた行に出す）
+- 内容：書き換えた行の、コンパイルエラー・実行時例外の列の位置がずれることがある（行は合う）
+- 詳しく：[全体に共通すること](README.md#全体に共通すること)
+
+### USP016
+
+- 既定：－
+- 出すとき：UdonSharpBehaviour のデリゲート（USP007 と同じ）と、外の変数を使うラムダ
+- 内容：デリゲートの呼び出しは、普通のメソッドの呼び出しより遅い
+- 詳しく：[デリゲート](delegates.md)

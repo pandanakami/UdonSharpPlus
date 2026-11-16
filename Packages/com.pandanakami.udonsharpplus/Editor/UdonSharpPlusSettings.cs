@@ -105,6 +105,11 @@ namespace UdonSharpPlus
                 keywords = new HashSet<string>(new[] { "UdonSharp", "Language", "言語", "Notice", "注意" }.Concat(Notices.Rules.Select(r => r.Id))),
             };
 
+        /// <summary>注意の説明ページ（GitHub）。公開後は、リリースのタグ（0.1.5 など）に張り替えられる（#152）</summary>
+        internal const string NoticesDocUrl = "https://github.com/pandanakami/UdonSharpPlus/blob/main/Packages/com.pandanakami.udonsharpplus/Documentation~/notices.md";
+
+        internal static string NoticeDocUrl(string id) => NoticesDocUrl + "#" + id.ToLowerInvariant();
+
         private static readonly string[] LanguageNames = { "English", "日本語" };
         private static Vector2 _scroll;
 
@@ -125,6 +130,8 @@ namespace UdonSharpPlus
                 + Loc.T("同じ注意は、コンパイルごとに 1 回だけ、最初に使った位置に出します。", "Each notice appears only once per compile, at the first place it is used."),
                 MessageType.None);
 
+            if (EditorGUILayout.LinkButton(Loc.T("各注意の説明（GitHub）", "Description of each notice (GitHub)")))
+                Application.OpenURL(NoticesDocUrl);
             bool all = EditorGUILayout.ToggleLeft(Loc.T("注意を出す", "Show notices"), data.noticesEnabled);
             var enabled = new HashSet<string>(data.enabledNotices);
             var disabled = new HashSet<string>(data.disabledNotices);
@@ -137,7 +144,13 @@ namespace UdonSharpPlus
                 {
                     bool current = rule.DefaultOn ? !disabled.Contains(rule.Id) : enabled.Contains(rule.Id);
                     string label = Loc.T($"{rule.Id}  {rule.Title}{(rule.DefaultOn ? "（既定で出す）" : "")}", $"{rule.Id}  {rule.Title}{(rule.DefaultOn ? " (on by default)" : "")}");
-                    bool next = EditorGUILayout.ToggleLeft(new GUIContent(label, rule.Message), current);
+                    bool next;
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        next = EditorGUILayout.ToggleLeft(new GUIContent(label, rule.Message), current);
+                        if (EditorGUILayout.LinkButton(new GUIContent("?", Loc.T("説明を GitHub で開く", "Open the description on GitHub")), GUILayout.Width(16)))
+                            Application.OpenURL(NoticeDocUrl(rule.Id));
+                    }
                     if (next == current)
                         continue;
                     enabled.Remove(rule.Id);

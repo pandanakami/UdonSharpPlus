@@ -158,5 +158,18 @@ public class Use : UdonSharpBehaviour {
             Assert.That(UdonSharpPlus.Notices.Rules.Where(r => r.DefaultOn).Select(r => r.Id), Is.EqualTo(new[] { "USP001", "USP003", "USP005", "USP007" }));
             Assert.That(UdonSharpPlus.Notices.Rules.Select(r => r.Id).Distinct().Count(), Is.EqualTo(UdonSharpPlus.Notices.Rules.Length));
         }
+
+        /// <summary>設定ページの「?」のリンク先（notices.md#usp001）に、各 ID の見出しがあること（#152）</summary>
+        [Test]
+        public void EveryNoticeHasAHeadingInTheDocument()
+        {
+            string path = System.IO.Path.Combine("Packages", "com.pandanakami.udonsharpplus", "Documentation~", "notices.md");
+            string text = System.IO.File.ReadAllText(path);
+            foreach (var rule in UdonSharpPlus.Notices.Rules)
+            {
+                Assert.That(text, Does.Contain("\n### " + rule.Id + "\n"), rule.Id);
+                Assert.That(UdonSharpPlus.UdonSharpPlusSettings.NoticeDocUrl(rule.Id), Does.EndWith("/notices.md#" + rule.Id.ToLowerInvariant()));
+            }
+        }
     }
 }
