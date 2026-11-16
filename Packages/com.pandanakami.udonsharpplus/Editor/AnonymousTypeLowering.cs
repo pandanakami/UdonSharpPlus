@@ -88,7 +88,7 @@ namespace UdonSharpPlus
         internal static string ListComparisonCode(InvocationExpressionSyntax node, IMethodSymbol method, SemanticModel model, string className,
             ISet<string> helpers, Func<SyntaxNode, string> visit, ref int counter)
         {
-            if (method.Name == "ToDictionary")
+            if (method.Name == "ToDictionary" || method.Name == "GroupBy")
                 return null;
             var args = node.ArgumentList.Arguments.Select(a => a.Expression).ToList();
             ExpressionSyntax receiver;
@@ -139,6 +139,19 @@ namespace UdonSharpPlus
             return ranged ? call + "[0]" : call;
         }
 
+        /// <summary>匿名型・タプルをキーにする GroupBy のエラー（#140）</summary>
+        internal static string GroupKeyMessage(string kindJa, string kindEn) =>
+            Loc.T($"'GroupBy' : {kindJa}をキーにする GroupBy は未対応です（C# はキーを値（Equals）で比べますが、ここでは参照の比較になります）。キーは、数値・string などのメンバーにしてください",
+                $"'GroupBy' : GroupBy keyed by {kindEn} is not supported (C# compares keys by value (Equals), but here they would be compared by reference). Use a member such as a number or string as the key");
+
+        /// <summary>GroupBy のキーのエラーを出す場所：キーのラムダ（複数行のつないだ呼び出しでも、GroupBy の行になる）</summary>
+        internal static SyntaxNode GroupKeyNode(InvocationExpressionSyntax node, IMethodSymbol m)
+        {
+            int index = m.ReducedFrom != null ? 0 : 1;   // static の形（Enumerable.GroupBy(list, f)）は 2 つめ
+            var args = node.ArgumentList.Arguments;
+            return args.Count > index ? (SyntaxNode)args[index].Expression : node;
+        }
+
         /// <summary>要素を Equals で比べるメソッド（List の Contains・IndexOf・LastIndexOf・Remove、LINQ の Distinct・Contains・ToDictionary のキー）か。element は比べる要素の型</summary>
         internal static bool ComparesByEquals(IMethodSymbol m, out ITypeSymbol element)
         {
@@ -157,8 +170,8 @@ namespace UdonSharpPlus
                 element = m.TypeArguments[0];
                 return true;
             }
-            // ToDictionary：キーの型（TKey は 2 つ目の型引数）
-            if (owner.Name == "Enumerable" && m.Name == "ToDictionary" && m.TypeArguments.Length >= 2)
+            // ToDictionary・GroupBy（#140）：キーの型（TKey は 2 つ目の型引数）
+            if (owner.Name == "Enumerable" && (m.Name == "ToDictionary" || m.Name == "GroupBy") && m.TypeArguments.Length >= 2)
             {
                 element = m.TypeArguments[1];
                 return true;
@@ -614,7 +627,7 @@ namespace UdonSharpPlus
                     // 匿名型の要素：生成するクラスの、値で比べるヘルパーの呼び出しにする（#138）
                     if (anonElement.IsAnonymousType && ListComparison(node, cmp, anonElement) is SyntaxNode compared)
                         return compared;
-                    Error(node, cmp.Name == "ToDictionary"
+                    Error(cmp.Name == "GroupBy" ? GroupKeyNode(node, cmp) : node, cmp.Name == "GroupBy" ? GroupKeyMessage("匿名型", "an anonymous type") : cmp.Name == "ToDictionary"
                         ? Loc.T("'ToDictionary' : 匿名型をキーにする Dictionary は未対応です（C# はキーを値（Equals）で比べますが、ここでは参照の比較になります）。キーは、数値・string などのメンバーにしてください", "'ToDictionary' : A Dictionary keyed by an anonymous type is not supported (C# compares keys by value (Equals), but here they would be compared by reference). Use a member such as a number or string as the key")
                         : Loc.T($"'{cmp.Name}' : 匿名型の要素を値（Equals）で比べるこの形は未対応です（リストの比較は参照になります）。Exists / FindIndex / Any / Where などのラムダで比べてください", $"'{cmp.Name}' : This form, which compares anonymous type elements by value (Equals), is not supported (the list comparison would be by reference). Compare in a lambda with Exists / FindIndex / Any / Where instead"));
                     return node;

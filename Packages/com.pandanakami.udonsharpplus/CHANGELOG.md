@@ -15,6 +15,7 @@ New
 - Tuples (`(int, string)`, `(1, "a")`) can be used in `UdonSharpBehaviour` and plain classes. UdonSharp itself does not support them. You can read elements (`t.Item1`, `t.min`), deconstruct them (`var (x, y) = t;`, `(a, b) = (b, a);`, `foreach (var (k, v) in list)`), compare them with `==` / `Equals`, and turn them into strings (`(1, a)`, as in C#). They can be used for fields, parameters, return values, arrays, lists, and LINQ. Assigning to an element (`t.Item1 = 5`) is a compile error: tuples are value types in C#, but here they are references, so build a new tuple instead (`t = (5, t.Item2)`). Using a tuple as `object` (`Debug.Log(t)`) and tuple keys of a `Dictionary` are also compile errors. Before, all tuples were compile errors. See Documentation~/tuples.md.
 - Operator overloading. You can declare operators (`operator +`, `==`, `++`, ...) and conversions (`implicit operator` / `explicit operator`) in plain classes and `UdonSharpBehaviour`, and use them in expressions, compound assignments (`a += b`), `++` / `--`, lambdas and LINQ. UdonSharp itself does not support them; declaring one in an `UdonSharpBehaviour` used to stop the compile with an internal error. `true` / `false` operators, `==` / `!=` on an `UdonSharpBehaviour`, and using the value of a postfix `x++` are compile errors. See Documentation~/operators.md.
 - Compile-time notices. When your code uses something that compiles but behaves differently from C# (for example, keeping a LINQ result in a variable, or comparing an interface value with `null`), each U# compile writes an Info log with an ID (`USP001`, ...) and a link to the line. Each notice appears once per compile. You can turn notices on or off one by one in Project Settings > Udon Sharp Plus; four of them are on by default. See Documentation~/notices.md.
+- `GroupBy` in LINQ: `GroupBy(x => key)` and `GroupBy(x => key, x => element)`. A group supports `g.Key`, LINQ on the group (`g.Count()`, `g.Sum(...)`, `g.Select(...)`), `foreach`, and passing it to `string.Join`. Groups and the elements in each group keep the order they first appear in, as in C#. Combined with anonymous types, you can write `list.GroupBy(x => x.team).Select(g => new { g.Key, N = g.Count() })`. Keys can be numbers, string, bool, char, enum, or class references; anonymous-type, tuple and struct keys are compile errors. See Documentation~/collections.md.
 - Messages in English. Errors, warnings and notices from UdonSharp Plus, and the runtime logs in the rewritten code, are now in English by default. You can switch them to Japanese with Language in Project Settings > Udon Sharp Plus. The detailed documentation is still in Japanese.
 
 Fixes
@@ -24,6 +25,7 @@ Fixes
 - A plain class field with a short array initializer (`public int[] n = { 1, 2 };`) no longer breaks the compile.
 - When a call to a plain class method spans several lines, an error or runtime exception in a later argument is now shown on that argument's line.
 - `dict.TryGetValue(key, out var v);` written as a statement (without using its result) no longer breaks the compile, and `out _` can be used with it.
+- Two interfaces with a method of the same name and parameters but a different return type (`int Size()` and `string Size()`) no longer break the compile.
 
 ### 日本語
 
@@ -35,6 +37,7 @@ Fixes
 - タプル（`(int, string)`、`(1, "a")`）を、`UdonSharpBehaviour` と普通のクラスの中で使えるようになりました（UdonSharp 自体は対応していません）。要素を読む（`t.Item1`、`t.min`）・分解する（`var (x, y) = t;`、`(a, b) = (b, a);`、`foreach (var (k, v) in list)`）・`==`／`Equals` で比べる・文字列にする（C# と同じ `(1, a)`）ことができ、フィールド・引数・戻り値・配列・リスト・LINQ に使えます。要素への代入（`t.Item1 = 5`）はコンパイルエラーです（C# ではタプルは値型ですが、ここでは参照になるため。`t = (5, t.Item2)` のように作り直してください）。`object` として使うこと（`Debug.Log(t)`）・タプルを `Dictionary` のキーにすることも、コンパイルエラーです。これまでは、タプルはすべてコンパイルエラーでした。詳しくは Documentation~/tuples.md を見てください。
 - 演算子のオーバーロードに対応しました。普通のクラスと `UdonSharpBehaviour` に、演算子（`operator +`・`==`・`++` など）と変換（`implicit operator`／`explicit operator`）を宣言して、式・複合代入（`a += b`）・`++`／`--`・ラムダ・LINQ の中で使えます。UdonSharp 自体は対応しておらず、`UdonSharpBehaviour` に宣言すると、内部のエラーでコンパイルが止まっていました。`true`／`false` 演算子・`UdonSharpBehaviour` の `==`／`!=`・後置の `x++` の値を使うことは、コンパイルエラーです。詳しくは Documentation~/operators.md を見てください。
 - コンパイル時の注意を出すようにしました。コンパイルエラーにはならないが C# と動きが違うもの（LINQ の結果を変数に入れる、インタフェース型の値と `null` を比べる、など）を使っていると、U# のコンパイルのたびに、ID（`USP001` など）と、その行へのリンクの付いた Info のログを出します。同じ注意はコンパイルごとに 1 回です。Project Settings > Udon Sharp Plus で、注意ごとに出す・出さないを選べます（既定で出すのは 4 つ）。詳しくは Documentation~/notices.md を見てください。
+- LINQ の `GroupBy` に対応しました（`GroupBy(x => キー)`・`GroupBy(x => キー, x => 要素)`）。グループの `g.Key`、グループを元にする LINQ（`g.Count()`・`g.Sum(...)`・`g.Select(...)`）、`foreach`、`string.Join` に渡すことが使えます。グループの順番とグループの中の順番は、C# と同じく最初に出た順です。匿名型と組み合わせて、`list.GroupBy(x => x.team).Select(g => new { g.Key, N = g.Count() })` のように集計できます。キーは、数値・string・bool・char・enum・クラスの参照が使えます。匿名型・タプル・構造体のキーはコンパイルエラーです。詳しくは Documentation~/collections.md を見てください。
 - 文言を英語にしました。UdonSharp Plus が出すエラー・警告・注意と、書き換えたコードの中の実行時のログは、既定で英語になります。Project Settings > Udon Sharp Plus の「Language / 言語」で日本語に戻せます。詳しいドキュメントは日本語のままです。
 
 直したこと
@@ -44,6 +47,7 @@ Fixes
 - 普通のクラスのフィールドに、配列の初期化子の省略形（`public int[] n = { 1, 2 };`）を書くと、コンパイルが壊れていたのを直しました。
 - 普通のクラスのメソッドの呼び出しを複数行に分けて書いたとき、2 行目以降の引数の中のエラー・実行時例外が、その引数の行に出るようにしました。
 - `dict.TryGetValue(key, out var v);` を、戻り値を使わない文として書くと、コンパイルが壊れていたのを直しました。`out _` も使えるようにしました。
+- 別々のインタフェースに、名前と引数が同じで戻り値の型が違うメソッド（`int Size()` と `string Size()`）があると、コンパイルが壊れていたのを直しました。
 
 ## [0.1.4]
 

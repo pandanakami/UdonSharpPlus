@@ -38,6 +38,8 @@ namespace UdonSharpPlus.Tests
             yield return new TestCaseData(typeof((int, string)), "System.Object[]");   // タプル（#82）
             yield return new TestCaseData(typeof((int, (int, string))), "System.Object[]");
             yield return new TestCaseData(typeof((int, int)[]), "System.Object[][]");
+            yield return new TestCaseData(typeof(System.Linq.IGrouping<int, string>), "System.Object[]");   // GroupBy のグループ（#140）
+            yield return new TestCaseData(typeof(List<System.Linq.IGrouping<string, int>>), "VRC.SDK3.Data.DataList");
         }
 
         [TestCaseSource(nameof(Lowered))]

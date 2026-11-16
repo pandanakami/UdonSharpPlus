@@ -799,7 +799,7 @@ namespace UdonSharpPlus
                             && AnonymousTypeLowering.ListComparisonCode(node, method, _model, info.Name, info.ListHelpers, n => Text(Visit(n)), ref _containsCount) is string code)
                             return Parse(code, node);
                     }
-                    Error(node, method.Name == "ToDictionary"
+                    Error(method.Name == "GroupBy" ? AnonymousTypeLowering.GroupKeyNode(node, method) : node, method.Name == "GroupBy" ? AnonymousTypeLowering.GroupKeyMessage("タプル", "a tuple") : method.Name == "ToDictionary"
                         ? KeyMessage
                         : Loc.T($"'{method.Name}' : タプルの要素を値（Equals）で比べるこの形は未対応です（リストの比較は参照になります）。Exists / FindIndex / Any / Where などのラムダで比べてください", $"'{method.Name}' : This form, which compares tuple elements by value (Equals), is not supported (the list comparison would be by reference). Compare in a lambda with Exists / FindIndex / Any / Where instead"));
                     return node;

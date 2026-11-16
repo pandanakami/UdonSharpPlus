@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public partial class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 70;
+        public const int Count = 73;
 
         public int caseId;
         public bool started;
@@ -126,6 +126,9 @@ namespace FeatureTests.Syntax
                 case 67: return "exception inside user operator";
                 case 68: return "exception in second line of user operator";
                 case 69: return "exception inside user conversion";
+                case 70: return "exception inside GroupBy key selector";
+                case 71: return "exception inside LINQ on a group";
+                case 72: return "exception inside GroupBy element selector (multi-line)";
             }
             return "?";
         }

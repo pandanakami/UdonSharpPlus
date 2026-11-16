@@ -115,6 +115,7 @@ foreach (int s in big) { ... }
 - 結果を `var` で受けて、`foreach` やほかの LINQ につなげること
 - Dictionary の要素（`KeyValuePair`）：ラムダの中で `kv.Key`／`kv.Value` を使えます。`First()` や `ToList()` で `KeyValuePair` を取り出すこともできます（上の「KeyValuePair」）。`ToDictionary(kv => kv.Key, kv => kv.Value)` で Dictionary に戻せます
 - `Enumerable.Where(list, f)` の static の形
+- `GroupBy(x => キー)`・`GroupBy(x => キー, x => 要素)`：グループの `g.Key`、グループを元にする LINQ（`g.Count()`・`g.Sum(...)`・`g.Select(...)`・`g.ToList()` など）、`foreach (var x in g)`、`string.Join(",", g)`、`SelectMany(g => g)` が使えます。グループの順番とグループの中の順番は、C# と同じく最初に出た順です。匿名型で集計を受けられます（`list.GroupBy(x => x.team).Select(g => new { g.Key, N = g.Count(), Total = g.Sum(x => x.score) })`）。キーは、数値・string（null も）・bool・char・enum と、クラスの参照（C# と同じく、同じインスタンスかどうかで比べます）が使えます。float・double のキーも C# と同じく、NaN は 1 つのグループに、+0 と -0 は同じグループになります。`IGrouping<K, T>` と型を書いて、変数・引数・戻り値・フィールドに入れることもできます。`First()` などで取り出したグループに、続けて LINQ を書けます（`list.GroupBy(x => x % 2).First().Sum()`）
 
 遅延評価にはしません。呼んだ時点で結果を作ります：
 
@@ -135,7 +136,8 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 
 未対応の書き方（コンパイルエラーになります）：
 
-- `GroupBy`、`Join`、`Zip`、`Union`／`Except`／`Intersect` など、上記以外のメソッド
+- `Join`、`Zip`、`Union`／`Except`／`Intersect`、`ToLookup` など、上記以外のメソッド
+- `GroupBy` の、結果を作るラムダつきの形（`GroupBy(x => k, (k, xs) => ...)`）・比較子を渡す形。匿名型・タプル・構造体（`Vector3` など）をキーにすること（C# はキーを値で比べますが、ここでは参照の比較になるため）。数値などのメンバーをキーにしてください。グループを `IEnumerable<T>` などの型として扱うこと、グループの `GetEnumerator()`・`ToString()` などのメソッド（`Key`・`foreach`・LINQ・`ToList()` を使ってください）
 - クエリ構文（`from x in list where x > 0 select x`）。メソッドの形（`list.Where(x => x > 0)`）で書いてください
 - 比較子（`IComparer`／`IEqualityComparer`）を渡す形、数値・string・bool・char・enum 以外のキーでの並べ替え
 - `Contains` の比較子の指定、数値以外の `Sum`／`Min`／`Max`／`Average`、結果を変換するラムダつきの `Aggregate`（引数 3 つ）

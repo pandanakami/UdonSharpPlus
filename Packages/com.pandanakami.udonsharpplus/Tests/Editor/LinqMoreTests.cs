@@ -78,7 +78,7 @@ public class LinqMore : UdonSharpBehaviour
         [TestCase("var a = boxes.SelectMany(b => { return b.tags; }).ToList();", "'SelectMany' : 集まりを返すラムダは")]
         [TestCase("var a = nums.Concat(dict.Values).ToList();", "'Concat' : つなぐ相手は")]
         [TestCase("int a = nums.Aggregate(0, (s, x) => s + x, s => s * 2);", "'Aggregate' : この引数の形は未対応です")]
-        [TestCase("var a = nums.GroupBy(x => x % 2).ToList();", "'GroupBy' : この LINQ のメソッド")]
+        [TestCase("var a = nums.ToLookup(x => x % 2).ToList();", "'ToLookup' : この LINQ のメソッド")]
         [TestCase("Take(nums.Where(x => x > 1));", "LINQ の結果をそのまま渡すのは未対応です")]
         [TestCase("string a = string.Join(\",\", kinds.Where(k => k == Kind.A));", "LINQ の結果をそのまま渡すのは未対応です")]
         [TestCase("string a = string.Join(\",\", boxes);", "として渡すのは未対応です")]

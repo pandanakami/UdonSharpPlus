@@ -123,7 +123,7 @@ public class Use : UdonSharpBehaviour {
         [Test]
         public void NothingIsReportedWhenThereAreErrors()
         {
-            CompileResult r = CompileBody("USP001", "var q = list.Where(x => x > 1); var bad = list.GroupBy(x => x);");
+            CompileResult r = CompileBody("USP001", "var q = list.Where(x => x > 1); var bad = list.ToLookup(x => x);");
             Assert.That(r.Diagnostics.Any(d => d.StartsWith("Error")), Dump(r));
             Assert.That(Notices(r, "USP001"), Is.Empty, Dump(r));
         }

@@ -740,7 +740,7 @@ public class FuncLinqError : UdonSharpBehaviour
         Func<int, int> key = x => x % 2;
         var l = new List<int> { 1 };
         int ok = l.Select(key).Sum();
-        var g = l.GroupBy(key);
+        var g = l.ToLookup(key);
     }
 }";
             CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("FuncLinqError.cs", src));

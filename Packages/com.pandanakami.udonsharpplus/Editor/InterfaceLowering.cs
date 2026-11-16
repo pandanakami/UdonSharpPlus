@@ -63,8 +63,9 @@ namespace UdonSharpPlus
         {
             public IMethodSymbol Symbol;
             public string Signature;            // InterfaceNaming.SignatureName
+            public string HelperKey;            // 呼び出しの補助メソッドの名前。ふつうは Signature（戻り値の型が違う同じシグネチャがあれば分ける）
             public string Export => Symbol.Name;  // Udon 上のメソッド名は元の名前（#51。代わりにオーバーロードを禁止する）
-            public string CallHelper => $"__if_{Signature}__call";
+            public string CallHelper => $"__if_{HelperKey ?? Signature}__call";
             public string ParamField(int i) => InterfaceNaming.ParameterName(Signature, i);
             public string RetField => InterfaceNaming.ReturnName(Signature);
             public bool HasReturn => !Symbol.ReturnsVoid;
@@ -302,12 +303,20 @@ namespace UdonSharpPlus
 
             // 呼び出しの補助メソッドは、同じシグネチャなら別のインタフェースのメソッドとも共有するので、
             // 汎用クラスへの振り分けは、そのシグネチャのメソッドを持つインタフェースを実装する全クラスにする
+            // ただし、戻り値の型が違う別のインタフェースのメソッド（IA.Size() は int、IB.Size() はタプル など）とは共有できないので、
+            // そのときは戻り値の型ごとに補助メソッドを分ける
+            foreach (var same in interfaces.Values.SelectMany(i => i.Methods).GroupBy(m => m.Signature))
+            {
+                var returns = same.Select(m => m.Symbol.ReturnType.ToDisplayString()).Distinct().OrderBy(r => r, StringComparer.Ordinal).ToList();
+                foreach (MethodInfo m in same)
+                    m.HelperKey = returns.Count > 1 ? m.Signature + "__r" + returns.IndexOf(m.Symbol.ReturnType.ToDisplayString()) : m.Signature;
+            }
             var classImpls = new Dictionary<string, List<INamedTypeSymbol>>();
             foreach (InterfaceInfo info in interfaces.Values)
                 foreach (MethodInfo m in info.Methods)
                 {
-                    if (!classImpls.TryGetValue(m.Signature, out var list))
-                        classImpls[m.Signature] = list = new List<INamedTypeSymbol>();
+                    if (!classImpls.TryGetValue(m.HelperKey, out var list))
+                        classImpls[m.HelperKey] = list = new List<INamedTypeSymbol>();
                     foreach (INamedTypeSymbol c in info.ImplClasses)
                         if (!list.Contains(c, SymbolEqualityComparer.Default))
                             list.Add(c);
@@ -1070,7 +1079,7 @@ namespace UdonSharpPlus
 
                 // 汎用クラス（#50）：普通の C# で呼ぶ。この後の段で、そのクラスのメソッドのコピーの呼び出しになる
                 string args = string.Join(", ", ps.Select(p => p.Name));
-                if (_classImpls.TryGetValue(m.Signature, out var classes) && UseSwitch(classes))
+                if (_classImpls.TryGetValue(m.HelperKey ?? m.Signature, out var classes) && UseSwitch(classes))
                 {
                     // 実装クラスが多いとき（#65）：汎用クラスのインスタンスかを 1 回だけ確かめ、型番号（[1]）の switch で振り分ける。
                     // U# は case が 0〜256 の定数で 4 個以上の switch をジャンプテーブル（JUMP_INDIRECT）にするので、クラスの数によらない

@@ -40,6 +40,11 @@ namespace UdonSharpPlus
 
         /// <summary>KeyValuePair を object[] にしたときの型の印（汎用クラスと同じく先頭に置く。#61）</summary>
         private const string PairTag = "System.Collections.Generic.KeyValuePair";
+
+        /// <summary>GroupBy のグループ（IGrouping&lt;TKey, TElement&gt;）。object[]：[型の印, キー, 要素の DataList]（#140）</summary>
+        private const string GroupingName = "System.Linq.IGrouping<TKey, TElement>";
+        internal static bool IsGrouping(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == GroupingName;
+        private const string GroupTag = "System.Linq.IGrouping";
         private static bool IsKeys(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == KeysName;
         private static bool IsValues(ITypeSymbol type) => type is INamedTypeSymbol n && n.OriginalDefinition.ToDisplayString() == ValuesName;
 
@@ -157,6 +162,8 @@ namespace UdonSharpPlus
                         return DataListType;   // LINQ の結果（#58）
                     if (IsKeyValuePair(named))
                         return "object[]";     // [型の印, キー, 値]（#61）
+                    if (IsGrouping(named))
+                        return "object[]";     // [型の印, キー, 要素の DataList]（#140）
                     if (GenericText(named, TypeText) is string generic)
                         return generic;
                 }
@@ -352,7 +359,7 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
-                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol pairType && IsKeyValuePair(pairType))
+                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol pairType && (IsKeyValuePair(pairType) || IsGrouping(pairType)))
                 {
                     Changed = true;
                     return SyntaxFactory.ParseTypeName("object[]").WithTriviaFrom(node);
@@ -368,7 +375,7 @@ namespace UdonSharpPlus
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
                 if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t
-                    && (ReplacementOf(t) ?? (IsKeyValuePair(t) ? "object[]" : null)) is string replaced)
+                    && (ReplacementOf(t) ?? (IsKeyValuePair(t) || IsGrouping(t) ? "object[]" : null)) is string replaced)
                 {
                     // 名前全体を置き換える（右側の KeyValuePair<K, V> だけを object[] にすると、名前の形でなくなる）
                     Changed = true;
@@ -608,6 +615,13 @@ namespace UdonSharpPlus
                     return base.VisitInvocationExpression(node);
 
                 ITypeSymbol receiverType = TypeOf(access.Expression);
+                // グループ（object[]）の GetEnumerator・ToString など（#140）：object[] のメソッドになってしまう
+                if (IsGrouping(receiverType))
+                {
+                    Error(node, Loc.T($"'{method.Name}' : グループのこのメソッドは未対応です（Key・foreach・LINQ が使えます）",
+                        $"'{method.Name}' : This method of a group is not supported (Key, foreach and LINQ are supported)"));
+                    return node;
+                }
                 bool list = IsList(receiverType), dict = IsDictionary(receiverType);
                 if (!list && !dict)
                     return base.VisitInvocationExpression(node);
@@ -774,6 +788,13 @@ namespace UdonSharpPlus
                     return Parse($"(({TypeText(part)})({Text(Visit(node.Expression))})[{(name == "Key" ? 1 : 2)}])", node);
                 }
 
+                // グループ（object[]）の .Key（#140）
+                if (IsGrouping(receiverType) && name == "Key")
+                {
+                    ITypeSymbol key = ((INamedTypeSymbol)receiverType).TypeArguments[0];
+                    return Parse($"(({TypeText(key)})({Text(Visit(node.Expression))})[1])", node);
+                }
+
                 // dict.Keys.Count / dict.Values.Count → dict.Count
                 if ((IsKeys(receiverType) || IsValues(receiverType)) && name == "Count" && node.Expression is MemberAccessExpressionSyntax inner)
                     return Parse($"({Text(Visit(inner.Expression))}).Count", node);
@@ -822,10 +843,13 @@ namespace UdonSharpPlus
                 {
                     TypeInfo info = _model.GetTypeInfo(node.Expression);
                     // 外部のメソッドの IEnumerable<T> の引数（string.Join(",", list.Select(...)) など）には、配列にして渡す（#146）
-                    if ((IsEnumerable(info.Type) && IsDataListBacked(node.Expression) || IsList(info.Type)
+                    if ((IsEnumerable(info.Type) && IsDataListBacked(node.Expression) || IsList(info.Type) || IsGrouping(info.Type)
                          || info.Type is IArrayTypeSymbol argumentArray && argumentArray.Rank == 1 && argumentArray.ElementType.SpecialType != SpecialType.System_String)
                         && ExternalEnumerableArgument(node, info) is ExpressionSyntax array)
                         return node.WithExpression(array);
+                    // グループを、ソースにあるメソッドの IEnumerable<T> の引数などに渡す（#140）
+                    if (IsGrouping(info.Type) && GroupConversion(node.Expression))
+                        return node;
                     if (IsEnumerable(info.Type) && IsDataListBacked(node.Expression))
                     {
                         Error(node, Loc.T($"'{Text(node.Expression)}' : LINQ の結果をそのまま渡すのは未対応です（ToList() / ToArray() にしてください）", $"'{Text(node.Expression)}' : Passing a LINQ result directly is not supported (use ToList() / ToArray())"));
@@ -856,12 +880,15 @@ namespace UdonSharpPlus
                 if (method.DeclaringSyntaxReferences.Length > 0 || IsLinqMethod(method) || IsList(method.ContainingType) || IsDictionary(method.ContainingType))
                     return null;
                 bool fromArray = info.Type is IArrayTypeSymbol;
-                ITypeSymbol element = fromArray ? ((IArrayTypeSymbol)info.Type).ElementType : ((INamedTypeSymbol)info.Type).TypeArguments[0];
+                bool fromGroup = IsGrouping(info.Type);   // GroupBy のグループ（object[]）：要素の DataList を渡す（#140）
+                ITypeSymbol element = fromArray ? ((IArrayTypeSymbol)info.Type).ElementType : ((INamedTypeSymbol)info.Type).TypeArguments[fromGroup ? 1 : 0];
                 bool toStrings = method.IsGenericMethod && method.ContainingType.SpecialType == SpecialType.System_String
                                  && (method.Name == "Join" || method.Name == "Concat") && element.SpecialType != SpecialType.System_String;
                 if (fromArray && !toStrings)
                     return null;   // 配列は、そのまま IEnumerable<T> として渡せる
                 string value = Text(Visit(node.Expression));
+                if (fromGroup)
+                    value = $"(({DataListType})({value})[2])";
                 // 呼び出し箇所ごとの入口：null を渡したとき（C# では ArgumentNullException）に、元の行で止まるようにする
                 string site = $"__col_arg_{_lambdaCount++}";
                 string marker = SourceMap.MarkerFor(node.Expression);
@@ -896,7 +923,8 @@ namespace UdonSharpPlus
                     return node;
                 }
                 bool list = IsList(type) || IsEnumerable(type), dict = IsDictionary(type), keys = IsKeys(type), values = IsValues(type);   // IEnumerable は LINQ の結果（DataList）
-                if (!list && !dict && !keys && !values)
+                bool group = IsGrouping(type);   // GroupBy のグループの要素（#140）
+                if (!list && !dict && !keys && !values && !group)
                     return base.VisitForEachStatement(node);
 
                 if (!(_model.GetDeclaredSymbol(node) is ILocalSymbol variable))
@@ -907,7 +935,13 @@ namespace UdonSharpPlus
                 string header, itemDeclaration;
                 PairLoop pair = null;
 
-                if (list)
+                if (group)
+                {
+                    string l = Temp("l");
+                    header = $"{DataListType} {l} = (({DataListType})({Text(Visit(node.Expression))})[2]); int {n} = {l}.Count; for (int {i} = 0; {i} < {n}; {i}++) {{ ";
+                    itemDeclaration = $"{TypeText(variable.Type)} {variable.Name} = ({TypeText(variable.Type)})({Unwrap($"{l}[{i}]", ((INamedTypeSymbol)type).TypeArguments[1])}); ";
+                }
+                else if (list)
                 {
                     string l = Temp("l");
                     header = $"{DataListType} {l} = {Text(Visit(node.Expression))}; int {n} = {l}.Count; for (int {i} = 0; {i} < {n}; {i}++) {{ ";

@@ -14,7 +14,7 @@ namespace UdonSharpPlusTests.CollectionLinqErrors
 
         private void Start()
         {
-            var groups = _list.GroupBy(x => x % 2).ToList();             // 未対応のメソッド
+            var groups = _list.ToLookup(x => x % 2).ToList();            // 未対応のメソッド
             var custom = _list.OrderBy(x => x, null).ToList();           // 比較子を渡す形
             var objects = _list.Select(x => new object()).OrderBy(o => o).ToList();   // 並べ替えられない型のキー
             var indexed = _list.Select((x, i) => x + i).ToList();        // 添字付きのラムダ

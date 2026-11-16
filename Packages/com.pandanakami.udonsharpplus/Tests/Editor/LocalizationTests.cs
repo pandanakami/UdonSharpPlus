@@ -98,7 +98,7 @@ namespace UdonSharpPlus.Tests
         [TestCase("public class P { public event System.Action E; }", "var p = new P();")]
         [TestCase("public class P { }", "var t = (1, 2); t.Item1 = 3;")]
         [TestCase("public class P { }", "var a = new { A = 1 }; object o = a;")]
-        [TestCase("public class P { }", "var l = new System.Collections.Generic.List<int>(); var g = l.GroupBy(x => x);")]
+        [TestCase("public class P { }", "var l = new System.Collections.Generic.List<int>(); var g = l.ToLookup(x => x);")]
         [TestCase("public class P { }", "System.Action a = null; a?.Invoke();")]
         [TestCase("public class P { }", "var d = new System.Collections.Generic.Dictionary<(int, int), int>();")]
         [TestCase("public interface I { int X { get; } }", "I i = null;")]

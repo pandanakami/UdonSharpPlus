@@ -232,6 +232,30 @@ namespace FeatureTests.Syntax
                     observed = "" + v.v;
                     break;
                 }
+                // #140：GroupBy のキーのラムダ・グループの LINQ の中の例外は、その行
+                case 70:
+                {
+                    var g70 = nums.GroupBy(x => 10 / (x - x)).ToList();   // ここ
+                    observed = "" + g70.Count;
+                    break;
+                }
+                case 71:
+                {
+                    var g71 = nums.GroupBy(x => x % 2).ToList();
+                    observed = "" + g71.Select(g => g.Sum() / (g.Key - g.Key)).First();   // ここ
+                    break;
+                }
+                case 72:
+                {
+                    // 複数行のつないだ呼び出しの、要素のラムダの中
+                    var g72 = nums
+                        .Where(x => x > 0)
+                        .GroupBy(x => x % 2,
+                                 x => 10 / (x - x))   // ここ
+                        .ToList();
+                    observed = "" + g72.Count;
+                    break;
+                }
             }
         }
     }

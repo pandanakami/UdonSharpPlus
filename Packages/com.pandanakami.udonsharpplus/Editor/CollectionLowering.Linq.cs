@@ -42,7 +42,7 @@ namespace UdonSharpPlus
             /// <summary>結果がシーケンスのままのメソッド（最後なら、新しい DataList に入れて返す）</summary>
             private static readonly string[] LinqSequences =
                 { "Where", "Select", "SelectMany", "ToList", "Skip", "Take", "SkipWhile", "TakeWhile", "Distinct", "Reverse", "Concat", "Append", "Prepend",
-                  "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending" };
+                  "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending", "GroupBy" };
 
             /// <summary>LINQ の 1 回の呼び出し（受け側と、受け側を除いた引数）</summary>
             private sealed class LinqCallInfo
@@ -163,12 +163,29 @@ namespace UdonSharpPlus
             /// <summary>中身が DataList の値を、IEnumerable&lt;T&gt; などのインタフェース型の場所に入れていればエラー（#62）</summary>
             private bool EnumerableConversion(ExpressionSyntax value)
             {
-                if (_helpers == null || value == null || _collectionReturns.Contains(value) || !IsDataListBacked(value))
+                if (_helpers == null || value == null || _collectionReturns.Contains(value))
+                    return false;
+                // GroupBy のグループ（First() などで取り出したもの）は、IGrouping・object の場所には object[] のまま入れてよい。
+                // IEnumerable<T> などの場所はエラー（中身は object[] で、そのままでは回せない。#140）
+                if (IsGrouping(TypeOf(value)))
+                    return GroupConversion(value);
+                if (!IsDataListBacked(value))
                     return false;
                 ITypeSymbol target = _model.GetTypeInfo(value).ConvertedType;
                 if (target == null || target.TypeKind != TypeKind.Interface)
                     return false;
                 Error(value, $"'{Text(value)}' : {EnumerableConversionMessage}");
+                return true;
+            }
+
+            /// <summary>グループ（object[]）を、IGrouping 以外のインタフェース型（IEnumerable&lt;T&gt; など）の場所に入れていればエラー（#140）</summary>
+            private bool GroupConversion(ExpressionSyntax value)
+            {
+                ITypeSymbol target = _model.GetTypeInfo(value).ConvertedType;
+                if (target == null || target.TypeKind != TypeKind.Interface || IsGrouping(target))
+                    return false;
+                Error(value, Loc.T($"'{Text(value)}' : グループを {target.ToDisplayString()} の型として扱うのは未対応です（var・IGrouping<K, T> で受けるか、ToList() にしてください）",
+                    $"'{Text(value)}' : Using a group as {target.ToDisplayString()} is not supported (use var or IGrouping<K, T>, or call ToList())"));
                 return true;
             }
 
@@ -200,6 +217,9 @@ namespace UdonSharpPlus
                 {
                     calls.Insert(0, call);
                     current = call.Receiver;
+                    // First() などで取り出したグループ（#140）：そこまでを別の LINQ にして、グループを元にする
+                    if (IsGrouping(TypeOf(current)))
+                        break;
                 }
                 ExpressionSyntax source = current;
                 // 元が Enumerable.Range・Repeat・Empty（#145）
@@ -234,6 +254,12 @@ namespace UdonSharpPlus
                 }
                 if (IsList(sourceType) || IsEnumerable(sourceType))
                     element = ((INamedTypeSymbol)sourceType).TypeArguments[0];
+                else if (IsGrouping(sourceType))
+                {
+                    // GroupBy のグループ（g.Count()・g.Sum(...)・g.Select(...)。#140）：要素の DataList を元にする
+                    element = ((INamedTypeSymbol)sourceType).TypeArguments[1];
+                    sourceText = $"(({DataListType})({Text(Visit(source))})[2])";
+                }
                 else if (IsDictionary(sourceType))
                 {
                     pairMode = true;
@@ -553,6 +579,78 @@ namespace UdonSharpPlus
                     return true;
                 }
 
+                // GroupBy（#140）：キーごとに、要素をグループ（object[]：[型の印, キー, 要素の DataList]）にためてループを閉じ、
+                // 次のループでグループを回す。グループの順番・グループの中の順番は、C# と同じく最初に出た順
+                bool Group(LinqCallInfo call)
+                {
+                    var groupArgs = call.Args;
+                    string key = Apply(call, groupArgs[0], out ITypeSymbol keyType);
+                    if (key == null)
+                        return false;
+                    // キーを引く方法：数値・string・bool・enum は DataDictionary、char は int にして DataDictionary、
+                    // 参照（普通のクラス・UdonSharpBehaviour など）は C# と同じく参照で比べる（DataList の IndexOf）
+                    bool byDictionary = keyType.TypeKind == TypeKind.Enum || keyType.SpecialType == SpecialType.System_Char
+                                        || Accessor(keyType) is string keyAccessor && keyAccessor != "DataList" && keyAccessor != "DataDictionary";
+                    if (!byDictionary && !keyType.IsReferenceType)
+                    {
+                        // タプルのキーは、TupleLowering がもうエラーにしている（1 件だけにする）
+                        if (keyType.IsTupleType)
+                            return false;
+                        Error(groupArgs[0],Loc.T($"'GroupBy' : この型のキー（{keyType.ToDisplayString()}）は未対応です（数値・string・bool・char・enum と、クラスの参照が使えます）",
+                            $"'GroupBy' : Keys of this type ({keyType.ToDisplayString()}) are not supported (numbers, string, bool, char, enum and class references are supported)"));
+                        return false;
+                    }
+                    string elementValue = ValueExpr();
+                    ITypeSymbol elementType = type;
+                    if (groupArgs.Count == 2)
+                    {
+                        elementValue = Apply(call, groupArgs[1], out elementType);
+                        if (elementValue == null)
+                            return false;
+                    }
+
+                    int s = segment;
+                    int id = stage++;
+                    string groups = Temp($"g{s}", DataListType);
+                    string grp = $"__grp{id}", token = $"__gk{id}", found = $"__gx{id}";
+                    string make = $"{grp} = new object[] {{ \"{GroupTag}\", (object)({key}), new {DataListType}() }}; {groups}.Add(new {DataTokenType}((object){grp})); ";
+                    body.Append($"object[] {grp}; ");
+                    string lookup;
+                    if (byDictionary)
+                    {
+                        string index = Temp($"gi{s}", DataDictionaryType);
+                        string tokenValue = keyType.SpecialType == SpecialType.System_Char ? $"new {DataTokenType}((int)({key}))" : Wrap(key, keyType);
+                        lookup = $"{DataTokenType} {token} = {tokenValue}; "
+                                 + $"if ({index}.TryGetValue({token}, out {DataTokenType} {found})) {grp} = (object[])({groups}[{found}.Int]).Reference; "
+                                 + $"else {{ {index}.SetValue({token}, new {DataTokenType}({groups}.Count)); {make}}} ";
+                    }
+                    else
+                    {
+                        string keys = Temp($"gk{s}", DataListType);
+                        lookup = $"{DataTokenType} {token} = {Wrap(key, keyType)}; int {found} = {keys}.IndexOf({token}); "
+                                 + $"if ({found} >= 0) {grp} = (object[])({groups}[{found}]).Reference; else {{ {keys}.Add({token}); {make}}} ";
+                    }
+                    if (keyType.IsReferenceType)
+                    {
+                        // null のキー（C# では 1 つのグループになる）
+                        string nullIndex = $"__gnull{id}";
+                        preamble.Append($"int {nullIndex} = -1; ");
+                        body.Append($"if ((object)({key}) == null) {{ if ({nullIndex} >= 0) {grp} = (object[])({groups}[{nullIndex}]).Reference; else {{ {nullIndex} = {groups}.Count; {make}}} }} else {{ {lookup}}} ");
+                    }
+                    else
+                        body.Append(lookup);
+                    body.Append($"(({DataListType}){grp}[2]).Add({Wrap(elementValue, elementType)}); ");
+                    CloseLoop("");
+
+                    segment++;
+                    int next = segment;
+                    v++;
+                    type = ((INamedTypeSymbol)call.Method.ReturnType).TypeArguments[0];   // IGrouping<TKey, TElement>
+                    pairMode = false;
+                    header = $"int __m{s} = {groups}.Count; for (int __i{next} = 0; __i{next} < __m{s}{{STOP}}; __i{next}++) {{ object[] __v{v} = (object[])({groups}[__i{next}]).Reference; ";
+                    return true;
+                }
+
                 for (int index = 0; index < calls.Count; index++)
                 {
                     LinqCallInfo call = calls[index];
@@ -652,6 +750,12 @@ namespace UdonSharpPlus
                                 string fromArray = FromArrayHelper(inner);
                                 convert = e => $"{fromArray}({e})";
                             }
+                            else if (IsGrouping(collection) && !block)
+                            {
+                                // グループ（groups.SelectMany(g => g)。#140）：要素の DataList を回す
+                                inner = ((INamedTypeSymbol)collection).TypeArguments[1];
+                                convert = e => $"(({DataListType})({e})[2])";
+                            }
                             else if (IsList(collection) && returned.All(r => IsList(TypeOf(r)))
                                      || IsEnumerable(collection) && returned.Count > 0 && returned.All(IsDataListBacked))
                                 inner = ((INamedTypeSymbol)collection).TypeArguments[0];
@@ -747,6 +851,10 @@ namespace UdonSharpPlus
                             stage++;
                             continue;
                         }
+                        case "GroupBy" when args.Count == 1 || args.Count == 2 && IsElementSelector(args[1]):
+                            if (!Group(call))
+                                return node;
+                            continue;
                         case "OrderBy":
                         case "OrderByDescending":
                         {
@@ -769,7 +877,7 @@ namespace UdonSharpPlus
                         break;
                     if (!last || !LinqTerminals.Contains(call.Name))
                     {
-                        Error(call.Node, Loc.T($"'{call.Name}' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select / SelectMany / OrderBy / ThenBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend と、{string.Join(" / ", LinqTerminals)} が使えます）", $"'{call.Name}' : This LINQ method (with these arguments) is not supported (Where / Select / SelectMany / OrderBy / ThenBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend and {string.Join(" / ", LinqTerminals)} are supported)"));
+                        Error(call.Node, Loc.T($"'{call.Name}' : この LINQ のメソッド（この引数の形）は未対応です（Where / Select / SelectMany / OrderBy / ThenBy / GroupBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend と、{string.Join(" / ", LinqTerminals)} が使えます）", $"'{call.Name}' : This LINQ method (with these arguments) is not supported (Where / Select / SelectMany / OrderBy / ThenBy / GroupBy / Distinct / Skip / Take / SkipWhile / TakeWhile / Reverse / Concat / Append / Prepend and {string.Join(" / ", LinqTerminals)} are supported)"));
                         return node;
                     }
 
@@ -973,6 +1081,10 @@ namespace UdonSharpPlus
                                  + $"{{ {marker}{preamble}{code}{post} }}";
                 return Parse($"{name}({sourceText ?? Text(Visit(source))}{extraArgs}{CaptureArgs(captures)})", node);
             }
+
+            /// <summary>GroupBy の 2 つ目の引数が、要素を変換するラムダ（引数 1 つ）か（結果を作るラムダ・比較子の形は未対応。#140）</summary>
+            private bool IsElementSelector(ExpressionSyntax fn) =>
+                _model.GetTypeInfo(fn).ConvertedType is INamedTypeSymbol d && d.DelegateInvokeMethod != null && d.DelegateInvokeMethod.Parameters.Length == 1;
 
             private static string NoElement => Loc.T("要素がありません（C# では InvalidOperationException）", "there are no elements (C#: InvalidOperationException)");
 
