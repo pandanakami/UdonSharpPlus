@@ -19,6 +19,8 @@ UdonSharp で書ける C# を増やすパッケージ、UdonSharp Plus の詳し
 
 それぞれのページに、対応している書き方と、未対応の書き方（コンパイルエラーになるもの）を書いています。
 
+機能ごとの負荷の目安（`SendCustomEvent`・`GetProgramVariable`・`SetProgramVariable`・動的なメモリ確保を、操作 1 回で何個使うか）は、[負荷の目安](cost.md)にあります。
+
 ## 全体に共通すること
 
 - **書き換えはエディタの中だけ**：UdonSharp がコンパイルする前に、C# のソースを UdonSharp が扱える形に書き換えます。出力されるのは通常の Udon プログラムなので、VRChat のクライアント側には何も要りません。
