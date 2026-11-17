@@ -214,5 +214,82 @@ namespace UdonSharpPlusTests.ConcurrencyDelegate
                 UdonSharpTestCompiler.ParallelEmit = saved;
             }
         }
+
+        /// <summary>
+        /// 別のスレッドで書き換え（U# のコンパイル。CI では、プロジェクトを読み込んだときに裏で走る）が動いていても、
+        /// テストのコンパイルの書き換えた結果が変わらない（位置の印の番号などが混ざらない）。
+        /// 書き換えは InterfaceLowering.ProcessLock で 1 つずつにし、テストのコンパイラーはコンパイル全体をその中で行う（#164 の CI で発覚）
+        /// </summary>
+        [Test]
+        public void BackgroundLoweringDoesNotMixIntoCompile()
+        {
+            const string background = "using UdonSharp; public class BgP { public int v; public BgP(int v) { this.v = v; } public int Get() { int a = v; a += 1; return a; } }"
+                                      + " public class Bg : UdonSharpBehaviour { void Start() { var p = new { A = 1, B = \"x\" }; var q = new BgP(2); int n = q.Get() + p.A; } }";
+            const string main = "using UdonSharp; public class FgP { public int v; public FgP(int v) { this.v = v; } public int Twice() { int a = v; return a * 2; } }"
+                                + " public class Fg : UdonSharpBehaviour { void Start() { var p = new { Name = \"a\", Score = 1 }; var q = new FgP(3); string s = p.ToString() + q.Twice(); } }";
+
+            const BindingFlags all = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            Type bindingType = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("UdonSharp.Compiler.ModuleBinding")).First(t => t != null);
+            FieldInfo treeField = bindingType.GetField("tree", all);
+            FieldInfo pathField = bindingType.GetField("filePath", all);
+            FieldInfo textField = bindingType.GetField("sourceText", all);
+
+            string dir = System.IO.Path.GetFullPath(System.IO.Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusBackground"));
+            string Lowered()
+            {
+                if (System.IO.Directory.Exists(dir))
+                    System.IO.Directory.Delete(dir, recursive: true);
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir, new TestSource("Fg.cs", main));
+                Assert.That(r.Diagnostics, Is.Empty);
+                return System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "Assets", "UdonSharpPlusTests", "Fg.cs"));
+            }
+
+            string expected = Lowered();
+            bool stop = false;
+            int runs = 0;
+            Exception error = null;
+            var thread = new System.Threading.Thread(() =>
+            {
+                try
+                {
+                    while (!System.Threading.Volatile.Read(ref stop))
+                    {
+                        Array bindings = Array.CreateInstance(bindingType, 1);
+                        object binding = Activator.CreateInstance(bindingType, true);
+                        treeField.SetValue(binding, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(background));
+                        pathField.SetValue(binding, "Assets/Bg.cs");
+                        textField.SetValue(binding, background);
+                        bindings.SetValue(binding, 0);
+                        InterfaceLowering.Process(bindings, treeField, textField, null);
+                        System.Threading.Interlocked.Increment(ref runs);
+                    }
+                }
+                catch (Exception e)
+                {
+                    error = e;
+                }
+            });
+            bool dump = InterfaceLowering.DumpEnabled;
+            InterfaceLowering.DumpEnabled = false;   // 裏の書き換えは Library に出さない（テストのコンパイルの間は、テストが出し先を決める）
+            thread.Start();
+            try
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    Assert.That(Lowered(), Is.EqualTo(expected), $"{i + 1} 回目");
+                    System.Threading.Thread.Sleep(20);
+                }
+            }
+            finally
+            {
+                System.Threading.Volatile.Write(ref stop, true);
+                thread.Join();
+                InterfaceLowering.DumpEnabled = dump;
+                if (System.IO.Directory.Exists(dir))
+                    System.IO.Directory.Delete(dir, recursive: true);
+            }
+            Assert.That(error, Is.Null, error?.ToString());
+            Assert.That(runs, Is.GreaterThan(0), "裏の書き換えが動いていない");
+        }
     }
 }

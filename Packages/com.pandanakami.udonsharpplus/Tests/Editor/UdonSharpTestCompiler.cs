@@ -118,7 +118,10 @@ namespace UdonSharpPlus.Tests
         private const string UsbTypeNameHeapKey = "__refl_typename";
         private const string UsbTypeIDArrayHeapKey = "__refl_typeids";
 
-        private static readonly object CompileLock = new object();
+        // 書き換え（InterfaceLowering.Process）と同じロック。コンパイル全体をこの中で行い、裏で走る U# のコンパイル（CI では
+        // プロジェクトを読み込んだときに走る）の書き換えと重ならないようにする。重なると、static の位置の印（SourceMap）や、
+        // テストが差し替える言語・注意の設定が混ざる（#164 の CI で発覚）
+        private static object CompileLock => InterfaceLowering.ProcessLock;
         private static int _assemblyCounter;
 
         private static Assembly _editorAssembly;

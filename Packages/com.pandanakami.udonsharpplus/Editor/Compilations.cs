@@ -17,9 +17,10 @@ namespace UdonSharpPlus
     {
         private static readonly CSharpCompilationOptions Options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
-        private static SyntaxTree[] _trees;
-        private static MetadataReference[] _references;
-        private static CSharpCompilation _last;
+        // 書き換えは InterfaceLowering.ProcessLock で 1 つずつにしているが、念のためスレッドごとに持つ
+        [System.ThreadStatic] private static SyntaxTree[] _trees;
+        [System.ThreadStatic] private static MetadataReference[] _references;
+        [System.ThreadStatic] private static CSharpCompilation _last;
 
         public static CSharpCompilation For(IReadOnlyList<SyntaxTree> trees, IEnumerable<MetadataReference> references)
         {

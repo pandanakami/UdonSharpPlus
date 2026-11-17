@@ -77,17 +77,25 @@ namespace UdonSharpPlus
         /// </param>
         public static void Process(Array bindings, FieldInfo treeField, FieldInfo sourceTextField, object context)
         {
-            // 段の間で使い回すコンパイル（#163）は、この書き換えの中だけで使う
-            Compilations.Clear();
-            try
+            // 書き換えは、位置の印（SourceMap）などの static の情報を使うので、同時に 2 つ走らせない。
+            // U# のコンパイルは普通 1 つずつだが、テストのコンパイル（UdonSharpTestCompiler）が、裏で走る U# のコンパイルと重なることがある（CI）
+            lock (ProcessLock)
             {
-                ProcessCore(bindings, treeField, sourceTextField, context);
-            }
-            finally
-            {
+                // 段の間で使い回すコンパイル（#163）は、この書き換えの中だけで使う
                 Compilations.Clear();
+                try
+                {
+                    ProcessCore(bindings, treeField, sourceTextField, context);
+                }
+                finally
+                {
+                    Compilations.Clear();
+                }
             }
         }
+
+        /// <summary>書き換えを 1 つずつにするロック。テストのコンパイラーも、コンパイル全体をこのロックの中で行う</summary>
+        internal static readonly object ProcessLock = new object();
 
         private static void ProcessCore(Array bindings, FieldInfo treeField, FieldInfo sourceTextField, object context)
         {
