@@ -48,7 +48,7 @@ namespace UdonSharpPlus
                     string name = MethodName(symbol);
                     if (symbol.ContainingType.GetMembers(name).Any())
                         diagnostics.Error(OperatorToken(decl).GetLocation(),
-                            Loc.T($"'{symbol.ContainingType.Name}' : メンバーの名前 {name} は、この演算子の書き換えに使うので、ほかの名前にしてください", $"'{symbol.ContainingType.Name}' : The member name {name} is used for this operator, so choose another name"));
+                            Loc.T($"'{symbol.ContainingType.Name}' : メンバーの名前 {name} は、この演算子の書き換えに使うので、ほかの名前にしてください", $"'{symbol.ContainingType.Name}' : The name {name} is reserved for the method generated for this operator, so use a different name"));
                     names[symbol] = name;
                 }
 

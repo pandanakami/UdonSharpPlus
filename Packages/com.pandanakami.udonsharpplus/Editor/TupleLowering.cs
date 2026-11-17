@@ -152,7 +152,7 @@ namespace UdonSharpPlus
                     case IArrayTypeSymbol a:
                         return Unsupported(a.ElementType);
                     case ITypeParameterSymbol _:
-                        return Loc.T("型引数（ジェネリクスのコピーのあとの段で、型引数が決まったものだけ使えます）", "a type parameter (only allowed in the stage after generic copies, once the type argument is known)");
+                        return Loc.T("型引数（実際の型が決まらないところでは使えません）", "a type parameter (it can only be used where the actual type is known)");
                     case IPointerTypeSymbol _:
                         return Loc.T("ポインター", "a pointer");
                     case INamedTypeSymbol n:

@@ -142,7 +142,7 @@ namespace UdonSharpPlus
         /// <summary>匿名型・タプルをキーにする GroupBy のエラー（#140）</summary>
         internal static string GroupKeyMessage(string kindJa, string kindEn) =>
             Loc.T($"'GroupBy' : {kindJa}をキーにする GroupBy は未対応です（C# はキーを値（Equals）で比べますが、ここでは参照の比較になります）。キーは、数値・string などのメンバーにしてください",
-                $"'GroupBy' : GroupBy keyed by {kindEn} is not supported (C# compares keys by value (Equals), but here they would be compared by reference). Use a member such as a number or string as the key");
+                $"'GroupBy' : Grouping by {kindEn} is not supported (C# compares keys by value (Equals), but here they would be compared by reference). Use a member such as a number or string as the key");
 
         /// <summary>GroupBy のキーのエラーを出す場所：キーのラムダ（複数行のつないだ呼び出しでも、GroupBy の行になる）</summary>
         internal static SyntaxNode GroupKeyNode(InvocationExpressionSyntax node, IMethodSymbol m)
@@ -298,7 +298,7 @@ namespace UdonSharpPlus
                     case IArrayTypeSymbol a:
                         return Unsupported(a.ElementType);
                     case ITypeParameterSymbol _:
-                        return Loc.T("型引数（ジェネリクスのコピーのあとの段で、型引数が決まったものだけ使えます）", "a type parameter (only allowed in the stage after generic copies, once the type argument is known)");
+                        return Loc.T("型引数（実際の型が決まらないところでは使えません）", "a type parameter (it can only be used where the actual type is known)");
                     case IPointerTypeSymbol _:
                         return Loc.T("ポインター", "a pointer");
                     case INamedTypeSymbol n:

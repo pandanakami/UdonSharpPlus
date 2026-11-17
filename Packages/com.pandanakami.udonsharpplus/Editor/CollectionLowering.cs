@@ -954,7 +954,7 @@ namespace UdonSharpPlus
                     string source = node.Expression is MemberAccessExpressionSyntax access ? Text(Visit(access.Expression)) : null;
                     if (source == null)
                     {
-                        Error(node.Expression, Loc.T("Keys / Values は dict.Keys の形で foreach に書いてください", "Write Keys / Values in a foreach as dict.Keys"));
+                        Error(node.Expression, Loc.T("Keys / Values は dict.Keys の形で foreach に書いてください", "Write Keys / Values directly in the foreach, like foreach (var k in dict.Keys)"));
                         return node;
                     }
                     string l = Temp("l");
@@ -1021,7 +1021,7 @@ namespace UdonSharpPlus
                     return null;
                 if (HasCompileError(node))
                     return null;
-                Error(node, Loc.T("ラムダは List のメソッド（Find / Exists / ForEach など）と LINQ の引数としてだけ使えます", "Lambdas can only be used as arguments of List methods (Find / Exists / ForEach and so on) and LINQ"));
+                Error(node, Loc.T("このメソッドにラムダを渡すのは未対応です（ラムダは、List のメソッド・LINQ の引数にするか、デリゲートの変数に入れてください）", "Passing a lambda to this method is not supported (pass it to a List method or LINQ, or store it in a delegate variable)"));
                 return node;
             }
 
@@ -1204,7 +1204,7 @@ namespace UdonSharpPlus
                     default:
                         if (!(_model.GetSymbolInfo(fn).Symbol is IMethodSymbol))
                         {
-                            Error(fn, Loc.T("デリゲートの変数を渡すのは未対応です（ラムダかメソッド名を直接書いてください）", "Passing a delegate variable is not supported (write a lambda or a method name directly)"));
+                            Error(fn, Loc.T("この型のデリゲートを渡すのは未対応です（ラムダ・メソッド名か、Action・Func・Predicate・Comparison・ソースで宣言したデリゲートの変数を渡してください）", "Passing a delegate of this type is not supported (pass a lambda, a method name, or a variable of Action / Func / Predicate / Comparison or of a delegate declared in source)"));
                             return null;
                         }
                         names = Enumerable.Range(0, arity).Select(i => $"__a{i}").ToArray();

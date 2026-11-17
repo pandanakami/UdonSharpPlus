@@ -9,6 +9,7 @@
 ```csharp
 private List<int> _scores = new List<int> { 1, 2, 3 };
 private Dictionary<string, Bullet> _bullets = new Dictionary<string, Bullet>();
+private List<Bullet> _bulletList = new List<Bullet>();
 
 _scores.Add(4);
 _scores[0] += 10;
@@ -52,7 +53,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 
 ```csharp
 int limit = 4;
-Bullet hit = _bullets.Find(b => b.damage > limit);
+Bullet hit = _bulletList.Find(b => b.damage > limit);
 int total = 0;
 _scores.ForEach(s => total += s);
 _scores.Sort((a, b) => b - a);
@@ -78,12 +79,12 @@ _scores.Sort((a, b) => b - a);
 `KeyValuePair<K, V>` は、普通のクラスと同じ形の `object[]`（先頭に型名、続けてキーと値）になります。`Key`／`Value` は読み取り専用なので、値型の `KeyValuePair` と同じように使えます。
 
 ```csharp
-foreach (var kv in _scores)
+foreach (var kv in _scoreTable)  // Dictionary<string, int>
 {
     if (IsHigh(kv))            // KeyValuePair<string, int> を受け取るメソッドに渡す
         _picked.Add(kv);       // List<KeyValuePair<string, int>> に入れる
 }
-var best = _scores.OrderByDescending(kv => kv.Value).First();   // LINQ から取り出す
+var best = _scoreTable.OrderByDescending(kv => kv.Value).First();   // LINQ から取り出す
 Debug.Log(best.Key + best.Value);
 ```
 

@@ -11,6 +11,7 @@ public class Vec
     public static Vec operator +(Vec a, Vec b) => new Vec(a.x + b.x, a.y + b.y);
     public static Vec operator *(Vec a, int k) => new Vec(a.x * k, a.y * k);
     public static Vec operator -(Vec a) => new Vec(-a.x, -a.y);
+    public static Vec operator ++(Vec a) => new Vec(a.x + 1, a.y + 1);
     public static bool operator ==(Vec a, Vec b) => (object)a == null ? (object)b == null : (object)b != null && a.x == b.x && a.y == b.y;
     public static bool operator !=(Vec a, Vec b) => !(a == b);
     public static implicit operator Vec(int v) => new Vec(v, v);
@@ -19,9 +20,9 @@ public class Vec
 
 // UdonSharpBehaviour の中
 Vec p = new Vec(1, 2) + new Vec(3, 4);   // (4, 6)
-p += 1;                                  // 暗黙の変換で (1, 1) を足す
-p *= 2;
-++p;                                     // operator ++ を宣言していれば
+p += 1;                                  // 暗黙の変換で (1, 1) を足す → (5, 7)
+p *= 2;                                  // (10, 14)
+++p;                                     // (11, 15)
 bool same = p == new Vec(11, 15);
 int n = (int)p;
 ```
