@@ -7,7 +7,7 @@ UdonSharp Plus の機能が、書き換えたコードの中で、Udon で重い
 - **Send**：`SendCustomEvent`
 - **Get**：`GetProgramVariable`
 - **Set**：`SetProgramVariable`
-- **確保**：動的なメモリ確保。`new object[]`（普通のクラス・タプル・匿名型・キャプチャ配列・デリゲート）、`DataList`・`DataDictionary` の生成、`DataToken` の生成（LINQ で、値を DataList に入れるときに、値を包むもの）、string の連結
+- **確保**：動的なメモリ確保。`new object[]`（普通のクラス・タプル・匿名型・キャプチャ配列・デリゲート）、`DataList`・`DataDictionary` の生成、`DataToken` の生成（LINQ で、値を DataList に入れるときに、値を包むもの）、string の連結、`object[]` 以外の配列の生成（`DataToken[]` など。表では「配列」。List の並べ替え・初期化子・`ToArray()` などで、要素数の大きさのものを作る）
 
 キャプチャ配列は、ラムダが外側の変数を使うこと（キャプチャ）のために、その変数を入れる `object[]` です。
 
@@ -23,10 +23,17 @@ UdonSharp Plus の機能が、書き換えたコードの中で、Udon で重い
 | デリゲートを呼ぶ（ラムダ・UdonSharpBehaviour のメソッド） | 1 | 1 | 2 | `object[]` 2 |
 | タプル・匿名型を作る | 0 | 0 | 0 | `object[]` 1 |
 | `new List<T>()` | 0 | 0 | 0 | `DataList` 1 |
+| `new List<int> { 1, 2, 3 }`（初期化子） | 0 | 0 | 0 | `DataList` 1・配列 1 |
+| `new Dictionary<K, V> { { k, v } }`（初期化子） | 0 | 0 | 0 | `DataDictionary` 1・配列 2 |
 | List の要素の読み書き・`foreach` | 0 | 0 | 0 | 0 |
+| タプルのリストの `foreach`（`foreach (var (a, b) in list)` の分解も） | 0 | 0 | 0 | 0 |
+| `List.Sort((a, b) => ...)` | 0 | 0 | 0 | 配列 2（要素数の大きさ） |
+| `ToArray()`、List を `string.Join` などに渡す | 0 | 0 | 0 | 配列 1 |
 | Dictionary の読み書き | 0 | 0 | 0 | 0 |
 | LINQ `Where(...).ToList()` | 0 | 0 | 0 | `DataList` 1・`DataToken` 1 |
 | LINQ `Select(...).Sum()` | 0 | 0 | 0 | 0 |
+| LINQ `OrderBy(...).ToList()` | 0 | 0 | 0 | `DataList` 1・`DataToken` 4 |
+| LINQ `OrderBy(...).First()` | 0 | 0 | 0 | `DataToken` 3 |
 | LINQ `GroupBy(...).Count()` | 0 | 0 | 0 | `object[]` 1・`DataList` 1・`DataToken` 4 |
 | 演算子のオーバーロード | 0 | 0 | 0 | 0 |
 | ジェネリックメソッド | 0 | 0 | 0 | 0 |
@@ -40,7 +47,8 @@ UdonSharp Plus の機能が、書き換えたコードの中で、Udon で重い
 - **LINQ のラムダが変数をキャプチャしても、キャプチャ配列（`object[]`）は作りません。** キャプチャした変数は、書き換えたメソッドの引数（書き換えるものは `ref`）で受け取ります。デリゲートのラムダが変数をキャプチャすると `object[]` を 3 個作りますが、LINQ に書いたラムダなら 0 個です。
 - **LINQ のつなぎは、1 つのループにまとめます。** `Where(...).Select(...).ToList()` は、メソッドごとに途中の List を作らず、結果の List 1 個（と DataToken）だけです。
 - **値を 1 つにまとめる LINQ は、確保しません。** `Any`・`Count`・`First`・`Sum` は、List も DataToken も作りません（テストで確かめたもの）。
-- **List の `foreach` は、列挙子を作りません。** 添字のループにします。
+- **List の `foreach` は、列挙子を作りません。** 添字のループにします。タプルのリストを回すとき（`foreach (var (a, b) in list)` の分解も）も、要素を読むだけで、確保はありません（タプルは、作るときに `object[]` を 1 個作ります）。
+- **`List.Sort` に直接書いたラムダも、デリゲートにしません。** 生成する並べ替え（安定なマージソート）の比較のところに埋め込むので、比較 1 回ごとの確保はありません（ラムダの本体が何かを作らなければ）。
 - **インタフェース経由の呼び出しで、実装する普通のクラスが 4 個以上のときは、型番号の `switch`（ジャンプテーブル。番号から飛び先を直接引く表）で振り分けます。** 型名を 1 つずつ比べないので、クラスの数が増えても、呼び出しの重さは変わりません。
 - **普通のクラスのメソッド呼び出し・フィールドの読み書き、演算子、ジェネリクスは、`SendCustomEvent` も動的確保も使いません。**
 
@@ -48,6 +56,8 @@ UdonSharp Plus の機能が、書き換えたコードの中で、Udon で重い
 
 - **`Func` などのデリゲートの変数を LINQ に渡す（`Select(f)`）と、デリゲートの呼び出しになります。** Send 1・Get 1・Set 2 と、`object[]` 2 個です。これは、変数を渡した時点で、`x => デリゲートを呼ぶ(x)` というラムダに書き換えて、そのラムダをループに埋め込むためです。**ループの要素ごとに、デリゲートの呼び出しをします。** この行の数は 1 回呼んだときの数なので、要素が 100 個なら、100 回分（Send・Get・Set が各 100〜200 回）になります。ラムダかメソッド名を、LINQ の引数に直接書くと、デリゲートの呼び出しがなくなり、軽くなります。
 - **デリゲートのラムダが変数をキャプチャすると、`object[]` を 3 個作ります。** 毎フレーム呼ぶところでは、引数で渡す形にすると軽くなります。
+- **`List.Sort` は、呼ぶたびに、要素数の大きさの配列（`DataToken[]`）を 2 個作ります。** 並べ替えの作業用です。毎フレーム呼ぶところでは、要素が変わったときだけ並べ替えると軽くなります。
+- **`List.Sort` に `Comparison` の変数を渡す（`list.Sort(cmp)`）と、比較のたびにデリゲートの呼び出しになります。** 1 回あたり Send 1・Get 1・Set 3 と、`object[]` 2 個で、比較は要素数を n として n log n 回くらいあります。ラムダかメソッド名を直接書くと、デリゲートの呼び出しがなくなります。
 - **`OrderBy` や `GroupBy` を含むつなぎは、並べ替え・グループ分けのために、DataList と DataToken を使います。** `Where(...).Select(...).OrderBy(...).Take(2).ToList()` は、DataList 1・DataToken 4 でした（`GroupBy(...).Count()` は、`object[]` 1・DataList 1・DataToken 4）。
 
 ## 読み方
