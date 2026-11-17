@@ -77,6 +77,20 @@ namespace UdonSharpPlus
         /// </param>
         public static void Process(Array bindings, FieldInfo treeField, FieldInfo sourceTextField, object context)
         {
+            // 段の間で使い回すコンパイル（#163）は、この書き換えの中だけで使う
+            Compilations.Clear();
+            try
+            {
+                ProcessCore(bindings, treeField, sourceTextField, context);
+            }
+            finally
+            {
+                Compilations.Clear();
+            }
+        }
+
+        private static void ProcessCore(Array bindings, FieldInfo treeField, FieldInfo sourceTextField, object context)
+        {
             InterfaceNaming.ImplementationKeys = new HashSet<string>();
             SourceMap.Clear();
             // 書き換えは毎回すべてのスクリプトが対象なので、前回の出力を消してから書く（消したスクリプトなどの古い出力を残さない。#100）
@@ -310,11 +324,7 @@ namespace UdonSharpPlus
         private static List<SyntaxTree> LowerInterfaces(List<SyntaxTree> trees, LoweringDiagnostics diagnostics, List<RewrittenClass> rewrittenClasses,
             Dictionary<string, int> classNumbers)
         {
-            var compilation = CSharpCompilation.Create(
-                "UdonSharpPlus_InterfacePrepass",
-                trees,
-                GetMetadataReferences(),
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = Compilations.For(trees, GetMetadataReferences());
 
             var interfaces = CollectInterfaces(compilation, trees, diagnostics);
             if (interfaces.Count == 0)

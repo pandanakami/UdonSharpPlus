@@ -36,7 +36,7 @@ namespace UdonSharpPlus
             if (withGenerated < 2)
                 return trees;
 
-            var compilation = CSharpCompilation.Create("UdonSharpPlusInheritedNames", trees, references);
+            var compilation = Compilations.For(trees, references);
 
             // クラスごとの、宣言している生成メソッドの名前（partial はまとめる）
             var declared = new Dictionary<INamedTypeSymbol, HashSet<string>>(SymbolEqualityComparer.Default);

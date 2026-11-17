@@ -31,24 +31,30 @@ namespace UdonSharpPlus
         internal const string GeneratedPrefix = "__Tuple_";
 
         public static bool MayHaveTuples(IEnumerable<SyntaxTree> trees) =>
-            trees.Any(t => t.GetRoot().DescendantNodes().Any(n =>
-                n is TupleTypeSyntax || n is TupleExpressionSyntax || n is ParenthesizedVariableDesignationSyntax
-                || n is ForEachVariableStatementSyntax
-                || n is GenericNameSyntax g && g.Identifier.ValueText == "ValueTuple"));
+            trees.Any(t => t.GetRoot().DescendantNodes().Any(IsTupleSyntax));
+
+        /// <summary>タプル・分解の書き方（ValueTuple と書いたものも）</summary>
+        private static bool IsTupleSyntax(SyntaxNode n) =>
+            n is TupleTypeSyntax || n is TupleExpressionSyntax || n is ParenthesizedVariableDesignationSyntax
+            || n is ForEachVariableStatementSyntax
+            || n is SimpleNameSyntax s && s.Identifier.ValueText == "ValueTuple";
 
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references,
             ref int counter, bool beforeGenerics)
         {
-            var compilation = CSharpCompilation.Create(
-                "UdonSharpPlus_TuplePrepass",
-                trees,
-                references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = Compilations.For(trees, references);
+            // タプルの書き方も、タプルを含むメンバーの名前も書いていないファイルは見ない（#163）
+            bool[] selected = TreeFilter.Select(compilation, trees, t => t.IsTupleType, null, IsTupleSyntax);
 
             var shared = new Shared(counter);
             var result = new List<SyntaxTree>(trees.Count);
             for (int i = 0; i < trees.Count; i++)
             {
+                if (!selected[i])
+                {
+                    result.Add(trees[i]);
+                    continue;
+                }
                 shared.CurrentTree = i;
                 SemanticModel model = compilation.Model(trees[i]);
                 var rewriter = new Rewriter(shared, model, diagnostics, beforeGenerics);

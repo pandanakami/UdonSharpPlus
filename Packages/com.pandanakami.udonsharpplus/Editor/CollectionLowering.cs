@@ -77,11 +77,7 @@ namespace UdonSharpPlus
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics,
             IEnumerable<MetadataReference> references)
         {
-            var compilation = CSharpCompilation.Create(
-                "UdonSharpPlus_CollectionPrepass",
-                trees,
-                references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = Compilations.For(trees, references);
 
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)

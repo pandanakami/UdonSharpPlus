@@ -30,6 +30,9 @@ namespace UdonSharpPlus
         /// <summary>生成するクラスの名前の先頭（__Anon_0 など）</summary>
         internal const string GeneratedPrefix = "__Anon_";
 
+        private static bool IsAnonymousOrGenerated(ITypeSymbol type) =>
+            type.IsAnonymousType || type.Name.StartsWith(GeneratedPrefix, System.StringComparison.Ordinal);
+
         public static bool MayHaveAnonymousTypes(IEnumerable<SyntaxTree> trees) =>
             trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is AnonymousObjectCreationExpressionSyntax));
 
@@ -39,16 +42,21 @@ namespace UdonSharpPlus
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references,
             ref int counter, bool beforeGenerics)
         {
-            var compilation = CSharpCompilation.Create(
-                "UdonSharpPlus_AnonymousPrepass",
-                trees,
-                references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = Compilations.For(trees, references);
+            // 匿名型（と、1 回目で作った __Anon_ のクラス）の値を扱わないファイルは見ない（#163）。
+            // 匿名型は名前を書けないので、匿名型の値があるファイルには new { ... } があるか、ジェネリクスのコピーの中に __Anon_ の名前がある
+            bool[] selected = TreeFilter.Select(compilation, trees, IsAnonymousOrGenerated, IsAnonymousOrGenerated,
+                n => n is AnonymousObjectCreationExpressionSyntax);
 
             var shared = new Shared(counter);
             var result = new List<SyntaxTree>(trees.Count);
             for (int i = 0; i < trees.Count; i++)
             {
+                if (!selected[i])
+                {
+                    result.Add(trees[i]);
+                    continue;
+                }
                 shared.CurrentTree = i;
                 SemanticModel model = compilation.Model(trees[i]);
                 var rewriter = new Rewriter(shared, model, diagnostics, beforeGenerics);

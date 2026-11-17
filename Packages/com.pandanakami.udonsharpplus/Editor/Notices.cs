@@ -189,11 +189,7 @@ namespace UdonSharpPlus
 
             try
             {
-                var compilation = CSharpCompilation.Create(
-                    "UdonSharpPlus_NoticePrepass",
-                    trees,
-                    references,
-                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                var compilation = Compilations.For(trees, references);
                 for (int i = 0; i < trees.Count; i++)
                     new Walker(compilation.Model(trees[i]), i, found, on).Visit(trees[i].GetRoot());
                 return found;

@@ -33,11 +33,7 @@ namespace UdonSharpPlus
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics,
             IEnumerable<MetadataReference> references)
         {
-            var compilation = CSharpCompilation.Create(
-                "UdonSharpPlus_GenericPrepass",
-                trees,
-                references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = Compilations.For(trees, references);
             return new Pass(compilation, trees, diagnostics).Run();
         }
 

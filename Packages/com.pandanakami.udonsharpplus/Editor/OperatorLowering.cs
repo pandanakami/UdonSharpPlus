@@ -28,16 +28,19 @@ namespace UdonSharpPlus
 
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
-            var compilation = CSharpCompilation.Create(
-                "UdonSharpPlus_OperatorPrepass",
-                trees,
-                references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = Compilations.For(trees, references);
+            // 演算子・変換を宣言したクラス（と派生）の値を扱わないファイルは見ない（#163）
+            bool[] selected = TreeFilter.Select(compilation, trees, _ => false,
+                t => t.GetMembers().OfType<IMethodSymbol>().Any(m => m.MethodKind == MethodKind.UserDefinedOperator || m.MethodKind == MethodKind.Conversion),
+                n => n is OperatorDeclarationSyntax || n is ConversionOperatorDeclarationSyntax);
 
             // ソースで宣言した演算子と、書き換えたメソッドの名前
             var names = new Dictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);
-            foreach (SyntaxTree tree in trees)
+            for (int i = 0; i < trees.Count; i++)
             {
+                if (!selected[i])
+                    continue;
+                SyntaxTree tree = trees[i];
                 SemanticModel model = compilation.Model(tree);
                 foreach (BaseMethodDeclarationSyntax decl in tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>())
                 {
@@ -59,8 +62,14 @@ namespace UdonSharpPlus
             }
 
             var result = new List<SyntaxTree>(trees.Count);
-            foreach (SyntaxTree tree in trees)
+            for (int i = 0; i < trees.Count; i++)
             {
+                SyntaxTree tree = trees[i];
+                if (!selected[i])
+                {
+                    result.Add(tree);
+                    continue;
+                }
                 var rewriter = new Rewriter(compilation.Model(tree), names, diagnostics);
                 SyntaxNode root = rewriter.Visit(tree.GetRoot());
                 result.Add(rewriter.Changed
