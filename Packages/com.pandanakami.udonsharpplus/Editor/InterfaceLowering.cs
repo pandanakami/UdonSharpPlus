@@ -83,6 +83,10 @@ namespace UdonSharpPlus
             if (DumpEnabled)
                 ClearDump();
 
+            // U# はファイルを並列に読むので、binding の並びがコンパイルごとに変わる。生成する名前（匿名型の番号・__p2 など）と、
+            // partial のクラスのフィールドの並び（Roslyn はファイルの順に並べる）がそれで変わり、プログラムのアセットが毎回書き変わるので、
+            // ファイルのパスの順に並べ替える（#164）。U# はこの配列（CompilationContext.ModuleBindings と同じもの）をそのまま使う
+            SortByFilePath(bindings);
             var original = new List<SyntaxTree>(bindings.Length);
             foreach (object b in bindings)
                 original.Add((SyntaxTree)treeField.GetValue(b));
@@ -212,6 +216,23 @@ namespace UdonSharpPlus
                     paths.Add(UdonSharpInternals.BindingFilePath?.GetValue(b) as string);
                 notices.Report(paths, usedClasses);
             }
+        }
+
+        /// <summary>binding の配列を、その場でファイルのパスの順に並べ替える（パスが取れなければ、そのまま）</summary>
+        internal static void SortByFilePath(Array bindings)
+        {
+            FieldInfo pathField = UdonSharpInternals.BindingFilePath;
+            if (pathField == null || bindings.Length < 2)
+                return;
+            object[] items = bindings.Cast<object>().ToArray();
+            // 拡張子を除いたパスで比べる（Foo.cs を Foo.Part.cs より前にする）。同じなら元の並びのまま（OrderBy は安定）
+            string Key(object b) => pathField.GetValue(b) as string ?? "";
+            object[] sorted = items
+                .OrderBy(b => Path.ChangeExtension(Key(b), null), StringComparer.Ordinal)
+                .ThenBy(Key, StringComparer.Ordinal)
+                .ToArray();
+            for (int i = 0; i < sorted.Length; i++)
+                bindings.SetValue(sorted[i], i);
         }
 
         /// <summary>インタフェースの段で中身を書き換えた汎用クラス（使われなければ元に戻す）</summary>

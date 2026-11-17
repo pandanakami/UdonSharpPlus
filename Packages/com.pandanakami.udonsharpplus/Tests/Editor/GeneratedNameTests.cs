@@ -241,5 +241,72 @@ namespace UdonSharpPlusTests.GeneratedName
                 new TestSource("Shared.cs", Shared), new TestSource("Caller.cs", Caller), new TestSource("VirtualTypes.cs", types));
             Assert.That(result.Diagnostics, Is.Empty);
         }
+
+        /// <summary>
+        /// U# から渡されるファイルの順番が変わっても、生成する名前（匿名型の番号・__p2）と、partial のクラスのフィールドの並びが変わらない（#164）。
+        /// U# はファイルを並列に読むので、順番はコンパイルごとに変わる
+        /// </summary>
+        [Test]
+        public void ResultDoesNotDependOnFileOrder()
+        {
+            const string first = @"using UdonSharp;
+using System.Collections.Generic;
+using System.Linq;
+namespace UdonSharpPlusTests.GeneratedName
+{
+    public partial class Order : UdonSharpBehaviour
+    {
+        public int a1;
+        public string a2 = """";
+        public int A() { var p = new { X = 1 }; var l = new List<int> { 1, 2 }; return p.X + l.Count(x => x > 1); }
+    }
+}";
+            const string second = @"using UdonSharp;
+using System.Collections.Generic;
+using System.Linq;
+namespace UdonSharpPlusTests.GeneratedName
+{
+    public partial class Order
+    {
+        public int b1;
+        public float b2;
+        public int B() { var q = new { Y = ""y"", Z = 2 }; var l = new List<int> { 3 }; return q.Z + l.Count(x => x > 1); }
+    }
+}";
+            var texts = new System.Collections.Generic.List<string>();
+            foreach (bool reversed in new[] { false, true })
+            {
+                var a = new TestSource("Order.cs", first);
+                var b = new TestSource("Order.Part.cs", second);
+                CompileResult result = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, _dir, reversed ? new[] { b, a } : new[] { a, b });
+                Assert.That(result.Diagnostics, Is.Empty);
+                texts.Add(Dumped("Order.cs") + "\n----\n" + Dumped("Order.Part.cs") + "\n----\n" + result["UdonSharpPlusTests.GeneratedName.Order"].Uasm);
+                TearDown();
+            }
+            Assert.That(texts[1], Is.EqualTo(texts[0]));
+            // 拡張子を除いたパスの順（Order.cs が先）：2 つ目のファイルの側が __p2 になる
+            Assert.That(texts[0], Does.Contain("__linq_Count_0__p2("));
+        }
+
+        /// <summary>
+        /// 書き換えるもののない partial の UdonSharpBehaviour でも、フィールドの並び（プログラムのデータの並び）がファイルの順番で変わらない（#164）。
+        /// Roslyn は partial のクラスのメンバーをファイルの順に並べるので、U# に渡すファイルの順番を決まった順にしている
+        /// </summary>
+        [Test]
+        public void PartialFieldOrderDoesNotDependOnFileOrder()
+        {
+            const string first = "using UdonSharp; namespace UdonSharpPlusTests.GeneratedName { public partial class Fields : UdonSharpBehaviour { public int a1; public string a2 = \"\"; public int A() => a1; } }";
+            const string second = "using UdonSharp; namespace UdonSharpPlusTests.GeneratedName { public partial class Fields { public float b1; public bool b2; public int B() => (int)b1; } }";
+            var uasm = new System.Collections.Generic.List<string>();
+            foreach (bool reversed in new[] { false, true })
+            {
+                var a = new TestSource("Fields.cs", first);
+                var b = new TestSource("Fields.Part.cs", second);
+                CompileResult result = UdonSharpTestCompiler.Compile(reversed ? new[] { b, a } : new[] { a, b });
+                Assert.That(result.Diagnostics, Is.Empty);
+                uasm.Add(result["UdonSharpPlusTests.GeneratedName.Fields"].Uasm);
+            }
+            Assert.That(uasm[1], Is.EqualTo(uasm[0]));
+        }
     }
 }
