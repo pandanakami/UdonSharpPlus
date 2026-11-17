@@ -55,7 +55,7 @@ namespace UdonSharpPlus
                 return Result.Blocked;
 
             SyntaxNode syntax = reference.GetSyntax();
-            var walker = new Walker(_compilation.GetSemanticModel(syntax.SyntaxTree), method.ContainingType);
+            var walker = new Walker(_compilation.Model(syntax.SyntaxTree), method.ContainingType);
             switch (syntax)
             {
                 case BaseMethodDeclarationSyntax m:

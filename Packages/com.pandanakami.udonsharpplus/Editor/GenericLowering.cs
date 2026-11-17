@@ -89,7 +89,7 @@ namespace UdonSharpPlus
                 _diagnostics = diagnostics;
             }
 
-            private SemanticModel Model(SyntaxTree tree) => _compilation.GetSemanticModel(tree);
+            private SemanticModel Model(SyntaxTree tree) => _compilation.Model(tree);
 
             private void Error(SyntaxNode node, string message) => _diagnostics.Error(node.GetLocation(), message);
 

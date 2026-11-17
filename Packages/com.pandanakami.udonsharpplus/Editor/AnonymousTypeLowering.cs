@@ -50,7 +50,7 @@ namespace UdonSharpPlus
             for (int i = 0; i < trees.Count; i++)
             {
                 shared.CurrentTree = i;
-                SemanticModel model = compilation.GetSemanticModel(trees[i]);
+                SemanticModel model = compilation.Model(trees[i]);
                 var rewriter = new Rewriter(shared, model, diagnostics, beforeGenerics);
                 SyntaxNode newRoot = rewriter.Visit(trees[i].GetRoot());
                 result.Add(rewriter.Changed ? Reparse(newRoot, trees[i]) : trees[i]);

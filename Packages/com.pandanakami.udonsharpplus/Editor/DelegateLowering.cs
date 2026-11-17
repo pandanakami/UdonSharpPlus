@@ -91,7 +91,7 @@ namespace UdonSharpPlus
             var result = new List<SyntaxTree>(trees.Count);
             for (int i = 0; i < trees.Count; i++)
             {
-                SemanticModel model = compilation.GetSemanticModel(trees[i]);
+                SemanticModel model = compilation.Model(trees[i]);
                 var rewriter = new Rewriter(shared, model, i);
                 SyntaxNode newRoot = rewriter.Visit(trees[i].GetRoot());
                 result.Add(rewriter.Changed ? Reparse(newRoot, trees[i]) : trees[i]);
@@ -110,7 +110,7 @@ namespace UdonSharpPlus
             var result = new Dictionary<INamedTypeSymbol, DelegateInfo>(SymbolEqualityComparer.Default);
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 foreach (DelegateDeclarationSyntax decl in tree.GetRoot().DescendantNodes(n => !(n is BlockSyntax)).OfType<DelegateDeclarationSyntax>())
                 {
                     if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol symbol) || result.ContainsKey(symbol))
@@ -131,7 +131,7 @@ namespace UdonSharpPlus
             // LINQ・List のメソッドに直接書いたラムダの型は、ソースに書かれないので集まらない（そのラムダは後の段が埋め込む）
             for (int i = 0; i < trees.Count; i++)
             {
-                SemanticModel model = compilation.GetSemanticModel(trees[i]);
+                SemanticModel model = compilation.Model(trees[i]);
                 foreach (SimpleNameSyntax name in trees[i].GetRoot().DescendantNodes().OfType<SimpleNameSyntax>())
                 {
                     if (!ExternalNames.Contains(name.Identifier.ValueText)

@@ -86,7 +86,7 @@ namespace UdonSharpPlus
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)
             {
-                var rewriter = new Rewriter(compilation.GetSemanticModel(tree), diagnostics);
+                var rewriter = new Rewriter(compilation.Model(tree), diagnostics);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
                 result.Add(rewriter.Changed
                     ? CSharpSyntaxTree.ParseText(newRoot.ToFullString(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8)
@@ -998,6 +998,7 @@ namespace UdonSharpPlus
                 public string Arg;     // 呼び出し側で渡す式（null なら Name）
                 public string TypeName;   // 生成メソッドの引数の型（null なら TypeText(Type)）
                 public ISymbol Pair;   // foreach / LINQ の中の kv（キーとして流しているもの）。object[] にして渡す（#61）
+                public ISymbol Symbol; // 外の変数（Written を決めるため）
             }
 
             private static readonly string[] LambdaMethods =
@@ -1328,17 +1329,8 @@ namespace UdonSharpPlus
                     });
                 }
 
-                DataFlowAnalysis flow = null;
-                try
-                {
-                    flow = body is ExpressionSyntax e ? _model.AnalyzeDataFlow(e) : _model.AnalyzeDataFlow((StatementSyntax)body);
-                }
-                catch (ArgumentException)
-                {
-                    // メソッド名など、値でない式は解析できない（書き込みはない）
-                }
-                var written = new HashSet<ISymbol>(flow != null && flow.Succeeded ? flow.WrittenInside : Enumerable.Empty<ISymbol>(), SymbolEqualityComparer.Default);
                 var seen = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+                var outer = new List<Capture>();   // 書かれるかをあとで決めるもの
                 bool ok = true;
                 foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                 {
@@ -1365,7 +1357,29 @@ namespace UdonSharpPlus
                     string typeName = IsEnumerable(type) && !(symbol is ILocalSymbol && IsDataListBacked(id))
                         ? type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                         : null;
-                    result.Add(new Capture { Name = symbol.Name, Type = type, TypeName = typeName, Written = written.Contains(symbol) });
+                    var capture = new Capture { Name = symbol.Name, Type = type, TypeName = typeName, Symbol = symbol };
+                    result.Add(capture);
+                    outer.Add(capture);
+                }
+
+                // 書かれるかは、外の変数があるときだけ調べる（データフロー解析は重いため。#163）
+                if (outer.Count > 0)
+                {
+                    DataFlowAnalysis flow = null;
+                    try
+                    {
+                        flow = body is ExpressionSyntax e ? _model.AnalyzeDataFlow(e) : _model.AnalyzeDataFlow((StatementSyntax)body);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // メソッド名など、値でない式は解析できない（書き込みはない）
+                    }
+                    if (flow != null && flow.Succeeded)
+                    {
+                        var written = new HashSet<ISymbol>(flow.WrittenInside, SymbolEqualityComparer.Default);
+                        foreach (Capture capture in outer)
+                            capture.Written = written.Contains(capture.Symbol);
+                    }
                 }
                 return ok ? result : null;
             }

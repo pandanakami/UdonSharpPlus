@@ -329,7 +329,7 @@ namespace UdonSharpPlus
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 var rewriter = new Rewriter(model, interfaces, classImpls, classNumbers, diagnostics);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
                 foreach (var (tag, decl) in rewriter.RewrittenClasses)
@@ -441,7 +441,7 @@ namespace UdonSharpPlus
 
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 foreach (var decl in tree.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>())
                 {
                     if (model.GetDeclaredSymbol(decl) is INamedTypeSymbol symbol && !result.ContainsKey(symbol))
@@ -502,7 +502,7 @@ namespace UdonSharpPlus
 
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
                     if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol cls))

@@ -43,7 +43,7 @@ namespace UdonSharpPlus
             var declarations = new List<(int Tree, ClassDeclarationSyntax Node, INamedTypeSymbol Symbol)>();
             for (int i = 0; i < trees.Count; i++)
             {
-                SemanticModel model = compilation.GetSemanticModel(trees[i]);
+                SemanticModel model = compilation.Model(trees[i]);
                 foreach (ClassDeclarationSyntax node in trees[i].GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
                     if (!(model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol) || !InterfaceLowering.IsUdonSharpBehaviour(symbol))

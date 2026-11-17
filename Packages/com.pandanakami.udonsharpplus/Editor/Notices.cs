@@ -195,7 +195,7 @@ namespace UdonSharpPlus
                     references,
                     new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
                 for (int i = 0; i < trees.Count; i++)
-                    new Walker(compilation.GetSemanticModel(trees[i]), i, found, on).Visit(trees[i].GetRoot());
+                    new Walker(compilation.Model(trees[i]), i, found, on).Visit(trees[i].GetRoot());
                 return found;
             }
             catch (Exception e)

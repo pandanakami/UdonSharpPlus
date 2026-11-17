@@ -58,6 +58,14 @@ namespace UdonSharpPlus
             public bool NotNullHelper;   // 受け側の null の確認（受け側を 2 回評価できないとき。#104）
         }
 
+        /// <summary>汎用クラス 1 つ分のコピー（メンバーのテキストと、その中で使うヘルパー）</summary>
+        private sealed class GeneratedCopy
+        {
+            public List<string> Members;
+            public Sink Sink;
+            public bool Changed;
+        }
+
         /// <summary>受け側が null なら止めて、そうでなければそのまま返すヘルパー（#104）</summary>
         private const string NotNullHelper = "__cls__notnull";
 
@@ -92,7 +100,7 @@ namespace UdonSharpPlus
             var hosts = new Dictionary<INamedTypeSymbol, (ClassDeclarationSyntax Host, List<ClassInfo> Used)>(SymbolEqualityComparer.Default);
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
                     if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol usb) || !InterfaceLowering.IsUdonSharpBehaviour(usb))
@@ -134,7 +142,7 @@ namespace UdonSharpPlus
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 var rewriter = new Rewriter(context, model, null, null, hosts);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
                 result.Add(rewriter.Changed
@@ -153,7 +161,7 @@ namespace UdonSharpPlus
 
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
                     if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol symbol) || result.ContainsKey(symbol))
@@ -235,6 +243,9 @@ namespace UdonSharpPlus
                 _numbers = numbers;
             }
 
+            /// <summary>汎用クラスごとの、コピーしたメンバー（#163）</summary>
+            public readonly Dictionary<ClassInfo, GeneratedCopy> Copies = new Dictionary<ClassInfo, GeneratedCopy>();
+
             /// <summary>型番号。インタフェースの呼び出しで振り分けないクラスは 0</summary>
             public int NumberOf(ClassInfo c) => _numbers != null && _numbers.TryGetValue(c.Tag, out int n) ? n : 0;
 
@@ -245,8 +256,19 @@ namespace UdonSharpPlus
             public bool InvolvesTarget(ITypeSymbol type) =>
                 type is IArrayTypeSymbol array ? InvolvesTarget(array.ElementType) : Target(type) != null;
 
+            // Referenced の結果。Closure は UdonSharpBehaviour ごとに同じクラスの宣言をたどり直すので、1 回だけ調べる（#163）。
+            // 調べるときの記録（Structs・ExternalDerived）は集合への追加だけなので、2 回目を省いても結果は同じ
+            private readonly Dictionary<SyntaxNode, HashSet<ClassInfo>> _referenced = new Dictionary<SyntaxNode, HashSet<ClassInfo>>();
+
             /// <summary>scope の中で参照している汎用クラス（入れ子の型宣言の中は見ない）</summary>
             public HashSet<ClassInfo> Referenced(SyntaxNode scope, SemanticModel model)
+            {
+                if (!_referenced.TryGetValue(scope, out HashSet<ClassInfo> cached))
+                    _referenced[scope] = cached = FindReferenced(scope, model);
+                return new HashSet<ClassInfo>(cached);
+            }
+
+            private HashSet<ClassInfo> FindReferenced(SyntaxNode scope, SemanticModel model)
             {
                 var found = new HashSet<ClassInfo>();
                 foreach (SyntaxNode node in scope.DescendantNodes(n => n == scope || !(n is BaseTypeDeclarationSyntax)))
@@ -337,7 +359,7 @@ namespace UdonSharpPlus
                     foreach (SyntaxReference reference in c.Symbol.DeclaringSyntaxReferences)
                     {
                         SyntaxNode decl = reference.GetSyntax();
-                        foreach (ClassInfo next in Referenced(decl, Compilation.GetSemanticModel(decl.SyntaxTree)))
+                        foreach (ClassInfo next in Referenced(decl, Compilation.Model(decl.SyntaxTree)))
                             if (!seen.Contains(next))
                                 queue.Enqueue(next);
                     }
@@ -1314,13 +1336,35 @@ namespace UdonSharpPlus
             /// <summary>汎用クラス c のコンストラクタ・メソッド・アクセサーを、private static メソッドの 1 行テキストとして作る</summary>
             private List<string> GenerateMembers(ClassInfo c, Sink sink)
             {
+                // コピーの中身は、置く UdonSharpBehaviour によらず同じなので、クラスごとに 1 回だけ作る（#163）。
+                // 使うヘルパー（sink）は、置く UdonSharpBehaviour ごとに足す
+                if (!_context.Copies.TryGetValue(c, out GeneratedCopy copy))
+                {
+                    var own = new Sink();
+                    bool changed = Changed;
+                    Changed = false;
+                    List<string> members = BuildMembers(c, own);
+                    copy = new GeneratedCopy { Members = members, Sink = own, Changed = Changed };
+                    Changed = changed || Changed;
+                    _context.Copies[c] = copy;
+                }
+                sink.IsHelpers.UnionWith(copy.Sink.IsHelpers);
+                sink.AsHelpers.UnionWith(copy.Sink.AsHelpers);
+                sink.NotNullHelper |= copy.Sink.NotNullHelper;
+                if (copy.Changed)
+                    Changed = true;
+                return copy.Members;
+            }
+
+            private List<string> BuildMembers(ClassInfo c, Sink sink)
+            {
                 var result = new List<string>();
                 INamedTypeSymbol s = c.Symbol;
 
                 foreach (SyntaxReference reference in s.DeclaringSyntaxReferences)
                 {
                     var decl = (ClassDeclarationSyntax)reference.GetSyntax();
-                    SemanticModel model = _context.Compilation.GetSemanticModel(decl.SyntaxTree);
+                    SemanticModel model = _context.Compilation.Model(decl.SyntaxTree);
                     var body = new Rewriter(_context, model, c, sink, null);
 
                     foreach (MemberDeclarationSyntax member in decl.Members)
@@ -1348,7 +1392,7 @@ namespace UdonSharpPlus
                 if (implicitCtor != null && !s.IsStatic)
                 {
                     var decl = (ClassDeclarationSyntax)s.DeclaringSyntaxReferences.First().GetSyntax();
-                    var body = new Rewriter(_context, _context.Compilation.GetSemanticModel(decl.SyntaxTree), c, sink, null) { _member = Loc.T("コンストラクタ", "the constructor") };
+                    var body = new Rewriter(_context, _context.Compilation.Model(decl.SyntaxTree), c, sink, null) { _member = Loc.T("コンストラクタ", "the constructor") };
                     result.Add(body.BuildInit(c, implicitCtor, "", null, null));
                     result.Add(body.BuildCtor(c, implicitCtor, ""));
                 }
@@ -1484,7 +1528,7 @@ namespace UdonSharpPlus
                     ITypeSymbol type = slot is IFieldSymbol f ? f.Type : ((IPropertySymbol)slot).Type;
                     var rewriter = value.SyntaxTree == _model.SyntaxTree
                         ? this
-                        : new Rewriter(_context, _context.Compilation.GetSemanticModel(value.SyntaxTree), c, _sink, null);
+                        : new Rewriter(_context, _context.Compilation.Model(value.SyntaxTree), c, _sink, null);
                     string member = Loc.T($"{(slot is IFieldSymbol ? "フィールド" : "プロパティ")} {slot.Name} の初期化子", $"the initializer of {(slot is IFieldSymbol ? "field" : "property")} {slot.Name}");
                     // 配列の初期化子の省略形（int[] a = { 1, 2 };）は、代入の右辺に書けないので new T[] を付ける（#105 で見つけた）
                     string create = value is InitializerExpressionSyntax ? $"new {TypeText(type)} " : "";

@@ -38,7 +38,7 @@ namespace UdonSharpPlus
             var names = new Dictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);
             foreach (SyntaxTree tree in trees)
             {
-                SemanticModel model = compilation.GetSemanticModel(tree);
+                SemanticModel model = compilation.Model(tree);
                 foreach (BaseMethodDeclarationSyntax decl in tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>())
                 {
                     if (!(decl is OperatorDeclarationSyntax || decl is ConversionOperatorDeclarationSyntax)
@@ -61,7 +61,7 @@ namespace UdonSharpPlus
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)
             {
-                var rewriter = new Rewriter(compilation.GetSemanticModel(tree), names, diagnostics);
+                var rewriter = new Rewriter(compilation.Model(tree), names, diagnostics);
                 SyntaxNode root = rewriter.Visit(tree.GetRoot());
                 result.Add(rewriter.Changed
                     ? CSharpSyntaxTree.ParseText(root.ToFullString(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8)
