@@ -130,6 +130,7 @@ namespace UdonSharpPlus
             }
 
             // 0) ユーザー定義のジェネリクス → 型引数ごとのコピー（#59）。後の段はジェネリクスのないコードを見る
+            List<SyntaxTree> beforeCopies = current;
             if (GenericLowering.MayHaveGenerics(current))
             {
                 current = GenericLowering.Run(current, diagnostics, GetMetadataReferences());
@@ -140,7 +141,7 @@ namespace UdonSharpPlus
             // 1 回目で匿名型を作っていれば、new { ... } が残っていなくても動かす（型引数が匿名型になった List<T>.Contains などを、コピーの中で見つけるため。#71）
             if (anonymousCount > 0 || AnonymousTypeLowering.MayHaveAnonymousTypes(current))
             {
-                current = AnonymousTypeLowering.Run(current, diagnostics, GetMetadataReferences(), ref anonymousCount, beforeGenerics: false);
+                current = AnonymousTypeLowering.Run(current, diagnostics, GetMetadataReferences(), ref anonymousCount, beforeGenerics: false, beforeCopies);
                 SourceMap.RegisterTrees(current);
             }
 

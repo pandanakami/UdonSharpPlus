@@ -37,16 +37,29 @@ namespace UdonSharpPlus
             trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is AnonymousObjectCreationExpressionSyntax));
 
         /// <summary>
-        /// counter は、生成したクラスの数（名前の番号。2 回目は 1 回目の続き）。beforeGenerics が true なら、型引数を使う匿名型は書き換えずに残す
+        /// counter は、生成したクラスの数（名前の番号。2 回目は 1 回目の続き）。beforeGenerics が true なら、型引数を使う匿名型は書き換えずに残す。
+        /// beforeCopies（2 回目だけ）は、ジェネリクスの段の前の tree（trees と同じ並び）
         /// </summary>
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references,
-            ref int counter, bool beforeGenerics)
+            ref int counter, bool beforeGenerics, IReadOnlyList<SyntaxTree> beforeCopies = null)
         {
             var compilation = Compilations.For(trees, references);
             // 匿名型（と、1 回目で作った __Anon_ のクラス）の値を扱わないファイルは見ない（#163）。
             // 匿名型は名前を書けないので、匿名型の値があるファイルには new { ... } があるか、ジェネリクスのコピーの中に __Anon_ の名前がある
             bool[] selected = TreeFilter.Select(compilation, trees, IsAnonymousOrGenerated, IsAnonymousOrGenerated,
                 n => n is AnonymousObjectCreationExpressionSyntax);
+            // 2 回目が書き換えるのは、1 回目で残した new { ... }（型引数を使う匿名型）と、ジェネリクスのコピーの中のもの（型引数が匿名型になった
+            // List<T>.Contains など。#71）だけ。ほかのところは 1 回目で書き換えてあるので、ジェネリクスの段が変えなかった（同じ tree のままの）
+            // ファイルで、new { ... } のないものは見ない（#165。__Anon_ の名前と同じ名前のメンバーを書いただけのファイルを、TreeFilter は選んでしまう）
+            if (beforeCopies != null)
+            {
+                for (int i = 0; i < trees.Count; i++)
+                {
+                    if (selected[i] && ReferenceEquals(trees[i], beforeCopies[i])
+                        && !trees[i].GetRoot().DescendantNodes().Any(n => n is AnonymousObjectCreationExpressionSyntax))
+                        selected[i] = false;
+                }
+            }
 
             var shared = new Shared(counter);
             var result = new List<SyntaxTree>(trees.Count);
@@ -59,7 +72,7 @@ namespace UdonSharpPlus
                 }
                 shared.CurrentTree = i;
                 SemanticModel model = compilation.Model(trees[i]);
-                var rewriter = new Rewriter(shared, model, diagnostics, beforeGenerics);
+                var rewriter = new Rewriter(shared, model, diagnostics, beforeGenerics, copiesOnly: beforeCopies != null);
                 SyntaxNode newRoot = rewriter.Visit(trees[i].GetRoot());
                 result.Add(rewriter.Changed ? Reparse(newRoot, trees[i]) : trees[i]);
             }
@@ -468,16 +481,28 @@ namespace UdonSharpPlus
             private readonly Stack<string> _owners = new Stack<string>();   // 普通のクラスの中なら、そのクラスの型タグ（使われないクラスのエラーは捨てる）
             private readonly HashSet<SyntaxNode> _allowed = new HashSet<SyntaxNode>();   // object への変換を、書き換えて扱うところ
             private readonly bool _defer;   // ジェネリクスの前：型引数を使う匿名型は、あとの回に回す
+            private readonly bool _copiesOnly;   // 2 回目：ジェネリクスのコピーと、new { ... } のあるメンバーだけを見る
 
             public bool Changed { get; private set; }
 
-            public Rewriter(Shared shared, SemanticModel model, InterfaceLowering.LoweringDiagnostics diagnostics, bool defer)
+            public Rewriter(Shared shared, SemanticModel model, InterfaceLowering.LoweringDiagnostics diagnostics, bool defer, bool copiesOnly)
             {
                 _shared = shared;
                 _model = model;
                 _diagnostics = diagnostics;
                 _defer = defer;
+                _copiesOnly = copiesOnly;
             }
+
+            /// <summary>
+            /// 2 回目に見ないメンバー。匿名型の値（IsAnonymousType）は new { ... } のあるところにしかなく、コピーの外の __Anon_ の値は
+            /// 1 回目で書き換えてあるので、ジェネリクスのコピー（先頭に位置の印がある。#52）でも new { ... } のあるメンバーでもないものは、
+            /// 中を見ない（#165。中を見ると、問い合わせでメソッドの中身の型の解析をやり直す）
+            /// </summary>
+            private bool Skip(SyntaxNode node) =>
+                _copiesOnly && node is MemberDeclarationSyntax member && !(member is BaseTypeDeclarationSyntax) && !(member is NamespaceDeclarationSyntax)
+                && SourceMap.Find(member.GetLocation()) == null
+                && !member.DescendantNodes().Any(n => n is AnonymousObjectCreationExpressionSyntax);
 
             private void Error(SyntaxNode node, string message) =>
                 _diagnostics.Error(node.GetLocation(), message, _owners.Count > 0 ? _owners.Peek() : null);
@@ -515,6 +540,8 @@ namespace UdonSharpPlus
             /// </summary>
             public override SyntaxNode Visit(SyntaxNode node)
             {
+                if (Skip(node))
+                    return node;
                 // a.b の b（名前の部分）は、a.b 全体で見る（名前の部分にも、外側の変換が出る。#82 で見つけた）
                 if (node is ExpressionSyntax e && !(e.Parent is MemberAccessExpressionSyntax ma && ma.Name == e) && !(e.Parent is MemberBindingExpressionSyntax))
                 {
