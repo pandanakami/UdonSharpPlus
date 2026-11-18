@@ -161,7 +161,7 @@ namespace UdonSharpPlus
                     && (_names.Contains(token.ValueText) || aliases.Contains(token.ValueText)));
             }
 
-            /// <summary>using の別名のうち、対象の名前を含むもの（using V = Vec; の V）</summary>
+            /// <summary>using の別名のうち、対象の名前か選ぶ書き方を含むもの（using V = Vec; の V、using IntList = List&lt;int&gt;; の IntList）</summary>
             private HashSet<string> Aliases(SyntaxTree tree)
             {
                 if (_aliases.TryGetValue(tree, out var aliases))
@@ -169,7 +169,8 @@ namespace UdonSharpPlus
                 aliases = new HashSet<string>(StringComparer.Ordinal);
                 foreach (UsingDirectiveSyntax u in tree.GetRoot().DescendantNodes(n => !(n is TypeDeclarationSyntax)).OfType<UsingDirectiveSyntax>())
                 {
-                    if (u.Alias != null && u.Name.DescendantTokens().Any(t => t.IsKind(SyntaxKind.IdentifierToken) && _names.Contains(t.ValueText)))
+                    if (u.Alias != null && (u.Name.DescendantTokens().Any(t => t.IsKind(SyntaxKind.IdentifierToken) && _names.Contains(t.ValueText))
+                                            || _syntaxHit != null && u.Name.DescendantNodesAndSelf().Any(_syntaxHit)))
                         aliases.Add(u.Alias.Name.Identifier.ValueText);
                 }
                 _aliases[tree] = aliases;

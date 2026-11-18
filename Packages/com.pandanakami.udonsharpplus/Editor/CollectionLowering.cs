@@ -78,17 +78,53 @@ namespace UdonSharpPlus
             IEnumerable<MetadataReference> references)
         {
             var compilation = Compilations.For(trees, references);
+            // List / Dictionary・LINQ の値を扱わないファイル・メンバーは見ない（#165）。値は、型の名前か、それを返すメンバーの名前か、
+            // LINQ のメソッドの名前（配列への LINQ。#58）を書かないと手に入らない
+            HashSet<string> names = CollectionNames(compilation);
+            TreeFilter.Selection selection = TreeFilter.SelectMembers(compilation, trees, IsCollectionType, null,
+                n => n is QueryExpressionSyntax || n is SimpleNameSyntax s && names.Contains(s.Identifier.ValueText));
 
             var result = new List<SyntaxTree>(trees.Count);
-            foreach (SyntaxTree tree in trees)
+            for (int i = 0; i < trees.Count; i++)
             {
-                var rewriter = new Rewriter(compilation.Model(tree), diagnostics);
+                SyntaxTree tree = trees[i];
+                if (!selection.Trees[i])
+                {
+                    result.Add(tree);
+                    continue;
+                }
+                var rewriter = new Rewriter(compilation.Model(tree), diagnostics, selection);
                 SyntaxNode newRoot = rewriter.Visit(tree.GetRoot());
                 result.Add(rewriter.Changed
                     ? CSharpSyntaxTree.ParseText(newRoot.ToFullString(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8)
                     : tree);
             }
             return result;
+        }
+
+        /// <summary>この段が扱う型（System.Collections.Generic・System.Linq の型。List・Dictionary・IEnumerable・KeyValuePair・IGrouping など）</summary>
+        private static bool IsCollectionType(ITypeSymbol type)
+        {
+            string ns = type.ContainingNamespace?.ToDisplayString();
+            return type is INamedTypeSymbol && (ns == "System.Collections.Generic" || ns == "System.Linq");
+        }
+
+        /// <summary>この段が扱う型の名前と、LINQ（Enumerable）のメソッドの名前</summary>
+        private static HashSet<string> CollectionNames(Compilation compilation)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string ns in new[] { "System.Collections.Generic", "System.Linq" })
+            {
+                INamespaceSymbol symbol = compilation.GlobalNamespace;
+                foreach (string part in ns.Split('.'))
+                    symbol = symbol?.GetNamespaceMembers().FirstOrDefault(n => n.Name == part);
+                if (symbol != null)
+                    names.UnionWith(symbol.GetTypeMembers().Select(t => t.Name));
+            }
+            INamedTypeSymbol enumerable = compilation.GetTypeByMetadataName("System.Linq.Enumerable");
+            if (enumerable != null)
+                names.UnionWith(enumerable.MemberNames);
+            return names;
         }
 
         // ------------------------------------------------------------------
@@ -116,11 +152,19 @@ namespace UdonSharpPlus
 
             public bool Changed { get; private set; }
 
-            public Rewriter(SemanticModel model, InterfaceLowering.LoweringDiagnostics diagnostics)
+            private readonly TreeFilter.Selection _selection;
+
+            public Rewriter(SemanticModel model, InterfaceLowering.LoweringDiagnostics diagnostics, TreeFilter.Selection selection)
             {
                 _model = model;
                 _diagnostics = diagnostics;
+                _selection = selection;
             }
+
+            /// <summary>見る必要のないメンバー（List / Dictionary・LINQ の名前も書き方も含まないもの。TreeFilter.Selection.NeedsMember。#165）</summary>
+            private bool Skip(SyntaxNode node) =>
+                node is MemberDeclarationSyntax member && !(member is BaseTypeDeclarationSyntax) && !(member is NamespaceDeclarationSyntax)
+                && !_selection.NeedsMember(member, _model);
 
             private void Error(SyntaxNode node, string message) => _diagnostics.Error(node.GetLocation(), message);
 
@@ -288,6 +332,8 @@ namespace UdonSharpPlus
             /// <summary>文：TryGetValue の前出しを受け取る</summary>
             public override SyntaxNode Visit(SyntaxNode node)
             {
+                if (Skip(node))
+                    return node;
                 if (!(node is StatementSyntax) || node is BlockSyntax || _helpers == null)
                     return base.Visit(node);
 
