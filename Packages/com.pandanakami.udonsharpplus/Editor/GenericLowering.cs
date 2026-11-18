@@ -94,6 +94,7 @@ namespace UdonSharpPlus
                 CollectDeclarations();
                 if (_classes.Count == 0 && _methods.Count == 0)
                     return _trees;
+                Prebind.Run(_compilation, _trees);
 
                 // 使われる型引数を集める（ジェネリックの宣言の外から始め、コピーの中も連鎖してたどる）
                 foreach (SyntaxTree tree in _trees)

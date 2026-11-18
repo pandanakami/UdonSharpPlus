@@ -88,6 +88,7 @@ namespace UdonSharpPlus
             IEnumerable<MetadataReference> references, HashSet<string> usedClasses = null, IReadOnlyDictionary<string, int> classNumbers = null)
         {
             var compilation = Compilations.For(trees, references);
+            Prebind.Run(compilation, trees);
 
             var classes = CollectClasses(compilation, trees);
             var context = new Context(compilation, classes, diagnostics, classNumbers);

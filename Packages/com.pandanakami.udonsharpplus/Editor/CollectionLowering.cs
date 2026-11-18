@@ -83,6 +83,7 @@ namespace UdonSharpPlus
             HashSet<string> names = CollectionNames(compilation);
             TreeFilter.Selection selection = TreeFilter.SelectMembers(compilation, trees, IsCollectionType, null,
                 n => n is QueryExpressionSyntax || n is SimpleNameSyntax s && names.Contains(s.Identifier.ValueText));
+            Prebind.Run(compilation, trees, selection.Trees, selection.NeedsMember);
 
             var result = new List<SyntaxTree>(trees.Count);
             for (int i = 0; i < trees.Count; i++)

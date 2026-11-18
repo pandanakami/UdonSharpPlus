@@ -338,6 +338,7 @@ namespace UdonSharpPlus
             var interfaces = CollectInterfaces(compilation, trees, diagnostics);
             if (interfaces.Count == 0)
                 return trees;
+            Prebind.Run(compilation, trees);
 
             CollectImplementers(compilation, trees, interfaces, diagnostics);
 

@@ -61,6 +61,10 @@ namespace UdonSharpPlus
                 }
             }
 
+            // 2 回目は見るところが少ない（ジェネリクスのコピーと new { ... } のあるメンバー）ので、下準備はしない
+            if (beforeCopies == null)
+                Prebind.Run(compilation, trees, selected);
+
             var shared = new Shared(counter);
             var result = new List<SyntaxTree>(trees.Count);
             for (int i = 0; i < trees.Count; i++)

@@ -35,6 +35,7 @@ namespace UdonSharpPlus
                 t => t.GetMembers().OfType<IMethodSymbol>().Any(m => m.MethodKind == MethodKind.UserDefinedOperator || m.MethodKind == MethodKind.Conversion),
                 n => n is OperatorDeclarationSyntax || n is ConversionOperatorDeclarationSyntax);
             bool[] selected = selection.Trees;
+            Prebind.Run(compilation, trees, selected, selection.NeedsMember);
 
             // ソースで宣言した演算子と、書き換えたメソッドの名前
             var names = new Dictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);

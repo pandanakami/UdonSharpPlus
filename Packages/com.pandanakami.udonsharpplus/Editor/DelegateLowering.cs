@@ -82,6 +82,7 @@ namespace UdonSharpPlus
             var delegates = CollectDelegates(compilation, trees);
             if (delegates.Count == 0 && !trees.Any(t => t.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Any()))
                 return trees;
+            Prebind.Run(compilation, trees);
 
             var shared = new Shared(delegates, diagnostics, trees);
             var result = new List<SyntaxTree>(trees.Count);

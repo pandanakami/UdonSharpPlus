@@ -47,6 +47,7 @@ namespace UdonSharpPlus
             // 選んだファイルの中でも、どちらも書いていないメンバーは見ない（#165）
             TreeFilter.Selection selection = TreeFilter.SelectMembers(compilation, trees, t => t.IsTupleType, null, IsTupleSyntax);
             bool[] selected = selection.Trees;
+            Prebind.Run(compilation, trees, selected, selection.NeedsMember);
 
             var shared = new Shared(counter);
             var result = new List<SyntaxTree>(trees.Count);

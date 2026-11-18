@@ -190,6 +190,7 @@ namespace UdonSharpPlus
             try
             {
                 var compilation = Compilations.For(trees, references);
+                Prebind.Run(compilation, trees);
                 for (int i = 0; i < trees.Count; i++)
                     new Walker(compilation.Model(trees[i]), i, found, on).Visit(trees[i].GetRoot());
                 return found;
