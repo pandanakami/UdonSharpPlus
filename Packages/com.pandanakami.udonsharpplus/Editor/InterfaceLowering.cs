@@ -652,7 +652,12 @@ namespace UdonSharpPlus
             }
         }
 
-        internal static bool IsUdonSharpBehaviour(INamedTypeSymbol type)
+        internal static bool IsUdonSharpBehaviour(INamedTypeSymbol type) => UdonSharpBehaviourFact.Of(type);
+
+        /// <summary>型ごとに 1 回だけ調べる（#165。書き換えの段が式ごとに呼ぶ）</summary>
+        private static readonly TypeFact UdonSharpBehaviourFact = new TypeFact(t => ComputeIsUdonSharpBehaviour((INamedTypeSymbol)t));
+
+        private static bool ComputeIsUdonSharpBehaviour(INamedTypeSymbol type)
         {
             for (var t = type.BaseType; t != null; t = t.BaseType)
                 if (t.ToDisplayString() == "UdonSharp.UdonSharpBehaviour")

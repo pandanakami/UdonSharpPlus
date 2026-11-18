@@ -182,7 +182,12 @@ namespace UdonSharpPlus
         /// 汎用クラスの候補か：基底をたどって、object までソース上の普通のクラスだけが続くもの。
         /// （UdonSharpBehaviour・MonoBehaviour・Attribute などの派生は対象外）
         /// </summary>
-        internal static bool IsPlainClass(INamedTypeSymbol symbol)
+        internal static bool IsPlainClass(INamedTypeSymbol symbol) => PlainClassFact.Of(symbol);
+
+        /// <summary>型ごとに 1 回だけ調べる（#165）</summary>
+        private static readonly TypeFact PlainClassFact = new TypeFact(t => ComputeIsPlainClass((INamedTypeSymbol)t));
+
+        private static bool ComputeIsPlainClass(INamedTypeSymbol symbol)
         {
             if (symbol.TypeKind != TypeKind.Class || InterfaceLowering.IsUdonSharpBehaviour(symbol) || InterfaceLowering.IsUdonSharpLibrary(symbol))
                 return false;
@@ -333,11 +338,14 @@ namespace UdonSharpPlus
             /// <summary>
             /// 未対応のユーザー定義の型（構造体、外部のクラスを継承したクラス）を記録する（Point? や配列、型引数の中も見る）
             /// </summary>
+            /// <summary>AddUnsupported で調べた型。記録は集合に足すだけで、同じ型なら結果も同じなので、2 回目は見ない（#165）</summary>
+            private readonly HashSet<ITypeSymbol> _unsupportedSeen = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+
             private void AddUnsupported(ITypeSymbol type)
             {
                 while (type is IArrayTypeSymbol array)
                     type = array.ElementType;
-                if (!(type is INamedTypeSymbol named))
+                if (!(type is INamedTypeSymbol named) || !_unsupportedSeen.Add(named))
                     return;
                 // タプル（(string, int) など）は ValueTuple だが、位置にソースの中のタプルの書き方を持つので、ユーザー定義の構造体と取り違えない（#78 で発覚）
                 if (named.Locations.Any(l => l.IsInSource) && !named.IsTupleType)
@@ -353,13 +361,15 @@ namespace UdonSharpPlus
             }
 
             /// <summary>属性（System.Attribute の派生）。属性として付けるだけなので対象外</summary>
-            private static bool IsAttribute(INamedTypeSymbol type)
+            private static bool IsAttribute(INamedTypeSymbol type) => AttributeFact.Of(type);
+
+            private static readonly TypeFact AttributeFact = new TypeFact(type =>
             {
                 for (INamedTypeSymbol t = type.BaseType; t != null; t = t.BaseType)
                     if (t.ToDisplayString() == "System.Attribute")
                         return true;
                 return false;
-            }
+            });
 
             /// <summary>使うクラスから推移的にたどった一覧（決まった順）</summary>
             public List<ClassInfo> Closure(IEnumerable<ClassInfo> roots)
