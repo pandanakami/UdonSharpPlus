@@ -28,7 +28,8 @@ Fixes
 - `dict.TryGetValue(key, out var v);` written as a statement (without using its result) no longer breaks the compile, and `out _` can be used with it.
 - Two interfaces with a method of the same name and parameters but a different return type (`int Size()` and `string Size()`) no longer break the compile.
 - Compiling the same code twice now gives the same result. Before, the program assets (`.asset`) could change on every compile even when the code had not changed (generated names such as `__Anon_0`, and the field order of `partial` classes, depended on the order UdonSharp read the files in).
-- U# compiles are faster: in a test project with about 10,000 lines, the rewriting by UdonSharp Plus went from about 68 to 51 seconds.
+- A `using` alias of a `List` / `Dictionary` (`using IntList = List<int>;`) used as a type in an `UdonSharpBehaviour` (`IntList xs = new IntList();`, fields, parameters, return values) no longer breaks the compile.
+- U# compiles are faster: in a test project with about 10,000 lines, the rewriting by UdonSharp Plus went from about 68 to 23 seconds, and the whole U# compile from about 87 to 43 seconds.
 
 ### 日本語
 
@@ -53,7 +54,8 @@ Fixes
 - `dict.TryGetValue(key, out var v);` を、戻り値を使わない文として書くと、コンパイルが壊れていたのを直しました。`out _` も使えるようにしました。
 - 別々のインタフェースに、名前と引数が同じで戻り値の型が違うメソッド（`int Size()` と `string Size()`）があると、コンパイルが壊れていたのを直しました。
 - 同じコードを 2 回コンパイルすると、同じ結果になるようにしました。これまでは、コードを変えていなくても、コンパイルのたびにプログラムのアセット（`.asset`）が書き変わることがありました（生成する名前（`__Anon_0` など）と、`partial` のクラスのフィールドの並びが、UdonSharp がファイルを読んだ順で変わっていたため）。
-- U# のコンパイルを速くしました。約 1 万行のテスト用のプロジェクトで、UdonSharp Plus の書き換えが 約 68 秒から 約 51 秒になりました。
+- `List`／`Dictionary` の `using` の別名（`using IntList = List<int>;`）を、`UdonSharpBehaviour` の中で型に使うと（`IntList xs = new IntList();`・フィールド・引数・戻り値）、コンパイルが壊れていたのを直しました。
+- U# のコンパイルを速くしました。約 1 万行のテスト用のプロジェクトで、UdonSharp Plus の書き換えが 約 68 秒から 約 23 秒に、U# のコンパイル全体が 約 87 秒から 約 43 秒になりました。
 
 ## [0.1.4]
 

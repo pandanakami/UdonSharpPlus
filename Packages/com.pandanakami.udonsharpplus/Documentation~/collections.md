@@ -28,6 +28,7 @@ foreach (var kv in _bullets) Debug.Log(kv.Key + kv.Value.damage);
 - `foreach`：List、Dictionary（`kv.Key`／`kv.Value`）、`dict.Keys`、`dict.Values`。`kv` は変数に入れる、メソッドに渡す、ラムダの中で使う、などもできます（下の「KeyValuePair」）
 - `KeyValuePair<K, V>`（変数・引数・戻り値・List の要素、`new KeyValuePair<K, V>(k, v)`、`.Key`／`.Value`）
 - フィールドの初期化子、メソッドの引数・戻り値（インタフェースのメソッドを含む）
+- `using` の別名（`using IntList = List<int>;` と書いて `IntList xs = new IntList();`）
 - ラムダを受け取る List のメソッド：`Find`、`FindLast`、`FindIndex`、`FindLastIndex`（どちらも開始・個数の指定を含む）、`FindAll`、`ConvertAll`、`Exists`、`TrueForAll`、`RemoveAll`、`ForEach`、`Sort(Comparison)`（下の「ラムダ」）
 
 未対応の書き方（コンパイルエラーになります）：

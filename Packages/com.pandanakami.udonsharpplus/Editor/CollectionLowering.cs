@@ -865,6 +865,14 @@ namespace UdonSharpPlus
                 if (_helpers != null && _pairs.Count > 0 && _model.SymbolInfoOf(node).Symbol is ISymbol local && _pairs.TryGetValue(local, out PairLoop pair)
                     && !(node.Parent is MemberAccessExpressionSyntax m && m.Expression == node))
                     return Parse($"({PairObject(pair)})", node);
+                // using の別名（using IntList = List<int>; の IntList x）。指す型として置き換える（#167）。
+                // 別名の名前は IdentifierName なので、VisitGenericName・VisitQualifiedName では拾えない
+                if (_helpers != null && _model.GetAliasInfo(node) != null && _model.SymbolInfoOf(node).Symbol is INamedTypeSymbol aliased
+                    && (ReplacementOf(aliased) ?? (IsKeyValuePair(aliased) || IsGrouping(aliased) ? "object[]" : null)) is string replaced)
+                {
+                    Changed = true;
+                    return SyntaxFactory.ParseTypeName(replaced).WithTriviaFrom(node);
+                }
                 return base.VisitIdentifierName(node);
             }
 
