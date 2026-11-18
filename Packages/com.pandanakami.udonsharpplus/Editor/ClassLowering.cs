@@ -271,16 +271,35 @@ namespace UdonSharpPlus
                 {
                     if (!(node is ExpressionSyntax || node is TypeSyntax))
                         continue;
+                    // リテラルと組込みの型（int・string など）は、ソースのクラス・構造体にならない
+                    if (node is LiteralExpressionSyntax || node is PredefinedTypeSyntax)
+                        continue;
 
-                    SymbolInfo info = model.SymbolInfoOf(node);
-                    foreach (ISymbol symbol in info.Symbol != null ? new[] { info.Symbol } : info.CandidateSymbols.ToArray())
-                        AddFromSymbol(symbol, found);
+                    ISymbol named = null;
+                    if (NeedsSymbol(node))
+                    {
+                        SymbolInfo info = model.SymbolInfoOf(node);
+                        named = info.Symbol;
+                        foreach (ISymbol symbol in info.Symbol != null ? new[] { info.Symbol } : info.CandidateSymbols.ToArray())
+                            AddFromSymbol(symbol, found);
+                    }
 
-                    if (node is ExpressionSyntax)
+                    // 型・名前空間を指す名前の型は、名前が指すものと同じ（AddFromSymbol で見た）
+                    if (node is ExpressionSyntax && !(named is ITypeSymbol || named is INamespaceSymbol))
                         AddFromType(model.GetTypeInfo(node).Type, found);
                 }
                 return found;
             }
+
+            /// <summary>
+            /// GetSymbolInfo を問い合わせる式（#165）。名前・添字（基底のインデクサー）・演算子・キャスト・ラムダ（ラムダのメソッドの、外側の型）だけ。
+            /// ほかの式が指すものは、子の名前が指すもの（a.b の b、f(x) の f、new C() の C、(x) の x）か、式の型
+            /// （コンストラクタ・デリゲートの Invoke の型）と同じなので、そちらで見る
+            /// </summary>
+            private static bool NeedsSymbol(SyntaxNode node) =>
+                node is SimpleNameSyntax || node is ElementAccessExpressionSyntax || node is ElementBindingExpressionSyntax
+                || node is BinaryExpressionSyntax || node is PrefixUnaryExpressionSyntax || node is PostfixUnaryExpressionSyntax
+                || node is AssignmentExpressionSyntax || node is CastExpressionSyntax || node is AnonymousFunctionExpressionSyntax;
 
             private void AddFromSymbol(ISymbol symbol, HashSet<ClassInfo> found)
             {
