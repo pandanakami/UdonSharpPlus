@@ -355,12 +355,12 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
-                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol pairType && (IsKeyValuePair(pairType) || IsGrouping(pairType)))
+                if (_helpers != null && _model.SymbolInfoOf(node).Symbol is INamedTypeSymbol pairType && (IsKeyValuePair(pairType) || IsGrouping(pairType)))
                 {
                     Changed = true;
                     return SyntaxFactory.ParseTypeName("object[]").WithTriviaFrom(node);
                 }
-                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && ReplacementOf(t) is string replaced)
+                if (_helpers != null && _model.SymbolInfoOf(node).Symbol is INamedTypeSymbol t && ReplacementOf(t) is string replaced)
                 {
                     Changed = true;
                     return SyntaxFactory.ParseTypeName(replaced).WithTriviaFrom(node);
@@ -370,7 +370,7 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t
+                if (_helpers != null && _model.SymbolInfoOf(node).Symbol is INamedTypeSymbol t
                     && (ReplacementOf(t) ?? (IsKeyValuePair(t) || IsGrouping(t) ? "object[]" : null)) is string replaced)
                 {
                     // 名前全体を置き換える（右側の KeyValuePair<K, V> だけを object[] にすると、名前の形でなくなる）
@@ -604,10 +604,10 @@ namespace UdonSharpPlus
                     return SyntaxFactory.IdentifierName(delegateArg).WithTriviaFrom(node);
 
                 // LINQ（#58）：つないだ呼び出しの一番外側でまとめて書き換える
-                if (_helpers != null && _model.GetSymbolInfo(node).Symbol is IMethodSymbol linq && IsLinqMethod(linq))
+                if (_helpers != null && _model.SymbolInfoOf(node).Symbol is IMethodSymbol linq && IsLinqMethod(linq))
                     return LinqCall(node);
 
-                if (_helpers == null || !(node.Expression is MemberAccessExpressionSyntax access) || !(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method))
+                if (_helpers == null || !(node.Expression is MemberAccessExpressionSyntax access) || !(_model.SymbolInfoOf(node).Symbol is IMethodSymbol method))
                     return base.VisitInvocationExpression(node);
 
                 ITypeSymbol receiverType = TypeOf(access.Expression);
@@ -728,7 +728,7 @@ namespace UdonSharpPlus
                         _pending.Add($"{typeText} {name.Identifier.ValueText} = {result};");
                         break;
                     case DeclarationExpressionSyntax _:
-                    case IdentifierNameSyntax discard when _model.GetSymbolInfo(discard).Symbol is IDiscardSymbol:
+                    case IdentifierNameSyntax discard when _model.SymbolInfoOf(discard).Symbol is IDiscardSymbol:
                         _pending.Add($"{typeText} {token}_discard = {result};");   // out var _、out _（U# は捨てる _ への代入に対応しない）
                         break;
                     default:
@@ -764,7 +764,7 @@ namespace UdonSharpPlus
                     return base.VisitMemberAccessExpression(node);
 
                 // foreach (var kv in dict) の kv.Key / kv.Value
-                if (node.Expression is IdentifierNameSyntax id && _model.GetSymbolInfo(id).Symbol is ISymbol local && _pairs.TryGetValue(local, out PairLoop pair))
+                if (node.Expression is IdentifierNameSyntax id && _model.SymbolInfoOf(id).Symbol is ISymbol local && _pairs.TryGetValue(local, out PairLoop pair))
                 {
                     switch (node.Name.Identifier.ValueText)
                     {
@@ -795,7 +795,7 @@ namespace UdonSharpPlus
                 if ((IsKeys(receiverType) || IsValues(receiverType)) && name == "Count" && node.Expression is MemberAccessExpressionSyntax inner)
                     return Parse($"({Text(Visit(inner.Expression))}).Count", node);
 
-                if ((IsList(receiverType) || IsDictionary(receiverType)) && !(_model.GetSymbolInfo(node).Symbol is IMethodSymbol))
+                if ((IsList(receiverType) || IsDictionary(receiverType)) && !(_model.SymbolInfoOf(node).Symbol is IMethodSymbol))
                 {
                     if (name == "Count" || name == "Capacity" && IsList(receiverType))
                         return base.VisitMemberAccessExpression(node);
@@ -815,7 +815,7 @@ namespace UdonSharpPlus
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
                 // kv を kv.Key / kv.Value 以外で使う（変数に入れる、メソッドに渡すなど）：その場で object[] を作る（#61）
-                if (_helpers != null && _pairs.Count > 0 && _model.GetSymbolInfo(node).Symbol is ISymbol local && _pairs.TryGetValue(local, out PairLoop pair)
+                if (_helpers != null && _pairs.Count > 0 && _model.SymbolInfoOf(node).Symbol is ISymbol local && _pairs.TryGetValue(local, out PairLoop pair)
                     && !(node.Parent is MemberAccessExpressionSyntax m && m.Expression == node))
                     return Parse($"({PairObject(pair)})", node);
                 return base.VisitIdentifierName(node);
@@ -870,7 +870,7 @@ namespace UdonSharpPlus
             {
                 if (!(info.ConvertedType is INamedTypeSymbol target) || target.OriginalDefinition.ToDisplayString() != IEnumerableName)
                     return null;
-                if (!(node.Parent is ArgumentListSyntax list) || !(_model.GetSymbolInfo(list.Parent).Symbol is IMethodSymbol method))
+                if (!(node.Parent is ArgumentListSyntax list) || !(_model.SymbolInfoOf(list.Parent).Symbol is IMethodSymbol method))
                     return null;
                 // ソースにあるメソッド・LINQ・List / Dictionary のメソッドは対象外（引数の型が IEnumerable<T> のままでは、中を回せない）
                 if (method.DeclaringSyntaxReferences.Length > 0 || IsLinqMethod(method) || IsList(method.ContainingType) || IsDictionary(method.ContainingType))
@@ -1199,7 +1199,7 @@ namespace UdonSharpPlus
                         body = m.Block;
                         break;
                     default:
-                        if (!(_model.GetSymbolInfo(fn).Symbol is IMethodSymbol))
+                        if (!(_model.SymbolInfoOf(fn).Symbol is IMethodSymbol))
                         {
                             Error(fn, Loc.T("この型のデリゲートを渡すのは未対応です（ラムダ・メソッド名か、Action・Func・Predicate・Comparison・ソースで宣言したデリゲートの変数を渡してください）", "Passing a delegate of this type is not supported (pass a lambda, a method name, or a variable of Action / Func / Predicate / Comparison or of a delegate declared in source)"));
                             return null;
@@ -1330,7 +1330,7 @@ namespace UdonSharpPlus
                 bool ok = true;
                 foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                 {
-                    ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                    ISymbol symbol = _model.SymbolInfoOf(id).Symbol;
                     ITypeSymbol type = symbol is ILocalSymbol local ? local.Type
                         : symbol is IParameterSymbol parameter && !parameter.IsThis ? parameter.Type
                         : null;

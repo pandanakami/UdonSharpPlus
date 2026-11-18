@@ -314,7 +314,7 @@ namespace UdonSharpPlus
             public override void VisitInvocationExpression(InvocationExpressionSyntax node)
             {
                 base.VisitInvocationExpression(node);
-                if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol m))
+                if (!(_model.SymbolInfoOf(node).Symbol is IMethodSymbol m))
                     return;
                 var access = node.Expression as MemberAccessExpressionSyntax;
                 SyntaxNode at = (SyntaxNode)access?.Name ?? node;
@@ -351,7 +351,7 @@ namespace UdonSharpPlus
                     if (m.ContainingType is INamedTypeSymbol owner && ClassLowering.IsPlainClass(owner) && Unwrap(access.Expression) is InvocationExpressionSyntax)
                         Add("USP013", at);
                     if (m.ReturnsVoid && !m.IsReadOnly && m.ContainingType?.TypeKind == TypeKind.Struct
-                        && _model.GetSymbolInfo(access.Expression).Symbol is IFieldSymbol field
+                        && _model.SymbolInfoOf(access.Expression).Symbol is IFieldSymbol field
                         && field.ContainingType is INamedTypeSymbol fieldOwner && ClassLowering.IsPlainClass(fieldOwner))
                         Add("USP006", at);
                 }
@@ -375,7 +375,7 @@ namespace UdonSharpPlus
                 bool buffering = false;
                 for (ExpressionSyntax e = Unwrap(receiver); e is InvocationExpressionSyntax call && call.Expression is MemberAccessExpressionSyntax ma; e = Unwrap(ma.Expression))
                 {
-                    if (!IsEnumerable(_model.GetSymbolInfo(call).Symbol as IMethodSymbol))
+                    if (!IsEnumerable(_model.SymbolInfoOf(call).Symbol as IMethodSymbol))
                         break;
                     if (Buffering.Contains(ma.Name.Identifier.Text))
                         buffering = true;
@@ -402,7 +402,7 @@ namespace UdonSharpPlus
                 ExpressionSyntax collection = Unwrap(node.Expression);
                 if (!IsList(type) && !IsDictionary(type) && collection is MemberAccessExpressionSyntax view)
                     collection = Unwrap(view.Expression);
-                ISymbol target = _model.GetSymbolInfo(collection).Symbol;
+                ISymbol target = _model.SymbolInfoOf(collection).Symbol;
                 if (!(target is ILocalSymbol || target is IFieldSymbol || target is IParameterSymbol || target is IPropertySymbol))
                     return;
 
@@ -410,8 +410,8 @@ namespace UdonSharpPlus
                 {
                     if (n is InvocationExpressionSyntax call && call.Expression is MemberAccessExpressionSyntax ma
                         && Mutators.Contains(ma.Name.Identifier.Text)
-                        && SymbolEqualityComparer.Default.Equals(_model.GetSymbolInfo(Unwrap(ma.Expression)).Symbol, target)
-                        && _model.GetSymbolInfo(call).Symbol is IMethodSymbol m && (IsList(m.ContainingType) || IsDictionary(m.ContainingType)))
+                        && SymbolEqualityComparer.Default.Equals(_model.SymbolInfoOf(Unwrap(ma.Expression)).Symbol, target)
+                        && _model.SymbolInfoOf(call).Symbol is IMethodSymbol m && (IsList(m.ContainingType) || IsDictionary(m.ContainingType)))
                     {
                         Add("USP003", ma.Name);
                         return;
@@ -419,7 +419,7 @@ namespace UdonSharpPlus
                     // Dictionary の添字への代入（C# では、回している途中に値を変えるのも InvalidOperationException）
                     if (n is AssignmentExpressionSyntax assign && Unwrap(assign.Left) is ElementAccessExpressionSyntax element
                         && IsDictionary(_model.GetTypeInfo(element.Expression).Type)
-                        && SymbolEqualityComparer.Default.Equals(_model.GetSymbolInfo(Unwrap(element.Expression)).Symbol, target))
+                        && SymbolEqualityComparer.Default.Equals(_model.SymbolInfoOf(Unwrap(element.Expression)).Symbol, target))
                     {
                         Add("USP003", assign);
                         return;
@@ -491,7 +491,7 @@ namespace UdonSharpPlus
                     return;
                 if (node.Parent is MemberAccessExpressionSyntax outer && outer.Expression == node)
                     return;
-                if (_model.GetSymbolInfo(node).Symbol is IMethodSymbol method)
+                if (_model.SymbolInfoOf(node).Symbol is IMethodSymbol method)
                     Delegate(node, method);
             }
 
@@ -548,7 +548,7 @@ namespace UdonSharpPlus
             {
                 if (!(ParentSkippingParens(node) is ArgumentSyntax arg) || !(arg.Parent?.Parent is InvocationExpressionSyntax call))
                     return false;
-                if (!(_model.GetSymbolInfo(call).Symbol is IMethodSymbol m))
+                if (!(_model.SymbolInfoOf(call).Symbol is IMethodSymbol m))
                     return false;
                 return IsEnumerable(m) || IsList(m.ContainingType) || IsDictionary(m.ContainingType);
             }

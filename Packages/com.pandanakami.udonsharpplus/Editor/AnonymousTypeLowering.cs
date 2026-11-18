@@ -581,7 +581,7 @@ namespace UdonSharpPlus
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
                 var visited = (MemberAccessExpressionSyntax)base.VisitMemberAccessExpression(node);
-                if (_model.GetSymbolInfo(node).Symbol is IPropertySymbol prop && prop.ContainingType != null && prop.ContainingType.IsAnonymousType
+                if (_model.SymbolInfoOf(node).Symbol is IPropertySymbol prop && prop.ContainingType != null && prop.ContainingType.IsAnonymousType
                     && Shared.Ident(prop.Name) != prop.Name)
                 {
                     Changed = true;
@@ -626,7 +626,7 @@ namespace UdonSharpPlus
             {
                 // List<匿名型> の Contains / IndexOf / LastIndexOf / Remove と、LINQ の Distinct / Contains：
                 // C# は値（Equals）で比べるが、リストの比較は参照なので結果が変わる。黙って違う結果にせず、エラーにする
-                if (_model.GetSymbolInfo(node).Symbol is IMethodSymbol cmp && ComparesByEquals(cmp, out ITypeSymbol element)
+                if (_model.SymbolInfoOf(node).Symbol is IMethodSymbol cmp && ComparesByEquals(cmp, out ITypeSymbol element)
                     && element is INamedTypeSymbol anonElement
                     && (anonElement.IsAnonymousType && (!_defer || _shared.Get(anonElement, out _) != null)
                         // ジェネリクスのコピーのあと：型引数が匿名型だった場所（List<T>.Contains(x) の T）は、生成したクラスになっている
@@ -642,7 +642,7 @@ namespace UdonSharpPlus
                 }
                 if (node.Expression is MemberAccessExpressionSyntax access
                     && _model.GetTypeInfo(access.Expression).Type is INamedTypeSymbol receiverType && receiverType.IsAnonymousType
-                    && _model.GetSymbolInfo(node).Symbol is IMethodSymbol method && method.ContainingType.SpecialType == SpecialType.System_Object)
+                    && _model.SymbolInfoOf(node).Symbol is IMethodSymbol method && method.ContainingType.SpecialType == SpecialType.System_Object)
                 {
                     AnonInfo info = _shared.Get(receiverType, out string error);
                     if (info == null)

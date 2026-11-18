@@ -469,7 +469,7 @@ namespace UdonSharpPlus
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
                 // Dictionary<(int, int), V>：キーを値で比べられない
-                if (node.Identifier.ValueText == "Dictionary" && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol dict
+                if (node.Identifier.ValueText == "Dictionary" && _model.SymbolInfoOf(node).Symbol is INamedTypeSymbol dict
                     && dict.TypeArguments.Length == 2 && IsTuple(dict.TypeArguments[0])
                     && dict.ContainingNamespace?.ToDisplayString() == "System.Collections.Generic")
                 {
@@ -499,7 +499,7 @@ namespace UdonSharpPlus
             /// <summary>タプルの型の表記（(int, string)・ValueTuple&lt;int, string&gt;）→ 生成するクラスの名前。タプルでなければ null</summary>
             private SyntaxNode ReplaceType(TypeSyntax node)
             {
-                if (!(_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type) || !type.IsTupleType)
+                if (!(_model.SymbolInfoOf(node).Symbol is INamedTypeSymbol type) || !type.IsTupleType)
                     return null;
                 TupleInfo info = InfoOf(type, node, out bool deferred);
                 if (info == null)
@@ -657,7 +657,7 @@ namespace UdonSharpPlus
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
                 // list[0].Item1 = 2 は C# ではエラー（CS1612）で、シンボルは候補にだけ出る
-                SymbolInfo symbolInfo = _model.GetSymbolInfo(node);
+                SymbolInfo symbolInfo = _model.SymbolInfoOf(node);
                 if ((symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault()) is IFieldSymbol field && field.ContainingType != null && field.ContainingType.IsTupleType)
                 {
                     if (IsWritten(node))
@@ -790,7 +790,7 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
-                var method = _model.GetSymbolInfo(node).Symbol as IMethodSymbol;
+                var method = _model.SymbolInfoOf(node).Symbol as IMethodSymbol;
 
                 // List<タプル> の Contains / IndexOf / LastIndexOf / Remove と、LINQ の Distinct / Contains：C# と同じく値で比べる（#138 と同じ仕組み）
                 if (method != null && AnonymousTypeLowering.ComparesByEquals(method, out ITypeSymbol element) && element is INamedTypeSymbol el
@@ -1084,7 +1084,7 @@ namespace UdonSharpPlus
                 {
                     case ElementAccessExpressionSyntax element:
                         return $"{Hoist(element.Expression)}[{string.Join(", ", element.ArgumentList.Arguments.Select(a => Hoist(a.Expression)))}]";
-                    case MemberAccessExpressionSyntax member when !(member.Expression is ThisExpressionSyntax) && !(_model.GetSymbolInfo(member.Expression).Symbol is INamedTypeSymbol):
+                    case MemberAccessExpressionSyntax member when !(member.Expression is ThisExpressionSyntax) && !(_model.SymbolInfoOf(member.Expression).Symbol is INamedTypeSymbol):
                         return $"{Hoist(member.Expression)}.{member.Name}";
                     default:
                         return Text(Visit(target));
@@ -1094,11 +1094,11 @@ namespace UdonSharpPlus
             /// <summary>評価しても副作用がなく、何回読んでも同じ式（ローカル変数・引数・this・リテラル）</summary>
             private bool IsSimple(ExpressionSyntax e) =>
                 e is LiteralExpressionSyntax || e is ThisExpressionSyntax
-                || e is IdentifierNameSyntax && _model.GetSymbolInfo(e).Symbol is ISymbol sym && (sym is ILocalSymbol || sym is IParameterSymbol);
+                || e is IdentifierNameSyntax && _model.SymbolInfoOf(e).Symbol is ISymbol sym && (sym is ILocalSymbol || sym is IParameterSymbol);
 
             private bool IsDiscard(IdentifierNameSyntax id)
             {
-                ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                ISymbol symbol = _model.SymbolInfoOf(id).Symbol;
                 return !(symbol is ILocalSymbol || symbol is IParameterSymbol || symbol is IFieldSymbol || symbol is IPropertySymbol);
             }
 

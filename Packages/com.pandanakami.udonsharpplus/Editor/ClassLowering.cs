@@ -272,7 +272,7 @@ namespace UdonSharpPlus
                     if (!(node is ExpressionSyntax || node is TypeSyntax))
                         continue;
 
-                    SymbolInfo info = model.GetSymbolInfo(node);
+                    SymbolInfo info = model.SymbolInfoOf(node);
                     foreach (ISymbol symbol in info.Symbol != null ? new[] { info.Symbol } : info.CandidateSymbols.ToArray())
                         AddFromSymbol(symbol, found);
 
@@ -635,7 +635,7 @@ namespace UdonSharpPlus
                     return base.VisitFieldDeclaration(node);
 
                 var attributes = node.AttributeLists.SelectMany(l => l.Attributes)
-                    .Select(a => _model.GetSymbolInfo(a).Symbol?.ContainingType?.Name).ToList();
+                    .Select(a => _model.SymbolInfoOf(a).Symbol?.ContainingType?.Name).ToList();
                 if (attributes.Contains("SerializeField") || attributes.Contains("UdonSyncedAttribute") || attributes.Contains("SerializeReference"))
                 {
                     Error(node, Loc.T("普通のクラスの型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）", "Fields of a plain class type cannot be serialized or synced ([SerializeField] / [UdonSynced] cannot be used)"));
@@ -657,7 +657,7 @@ namespace UdonSharpPlus
                 if (node.Parent is MemberAccessExpressionSyntax parentAccess && parentAccess.Name == node)
                     return base.VisitIdentifierName(node);
 
-                ISymbol symbol = _model.GetSymbolInfo(node).Symbol;
+                ISymbol symbol = _model.SymbolInfoOf(node).Symbol;
 
                 if (TryConstant(node, symbol, out ExpressionSyntax constant))
                     return constant;
@@ -684,7 +684,7 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type)
+                if (_model.SymbolInfoOf(node).Symbol is INamedTypeSymbol type)
                 {
                     if (Target(type) != null)
                         return ParseInstanceType(node);
@@ -696,7 +696,7 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
             {
-                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type && Target(type) != null)
+                if (_model.SymbolInfoOf(node).Symbol is INamedTypeSymbol type && Target(type) != null)
                     return ParseInstanceType(node);
                 return base.VisitAliasQualifiedName(node);
             }
@@ -704,7 +704,7 @@ namespace UdonSharpPlus
             // List<int> など：コピーの中では完全修飾にする（型引数の汎用クラスは object[] にする）
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
-                if (_self != null && _model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type)
+                if (_self != null && _model.SymbolInfoOf(node).Symbol is INamedTypeSymbol type)
                     return QualifiedType(type, node);
                 return base.VisitGenericName(node);
             }
@@ -807,7 +807,7 @@ namespace UdonSharpPlus
             private bool ReferencesTarget(SyntaxNode node) =>
                 node.DescendantNodesAndSelf().Any(n =>
                 {
-                    ISymbol s = _model.GetSymbolInfo(n).Symbol;
+                    ISymbol s = _model.SymbolInfoOf(n).Symbol;
                     return (s is ITypeSymbol t && _context.InvolvesTarget(t)) || (s != null && !(s is ITypeSymbol) && Target(s.ContainingType) != null);
                 });
 
@@ -826,7 +826,7 @@ namespace UdonSharpPlus
                 else if (!(expr is IdentifierNameSyntax) || _self == null)
                     return false;
 
-                ISymbol symbol = _model.GetSymbolInfo(expr).Symbol;
+                ISymbol symbol = _model.SymbolInfoOf(expr).Symbol;
                 if (symbol == null || symbol.IsStatic || !(symbol is IFieldSymbol || symbol is IPropertySymbol))
                     return false;
 
@@ -854,7 +854,7 @@ namespace UdonSharpPlus
                 else if (!(expr is IdentifierNameSyntax) || _self == null)
                     return false;
 
-                if (!(_model.GetSymbolInfo(expr).Symbol is IPropertySymbol p) || p.IsIndexer)
+                if (!(_model.SymbolInfoOf(expr).Symbol is IPropertySymbol p) || p.IsIndexer)
                     return false;
 
                 c = Target(p.ContainingType);
@@ -913,11 +913,11 @@ namespace UdonSharpPlus
                         return _model.GetTypeInfo(el.Expression).Type is IArrayTypeSymbol && IsPureReceiver(el.Expression)
                             && el.ArgumentList.Arguments.All(a => a.Expression is LiteralExpressionSyntax || IsPureReceiver(a.Expression));
                     case MemberAccessExpressionSyntax m when m.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                        if (!(_model.GetSymbolInfo(m.Expression).Symbol is ITypeSymbol) && !IsPureReceiver(m.Expression))
+                        if (!(_model.SymbolInfoOf(m.Expression).Symbol is ITypeSymbol) && !IsPureReceiver(m.Expression))
                             return false;
-                        return IsPureSymbol(_model.GetSymbolInfo(m).Symbol);
+                        return IsPureSymbol(_model.SymbolInfoOf(m).Symbol);
                     case IdentifierNameSyntax _:
-                        return IsPureSymbol(_model.GetSymbolInfo(e).Symbol);
+                        return IsPureSymbol(_model.SymbolInfoOf(e).Symbol);
                     default:
                         return false;
                 }
@@ -943,7 +943,7 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                ISymbol symbol = _model.GetSymbolInfo(node).Symbol;
+                ISymbol symbol = _model.SymbolInfoOf(node).Symbol;
 
                 if (TryConstant(node, symbol, out ExpressionSyntax constant))
                     return constant;
@@ -1179,7 +1179,7 @@ namespace UdonSharpPlus
 
             private SyntaxNode RewriteCreation(ExpressionSyntax node, ArgumentListSyntax arguments, InitializerExpressionSyntax initializer)
             {
-                if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol ctor) || Target(ctor.ContainingType) == null)
+                if (!(_model.SymbolInfoOf(node).Symbol is IMethodSymbol ctor) || Target(ctor.ContainingType) == null)
                     return null;
 
                 if (initializer != null)
@@ -1203,7 +1203,7 @@ namespace UdonSharpPlus
                     && _model.GetConstantValue(node).Value is string name && ReferencesTarget(node.ArgumentList))
                     return Parse(SyntaxFactory.Literal(name).ToString(), node);
 
-                if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method))
+                if (!(_model.SymbolInfoOf(node).Symbol is IMethodSymbol method))
                     return base.VisitInvocationExpression(node);
 
                 if (InterfaceLowering.GetComponentTypeArgument(method) is ITypeSymbol component && _context.Target(component) != null)
@@ -1449,7 +1449,7 @@ namespace UdonSharpPlus
                 sb.Append($"private static void {InitName(c, ctor)}({InstanceType} {ThisName}{(plain.Length > 0 ? ", " + plain : "")}) {{ ");
 
                 if (initializer != null && initializer.IsKind(SyntaxKind.ThisConstructorInitializer)
-                    && _model.GetSymbolInfo(initializer).Symbol is IMethodSymbol other)
+                    && _model.SymbolInfoOf(initializer).Symbol is IMethodSymbol other)
                 {
                     var args = new List<string> { ThisName };
                     args.AddRange(initializer.ArgumentList.Arguments.Select(a => Flatten(Visit(a), a)));

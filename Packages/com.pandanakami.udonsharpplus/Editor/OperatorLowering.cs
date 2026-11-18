@@ -174,7 +174,7 @@ namespace UdonSharpPlus
             private void Error(SyntaxNode node, string message) => _diagnostics.Error(node.GetLocation(), message);
 
             /// <summary>node で使われるユーザー定義の演算子・変換（ソースで宣言したもの）。なければ null</summary>
-            private IMethodSymbol Operator(SyntaxNode node) => Known(_model.GetSymbolInfo(node).Symbol as IMethodSymbol);
+            private IMethodSymbol Operator(SyntaxNode node) => Known(_model.SymbolInfoOf(node).Symbol as IMethodSymbol);
 
             private IMethodSymbol Known(IMethodSymbol method) =>
                 method != null && (method.MethodKind == MethodKind.UserDefinedOperator || method.MethodKind == MethodKind.Conversion)
@@ -398,7 +398,7 @@ namespace UdonSharpPlus
                     case ParenthesizedExpressionSyntax p:
                         return IsRepeatable(p.Expression);
                     case MemberAccessExpressionSyntax m:
-                        return _model.GetSymbolInfo(m.Expression).Symbol is INamedTypeSymbol || IsRepeatable(m.Expression);
+                        return _model.SymbolInfoOf(m.Expression).Symbol is INamedTypeSymbol || IsRepeatable(m.Expression);
                     case ElementAccessExpressionSyntax a:
                         return IsRepeatable(a.Expression) && a.ArgumentList.Arguments.All(arg => IsRepeatable(arg.Expression));
                     default:

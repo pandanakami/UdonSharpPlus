@@ -131,7 +131,7 @@ namespace UdonSharpPlus
                 foreach (SimpleNameSyntax name in trees[i].GetRoot().DescendantNodes().OfType<SimpleNameSyntax>())
                 {
                     if (!ExternalNames.Contains(name.Identifier.ValueText)
-                        || !(model.GetSymbolInfo(name).Symbol is INamedTypeSymbol symbol) || !IsExternalDelegate(symbol)
+                        || !(model.SymbolInfoOf(name).Symbol is INamedTypeSymbol symbol) || !IsExternalDelegate(symbol)
                         || result.ContainsKey(symbol) || !symbol.TypeArguments.All(IsConcrete))
                         continue;
                     var info = new DelegateInfo
@@ -583,7 +583,7 @@ namespace UdonSharpPlus
                         continue;
                     foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                     {
-                        ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                        ISymbol symbol = _model.SymbolInfoOf(id).Symbol;
                         if (LocalFuncOf(symbol) is LocalFunc callee)
                         {
                             if (!called.Contains(callee))
@@ -700,7 +700,7 @@ namespace UdonSharpPlus
             private bool TryCaptured(SyntaxNode node, out ISymbol symbol, out (Scope Scope, int Index) slot)
             {
                 slot = default;
-                symbol = node is VariableDeclaratorSyntax v ? _model.GetDeclaredSymbol(v) : _model.GetSymbolInfo(node).Symbol;
+                symbol = node is VariableDeclaratorSyntax v ? _model.GetDeclaredSymbol(v) : _model.SymbolInfoOf(node).Symbol;
                 return symbol != null && _captured.TryGetValue(symbol, out slot);
             }
 
@@ -758,7 +758,7 @@ namespace UdonSharpPlus
                 if (!(n.Parent is ArgumentSyntax arg) || !(arg.Parent?.Parent is ExpressionSyntax call)
                     || !(call is InvocationExpressionSyntax || call is ObjectCreationExpressionSyntax))
                     return false;
-                SymbolInfo si = _model.GetSymbolInfo(call);
+                SymbolInfo si = _model.SymbolInfoOf(call);
                 return (si.Symbol ?? si.CandidateSymbols.FirstOrDefault()) is IMethodSymbol m
                     && m.MethodKind != MethodKind.DelegateInvoke && !m.Locations.Any(l => l.IsInSource);
             }
@@ -962,7 +962,7 @@ namespace UdonSharpPlus
                 while (type is IArrayTypeSymbol array)
                     type = array.ElementType;
                 if (_shared.Find(type) != null
-                    && node.AttributeLists.SelectMany(l => l.Attributes).Any(a => IsSerializationAttribute(_model.GetSymbolInfo(a).Symbol?.ContainingType)))
+                    && node.AttributeLists.SelectMany(l => l.Attributes).Any(a => IsSerializationAttribute(_model.SymbolInfoOf(a).Symbol?.ContainingType)))
                 {
                     foreach (VariableDeclaratorSyntax v in node.Declaration.Variables)
                         Error(v, Loc.T($"'{v.Identifier.ValueText}' : デリゲート型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）", $"'{v.Identifier.ValueText}' : Fields of a delegate type cannot be serialized or synced ([SerializeField] / [UdonSynced] cannot be used)"));
@@ -1066,7 +1066,7 @@ namespace UdonSharpPlus
                     && inv.Expression is IdentifierNameSyntax nameofId && nameofId.Identifier.ValueText == "nameof")
                     return null;
 
-                ISymbol symbol = _model.GetSymbolInfo(node).Symbol;
+                ISymbol symbol = _model.SymbolInfoOf(node).Symbol;
                 if (symbol is ILocalSymbol constant && constant.IsConst && constant.HasConstantValue
                     && node.Ancestors().Any(l => _needs.ContainsKey(l)
                         && !constant.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == l.SyntaxTree && l.Span.Contains(r.Span))))
@@ -1327,7 +1327,7 @@ namespace UdonSharpPlus
             /// </summary>
             private SyntaxNode LocalFunctionReference(IdentifierNameSyntax node)
             {
-                if (!(LocalFuncOf(_model.GetSymbolInfo(node).Symbol) is LocalFunc local))
+                if (!(LocalFuncOf(_model.SymbolInfoOf(node).Symbol) is LocalFunc local))
                     return null;
                 if (node.Parent is ArgumentSyntax nameArg && nameArg.Parent?.Parent is InvocationExpressionSyntax inv
                     && inv.Expression is IdentifierNameSyntax nameofId && nameofId.Identifier.ValueText == "nameof")
@@ -1400,7 +1400,7 @@ namespace UdonSharpPlus
             /// <summary>デリゲート型の参照を object[] にする。置き換えられない位置ならエラー</summary>
             private SyntaxNode TypeReference(NameSyntax node)
             {
-                if (!(_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type))
+                if (!(_model.SymbolInfoOf(node).Symbol is INamedTypeSymbol type))
                     return null;
                 if (!(_shared.Find(type) is DelegateInfo info))
                 {
@@ -1504,7 +1504,7 @@ namespace UdonSharpPlus
                     return CreateFromLocalFunction(node, info, local, ctx);
 
                 ExpressionSyntax receiver = node is MemberAccessExpressionSyntax rm ? rm.Expression : null;
-                bool typeReceiver = receiver != null && _model.GetSymbolInfo(receiver).Symbol is ITypeSymbol;
+                bool typeReceiver = receiver != null && _model.SymbolInfoOf(receiver).Symbol is ITypeSymbol;
                 string mTag = TagName(method.ContainingType);
 
                 // ほかのインスタンスのメソッド（#124）
@@ -1909,7 +1909,7 @@ namespace UdonSharpPlus
             {
                 DelegateInfo info = _shared.Find(_model.GetTypeInfo(node.Type).Type);
                 ExpressionSyntax operand = node.Expression is ParenthesizedExpressionSyntax p ? p.Expression : node.Expression;
-                if (info != null && !(operand is InvocationExpressionSyntax) && _model.GetSymbolInfo(operand).Symbol is IMethodSymbol method)
+                if (info != null && !(operand is InvocationExpressionSyntax) && _model.SymbolInfoOf(operand).Symbol is IMethodSymbol method)
                 {
                     SyntaxNode created = Create(operand, info, method);
                     return created == operand ? node : created.WithTriviaFrom(node);
@@ -1927,7 +1927,7 @@ namespace UdonSharpPlus
                 ExpressionSyntax arg = node.ArgumentList?.Arguments.Count == 1 ? node.ArgumentList.Arguments[0].Expression : null;
                 if (arg is LambdaExpressionSyntax || arg is AnonymousMethodExpressionSyntax)
                     return Visit(arg).WithTriviaFrom(node);
-                if (arg != null && _model.GetSymbolInfo(arg).Symbol is IMethodSymbol method)
+                if (arg != null && _model.SymbolInfoOf(arg).Symbol is IMethodSymbol method)
                 {
                     SyntaxNode created = Create(arg, info, method);
                     return created == arg ? node : created.WithTriviaFrom(node);
@@ -1961,7 +1961,7 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
-                if (node.Expression is IdentifierNameSyntax localId && LocalFuncOf(_model.GetSymbolInfo(localId).Symbol) is LocalFunc callee)
+                if (node.Expression is IdentifierNameSyntax localId && LocalFuncOf(_model.SymbolInfoOf(localId).Symbol) is LocalFunc callee)
                     return LocalFunctionCall(node, callee);
                 ExpressionSyntax target = null;
                 DelegateInfo info = DelegateOf(node.Expression);
@@ -2075,7 +2075,7 @@ namespace UdonSharpPlus
                     case ParenthesizedExpressionSyntax p:
                         return IsRepeatable(p.Expression);
                     case MemberAccessExpressionSyntax ma when ma.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                        return _model.GetSymbolInfo(ma.Expression).Symbol is ITypeSymbol || IsRepeatable(ma.Expression);
+                        return _model.SymbolInfoOf(ma.Expression).Symbol is ITypeSymbol || IsRepeatable(ma.Expression);
                     case ElementAccessExpressionSyntax el:
                         return IsRepeatable(el.Expression) && el.ArgumentList.Arguments.All(a => IsRepeatable(a.Expression));
                     default:

@@ -56,7 +56,7 @@ namespace UdonSharpPlus
 
             private LinqCallInfo AsLinqCall(ExpressionSyntax expression)
             {
-                if (!(expression is InvocationExpressionSyntax node) || !(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method) || !IsLinqMethod(method))
+                if (!(expression is InvocationExpressionSyntax node) || !(_model.SymbolInfoOf(node).Symbol is IMethodSymbol method) || !IsLinqMethod(method))
                     return null;
                 var args = node.ArgumentList.Arguments.Select(a => a.Expression).ToList();
                 if (method.ReducedFrom != null)
@@ -81,14 +81,14 @@ namespace UdonSharpPlus
                         return false;
                     case ParenthesizedExpressionSyntax p:
                         return IsDataListBacked(p.Expression);
-                    case InvocationExpressionSyntax invocation when _model.GetSymbolInfo(invocation).Symbol is IMethodSymbol m && IsLinqMethod(m):
+                    case InvocationExpressionSyntax invocation when _model.SymbolInfoOf(invocation).Symbol is IMethodSymbol m && IsLinqMethod(m):
                         return !IsLinqGenerator(m) || IsSupportedGenerator(m);
                 }
                 ITypeSymbol type = TypeOf(expression);
                 if (IsList(type) || IsDictionary(type))
                     return true;
                 // LINQ の結果を var で受けた変数
-                if (IsEnumerable(type) && _model.GetSymbolInfo(expression).Symbol is ILocalSymbol local
+                if (IsEnumerable(type) && _model.SymbolInfoOf(expression).Symbol is ILocalSymbol local
                     && local.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is VariableDeclaratorSyntax declarator)
                     return IsDataListBacked(declarator.Initializer?.Value);
                 return false;
@@ -122,7 +122,7 @@ namespace UdonSharpPlus
                 while (origin is ParenthesizedExpressionSyntax p)
                     origin = p.Expression;
                 // 変数なら、宣言の初期化子までたどる
-                if (_model.GetSymbolInfo(origin).Symbol is ILocalSymbol local
+                if (_model.SymbolInfoOf(origin).Symbol is ILocalSymbol local
                     && local.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is VariableDeclaratorSyntax declarator)
                 {
                     ExpressionSyntax value = declarator.Initializer?.Value;
@@ -131,7 +131,7 @@ namespace UdonSharpPlus
                     // クエリ構文・生成のメソッドは、宣言の場所でエラーにしているので重ねない
                     if (value is QueryExpressionSyntax)
                         return null;
-                    if (value is InvocationExpressionSyntax generated && _model.GetSymbolInfo(generated).Symbol is IMethodSymbol g && IsLinqGenerator(g))
+                    if (value is InvocationExpressionSyntax generated && _model.SymbolInfoOf(generated).Symbol is IMethodSymbol g && IsLinqGenerator(g))
                         return null;
                     // 外部の関数の戻り値でなければ、自分で IEnumerable 型にした変数
                     if (!(value is InvocationExpressionSyntax))
@@ -141,7 +141,7 @@ namespace UdonSharpPlus
                 // LINQ・foreach に直接書いたクエリ構文は、ここで止めるので中は見ない。ここでクエリ構文のエラーにする
                 if (origin is QueryExpressionSyntax)
                     return QueryMessage;
-                if (origin is InvocationExpressionSyntax invocation && _model.GetSymbolInfo(invocation).Symbol is IMethodSymbol m && IsLinqGenerator(m))
+                if (origin is InvocationExpressionSyntax invocation && _model.SymbolInfoOf(invocation).Symbol is IMethodSymbol m && IsLinqGenerator(m))
                     return GeneratorMessage(m);
                 return $"'{Text(source)}' : {ForeignEnumerableMessage}";
             }
@@ -226,7 +226,7 @@ namespace UdonSharpPlus
                 ExpressionSyntax bare = source;
                 while (bare is ParenthesizedExpressionSyntax paren)
                     bare = paren.Expression;
-                IMethodSymbol generator = bare is InvocationExpressionSyntax && _model.GetSymbolInfo(bare).Symbol is IMethodSymbol gm && IsLinqGenerator(gm) ? gm : null;
+                IMethodSymbol generator = bare is InvocationExpressionSyntax && _model.SymbolInfoOf(bare).Symbol is IMethodSymbol gm && IsLinqGenerator(gm) ? gm : null;
                 if (generator != null && !IsSupportedGenerator(generator))
                 {
                     Error(bare, GeneratorMessage(generator));
@@ -741,7 +741,7 @@ namespace UdonSharpPlus
                                         .OfType<ReturnStatementSyntax>().Where(r => r.Expression != null).Select(r => r.Expression));
                                 }
                             }
-                            ITypeSymbol collection = returned.Count > 0 ? TypeOf(returned[0]) : (_model.GetSymbolInfo(args[0]).Symbol as IMethodSymbol)?.ReturnType;
+                            ITypeSymbol collection = returned.Count > 0 ? TypeOf(returned[0]) : (_model.SymbolInfoOf(args[0]).Symbol as IMethodSymbol)?.ReturnType;
                             ITypeSymbol inner;
                             System.Func<string, string> convert = null;
                             if (collection is IArrayTypeSymbol innerArray && innerArray.Rank == 1 && !block)
@@ -1168,7 +1168,7 @@ namespace UdonSharpPlus
             {
                 foreach (IdentifierNameSyntax id in lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                 {
-                    ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                    ISymbol symbol = _model.SymbolInfoOf(id).Symbol;
                     if (!(symbol is ILocalSymbol || symbol is IParameterSymbol p && !p.IsThis))
                         continue;
                     if (symbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == lambda.SyntaxTree && lambda.Span.Contains(r.Span)))

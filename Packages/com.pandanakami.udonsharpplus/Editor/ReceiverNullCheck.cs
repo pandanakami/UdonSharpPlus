@@ -149,7 +149,7 @@ namespace UdonSharpPlus
                 else if (!(e is IdentifierNameSyntax))
                     return false;
 
-                ISymbol symbol = _model.GetSymbolInfo(e).Symbol;
+                ISymbol symbol = _model.SymbolInfoOf(e).Symbol;
                 if (symbol == null || symbol.IsStatic)
                     return false;
                 bool slot = symbol is IFieldSymbol f && !f.IsConst || symbol is IPropertySymbol p && IsAuto(p);
@@ -187,7 +187,7 @@ namespace UdonSharpPlus
 
                     case MemberAccessExpressionSyntax m:
                     {
-                        if (!(_model.GetSymbolInfo(m.Expression).Symbol is ITypeSymbol) && !(_model.GetSymbolInfo(m.Expression).Symbol is INamespaceSymbol))
+                        if (!(_model.SymbolInfoOf(m.Expression).Symbol is ITypeSymbol) && !(_model.SymbolInfoOf(m.Expression).Symbol is INamespaceSymbol))
                         {
                             Result r = Expr(m.Expression);
                             if (r != Result.Continue)
@@ -232,7 +232,7 @@ namespace UdonSharpPlus
                         if (inv.Expression is IdentifierNameSyntax id && id.Identifier.ValueText == "nameof")
                             return Result.Continue;
                         if (inv.Expression is MemberAccessExpressionSyntax target
-                            && !(_model.GetSymbolInfo(target.Expression).Symbol is ITypeSymbol))
+                            && !(_model.SymbolInfoOf(target.Expression).Symbol is ITypeSymbol))
                         {
                             Result r = Expr(target.Expression);
                             if (r != Result.Continue)
@@ -251,7 +251,7 @@ namespace UdonSharpPlus
                         if (r != Result.Continue)
                             return r;
                         // 配列の読み出しは副作用がない。インデクサーは呼び出し
-                        return _model.GetSymbolInfo(el).Symbol is IPropertySymbol ? Result.Blocked : Result.Continue;
+                        return _model.SymbolInfoOf(el).Symbol is IPropertySymbol ? Result.Blocked : Result.Continue;
                     }
 
                     case InterpolatedStringExpressionSyntax s:
@@ -280,7 +280,7 @@ namespace UdonSharpPlus
             /// <summary>this のフィールド以外を指す名前・メンバーの読み出し</summary>
             private Result Value(ExpressionSyntax e)
             {
-                switch (_model.GetSymbolInfo(e).Symbol)
+                switch (_model.SymbolInfoOf(e).Symbol)
                 {
                     case ILocalSymbol _:
                     case IParameterSymbol _:
@@ -343,7 +343,7 @@ namespace UdonSharpPlus
                         Result r = Expr(el.Expression);
                         return r != Result.Continue ? r : Sequence(el.ArgumentList.Arguments.Select(x => x.Expression));
                     }
-                    case MemberAccessExpressionSyntax m when !(_model.GetSymbolInfo(m.Expression).Symbol is ITypeSymbol):
+                    case MemberAccessExpressionSyntax m when !(_model.SymbolInfoOf(m.Expression).Symbol is ITypeSymbol):
                         return Expr(m.Expression);
                     default:
                         return Result.Continue;
@@ -351,7 +351,7 @@ namespace UdonSharpPlus
             }
 
             private bool IsLocal(ExpressionSyntax e) =>
-                e is IdentifierNameSyntax && _model.GetSymbolInfo(e).Symbol is ISymbol s
+                e is IdentifierNameSyntax && _model.SymbolInfoOf(e).Symbol is ISymbol s
                 && (s is ILocalSymbol || s is IParameterSymbol p && p.RefKind == RefKind.None);
         }
     }

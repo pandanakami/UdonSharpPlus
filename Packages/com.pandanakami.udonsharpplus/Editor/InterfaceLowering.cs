@@ -853,7 +853,7 @@ namespace UdonSharpPlus
                     type = array.ElementType;
                 if (AsTarget(type) != null
                     && _model.GetDeclaredSymbol(node.Declaration.Variables[0]) is IFieldSymbol field && IsUdonSharpBehaviour(field.ContainingType)
-                    && node.AttributeLists.SelectMany(l => l.Attributes).Any(a => IsSerializationAttribute(_model.GetSymbolInfo(a).Symbol?.ContainingType)))
+                    && node.AttributeLists.SelectMany(l => l.Attributes).Any(a => IsSerializationAttribute(_model.SymbolInfoOf(a).Symbol?.ContainingType)))
                 {
                     foreach (VariableDeclaratorSyntax v in node.Declaration.Variables)
                         Error(v, Loc.T($"'{v.Identifier.ValueText}' : インタフェース型のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません）。Inspector で設定するなら UdonSharpBehaviour 型で受けて、キャストしてください", $"'{v.Identifier.ValueText}' : Fields of an interface type cannot be serialized or synced ([SerializeField] / [UdonSynced] cannot be used). To set it in the Inspector, receive it as an UdonSharpBehaviour and cast it"));
@@ -871,14 +871,14 @@ namespace UdonSharpPlus
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
-                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
+                if (_model.SymbolInfoOf(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
                     return ReplaceType(node);
                 return base.VisitIdentifierName(node);
             }
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
+                if (_model.SymbolInfoOf(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
                     return ReplaceType(node);
                 return base.VisitQualifiedName(node);
             }
@@ -886,7 +886,7 @@ namespace UdonSharpPlus
             public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
             {
                 // global::IFoo：右側だけを object にすると SimpleNameSyntax にならないので、全体を置き換える
-                if (_model.GetSymbolInfo(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
+                if (_model.SymbolInfoOf(node).Symbol is INamedTypeSymbol t && AsTarget(t) != null)
                     return ReplaceType(node);
                 return base.VisitAliasQualifiedName(node);
             }
@@ -937,7 +937,7 @@ namespace UdonSharpPlus
                 if (IsNameOf(node))
                     return RewriteNameOf(node);
 
-                if (!(_model.GetSymbolInfo(node).Symbol is IMethodSymbol method))
+                if (!(_model.SymbolInfoOf(node).Symbol is IMethodSymbol method))
                     return base.VisitInvocationExpression(node);
 
                 if (GetComponentTypeArgument(method) is ITypeSymbol component && AsTarget(component) != null)
@@ -996,7 +996,7 @@ namespace UdonSharpPlus
             {
                 ExpressionSyntax target = node.ArgumentList.Arguments[0].Expression;
                 bool referencesInterface = target.DescendantNodesAndSelf().OfType<NameSyntax>()
-                    .Any(n => _model.GetSymbolInfo(n).Symbol is INamedTypeSymbol t && AsTarget(t) != null);
+                    .Any(n => _model.SymbolInfoOf(n).Symbol is INamedTypeSymbol t && AsTarget(t) != null);
                 if (!referencesInterface)
                     return base.VisitInvocationExpression(node);
 

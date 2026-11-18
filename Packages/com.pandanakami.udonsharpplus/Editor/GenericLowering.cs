@@ -329,7 +329,7 @@ namespace UdonSharpPlus
                 {
                     if (!(node is ExpressionSyntax))
                         continue;
-                    switch (model.GetSymbolInfo(node).Symbol)
+                    switch (model.SymbolInfoOf(node).Symbol)
                     {
                         case ITypeSymbol type:
                             UseType(Subst(type, map), node);
@@ -473,7 +473,7 @@ namespace UdonSharpPlus
                     return null;
 
                 Map map = copy?.Map;
-                ISymbol symbol = model.GetSymbolInfo(node).Symbol;
+                ISymbol symbol = model.SymbolInfoOf(node).Symbol;
 
                 switch (node)
                 {
