@@ -395,6 +395,16 @@ namespace UdonSharpPlus
 
             public void Warning(Location location, string message) => _entries.Add((false, location, message, null));
 
+            /// <summary>足したエラー（足した順。テスト用）</summary>
+            internal IEnumerable<(Location Location, string Message)> Errors => _entries.Where(e => e.IsError).Select(e => (e.Location, e.Message));
+
+            /// <summary>今までに足したエラー・警告の数（InsertErrors の位置に使う）</summary>
+            public int Count => _entries.Count;
+
+            /// <summary>エラーを index の位置に足す（あとで見つけたエラーを、前の作りで足していた順に並べるため）</summary>
+            public void InsertErrors(int index, IEnumerable<(Location Location, string Message)> errors) =>
+                _entries.InsertRange(index, errors.Select(e => (true, e.Location, e.Message, (string)null)));
+
             /// <summary>汎用クラスの中で出たもののうち、使われないクラスのものを捨てる</summary>
             public void DropUnusedOwners(HashSet<string> usedClasses) =>
                 _entries.RemoveAll(e => e.Owner != null && !usedClasses.Contains(e.Owner));

@@ -36,6 +36,8 @@ namespace UdonSharpPlus
 
             // ソースで宣言した演算子と、書き換えたメソッドの名前
             var names = new Dictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);
+            // ファイルごとの、曖昧な演算子・変換のエラーを入れる位置（そのファイルの宣言の検査のエラーのうしろ）
+            var marks = new int[trees.Count];
             for (int i = 0; i < trees.Count; i++)
             {
                 if (!selected[i])
@@ -54,14 +56,11 @@ namespace UdonSharpPlus
                             Loc.T($"'{symbol.ContainingType.Name}' : メンバーの名前 {name} は、この演算子の書き換えに使うので、ほかの名前にしてください", $"'{symbol.ContainingType.Name}' : The name {name} is reserved for the method generated for this operator, so use a different name"));
                     names[symbol] = name;
                 }
-
-                // 演算子・変換の候補が曖昧なもの。普通のクラスは object[] に書き換えるので、U# のコンパイルでは型が合ってしまい、エラーにならない
-                foreach (Diagnostic d in model.GetDiagnostics())
-                    if (d.Severity == DiagnosticSeverity.Error && AmbiguousOperatorErrors.Contains(d.Id))
-                        diagnostics.Error(d.Location, $"{d.Id}: {d.GetMessage(System.Globalization.CultureInfo.InvariantCulture)}");
+                marks[i] = diagnostics.Count;
             }
 
             var result = new List<SyntaxTree>(trees.Count);
+            int inserted = 0;
             for (int i = 0; i < trees.Count; i++)
             {
                 SyntaxTree tree = trees[i];
@@ -72,6 +71,19 @@ namespace UdonSharpPlus
                 }
                 var rewriter = new Rewriter(compilation.Model(tree), names, diagnostics);
                 SyntaxNode root = rewriter.Visit(tree.GetRoot());
+
+                // 演算子・変換の候補が曖昧なもの。普通のクラスは object[] に書き換えるので、U# のコンパイルでは型が合ってしまい、エラーにならない。
+                // ファイル全体の GetDiagnostics は、メソッドの中身をもう一度解析するので（約 1 秒。#165）、書き換えの問い合わせで
+                // 曖昧さの印を見つけたファイルだけ行う（Rewriter.MayBeAmbiguous）
+                if (rewriter.MayBeAmbiguous)
+                {
+                    var found = compilation.Model(tree).GetDiagnostics()
+                        .Where(d => d.Severity == DiagnosticSeverity.Error && AmbiguousOperatorErrors.Contains(d.Id))
+                        .Select(d => (d.Location, $"{d.Id}: {d.GetMessage(System.Globalization.CultureInfo.InvariantCulture)}"))
+                        .ToList();
+                    diagnostics.InsertErrors(marks[i] + inserted, found);
+                    inserted += found.Count;
+                }
                 result.Add(rewriter.Changed
                     ? CSharpSyntaxTree.ParseText(root.ToFullString(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8)
                     : tree);
@@ -164,6 +176,14 @@ namespace UdonSharpPlus
 
             public bool Changed;
 
+            /// <summary>
+            /// 曖昧な演算子・変換（CS0034・CS0035・CS0457）があるかもしれない。曖昧なところでは、問い合わせの結果が次のようになる：
+            /// 暗黙の変換は「ユーザー定義の変換なのにメソッドがない」、キャストは「メソッドがなく候補だけある」、
+            /// 演算子は「式の型が Error」（ほかのエラーでも Error になるが、そのときはファイル全体を調べるだけ）。
+            /// エラーを出したところは中を回らないことがあるので、エラーを出したら立てる
+            /// </summary>
+            public bool MayBeAmbiguous;
+
             public Rewriter(SemanticModel model, Dictionary<IMethodSymbol, string> names, InterfaceLowering.LoweringDiagnostics diagnostics)
             {
                 _model = model;
@@ -171,7 +191,30 @@ namespace UdonSharpPlus
                 _diagnostics = diagnostics;
             }
 
-            private void Error(SyntaxNode node, string message) => _diagnostics.Error(node.GetLocation(), message);
+            private void Error(SyntaxNode node, string message)
+            {
+                MayBeAmbiguous = true;
+                _diagnostics.Error(node.GetLocation(), message);
+            }
+
+            private void NoteAmbiguity(SyntaxNode node, Conversion conversion)
+            {
+                if (conversion.IsUserDefined && conversion.MethodSymbol == null)
+                    MayBeAmbiguous = true;
+                else if (node is BinaryExpressionSyntax || node is AssignmentExpressionSyntax || node is PrefixUnaryExpressionSyntax
+                    || node is PostfixUnaryExpressionSyntax || node is CastExpressionSyntax)
+                {
+                    SymbolInfo info = _model.SymbolInfoOf(node);
+                    if (info.Symbol == null && info.CandidateSymbols.Length > 0 || _model.GetTypeInfo(node).Type?.TypeKind == TypeKind.Error)
+                        MayBeAmbiguous = true;
+                }
+                else if (node is CommonForEachStatementSyntax each)
+                {
+                    Conversion element = _model.GetForEachStatementInfo(each).ElementConversion;
+                    if (element.IsUserDefined && element.MethodSymbol == null)
+                        MayBeAmbiguous = true;
+                }
+            }
 
             /// <summary>node で使われるユーザー定義の演算子・変換（ソースで宣言したもの）。なければ null</summary>
             private IMethodSymbol Operator(SyntaxNode node) => Known(_model.SymbolInfoOf(node).Symbol as IMethodSymbol);
@@ -245,11 +288,13 @@ namespace UdonSharpPlus
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
+                Conversion conversion = node is ExpressionSyntax e ? _model.GetConversion(e) : default;
+                if (!MayBeAmbiguous && node != null)
+                    NoteAmbiguity(node, conversion);
                 SyntaxNode visited = base.Visit(node);
                 // 暗黙の変換（Vec v = 3;、引数・戻り値・演算子の引数の 3 など）
                 if (node is ExpressionSyntax expr && visited is ExpressionSyntax result && !(node.Parent is CastExpressionSyntax cast && cast.Expression == node && Operator(cast) != null))
                 {
-                    Conversion conversion = _model.GetConversion(expr);
                     if (conversion.IsUserDefined && Known(conversion.MethodSymbol) is IMethodSymbol method)
                     {
                         ITypeSymbol from = _model.GetTypeInfo(expr).Type;
@@ -319,6 +364,7 @@ namespace UdonSharpPlus
                     return base.VisitBinaryExpression(node);
                 if (node.IsKind(SyntaxKind.LogicalAndExpression) || node.IsKind(SyntaxKind.LogicalOrExpression))
                 {
+                    MayBeAmbiguous = true;
                     _diagnostics.Error(node.OperatorToken.GetLocation(), Loc.T($"ユーザー定義の演算子を使う {node.OperatorToken.Text} は未対応です。& / | にするか、bool にしてから比べてください", $"{node.OperatorToken.Text} with user-defined operators is not supported. Use & / |, or convert to bool before comparing"));
                     return node;
                 }
