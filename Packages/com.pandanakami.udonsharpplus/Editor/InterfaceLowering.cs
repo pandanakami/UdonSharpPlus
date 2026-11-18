@@ -174,7 +174,7 @@ namespace UdonSharpPlus
             // 汎用クラスの段がそれをコピーの呼び出しにする（#50）
             var rewrittenClasses = new List<RewrittenClass>();
             var classNumbers = new Dictionary<string, int>();
-            if (current.Any(t => t.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Any()))
+            if (current.Any(t => TypeDeclarations.Of<InterfaceDeclarationSyntax>(t.GetRoot()).Any()))
             {
                 current = LowerInterfaces(current, diagnostics, rewrittenClasses, classNumbers);
                 SourceMap.RegisterTrees(current);
@@ -281,7 +281,7 @@ namespace UdonSharpPlus
                 foreach (RewrittenClass c in group)
                 {
                     int line = c.Original.GetLocation().GetLineSpan().StartLinePosition.Line;
-                    ClassDeclarationSyntax target = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault(d =>
+                    ClassDeclarationSyntax target = TypeDeclarations.Of<ClassDeclarationSyntax>(root).FirstOrDefault(d =>
                         d.Identifier.ValueText == c.Original.Identifier.ValueText && d.GetLocation().GetLineSpan().StartLinePosition.Line == line);
                     if (target != null)
                         replacements[target] = c.Original;
@@ -481,7 +481,7 @@ namespace UdonSharpPlus
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
-                foreach (var decl in tree.GetRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>())
+                foreach (var decl in TypeDeclarations.Of<InterfaceDeclarationSyntax>(tree.GetRoot()))
                 {
                     if (model.GetDeclaredSymbol(decl) is INamedTypeSymbol symbol && !result.ContainsKey(symbol))
                     {
@@ -542,7 +542,7 @@ namespace UdonSharpPlus
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
-                foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+                foreach (var decl in TypeDeclarations.Of<ClassDeclarationSyntax>(tree.GetRoot()))
                 {
                     if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol cls))
                         continue;

@@ -97,7 +97,7 @@ namespace UdonSharpPlus
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
-                foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+                foreach (var decl in TypeDeclarations.Of<ClassDeclarationSyntax>(tree.GetRoot()))
                 {
                     if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol usb) || !InterfaceLowering.IsUdonSharpBehaviour(usb))
                         continue;
@@ -158,7 +158,7 @@ namespace UdonSharpPlus
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
-                foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+                foreach (var decl in TypeDeclarations.Of<ClassDeclarationSyntax>(tree.GetRoot()))
                 {
                     if (!(model.GetDeclaredSymbol(decl) is INamedTypeSymbol symbol) || result.ContainsKey(symbol))
                         continue;

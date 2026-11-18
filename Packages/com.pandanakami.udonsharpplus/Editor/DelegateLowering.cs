@@ -440,7 +440,7 @@ namespace UdonSharpPlus
                 var targets = new Dictionary<ClassDeclarationSyntax, List<string>>();
                 foreach (var pair in group)
                 {
-                    ClassDeclarationSyntax target = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault(c =>
+                    ClassDeclarationSyntax target = TypeDeclarations.Of<ClassDeclarationSyntax>(root).FirstOrDefault(c =>
                         c.Identifier.ValueText == pair.Key.Name && c.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line == pair.Key.Line);
                     if (target != null)
                         targets[target] = pair.Value;
@@ -456,20 +456,36 @@ namespace UdonSharpPlus
         /// <summary>呼び出しの static クラス（__dlg_K）に、振り分け（__static）を足す（#124。どの tree で作った組も入れるので、最後に足す）</summary>
         private static List<SyntaxTree> AddStaticDispatchers(List<SyntaxTree> trees, Shared shared)
         {
-            var result = new List<SyntaxTree>(trees);
+            // 呼び出しの static クラスは、その名前のクラスがある最初の tree の、最初のもの。
+            // 組ごとに tree を探してパースし直すと、組の数 × tree の数になるので（#165）、先に 1 回だけ探し、tree ごとにまとめて足す
+            var helpers = new Dictionary<string, (int Tree, ClassDeclarationSyntax Node)>(StringComparer.Ordinal);
+            for (int i = 0; i < trees.Count; i++)
+            {
+                foreach (ClassDeclarationSyntax c in TypeDeclarations.Of<ClassDeclarationSyntax>(trees[i].GetRoot()))
+                {
+                    if (!helpers.ContainsKey(c.Identifier.ValueText))
+                        helpers[c.Identifier.ValueText] = (i, c);
+                }
+            }
+
+            // 同じクラスに足すものは、組の名前の順（前の作りで 1 つずつ足していた順）に並べる
+            var additions = new Dictionary<int, Dictionary<ClassDeclarationSyntax, List<string>>>();
             foreach (DelegateInfo info in shared.Delegates.Values.Where(d => d.Unsupported == null).OrderBy(d => d.Key, StringComparer.Ordinal))
             {
-                for (int i = 0; i < result.Count; i++)
-                {
-                    SyntaxNode root = result[i].GetRoot();
-                    ClassDeclarationSyntax helper = root.DescendantNodes(n => !(n is BlockSyntax)).OfType<ClassDeclarationSyntax>()
-                        .FirstOrDefault(c => c.Identifier.ValueText == info.HelperClass);
-                    if (helper == null)
-                        continue;
-                    root = root.ReplaceNode(helper, GeneratedMembers.AppendOnClosingLine(helper, new[] { shared.StaticDispatcherCode(info) }));
-                    result[i] = Reparse(root, result[i]);
-                    break;
-                }
+                if (!helpers.TryGetValue(info.HelperClass, out var helper))
+                    continue;
+                if (!additions.TryGetValue(helper.Tree, out var inTree))
+                    additions[helper.Tree] = inTree = new Dictionary<ClassDeclarationSyntax, List<string>>();
+                if (!inTree.TryGetValue(helper.Node, out var code))
+                    inTree[helper.Node] = code = new List<string>();
+                code.Add(shared.StaticDispatcherCode(info));
+            }
+
+            var result = new List<SyntaxTree>(trees);
+            foreach (var pair in additions)
+            {
+                SyntaxNode root = result[pair.Key].GetRoot().ReplaceNodes(pair.Value.Keys, (o, n) => GeneratedMembers.AppendOnClosingLine(n, pair.Value[o]));
+                result[pair.Key] = Reparse(root, result[pair.Key]);
             }
             return result;
         }

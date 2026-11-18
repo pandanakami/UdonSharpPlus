@@ -31,7 +31,7 @@ namespace UdonSharpPlus
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, IEnumerable<MetadataReference> references)
         {
             // 生成メソッドのあるクラスが 2 つ以上なければ、重なりようがない（コンパイルを作らずに済ませる）
-            int withGenerated = trees.Sum(t => t.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()
+            int withGenerated = trees.Sum(t => TypeDeclarations.Of<ClassDeclarationSyntax>(t.GetRoot())
                 .Count(c => c.Members.OfType<MethodDeclarationSyntax>().Any(m => IsGenerated(m.Identifier.ValueText))));
             if (withGenerated < 2)
                 return trees;
@@ -44,7 +44,7 @@ namespace UdonSharpPlus
             for (int i = 0; i < trees.Count; i++)
             {
                 SemanticModel model = compilation.Model(trees[i]);
-                foreach (ClassDeclarationSyntax node in trees[i].GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+                foreach (ClassDeclarationSyntax node in TypeDeclarations.Of<ClassDeclarationSyntax>(trees[i].GetRoot()))
                 {
                     if (!(model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol) || !InterfaceLowering.IsUdonSharpBehaviour(symbol))
                         continue;

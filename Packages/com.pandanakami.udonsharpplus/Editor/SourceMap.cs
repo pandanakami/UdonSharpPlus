@@ -190,14 +190,66 @@ namespace UdonSharpPlus
 
             // 位置を含むノードから親へたどり、そのノードの直前にある印を探す。
             // 生成コードは 1 行なので、印のコメントは次のトークンの先頭ではなく、直前のトークンの末尾のトリビアになる
+            Dictionary<int, TokenMarkers> markers = MarkersOf(location.SourceTree);
             for (SyntaxNode node = root.FindToken(position).Parent; node != null; node = node.Parent)
             {
-                SyntaxToken first = node.GetFirstToken();
-                Entry found = LastMarker(first.LeadingTrivia) ?? LastMarker(first.GetPreviousToken().TrailingTrivia);
-                if (found != null)
-                    return found;
+                // 最初のトークンは、ふつう node.SpanStart から始まる。幅 0 のトークン（書きかけのコードの、足りないトークン）で
+                // 始まるノードだけは、最初のトークンの位置が違うので引き直す（そういうノードは ContainsDiagnostics が立つ）。
+                // 幅 0 のトークンしかないノードには、最初のトークンがない
+                if (node.Span.Length == 0)
+                    continue;
+                if (!markers.TryGetValue(node.SpanStart, out TokenMarkers found)
+                    && !(node.ContainsDiagnostics && markers.TryGetValue(node.GetFirstToken().SpanStart, out found)))
+                    continue;
+                Entry entry = EntryOf(found.Leading) ?? EntryOf(found.PreviousTrailing);
+                if (entry != null)
+                    return entry;
             }
             return null;
+        }
+
+        /// <summary>トークンの直前にある印の番号（なければ -1）</summary>
+        private struct TokenMarkers
+        {
+            public int Leading;            // トークンの先頭のトリビアの最後の印
+            public int PreviousTrailing;   // 直前のトークン（GetPreviousToken）の末尾のトリビアの最後の印
+        }
+
+        /// <summary>
+        /// tree の、トークンの位置 → そのトークンの直前の印。どちらの印もないトークンは入れない。
+        /// Find は U# のデバッグ情報（コピーのメソッドの中のノードごと）から何十万回も呼ばれ、ノードから根までの
+        /// 各ノードで、最初のトークンと直前のトークンのトリビアを読み直していたので、tree ごとに 1 回だけ作る（Redmine #165）。
+        /// tree は変わらないので、表も変わらない。印の番号 → 位置は Find のたびに引く（_entries は書き換えのたびに作り直す）
+        /// </summary>
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<SyntaxTree, Dictionary<int, TokenMarkers>> Markers =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<SyntaxTree, Dictionary<int, TokenMarkers>>();
+
+        private static Dictionary<int, TokenMarkers> MarkersOf(SyntaxTree tree) => Markers.GetValue(tree, BuildMarkers);
+
+        private static Dictionary<int, TokenMarkers> BuildMarkers(SyntaxTree tree)
+        {
+            var map = new Dictionary<int, TokenMarkers>();
+            int previousTrailing = -1;
+            foreach (SyntaxToken token in tree.GetRoot().DescendantTokens())
+            {
+                // GetFirstToken・GetPreviousToken は幅 0 のトークンを飛ばすので、ここでも飛ばす
+                if (token.Span.Length == 0)
+                    continue;
+                int leading = LastMarkerId(token.LeadingTrivia);
+                if (leading >= 0 || previousTrailing >= 0)
+                    map[token.SpanStart] = new TokenMarkers { Leading = leading, PreviousTrailing = previousTrailing };
+                previousTrailing = LastMarkerId(token.TrailingTrivia);
+            }
+            return map;
+        }
+
+        /// <summary>番号の印の元の位置（表にない番号なら null）</summary>
+        internal static Entry EntryOf(int id)
+        {
+            if (id < 0)
+                return null;
+            lock (Gate)
+                return id < _entries.Count ? _entries[id] : null;
         }
 
         /// <summary>ノードの中の最初の印（生成コードでなければ null）</summary>
@@ -214,17 +266,14 @@ namespace UdonSharpPlus
             return null;
         }
 
-        private static Entry LastMarker(SyntaxTriviaList trivia)
+        private static int LastMarkerId(SyntaxTriviaList trivia)
         {
             for (int i = trivia.Count - 1; i >= 0; i--)
             {
-                if (!IsMarker(trivia[i]))
-                    continue;
-                int id = int.Parse(MarkerPattern.Match(trivia[i].ToString()).Groups[1].Value);
-                lock (Gate)
-                    return id < _entries.Count ? _entries[id] : null;
+                if (IsMarker(trivia[i]))
+                    return int.Parse(MarkerPattern.Match(trivia[i].ToString()).Groups[1].Value);
             }
-            return null;
+            return -1;
         }
 
         /// <summary>元の位置を、同じファイルの tree（U# が持っているもの）の Location にする</summary>
