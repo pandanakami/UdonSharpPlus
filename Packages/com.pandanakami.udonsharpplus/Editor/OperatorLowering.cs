@@ -30,9 +30,11 @@ namespace UdonSharpPlus
         {
             var compilation = Compilations.For(trees, references);
             // 演算子・変換を宣言したクラス（と派生）の値を扱わないファイルは見ない（#163）
-            bool[] selected = TreeFilter.Select(compilation, trees, _ => false,
+            // 選んだファイルの中でも、対象の名前も宣言も含まないメンバーは見ない（#165）
+            TreeFilter.Selection selection = TreeFilter.SelectMembers(compilation, trees, _ => false,
                 t => t.GetMembers().OfType<IMethodSymbol>().Any(m => m.MethodKind == MethodKind.UserDefinedOperator || m.MethodKind == MethodKind.Conversion),
                 n => n is OperatorDeclarationSyntax || n is ConversionOperatorDeclarationSyntax);
+            bool[] selected = selection.Trees;
 
             // ソースで宣言した演算子と、書き換えたメソッドの名前
             var names = new Dictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);
@@ -69,7 +71,7 @@ namespace UdonSharpPlus
                     result.Add(tree);
                     continue;
                 }
-                var rewriter = new Rewriter(compilation.Model(tree), names, diagnostics);
+                var rewriter = new Rewriter(compilation.Model(tree), names, diagnostics, selection);
                 SyntaxNode root = rewriter.Visit(tree.GetRoot());
 
                 // 演算子・変換の候補が曖昧なもの。普通のクラスは object[] に書き換えるので、U# のコンパイルでは型が合ってしまい、エラーにならない。
@@ -180,16 +182,26 @@ namespace UdonSharpPlus
             /// 曖昧な演算子・変換（CS0034・CS0035・CS0457）があるかもしれない。曖昧なところでは、問い合わせの結果が次のようになる：
             /// 暗黙の変換は「ユーザー定義の変換なのにメソッドがない」、キャストは「メソッドがなく候補だけある」、
             /// 演算子は「式の型が Error」（ほかのエラーでも Error になるが、そのときはファイル全体を調べるだけ）。
-            /// エラーを出したところは中を回らないことがあるので、エラーを出したら立てる
+            /// エラーを出したところは中を回らないことがあるので、エラーを出したら立てる。
+            /// 見ないメンバー（Skip）の曖昧さは探さない。そこには演算子・変換を宣言したクラスの値がなく、曖昧さは組込みの型どうし
+            /// （ulong + int など）か、書き換えない型のものなので、U# のコンパイルで同じエラーになる
             /// </summary>
             public bool MayBeAmbiguous;
 
-            public Rewriter(SemanticModel model, Dictionary<IMethodSymbol, string> names, InterfaceLowering.LoweringDiagnostics diagnostics)
+            private readonly TreeFilter.Selection _selection;
+
+            public Rewriter(SemanticModel model, Dictionary<IMethodSymbol, string> names, InterfaceLowering.LoweringDiagnostics diagnostics, TreeFilter.Selection selection)
             {
                 _model = model;
                 _names = names;
                 _diagnostics = diagnostics;
+                _selection = selection;
             }
+
+            /// <summary>見る必要のないメンバー（タプル・演算子の対象の名前も書き方も含まないもの。TreeFilter.Selection.NeedsMember。#165）</summary>
+            private bool Skip(SyntaxNode node) =>
+                node is MemberDeclarationSyntax member && !(member is BaseTypeDeclarationSyntax) && !(member is NamespaceDeclarationSyntax)
+                && !_selection.NeedsMember(member, _model);
 
             private void Error(SyntaxNode node, string message)
             {
@@ -288,6 +300,8 @@ namespace UdonSharpPlus
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
+                if (Skip(node))
+                    return node;
                 Conversion conversion = node is ExpressionSyntax e ? _model.GetConversion(e) : default;
                 if (!MayBeAmbiguous && node != null)
                     NoteAmbiguity(node, conversion);

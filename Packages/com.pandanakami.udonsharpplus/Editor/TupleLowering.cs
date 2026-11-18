@@ -44,7 +44,9 @@ namespace UdonSharpPlus
         {
             var compilation = Compilations.For(trees, references);
             // タプルの書き方も、タプルを含むメンバーの名前も書いていないファイルは見ない（#163）
-            bool[] selected = TreeFilter.Select(compilation, trees, t => t.IsTupleType, null, IsTupleSyntax);
+            // 選んだファイルの中でも、どちらも書いていないメンバーは見ない（#165）
+            TreeFilter.Selection selection = TreeFilter.SelectMembers(compilation, trees, t => t.IsTupleType, null, IsTupleSyntax);
+            bool[] selected = selection.Trees;
 
             var shared = new Shared(counter);
             var result = new List<SyntaxTree>(trees.Count);
@@ -57,7 +59,7 @@ namespace UdonSharpPlus
                 }
                 shared.CurrentTree = i;
                 SemanticModel model = compilation.Model(trees[i]);
-                var rewriter = new Rewriter(shared, model, diagnostics, beforeGenerics);
+                var rewriter = new Rewriter(shared, model, diagnostics, beforeGenerics, selection);
                 SyntaxNode newRoot = rewriter.Visit(trees[i].GetRoot());
                 result.Add(rewriter.Changed ? Reparse(newRoot, trees[i]) : trees[i]);
             }
@@ -346,16 +348,23 @@ namespace UdonSharpPlus
             private readonly bool _defer;   // ジェネリクスの前：型引数を使うタプルは、あとの回に回す
             private int _tempCount;
             private int _containsCount;
+            private readonly TreeFilter.Selection _selection;
 
             public bool Changed { get; private set; }
 
-            public Rewriter(Shared shared, SemanticModel model, InterfaceLowering.LoweringDiagnostics diagnostics, bool defer)
+            public Rewriter(Shared shared, SemanticModel model, InterfaceLowering.LoweringDiagnostics diagnostics, bool defer, TreeFilter.Selection selection)
             {
                 _shared = shared;
                 _model = model;
                 _diagnostics = diagnostics;
                 _defer = defer;
+                _selection = selection;
             }
+
+            /// <summary>見る必要のないメンバー（タプル・演算子の対象の名前も書き方も含まないもの。TreeFilter.Selection.NeedsMember。#165）</summary>
+            private bool Skip(SyntaxNode node) =>
+                node is MemberDeclarationSyntax member && !(member is BaseTypeDeclarationSyntax) && !(member is NamespaceDeclarationSyntax)
+                && !_selection.NeedsMember(member, _model);
 
             private void Error(SyntaxNode node, string message) =>
                 _diagnostics.Error(node.GetLocation(), message, _owners.Count > 0 ? _owners.Peek() : null);
@@ -405,6 +414,8 @@ namespace UdonSharpPlus
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
+                if (Skip(node))
+                    return node;
                 // a.b の b（名前の部分）は、a.b 全体で見る（名前の部分にも、外側の変換が出る）
                 if (node is ExpressionSyntax e && !(e is TupleExpressionSyntax)
                     && !(e.Parent is MemberAccessExpressionSyntax ma && ma.Name == e) && !(e.Parent is MemberBindingExpressionSyntax))

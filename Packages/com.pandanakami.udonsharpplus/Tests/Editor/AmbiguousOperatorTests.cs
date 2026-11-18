@@ -35,9 +35,10 @@ public class N1 { public static implicit operator int(N1 n) => 0; public static 
             "A a = null; a = a + a;",
             "A a = null; a++;",
             "A a = null; B b = null; var c = a + b;",
-            "ulong u = 1; int i = 1; var c = u + i;",
-            "ulong u = 1; int i = 1; bool c = u > i;",
-            "ulong u = 1; int i = 1; u += i;",
+            // 組込みの型どうしの曖昧さは、演算子を宣言したクラスの名前を書いたメンバーの中のものだけ、この段で探す（ほかは U# のコンパイルで出る）
+            "A a0 = null; ulong u = 1; int i = 1; var c = u + i;",
+            "A a0 = null; ulong u = 1; int i = 1; bool c = u > i;",
+            "A a0 = null; ulong u = 1; int i = 1; u += i;",
             "A a = null; B b = null; a += b;",
             "N1 n = null; long l = n; var m = n + 1; double d = n;",
             "Func<A, B> f = x => x;",
@@ -118,6 +119,16 @@ public class N1 { public static implicit operator int(N1 n) => 0; public static 
             int trueOperator = errors.FindIndex(e => e.Location.SourceTree == trees[trees.Count - 1] && !e.Message.StartsWith("CS0"));
             Assert.That(trueOperator, Is.GreaterThan(last));
             Assert.That(last, Is.GreaterThan(25));
+        }
+
+        /// <summary>演算子を宣言したクラスの名前を書いていないメンバーの、組込みの型どうしの曖昧さも、U# のコンパイルのエラーになる</summary>
+        [Test]
+        public void BuiltInAmbiguityOutsideOperatorMembersIsStillError()
+        {
+            CompileResult r = UdonSharpTestCompiler.Compile(
+                new TestSource("Vec.cs", "public class Vec { public int x; public static Vec operator +(Vec a, Vec b) => a; }"),
+                new TestSource("Amb.cs", "using UdonSharp;\npublic class Amb : UdonSharpBehaviour { Vec v; void Start() { v = v + v; }\n void Other() { ulong u = 1; int i = 1; var c = u + i; } }"));
+            Assert.That(r.Diagnostics.Any(d => d.StartsWith("Error") && d.Contains("CS0034") && d.Contains("Amb.cs(3,")), string.Join("\n", r.Diagnostics));
         }
 
         private static string Describe(List<SyntaxTree> trees, Location location, string message) =>

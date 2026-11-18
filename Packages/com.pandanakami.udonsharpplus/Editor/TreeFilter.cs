@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace UdonSharpPlus
 {
@@ -24,6 +25,16 @@ namespace UdonSharpPlus
         /// <param name="syntaxHit">そのファイルを必ず選ぶ書き方（タプルの書き方など）</param>
         /// <returns>ファイルごとに、見る必要があるか</returns>
         public static bool[] Select(Compilation compilation, IReadOnlyList<SyntaxTree> trees, Func<ITypeSymbol, bool> isTarget,
+            Func<INamedTypeSymbol, bool> isTargetDeclaration, Func<SyntaxNode, bool> syntaxHit) =>
+            SelectMembers(compilation, trees, isTarget, isTargetDeclaration, syntaxHit).Trees;
+
+        /// <summary>
+        /// Select と同じファイルを選び、選んだファイルの中で見る必要のあるメンバーも決める（Redmine #165）。
+        /// 値は、メンバーの境を越えるとき（フィールド・メソッド・プロパティ・引数）に名前か型を書くので、ファイルと同じ考え方で、
+        /// 対象の名前も選ぶ書き方も含まないメンバーは、段の対象を含まない。ただし、対象の型（と派生）の中のメンバーは、
+        /// this で対象の値を名前なしに使えるので、いつも見る
+        /// </summary>
+        public static Selection SelectMembers(Compilation compilation, IReadOnlyList<SyntaxTree> trees, Func<ITypeSymbol, bool> isTarget,
             Func<INamedTypeSymbol, bool> isTargetDeclaration, Func<SyntaxNode, bool> syntaxHit)
         {
             List<INamedTypeSymbol> sourceTypes = SourceTypes(compilation.Assembly.GlobalNamespace).ToList();
@@ -109,7 +120,61 @@ namespace UdonSharpPlus
                 result[i] = syntaxHit != null && root.DescendantNodes().Any(syntaxHit)
                             || root.DescendantTokens().Any(token => token.IsKind(SyntaxKind.IdentifierToken) && names.Contains(token.ValueText));
             }
-            return result;
+            return new Selection(result, names, targets, syntaxHit);
+        }
+
+        /// <summary>選んだファイルと、その中で見る必要のあるメンバー</summary>
+        internal sealed class Selection
+        {
+            /// <summary>ファイルごとに、見る必要があるか</summary>
+            public readonly bool[] Trees;
+
+            private readonly HashSet<string> _names;
+            private readonly HashSet<INamedTypeSymbol> _targets;
+            private readonly Func<SyntaxNode, bool> _syntaxHit;
+            private readonly Dictionary<SyntaxTree, HashSet<string>> _aliases = new Dictionary<SyntaxTree, HashSet<string>>();
+
+            public Selection(bool[] trees, HashSet<string> names, HashSet<INamedTypeSymbol> targets, Func<SyntaxNode, bool> syntaxHit)
+            {
+                Trees = trees;
+                _names = names;
+                _targets = targets;
+                _syntaxHit = syntaxHit;
+            }
+
+            /// <summary>
+            /// member（型の中のメンバー。型の宣言・名前空間は含めない）の中を見る必要があるか。
+            /// 対象の型（と派生）の中のもの、選ぶ書き方を含むもの、対象の名前（using の別名も）を書いたものは見る
+            /// </summary>
+            public bool NeedsMember(MemberDeclarationSyntax member, SemanticModel model)
+            {
+                for (SyntaxNode n = member.Parent; n != null; n = n.Parent)
+                {
+                    if (n is BaseTypeDeclarationSyntax type && model.GetDeclaredSymbol(type) is INamedTypeSymbol symbol
+                        && _targets.Contains(symbol.OriginalDefinition))
+                        return true;
+                }
+                if (_syntaxHit != null && member.DescendantNodesAndSelf().Any(_syntaxHit))
+                    return true;
+                HashSet<string> aliases = Aliases(member.SyntaxTree);
+                return member.DescendantTokens().Any(token => token.IsKind(SyntaxKind.IdentifierToken)
+                    && (_names.Contains(token.ValueText) || aliases.Contains(token.ValueText)));
+            }
+
+            /// <summary>using の別名のうち、対象の名前を含むもの（using V = Vec; の V）</summary>
+            private HashSet<string> Aliases(SyntaxTree tree)
+            {
+                if (_aliases.TryGetValue(tree, out var aliases))
+                    return aliases;
+                aliases = new HashSet<string>(StringComparer.Ordinal);
+                foreach (UsingDirectiveSyntax u in tree.GetRoot().DescendantNodes(n => !(n is TypeDeclarationSyntax)).OfType<UsingDirectiveSyntax>())
+                {
+                    if (u.Alias != null && u.Name.DescendantTokens().Any(t => t.IsKind(SyntaxKind.IdentifierToken) && _names.Contains(t.ValueText)))
+                        aliases.Add(u.Alias.Name.Identifier.ValueText);
+                }
+                _aliases[tree] = aliases;
+                return aliases;
+            }
         }
 
         /// <summary>名前を書かずに使われるメンバー（インデクサー・列挙子・Deconstruct・演算子・変換）</summary>
