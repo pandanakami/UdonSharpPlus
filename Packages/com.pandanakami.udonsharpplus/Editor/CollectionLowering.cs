@@ -1092,6 +1092,9 @@ namespace UdonSharpPlus
             /// ループとラムダの本体は生成するメソッドの中に入れる（式の本体はループの中に直接書く。
             /// return のあるブロックの本体は、要素ごとに呼ぶ本体のメソッドにする）
             /// </summary>
+            /// <summary>List.Sort の作業用の配列（呼び出し箇所ごとのフィールド）の、初めの大きさ（#171）</summary>
+            private const int SortWorkInitial = 16;
+
             private SyntaxNode LambdaCall(InvocationExpressionSyntax node, IMethodSymbol method, MemberAccessExpressionSyntax access, ITypeSymbol receiverType)
             {
                 string op = method.Name;
@@ -1188,9 +1191,22 @@ namespace UdonSharpPlus
                         break;
                     case "Sort":
                         // 安定なマージソート（ボトムアップ）。比較は 1 か所なので、ラムダの本体も 1 回だけ書く
+                        // 作業用の 2 つの配列は、呼び出し箇所ごとのフィールドを使い回す（#171）。初めは 16 個分で、足りないときだけ倍にして作り直す。
+                        // static のメソッドの中（普通のクラスのメソッド）はフィールドを使えないので、前と同じく毎回作る
                         returnType = "void";
+                        string work;
+                        if (enclosing.IsStatic)
+                            work = $"{DataTokenType}[] __a = new {DataTokenType}[__n]; {DataTokenType}[] __b = new {DataTokenType}[__n]; ";
+                        else
+                        {
+                            string fa = name + "_a", fb = name + "_b";
+                            _helpers[fa] = $"private {DataTokenType}[] {fa} = new {DataTokenType}[{SortWorkInitial}];";
+                            _helpers[fb] = $"private {DataTokenType}[] {fb} = new {DataTokenType}[{SortWorkInitial}];";
+                            work = $"if (__n > {fa}.Length) {{ int __c = {fa}.Length * 2; while (__c < __n) __c *= 2; {fa} = new {DataTokenType}[__c]; {fb} = new {DataTokenType}[__c]; }} "
+                                   + $"{DataTokenType}[] __a = {fa}; {DataTokenType}[] __b = {fb}; ";
+                        }
                         code = $"int __n = __l.Count; if (__n < 2) return; "
-                               + $"{DataTokenType}[] __a = new {DataTokenType}[__n]; {DataTokenType}[] __b = new {DataTokenType}[__n]; "
+                               + work
                                + "for (int __i = 0; __i < __n; __i++) __a[__i] = __l[__i]; "
                                + "for (int __w = 1; __w < __n; __w *= 2) { "
                                + "for (int __lo = 0; __lo < __n; __lo += 2 * __w) { "

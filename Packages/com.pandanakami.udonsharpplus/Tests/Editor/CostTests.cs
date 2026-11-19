@@ -106,6 +106,7 @@ public class Cost : UdonSharpBehaviour
         [TestCase("nums.ForEach(x => n += x);", Nums, "0,0,0,0,0,0,0,0,0", TestName = "List.ForEach lambda")]
         [TestCase("bool b = nums.Exists(x => x > 1);", Nums, "0,0,0,0,0,0,0,0,0", TestName = "List.Exists lambda")]
         // List.Sort・タプルのリストの foreach・並べ替えの LINQ（#162）
+        // List.Sort の配列 2 つは、使い回す作業用の配列を大きく作り直すところ（16 個を超える要素を初めて並べ替えたときだけ通る。#171）
         [TestCase("nums.Sort((a, b) => b - a);", Nums, "0,0,0,0,0,0,0,0,2", TestName = "List.Sort lambda")]
         [TestCase("nums.Sort(cmp);", Nums + " Comparison<int> cmp = (a, b) => b - a;", "1,2,6,3,0,0,0,0,2", TestName = "List.Sort with a delegate variable")]
         [TestCase("foreach (var t in tl) n += t.Item1;", "var tl = new List<(int, int)> { (1, 2) };", "0,0,0,0,0,0,0,0,0", TestName = "tuple List foreach")]

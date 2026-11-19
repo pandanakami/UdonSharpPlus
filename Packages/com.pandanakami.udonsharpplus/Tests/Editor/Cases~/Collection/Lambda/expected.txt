@@ -7,6 +7,8 @@
     _ints: %VRCSDK3DataDataList, null
     _enemies: %VRCSDK3DataDataList, null
     _total: %SystemInt32, null
+    __lambda_Sort_16_a: %VRCSDK3DataDataTokenArray, null
+    __lambda_Sort_16_b: %VRCSDK3DataDataTokenArray, null
     __0___0_IsEven__ret: %SystemBoolean, null
     __0_v__param: %SystemInt32, null
     __const_SystemUInt32_0: %SystemUInt32, null
@@ -300,37 +302,40 @@
     __intnl_VRCSDK3DataDataToken_26: %VRCSDK3DataDataToken, null
     __lcl___n_SystemInt32_16: %SystemInt32, null
     __intnl_SystemBoolean_32: %SystemBoolean, null
+    __intnl_SystemInt32_7: %SystemInt32, null
+    __intnl_SystemBoolean_33: %SystemBoolean, null
     __lcl___a_VRCSDK3DataDataTokenArray_0: %VRCSDK3DataDataTokenArray, null
     __lcl___b_VRCSDK3DataDataTokenArray_0: %VRCSDK3DataDataTokenArray, null
+    __lcl___c_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemBoolean_34: %SystemBoolean, null
     __lcl___i_SystemInt32_19: %SystemInt32, null
-    __intnl_SystemBoolean_33: %SystemBoolean, null
     __intnl_VRCSDK3DataDataToken_27: %VRCSDK3DataDataToken, null
     __lcl___w_SystemInt32_0: %SystemInt32, null
     __lcl___s_VRCSDK3DataDataTokenArray_0: %VRCSDK3DataDataTokenArray, null
     __lcl___lo_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemBoolean_34: %SystemBoolean, null
-    __intnl_SystemInt32_7: %SystemInt32, null
-    __lcl___mid_SystemInt32_0: %SystemInt32, null
     __intnl_SystemBoolean_35: %SystemBoolean, null
-    __lcl___hi_SystemInt32_0: %SystemInt32, null
+    __lcl___mid_SystemInt32_0: %SystemInt32, null
     __intnl_SystemBoolean_36: %SystemBoolean, null
+    __lcl___hi_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_37: %SystemBoolean, null
     __lcl___p_SystemInt32_0: %SystemInt32, null
     __lcl___q_SystemInt32_0: %SystemInt32, null
     __lcl___k_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemBoolean_37: %SystemBoolean, null
-    __lcl___left_SystemBoolean_0: %SystemBoolean, null
     __intnl_SystemBoolean_38: %SystemBoolean, null
+    __lcl___left_SystemBoolean_0: %SystemBoolean, null
     __intnl_SystemBoolean_39: %SystemBoolean, null
+    __intnl_SystemBoolean_40: %SystemBoolean, null
     __lcl_a_SystemInt32_0: %SystemInt32, null
     __lcl_b_SystemInt32_0: %SystemInt32, null
     __intnl_VRCSDK3DataDataToken_28: %VRCSDK3DataDataToken, null
-    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemInt32_9: %SystemInt32, null
     __lcl___n_SystemInt32_17: %SystemInt32, null
     __lcl___i_SystemInt32_20: %SystemInt32, null
-    __intnl_SystemBoolean_40: %SystemBoolean, null
+    __intnl_SystemBoolean_41: %SystemBoolean, null
     __lcl_x_SystemInt32_15: %SystemInt32, null
     __intnl_VRCSDK3DataDataToken_29: %VRCSDK3DataDataToken, null
-    __intnl_SystemBoolean_41: %SystemBoolean, null
+    __intnl_SystemBoolean_42: %SystemBoolean, null
     __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
 .data_end
 .code_start
@@ -1894,22 +1899,58 @@
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
     L0:
+        PUSH, __lambda_Sort_16_a
+        PUSH, __intnl_SystemInt32_7
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __lcl___n_SystemInt32_16
+        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_SystemBoolean_33
+        EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_33
+        JUMP_IF_FALSE, L3
+        PUSH, __lambda_Sort_16_a
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __lcl___c_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+    L1:
+        PUSH, __lcl___c_SystemInt32_0
+        PUSH, __lcl___n_SystemInt32_16
+        PUSH, __intnl_SystemBoolean_34
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_34
+        JUMP_IF_FALSE, L2
+        PUSH, __lcl___c_SystemInt32_0
+        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __lcl___c_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L1
+    L2:
+        PUSH, __lcl___c_SystemInt32_0
+        PUSH, __lambda_Sort_16_a
+        EXTERN, "VRCSDK3DataDataTokenArray.__ctor__SystemInt32__VRCSDK3DataDataTokenArray"
+        PUSH, __lcl___c_SystemInt32_0
+        PUSH, __lambda_Sort_16_b
+        EXTERN, "VRCSDK3DataDataTokenArray.__ctor__SystemInt32__VRCSDK3DataDataTokenArray"
+    L3:
+        PUSH, __lambda_Sort_16_a
         PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
-        EXTERN, "VRCSDK3DataDataTokenArray.__ctor__SystemInt32__VRCSDK3DataDataTokenArray"
-        PUSH, __lcl___n_SystemInt32_16
+        COPY
+        PUSH, __lambda_Sort_16_b
         PUSH, __lcl___b_VRCSDK3DataDataTokenArray_0
-        EXTERN, "VRCSDK3DataDataTokenArray.__ctor__SystemInt32__VRCSDK3DataDataTokenArray"
+        COPY
         PUSH, __const_SystemInt32_1  ; 0
         PUSH, __lcl___i_SystemInt32_19
         COPY
-    L1:
+    L4:
         PUSH, __lcl___i_SystemInt32_19
         PUSH, __lcl___n_SystemInt32_16
-        PUSH, __intnl_SystemBoolean_33
+        PUSH, __intnl_SystemBoolean_34
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_33
-        JUMP_IF_FALSE, L2
+        PUSH, __intnl_SystemBoolean_34
+        JUMP_IF_FALSE, L5
         PUSH, __19___l__param
         PUSH, __lcl___i_SystemInt32_19
         PUSH, __intnl_VRCSDK3DataDataToken_27
@@ -1922,60 +1963,60 @@
         PUSH, __const_SystemInt32_3  ; 1
         PUSH, __lcl___i_SystemInt32_19
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        JUMP, L1
-    L2:
+        JUMP, L4
+    L5:
         PUSH, __const_SystemInt32_3  ; 1
         PUSH, __lcl___w_SystemInt32_0
         COPY
-    L3:
+    L6:
         PUSH, __lcl___w_SystemInt32_0
         PUSH, __lcl___n_SystemInt32_16
-        PUSH, __intnl_SystemBoolean_33
+        PUSH, __intnl_SystemBoolean_34
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_33
-        JUMP_IF_FALSE, L15
+        PUSH, __intnl_SystemBoolean_34
+        JUMP_IF_FALSE, L18
         PUSH, __const_SystemInt32_1  ; 0
         PUSH, __lcl___lo_SystemInt32_0
         COPY
-    L4:
+    L7:
         PUSH, __lcl___lo_SystemInt32_0
         PUSH, __lcl___n_SystemInt32_16
-        PUSH, __intnl_SystemBoolean_34
+        PUSH, __intnl_SystemBoolean_35
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_34
-        JUMP_IF_FALSE, L14
+        PUSH, __intnl_SystemBoolean_35
+        JUMP_IF_FALSE, L17
         PUSH, __lcl___lo_SystemInt32_0
         PUSH, __lcl___w_SystemInt32_0
         PUSH, __lcl___mid_SystemInt32_0
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __lcl___mid_SystemInt32_0
         PUSH, __lcl___n_SystemInt32_16
-        PUSH, __intnl_SystemBoolean_35
+        PUSH, __intnl_SystemBoolean_36
         EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_35
-        JUMP_IF_FALSE, L5
+        PUSH, __intnl_SystemBoolean_36
+        JUMP_IF_FALSE, L8
         PUSH, __lcl___n_SystemInt32_16
         PUSH, __lcl___mid_SystemInt32_0
         COPY
-    L5:
+    L8:
         PUSH, __const_SystemInt32_0  ; 2
         PUSH, __lcl___w_SystemInt32_0
-        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_SystemInt32_8
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __lcl___lo_SystemInt32_0
-        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_SystemInt32_8
         PUSH, __lcl___hi_SystemInt32_0
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __lcl___hi_SystemInt32_0
         PUSH, __lcl___n_SystemInt32_16
-        PUSH, __intnl_SystemBoolean_36
+        PUSH, __intnl_SystemBoolean_37
         EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_36
-        JUMP_IF_FALSE, L6
+        PUSH, __intnl_SystemBoolean_37
+        JUMP_IF_FALSE, L9
         PUSH, __lcl___n_SystemInt32_16
         PUSH, __lcl___hi_SystemInt32_0
         COPY
-    L6:
+    L9:
         PUSH, __lcl___lo_SystemInt32_0
         PUSH, __lcl___p_SystemInt32_0
         COPY
@@ -1985,35 +2026,35 @@
         PUSH, __lcl___lo_SystemInt32_0
         PUSH, __lcl___k_SystemInt32_0
         COPY
-    L7:
+    L10:
         PUSH, __lcl___k_SystemInt32_0
         PUSH, __lcl___hi_SystemInt32_0
-        PUSH, __intnl_SystemBoolean_37
+        PUSH, __intnl_SystemBoolean_38
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_37
-        JUMP_IF_FALSE, L13
+        PUSH, __intnl_SystemBoolean_38
+        JUMP_IF_FALSE, L16
         PUSH, __lcl___p_SystemInt32_0
         PUSH, __lcl___mid_SystemInt32_0
-        PUSH, __intnl_SystemBoolean_38
+        PUSH, __intnl_SystemBoolean_39
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_38
-        JUMP_IF_FALSE, L8
+        PUSH, __intnl_SystemBoolean_39
+        JUMP_IF_FALSE, L11
         PUSH, __const_SystemBoolean_1  ; False
         PUSH, __lcl___left_SystemBoolean_0
         COPY
-        JUMP, L10
-    L8:
+        JUMP, L13
+    L11:
         PUSH, __lcl___q_SystemInt32_0
         PUSH, __lcl___hi_SystemInt32_0
-        PUSH, __intnl_SystemBoolean_39
+        PUSH, __intnl_SystemBoolean_40
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_39
-        JUMP_IF_FALSE, L9
+        PUSH, __intnl_SystemBoolean_40
+        JUMP_IF_FALSE, L12
         PUSH, __const_SystemBoolean_0  ; True
         PUSH, __lcl___left_SystemBoolean_0
         COPY
-        JUMP, L10
-    L9:
+        JUMP, L13
+    L12:
         PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
         PUSH, __lcl___p_SystemInt32_0
         PUSH, __intnl_VRCSDK3DataDataToken_27
@@ -2030,59 +2071,59 @@
         EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
         PUSH, __lcl_b_SystemInt32_0
         PUSH, __lcl_a_SystemInt32_0
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         PUSH, __const_SystemInt32_1  ; 0
         PUSH, __lcl___left_SystemBoolean_0
         EXTERN, "SystemInt32.__op_LessThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-    L10:
-        PUSH, __lcl___left_SystemBoolean_0
-        JUMP_IF_FALSE, L11
-        PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
-        PUSH, __lcl___p_SystemInt32_0
-        PUSH, __intnl_VRCSDK3DataDataToken_27
-        EXTERN, "VRCSDK3DataDataTokenArray.__Get__SystemInt32__VRCSDK3DataDataToken"
-        PUSH, __lcl___b_VRCSDK3DataDataTokenArray_0
-        PUSH, __lcl___k_SystemInt32_0
-        PUSH, __intnl_VRCSDK3DataDataToken_27
-        EXTERN, "VRCSDK3DataDataTokenArray.__Set__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
-        PUSH, __lcl___p_SystemInt32_0
-        PUSH, __const_SystemInt32_3  ; 1
-        PUSH, __lcl___p_SystemInt32_0
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        JUMP, L12
-    L11:
-        PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
-        PUSH, __lcl___q_SystemInt32_0
-        PUSH, __intnl_VRCSDK3DataDataToken_27
-        EXTERN, "VRCSDK3DataDataTokenArray.__Get__SystemInt32__VRCSDK3DataDataToken"
-        PUSH, __lcl___b_VRCSDK3DataDataTokenArray_0
-        PUSH, __lcl___k_SystemInt32_0
-        PUSH, __intnl_VRCSDK3DataDataToken_27
-        EXTERN, "VRCSDK3DataDataTokenArray.__Set__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
-        PUSH, __lcl___q_SystemInt32_0
-        PUSH, __const_SystemInt32_3  ; 1
-        PUSH, __lcl___q_SystemInt32_0
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-    L12:
-        PUSH, __lcl___k_SystemInt32_0
-        PUSH, __const_SystemInt32_3  ; 1
-        PUSH, __lcl___k_SystemInt32_0
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        JUMP, L7
     L13:
-        PUSH, __const_SystemInt32_0  ; 2
-        PUSH, __lcl___w_SystemInt32_0
-        PUSH, __intnl_SystemInt32_7
-        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __lcl___lo_SystemInt32_0
-        PUSH, __intnl_SystemInt32_7
-        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __lcl___left_SystemBoolean_0
+        JUMP_IF_FALSE, L14
+        PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
+        PUSH, __lcl___p_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_27
+        EXTERN, "VRCSDK3DataDataTokenArray.__Get__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___b_VRCSDK3DataDataTokenArray_0
+        PUSH, __lcl___k_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_27
+        EXTERN, "VRCSDK3DataDataTokenArray.__Set__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___p_SystemInt32_0
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __lcl___p_SystemInt32_0
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        JUMP, L4
+        JUMP, L15
     L14:
         PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
+        PUSH, __lcl___q_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_27
+        EXTERN, "VRCSDK3DataDataTokenArray.__Get__SystemInt32__VRCSDK3DataDataToken"
+        PUSH, __lcl___b_VRCSDK3DataDataTokenArray_0
+        PUSH, __lcl___k_SystemInt32_0
+        PUSH, __intnl_VRCSDK3DataDataToken_27
+        EXTERN, "VRCSDK3DataDataTokenArray.__Set__SystemInt32_VRCSDK3DataDataToken__SystemVoid"
+        PUSH, __lcl___q_SystemInt32_0
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __lcl___q_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+    L15:
+        PUSH, __lcl___k_SystemInt32_0
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __lcl___k_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L10
+    L16:
+        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __lcl___w_SystemInt32_0
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __lcl___lo_SystemInt32_0
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __lcl___lo_SystemInt32_0
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        JUMP, L7
+    L17:
+        PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
         PUSH, __lcl___s_VRCSDK3DataDataTokenArray_0
         COPY
         PUSH, __lcl___b_VRCSDK3DataDataTokenArray_0
@@ -2095,18 +2136,18 @@
         PUSH, __const_SystemInt32_0  ; 2
         PUSH, __lcl___w_SystemInt32_0
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        JUMP, L3
-    L15:
+        JUMP, L6
+    L18:
         PUSH, __const_SystemInt32_1  ; 0
         PUSH, __lcl___i_SystemInt32_19
         COPY
-    L16:
+    L19:
         PUSH, __lcl___i_SystemInt32_19
         PUSH, __lcl___n_SystemInt32_16
-        PUSH, __intnl_SystemBoolean_33
+        PUSH, __intnl_SystemBoolean_34
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_33
-        JUMP_IF_FALSE, L17
+        PUSH, __intnl_SystemBoolean_34
+        JUMP_IF_FALSE, L20
         PUSH, __lcl___a_VRCSDK3DataDataTokenArray_0
         PUSH, __lcl___i_SystemInt32_19
         PUSH, __intnl_VRCSDK3DataDataToken_27
@@ -2119,8 +2160,8 @@
         PUSH, __const_SystemInt32_3  ; 1
         PUSH, __lcl___i_SystemInt32_19
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        JUMP, L16
-    L17:
+        JUMP, L19
+    L20:
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
@@ -2137,9 +2178,9 @@
     L0:
         PUSH, __lcl___i_SystemInt32_20
         PUSH, __lcl___n_SystemInt32_17
-        PUSH, __intnl_SystemBoolean_40
+        PUSH, __intnl_SystemBoolean_41
         EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_40
+        PUSH, __intnl_SystemBoolean_41
         JUMP_IF_FALSE, L3
         PUSH, __20___l__param
         PUSH, __lcl___i_SystemInt32_20
@@ -2150,9 +2191,9 @@
         EXTERN, "VRCSDK3DataDataToken.__get_Int__SystemInt32"
         PUSH, __lcl_x_SystemInt32_15
         PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __intnl_SystemBoolean_41
+        PUSH, __intnl_SystemBoolean_42
         EXTERN, "SystemInt32.__op_GreaterThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_41
+        PUSH, __intnl_SystemBoolean_42
         JUMP_IF_FALSE, L1
         JUMP, L2
     L1:

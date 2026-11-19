@@ -64,7 +64,7 @@ _scores.Sort((a, b) => b - a);
 - 本体は式（`x => x > 0`）とブロック（`x => { ... }`）のどちらでも書けます。メソッド名を渡すこともできます（`_scores.Exists(IsOdd)`）
 - `Func`・`Predicate`・`Comparison`・`Action` の変数・フィールド・引数も渡せます（`_scores.Exists(isOdd)`、`_scores.Sort(compare)`。[デリゲート](delegates.md)）
 - 戻り値のないラムダ（`ForEach` など）の式の本体には、普通のクラスのフィールド・プロパティや、List / Dictionary の要素への代入・インクリメントも書けます（`_enemies.ForEach(e => e.hp -= 1)`、`_names.ForEach(n => _counts[n]++)`）
-- `Sort(Comparison)` は安定な並べ替え（マージソート）です（C# の `List.Sort` は安定とは限りません）
+- `Sort(Comparison)` は安定な並べ替え（マージソート）です（C# の `List.Sort` は安定とは限りません）。作業用の配列は、呼び出し箇所ごとのフィールドを使い回します（初めは 16 個分で、足りないときだけ大きく作り直します）。普通のクラスのメソッドの中（UdonSharp は static フィールドを使えないため）では、毎回作ります
 - `FindIndex(start, count, match)` などで範囲外を指定したときは、C# の `ArgumentOutOfRangeException` ではなく、Udon の実行時例外か、見つからない結果（-1）になります
 - ラムダの中で起きたコンパイルエラーと実行時例外は、元のラムダの位置に表示されます
 
