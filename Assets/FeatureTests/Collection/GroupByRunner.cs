@@ -83,7 +83,7 @@ namespace FeatureTests.Collection
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果（Scenario() を普通の C# として実行して確かめたもの）
-        private const string Expected = "G1=0:3963|1:141|2:5255;G2=4:PEAR,KIWI,PLUM,DATE|3:FIG|5:APPLE|6:BANANA,{ Key = 0, N = 3, Total = 15, Best = 8 } { Key = 2, N = 2, Total = 10, Best = 7 } { Key = 1, N = 1, Total = 1, Best = 1 };G3=5x3,1x2,3x2,2x1,4x1,6x1,9x1,3,1,5;G4=False5,True6,p2,f1,a1,k1,d1,b1,0k3,2k2,1k1,p2,f1,a1,null2,k1,d1,b1,t13,t22,null1;G5=0:bd|1:ace,False3,True12;G6=1[abde]0[cf]TF,3:33,414;G7=0False,20,6/9/4,2/6/3,31159535426,True;G8=False=8,True=3,320,4x3,2x2,7x1,3,12,6;G9=11,11,2,22;G10=0:15:acf,2:10:be,1:1:d;G11=3-1-1-5-9-5-3-5,426,pear/kiwi/plum/date,39631415255;G12=-2147483648x2,2147483647x2,-1x2,0x1,-9223372036854775808x2,5x1,-5x1,255x2,0x1,7x1,2,2,3,15x2,NaNx2,+0x2,+Infx2,-Infx1,NaNx2,-0x2,2.25x1;G13=[ab]2|null2|[]2|[AB]1|[é]1|[日本]2|[e\u0301]1;G14=0x2,-3x2,99x2,1x1;G15=t13,t1b2,null2;G16=A:123|B:12|C:1,aa1a2a3|cc1|bb2,AA3A2A1|BB2B1|CC1,1C1B1A1|2B2A2|3A3;G17=00,17,1x5,6,53:600:0.37.21.10.47:68871:67146714;G18=k1e1k2e2k3e3k4e4,40,12340;G19=0:4,2[5255],p8/f3/a5/k4/d4/b6,False[314123]26,TrueTrue;G20=11,8True351TrueFalse,31159535,1932,4,88,6488,[][,]pear++kiwi+plum+date++banana;G21=0:30c,2:20e,1:2d|1:abde7,0:cf8|0n3,1n1,2n5|1816|302;G22=5x1,2x4,3x1,0x1,8x1,1x3,7x1,3=2,1=6,0=3,2=2,39634555,5,1,2:31,1:4926,3:5,60/3/9,20/3/11,17;G23=3:anncy,5:bobed,8:dee|2:8cy,3:16ann|51,61,71,81,111|3221358;G24=832112111321,330,32,32/12;G25=3,2,3:18,4:8,4True,2/2";
+        private const string Expected = "G1=0:3963|1:141|2:5255;G2=4:PEAR,KIWI,PLUM,DATE|3:FIG|5:APPLE|6:BANANA,{ Key = 0, N = 3, Total = 15, Best = 8 } { Key = 2, N = 2, Total = 10, Best = 7 } { Key = 1, N = 1, Total = 1, Best = 1 };G3=5x3,1x2,3x2,2x1,4x1,6x1,9x1,3,1,5;G4=False5,True6,p2,f1,a1,k1,d1,b1,0k3,2k2,1k1,p2,f1,a1,null2,k1,d1,b1,t13,t22,null1;G5=0:bd|1:ace,False3,True12;G6=1[abde]0[cf]TF,3:33,414;G7=0False,20,6/9/4,2/6/3,31159535426,True;G8=False=8,True=3,320,4x3,2x2,7x1,3,12,6;G9=11,11,2,22;G10=0:15:acf,2:10:be,1:1:d;G11=3-1-1-5-9-5-3-5,426,pear/kiwi/plum/date,39631415255;G12=-2147483648x2,2147483647x2,-1x2,0x1,-9223372036854775808x2,5x1,-5x1,255x2,0x1,7x1,2,2,3,15x2,NaNx2,+0x2,+Infx2,-Infx1,NaNx2,-0x2,2.25x1;G13=[ab]2|null2|[]2|[AB]1|[é]1|[日本]2|[e\u0301]1;G14=0x2,-3x2,99x2,1x1;G15=t13,t1b2,null2;G16=A:123|B:12|C:1,aa1a2a3|cc1|bb2,AA3A2A1|BB2B1|CC1,1C1B1A1|2B2A2|3A3;G17=00,17,1x5,6,53:600:0.37.21.10.47:68871:67146714;G18=k1e1k2e2k3e3k4e4,40,12340;G19=0:4,2[5255],p8/f3/a5/k4/d4/b6,False[314123]26,TrueTrue;G20=11,8True351TrueFalse,31159535,1932,4,88,6488,[][,]pear++kiwi+plum+date++banana;G21=0:30c,2:20e,1:2d|1:abde7,0:cf8|0n3,1n1,2n5|1816|302;G22=5x1,2x4,3x1,0x1,8x1,1x3,7x1,3=2,1=6,0=3,2=2,39634555,5,1,2:31,1:4926,3:5,60/3/9,20/3/11,17;G23=3:anncy,5:bobed,8:dee|2:8cy,3:16ann|51,61,71,81,111|3221358;G24=832112111321,330,32,32/12;G25=3,2,3:18,4:8,4True,2/2;G26=3:37/2|2:26/2|1:159/3|0:48/2,0:48/2,3:3711/3|2:2/1|1:1/1,2,0,1=10,2=14,0=18,0=18,6/1";
 
         public Text display;
 
@@ -310,9 +310,27 @@ namespace FeatureTests.Collection
             s += "G25=" + ms.GroupBy(m => m).Count() + "," + ms.GroupBy(m => (int)m).Count()
                  + "," + string.Join(",", ms.GroupBy(m => m.v, m => m + m).Select(g => g.Key + ":" + g.Sum(x => (int)x)))
                  + "," + ms.GroupBy(m => m + m3).Count() + (ms[0] == ms[1])
-                 + "," + string.Join(",", words.GroupBy(w => w).Where(g => g.Key == null).Select(g => g.Count() + "/" + g.Where(w => w == null).Count()));
+                 + "," + string.Join(",", words.GroupBy(w => w).Where(g => g.Key == null).Select(g => g.Count() + "/" + g.Where(w => w == null).Count())) + ";";
+
+            // G26（#171）：グループがつなぎの外に出ない GroupBy は、グループの入れ物を呼び出し箇所ごとに使い回す。
+            // 同じ箇所を、グループの数・中身を変えて何度も呼ぶ（前の呼び出しの中身が残らない）。外に出すもの（ToList）は前のまま変わらない
+            var kept1 = PoolKeep(new List<int> { 1, 2, 3 });
+            var kept2 = PoolKeep(new List<int> { 7 });
+            s += "G26=" + PoolA(new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 }) + "," + PoolA(new List<int> { 4, 8 }) + "," + PoolA(new List<int> { 3, 7, 11, 2, 1 })
+                 + "," + PoolB(new List<string> { "ab", "ac", null, null, "b" }) + "," + PoolB(new List<string> { "x", "y" })
+                 + "," + PoolC(new List<int> { 1, 2, 3, 4, 5, 6 }) + "," + PoolC(new List<int> { 3, 6 })
+                 + "," + string.Join("", kept1.Select(g => g.Sum())) + "/" + kept2.Count;
             return s;
         }
+
+        private string PoolA(List<int> xs) =>
+            string.Join("|", xs.GroupBy(x => x % 4).Where(g => g.Count() > 0).OrderBy(g => -g.Key).Select(g => g.Key + ":" + string.Join("", g) + "/" + g.Count()));
+
+        private int PoolB(List<string> ws) => ws.GroupBy(w => w == null ? null : w.Substring(0, 1)).Count(g => g.Count() > 1);
+
+        private string PoolC(List<int> xs) => string.Join(",", xs.GroupBy(x => x % 3, x => x * 2).Select(g => new { g.Key, S = g.Sum() }).Select(a => a.Key + "=" + a.S));
+
+        private List<IGrouping<int, int>> PoolKeep(List<int> xs) => xs.GroupBy(x => 0).ToList();
 
         public void Run()
         {

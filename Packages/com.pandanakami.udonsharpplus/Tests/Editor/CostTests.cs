@@ -91,7 +91,8 @@ public class Cost : UdonSharpBehaviour
         [TestCase("d[\"a\"] = 1; n = d[\"a\"];", "var d = new Dictionary<string, int>();", "0,0,0,0,0,0,0,0,0", TestName = "Dictionary set and get")]
         [TestCase("var r = nums.Where(x => x > 1).ToList();", Nums, "0,0,0,0,1,0,1,0,0", TestName = "LINQ Where.ToList")]
         [TestCase("n = nums.Select(x => x * 2).Sum();", Nums, "0,0,0,0,0,0,0,0,0", TestName = "LINQ Select.Sum")]
-        [TestCase("n = nums.GroupBy(x => x % 2).Count();", Nums, "0,0,0,1,1,0,4,0,0", TestName = "LINQ GroupBy.Count")]
+        // GroupBy のグループ（object[]・DataList）は、使い回す置き場（#171）にないときだけ作る（グループの数がいちばん多かったときを超えたとき）
+        [TestCase("n = nums.GroupBy(x => x % 2).Count();", Nums, "0,0,0,1,1,0,5,0,0", TestName = "LINQ GroupBy.Count")]
         [TestCase("Money s = m + m;", "Money m = new Money(1);", "0,0,0,0,0,0,0,0,0", TestName = "operator")]
         [TestCase("n = U.Id(3);", "", "0,0,0,0,0,0,0,0,0", TestName = "generic method")]
         [TestCase("string s = \"a\" + n;", "", "0,0,0,0,0,0,0,1,0", TestName = "string concat")]

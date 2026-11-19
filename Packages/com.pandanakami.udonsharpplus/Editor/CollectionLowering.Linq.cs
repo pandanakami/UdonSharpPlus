@@ -614,6 +614,17 @@ namespace UdonSharpPlus
                     string groups = Temp($"g{s}", DataListType);
                     string grp = $"__grp{id}", token = $"__gk{id}", found = $"__gx{id}";
                     string make = $"{grp} = new object[] {{ \"{GroupTag}\", (object)({key}), new {DataListType}() }}; {groups}.Add(new {DataTokenType}((object){grp})); ";
+                    // グループがこのつなぎの外に出ないなら、前の呼び出しで作ったグループの入れ物（object[] と要素の DataList）を使い回す（#171）。
+                    // 置き場は呼び出し箇所ごとのフィールド（いちばん多かったグループの数だけ持ち続ける）。static のメソッドの中は使えないので、毎回作る
+                    if (!isStatic && GroupStaysInside(calls, calls.IndexOf(call)))
+                    {
+                        string pool = $"{name}_gp{s}", used = $"__gpn{id}";
+                        _helpers[pool] = $"private {DataListType} {pool} = new {DataListType}();";
+                        preamble.Append($"int {used} = 0; ");
+                        make = $"if ({used} < {pool}.Count) {{ {grp} = (object[])({pool}[{used}]).Reference; {grp}[1] = (object)({key}); (({DataListType}){grp}[2]).Clear(); }} "
+                               + $"else {{ {grp} = new object[] {{ \"{GroupTag}\", (object)({key}), new {DataListType}() }}; {pool}.Add(new {DataTokenType}((object){grp})); }} "
+                               + $"{used}++; {groups}.Add(new {DataTokenType}((object){grp})); ";
+                    }
                     body.Append($"object[] {grp}; ");
                     string lookup;
                     if (byDictionary)
@@ -1080,6 +1091,97 @@ namespace UdonSharpPlus
                 _helpers[name] = $"{modifiers} {returnType} {name}({sourceParam} __src{extraParams}{CaptureParams(captures)}) "
                                  + $"{{ {marker}{preamble}{code}{post} }}";
                 return Parse($"{name}({sourceText ?? Text(Visit(source))}{extraArgs}{CaptureArgs(captures)})", node);
+            }
+
+            /// <summary>GroupBy のあとで、グループを受け取ってよい呼び出し（ほかのものが来たら、使い回さない。#171）</summary>
+            private static readonly HashSet<string> GroupPassThrough = new HashSet<string>
+                { "Where", "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending", "Skip", "Take", "SkipWhile", "TakeWhile", "Reverse" };
+
+            /// <summary>グループを受け取って、グループでない値を返す（つなぎの最後の）呼び出し</summary>
+            private static readonly HashSet<string> GroupScalarTerminals = new HashSet<string>
+                { "Count", "Any", "All", "Sum", "Min", "Max", "Average" };
+
+            /// <summary>
+            /// calls[groupIndex] の GroupBy のグループが、このつなぎの外に出ないか（#171）。出ないなら、グループの入れ物を呼ぶたびに作らず使い回せる。
+            /// 出ないと言えるのは、グループのまま Select / 集計（Count・Sum など）まで進み、途中のラムダがグループを
+            /// g.Key・g の LINQ（結果は新しく作られる）・string.Join / string.Concat の引数にしか使わないとき。
+            /// 迷う形（メソッド名を渡す、グループを返す・変数に入れる、最後がグループの並び・First() など）は、出るものとする
+            /// </summary>
+            private bool GroupStaysInside(List<LinqCallInfo> calls, int groupIndex)
+            {
+                for (int j = groupIndex + 1; j < calls.Count; j++)
+                {
+                    LinqCallInfo call = calls[j];
+                    bool select = call.Name == "Select";
+                    if (!select && !GroupPassThrough.Contains(call.Name) && !GroupScalarTerminals.Contains(call.Name))
+                        return false;
+                    // OrderBy などのキー・Where の条件・Select の変換・集計のラムダ（Skip / Take の数はグループを受け取らない）
+                    foreach (ExpressionSyntax arg in call.Args)
+                    {
+                        if (_model.GetTypeInfo(arg).ConvertedType is INamedTypeSymbol d && d.DelegateInvokeMethod != null)
+                        {
+                            if (!LambdaKeepsGroup(arg))
+                                return false;
+                        }
+                    }
+                    if (select)
+                        return !IsGrouping(call.Method.TypeArguments[1]);   // ここから先はグループでない値が流れる
+                    if (GroupScalarTerminals.Contains(call.Name))
+                        return j == calls.Count - 1;
+                }
+                return false;   // 最後までグループの並び（結果の List に入れて返す）
+            }
+
+            /// <summary>ラムダの 1 つ目の引数（グループ）が、外に出ない使い方だけをされているか（#171）</summary>
+            private bool LambdaKeepsGroup(ExpressionSyntax fn)
+            {
+                ParameterSyntax parameter;
+                CSharpSyntaxNode body;
+                switch (fn)
+                {
+                    case SimpleLambdaExpressionSyntax s: parameter = s.Parameter; body = s.Body; break;
+                    case ParenthesizedLambdaExpressionSyntax p when p.ParameterList.Parameters.Count > 0: parameter = p.ParameterList.Parameters[0]; body = p.Body; break;
+                    case AnonymousMethodExpressionSyntax m when m.ParameterList != null && m.ParameterList.Parameters.Count > 0: parameter = m.ParameterList.Parameters[0]; body = m.Block; break;
+                    default: return false;   // メソッド名・引数を省いた匿名メソッドなど
+                }
+                ISymbol symbol = _model.GetDeclaredSymbol(parameter);
+                if (symbol == null)
+                    return false;
+                string name = parameter.Identifier.ValueText;
+                foreach (IdentifierNameSyntax id in body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+                {
+                    if (id.Identifier.ValueText != name || !SymbolEqualityComparer.Default.Equals(_model.SymbolInfoOf(id).Symbol, symbol))
+                        continue;
+                    SyntaxNode child = id, parent = id.Parent;
+                    while (parent is ParenthesizedExpressionSyntax)
+                    {
+                        child = parent;
+                        parent = parent.Parent;
+                    }
+                    if (parent is MemberAccessExpressionSyntax member && member.Expression == child)
+                    {
+                        // g.Key
+                        if (member.Name.Identifier.ValueText == "Key")
+                            continue;
+                        // g の LINQ：つないだ一番外側が ToList・Count などなら、結果は新しく作られる（グループの要素の DataList そのものは出ない）
+                        if (member.Parent is InvocationExpressionSyntax invocation && AsLinqCall(invocation) != null)
+                        {
+                            InvocationExpressionSyntax top = invocation;
+                            while (top.Parent is MemberAccessExpressionSyntax outer && outer.Expression == top && outer.Parent is InvocationExpressionSyntax next && AsLinqCall(next) != null)
+                                top = next;
+                            if (LinqTerminals.Contains(AsLinqCall(top).Name))
+                                continue;
+                        }
+                        return false;
+                    }
+                    // string.Join(",", g)・string.Concat(g)
+                    if (parent is ArgumentSyntax argument && argument.Parent?.Parent is InvocationExpressionSyntax call
+                        && _model.SymbolInfoOf(call).Symbol is IMethodSymbol method && method.ContainingType?.SpecialType == SpecialType.System_String
+                        && (method.Name == "Join" || method.Name == "Concat"))
+                        continue;
+                    return false;
+                }
+                return true;
             }
 
             /// <summary>GroupBy の 2 つ目の引数が、要素を変換するラムダ（引数 1 つ）か（結果を作るラムダ・比較子の形は未対応。#140）</summary>
