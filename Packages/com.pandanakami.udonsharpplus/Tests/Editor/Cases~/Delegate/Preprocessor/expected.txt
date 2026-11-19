@@ -42,19 +42,30 @@
     __2_x__param: %SystemInt32, null
     __gintnl_SystemUInt32_6: %SystemUInt32, null
     __3__intnlparam: %SystemInt32, null
-    __4__intnlparam: %SystemString, null
-    __5__intnlparam: %SystemObject, null
+    __4__intnlparam: %SystemObjectArray, null
+    __5__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_7: %SystemUInt32, null
     __6__intnlparam: %SystemInt32, null
+    __7__intnlparam: %SystemString, null
+    __8__intnlparam: %SystemObject, null
+    __9__intnlparam: %SystemInt32, null
+    __const_SystemString_4: %SystemString, null
+    __const_SystemString_5: %SystemString, null
+    __gintnl_SystemUInt32_8: %SystemUInt32, null
+    __10__intnlparam: %SystemInt32, null
+    __11__intnlparam: %VRCUdonUdonBehaviour, null
+    __12__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_9: %SystemUInt32, null
     __gintnl_SystemInt32_0: %SystemInt32, null
     __gintnl_SystemObjectArray_0: %SystemObjectArray, null
     __gintnl_SystemInt32_1: %SystemInt32, null
-    __const_SystemString_4: %SystemString, null
-    __const_SystemString_5: %SystemString, null
-    __gintnl_SystemUInt32_7: %SystemUInt32, null
-    __7__intnlparam: %VRCUdonUdonBehaviour, null
-    __8__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_10: %SystemUInt32, null
+    __13__intnlparam: %VRCUdonUdonBehaviour, null
+    __14__intnlparam: %SystemString, null
     __gintnl_SystemInt32_2: %SystemInt32, null
     __const_SystemString_6: %SystemString, null
+    __gintnl_SystemUInt32_11: %SystemUInt32, null
+    __gintnl_SystemInt32_3: %SystemInt32, null
     __lcl___env0_SystemObjectArray_0: %SystemObjectArray, null
     __intnl_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___env1_SystemObjectArray_0: %SystemObjectArray, null
@@ -80,32 +91,52 @@
     __intnl_SystemObject_4: %SystemObject, null
     __intnl_SystemObject_5: %SystemObject, null
     __intnl_SystemInt32_5: %SystemInt32, null
-    __lcl___n_SystemInt32_0: %SystemInt32, null
-    __lcl___r_SystemInt32_0: %SystemInt32, null
-    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_6: %SystemInt32, null
     __intnl_SystemBoolean_1: %SystemBoolean, null
     __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
     __intnl_SystemObject_6: %SystemObject, null
     __intnl_UnityEngineObject_0: %UnityEngineObject, null
     __intnl_UnityEngineObject_1: %UnityEngineObject, null
     __intnl_SystemBoolean_2: %SystemBoolean, null
-    __lcl___e_SystemObject_0: %SystemObject, null
-    __intnl_SystemInt32_6: %SystemInt32, null
-    __intnl_SystemBoolean_3: %SystemBoolean, null
-    __intnl_SystemInt32_7: %SystemInt32, null
     __intnl_SystemObject_7: %SystemObject, null
     __intnl_SystemString_0: %SystemString, null
-    __intnl_SystemInt32_8: %SystemInt32, null
-    __intnl_SystemInt32_9: %SystemInt32, null
-    __intnl_SystemBoolean_4: %SystemBoolean, null
-    __intnl_SystemInt32_10: %SystemInt32, null
-    __intnl_SystemObjectArray_3: %SystemObjectArray, null
     __intnl_SystemObject_8: %SystemObject, null
+    __lcl___e_SystemObject_0: %SystemObject, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __intnl_SystemObject_9: %SystemObject, null
+    __intnl_SystemString_1: %SystemString, null
+    __lcl___n_SystemInt32_0: %SystemInt32, null
+    __lcl___r_SystemInt32_0: %SystemInt32, null
+    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
+    __lcl___u_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_10: %SystemObject, null
+    __intnl_UnityEngineObject_2: %UnityEngineObject, null
+    __intnl_UnityEngineObject_3: %UnityEngineObject, null
+    __intnl_SystemBoolean_5: %SystemBoolean, null
+    __lcl___e_SystemObject_1: %SystemObject, null
+    __intnl_SystemInt32_7: %SystemInt32, null
+    __intnl_SystemBoolean_6: %SystemBoolean, null
+    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemObject_11: %SystemObject, null
+    __intnl_SystemString_2: %SystemString, null
+    __intnl_SystemInt32_9: %SystemInt32, null
+    __intnl_SystemInt32_10: %SystemInt32, null
+    __intnl_SystemBoolean_7: %SystemBoolean, null
     __intnl_SystemInt32_11: %SystemInt32, null
+    __intnl_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_SystemObject_12: %SystemObject, null
+    __intnl_SystemInt32_12: %SystemInt32, null
     __lcl___l_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___z_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___zn_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemString_1: %SystemString, null
+    __intnl_SystemInt32_13: %SystemInt32, null
+    __intnl_SystemInt32_14: %SystemInt32, null
+    __intnl_SystemBoolean_8: %SystemBoolean, null
+    __intnl_SystemInt32_15: %SystemInt32, null
+    __intnl_SystemObjectArray_4: %SystemObjectArray, null
+    __intnl_SystemObject_13: %SystemObject, null
+    __intnl_SystemString_3: %SystemString, null
 .data_end
 .code_start
         PUSH, __const_SystemUInt32_0  ; 4294967295
@@ -455,23 +486,33 @@
 # UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____invoke__objectArray__int(object[], int)
 #
         PUSH, __1__intnlparam
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemArray.__get_Length__SystemInt32"
-        PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __lcl___r_SystemInt32_0
-        COPY
-        PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __lcl___i_SystemInt32_0
-        COPY
-    L0:
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __const_SystemInt32_2  ; 3
         PUSH, __intnl_SystemBoolean_1
-        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        EXTERN, "SystemInt32.__op_Inequality__SystemInt32_SystemInt32__SystemBoolean"
         PUSH, __intnl_SystemBoolean_1
-        JUMP_IF_FALSE, L8
+        JUMP_IF_FALSE, L1
+        PUSH, __gintnl_SystemUInt32_6  ; -> L0
         PUSH, __1__intnlparam
-        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __4__intnlparam
+        COPY
+        PUSH, __2__intnlparam
+        PUSH, __5__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____many__objectArray__int(object[], int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____many__objectArray__int(object[], int)>
+    L0:
+        PUSH, __3__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L1:
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_1  ; 0
         PUSH, __intnl_SystemObject_6
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_6
@@ -489,50 +530,164 @@
         EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
         PUSH, __intnl_SystemBoolean_2
         JUMP_IF_FALSE, L3
-        PUSH, __gintnl_SystemUInt32_6  ; -> L2
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __const_SystemInt32_0  ; 1
-        PUSH, __intnl_SystemInt32_6
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemUInt32_7  ; -> L2
         PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __const_SystemInt32_0  ; 1
         PUSH, __intnl_SystemObject_7
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_7
         PUSH, __intnl_SystemString_0
         COPY
-        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __1__intnlparam
         PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_8
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemString_0
+        PUSH, __7__intnlparam
+        COPY
+        PUSH, __intnl_SystemObject_8
+        PUSH, __8__intnlparam
+        COPY
+        PUSH, __2__intnlparam
+        PUSH, __9__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____static__string__object__int(string, object, int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____static__string__object__int(string, object, int)>
+    L2:
+        PUSH, __6__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L3:
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_4  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__p0"
+        PUSH, __2__intnlparam
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __lcl___e_SystemObject_0
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_3
+        JUMP_IF_FALSE, L4
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_5  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__env"
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+    L4:
+        PUSH, __gintnl_SystemUInt32_8  ; -> L5
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __intnl_SystemObject_9
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_9
+        PUSH, __intnl_SystemString_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __intnl_SystemString_1
+        PUSH, __12__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+    L5:
+        PUSH, __10__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____many__objectArray__int(object[], int)
+#
+        PUSH, __4__intnlparam
+        PUSH, __lcl___n_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __lcl___r_SystemInt32_0
+        COPY
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __lcl___i_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_4
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_4
+        JUMP_IF_FALSE, L8
+        PUSH, __4__intnlparam
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemObject_10
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_10
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __intnl_UnityEngineObject_2
+        COPY
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_UnityEngineObject_3
+        COPY
+        PUSH, __intnl_UnityEngineObject_2
+        PUSH, __intnl_UnityEngineObject_3
+        PUSH, __intnl_SystemBoolean_5
+        EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_5
+        JUMP_IF_FALSE, L3
+        PUSH, __gintnl_SystemUInt32_9  ; -> L2
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_0  ; 1
         PUSH, __intnl_SystemInt32_7
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
+        PUSH, __4__intnlparam
         PUSH, __intnl_SystemInt32_7
-        PUSH, __intnl_SystemObject_8
+        PUSH, __intnl_SystemObject_11
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_11
+        PUSH, __intnl_SystemString_2
+        COPY
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemObject_12
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_0
-        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_SystemInt32_10
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_10
         PUSH, __intnl_SystemInt32_9
-        PUSH, __intnl_SystemInt32_8
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         JUMP_IF_FALSE, L1
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_10
+        PUSH, __intnl_SystemInt32_11
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_10
+        PUSH, __intnl_SystemInt32_11
         PUSH, __intnl_SystemObjectArray_3
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_3
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_3
         PUSH, __gintnl_SystemObjectArray_0
@@ -542,7 +697,7 @@
     L1:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __4__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -550,26 +705,26 @@
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __5__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __intnl_SystemString_0
-        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemString_2
+        PUSH, __7__intnlparam
         COPY
-        PUSH, __intnl_SystemObject_8
+        PUSH, __intnl_SystemObject_12
+        PUSH, __8__intnlparam
+        COPY
         PUSH, __5__intnlparam
-        COPY
-        PUSH, __2__intnlparam
-        PUSH, __6__intnlparam
+        PUSH, __9__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -603,8 +758,8 @@
 # Calling UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____static__string__object__int(string, object, int)
         JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____static__string__object__int(string, object, int)>
     L2:
-        PUSH, __3__intnlparam
-        PUSH, __intnl_SystemInt32_11
+        PUSH, __6__intnlparam
+        PUSH, __intnl_SystemInt32_12
         COPY
 # Recursive stack pop
         PUSH, __gintnl_SystemInt32_1
@@ -637,7 +792,7 @@
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -645,7 +800,7 @@
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __5__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -653,73 +808,73 @@
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __4__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __intnl_SystemInt32_11
+        PUSH, __intnl_SystemInt32_12
         PUSH, __lcl___r_SystemInt32_0
         COPY
         JUMP, L7
     L3:
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_4  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__p0"
-        PUSH, __2__intnlparam
+        PUSH, __5__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_7
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_6
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemInt32_7
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         PUSH, __const_SystemObject_0
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         JUMP_IF_FALSE, L4
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_5  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__env"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
     L4:
-        PUSH, __gintnl_SystemUInt32_7  ; -> L6
+        PUSH, __gintnl_SystemUInt32_10  ; -> L6
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_0  ; 1
-        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_SystemInt32_8
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_7
-        PUSH, __intnl_SystemObject_7
+        PUSH, __4__intnlparam
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemObject_11
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __intnl_SystemObject_7
-        PUSH, __intnl_SystemString_0
+        PUSH, __intnl_SystemObject_11
+        PUSH, __intnl_SystemString_2
         COPY
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_2
-        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_SystemInt32_10
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_10
         PUSH, __intnl_SystemInt32_9
-        PUSH, __intnl_SystemInt32_8
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_7
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_7
         JUMP_IF_FALSE, L5
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_10
+        PUSH, __intnl_SystemInt32_11
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_10
+        PUSH, __intnl_SystemInt32_11
         PUSH, __intnl_SystemObjectArray_3
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_3
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_9
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_3
         PUSH, __gintnl_SystemObjectArray_0
@@ -729,7 +884,7 @@
     L5:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __4__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -737,23 +892,23 @@
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __5__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
-        PUSH, __7__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __13__intnlparam
         COPY
-        PUSH, __intnl_SystemString_0
-        PUSH, __8__intnlparam
+        PUSH, __intnl_SystemString_2
+        PUSH, __14__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -761,7 +916,7 @@
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -826,7 +981,7 @@
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -834,7 +989,7 @@
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -842,7 +997,7 @@
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __5__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_0  ; 1
@@ -850,14 +1005,14 @@
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __4__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_6  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__ret"
-        PUSH, __intnl_SystemObject_8
+        PUSH, __intnl_SystemObject_12
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
-        PUSH, __intnl_SystemObject_8
+        PUSH, __intnl_SystemObject_12
         PUSH, __lcl___r_SystemInt32_0
         EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
     L7:
@@ -868,7 +1023,7 @@
         JUMP, L0
     L8:
         PUSH, __lcl___r_SystemInt32_0
-        PUSH, __0__intnlparam
+        PUSH, __3__intnlparam
         COPY
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -879,7 +1034,7 @@
 #
 # UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____static__string__object__int(string, object, int)
 #
-        PUSH, __5__intnlparam
+        PUSH, __8__intnlparam
         PUSH, __lcl___l_SystemObjectArray_0
         COPY
         PUSH, __const_SystemObject_0
@@ -889,8 +1044,100 @@
         PUSH, __lcl___zn_SystemInt32_0
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __3__intnlparam
+        PUSH, __6__intnlparam
         COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+#
+        PUSH, __gintnl_SystemUInt32_11  ; -> L1
+# Stack size check
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_13
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __gintnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __intnl_SystemBoolean_8
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_8
+        JUMP_IF_FALSE, L0
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_15
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_15
+        PUSH, __intnl_SystemObjectArray_4
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __intnl_SystemInt32_13
+        EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __gintnl_SystemObjectArray_0
+        COPY
+# Stack size check end
+# Recursive stack push
+    L0:
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __11__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __12__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+# Recursive stack push end
+        PUSH, __11__intnlparam
+        PUSH, __13__intnlparam
+        COPY
+        PUSH, __12__intnlparam
+        PUSH, __14__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+# Recursive stack pop
+    L1:
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __12__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_0  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __11__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+# Recursive stack pop end
+        PUSH, __11__intnlparam
+        PUSH, __const_SystemString_6  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__ret"
+        PUSH, __intnl_SystemObject_13
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
+        PUSH, __intnl_SystemObject_13
+        PUSH, __10__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
@@ -900,12 +1147,12 @@
 #
 # UdonSharpPlusTests.DelegatePreprocessor.ClosureIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
 #
-        PUSH, __7__intnlparam
+        PUSH, __13__intnlparam
 # Cow dirty
-        PUSH, __8__intnlparam
-        PUSH, __intnl_SystemString_1
+        PUSH, __14__intnlparam
+        PUSH, __intnl_SystemString_3
         COPY
-        PUSH, __8__intnlparam
+        PUSH, __14__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -927,15 +1174,20 @@ __const_SystemString_6 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__re
 __const_SystemUInt32_0 = 4294967295
 __gintnl_SystemInt32_0 = 6
 __gintnl_SystemInt32_2 = 7
+__gintnl_SystemInt32_3 = 2
 __gintnl_SystemObjectArray_0 = [null, null, null, null, null, null, null]
 __gintnl_SystemUInt32_0 = -> Start():L4
 __gintnl_SystemUInt32_1 = -> Start():L6
+__gintnl_SystemUInt32_10 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____many__objectArray__int(object[], int):L6
+__gintnl_SystemUInt32_11 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string):L1
 __gintnl_SystemUInt32_2 = -> Start():L5
 __gintnl_SystemUInt32_3 = -> __dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__lambda0__UdonSharpPlusTests_DelegatePreprocessor_ClosureIf():L0
 __gintnl_SystemUInt32_4 = -> __dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__lambda1__UdonSharpPlusTests_DelegatePreprocessor_ClosureIf():L0
 __gintnl_SystemUInt32_5 = -> __dlg_UdonSharpPlusTests_DelegatePreprocessor_Step__lambda2__UdonSharpPlusTests_DelegatePreprocessor_ClosureIf():L0
-__gintnl_SystemUInt32_6 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____invoke__objectArray__int(object[], int):L2
-__gintnl_SystemUInt32_7 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____invoke__objectArray__int(object[], int):L6
+__gintnl_SystemUInt32_6 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____invoke__objectArray__int(object[], int):L0
+__gintnl_SystemUInt32_7 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____invoke__objectArray__int(object[], int):L2
+__gintnl_SystemUInt32_8 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____invoke__objectArray__int(object[], int):L5
+__gintnl_SystemUInt32_9 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Step____many__objectArray__int(object[], int):L2
 __refl_typeid = 6049089279637782491
 __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
 ### NetworkEvents
@@ -967,48 +1219,79 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
     __4__intnlparam: %SystemInt32, null
     __gintnl_SystemUInt32_2: %SystemUInt32, null
     __5__intnlparam: %SystemInt32, null
-    __6__intnlparam: %SystemString, null
-    __7__intnlparam: %SystemObject, null
+    __6__intnlparam: %SystemObjectArray, null
+    __7__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_3: %SystemUInt32, null
     __8__intnlparam: %SystemInt32, null
+    __9__intnlparam: %SystemString, null
+    __10__intnlparam: %SystemObject, null
+    __11__intnlparam: %SystemInt32, null
+    __const_SystemString_1: %SystemString, null
+    __const_SystemString_2: %SystemString, null
+    __gintnl_SystemUInt32_4: %SystemUInt32, null
+    __12__intnlparam: %SystemInt32, null
+    __13__intnlparam: %VRCUdonUdonBehaviour, null
+    __14__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_5: %SystemUInt32, null
     __gintnl_SystemInt32_0: %SystemInt32, null
     __gintnl_SystemObjectArray_0: %SystemObjectArray, null
     __gintnl_SystemInt32_1: %SystemInt32, null
-    __const_SystemString_1: %SystemString, null
-    __const_SystemString_2: %SystemString, null
-    __gintnl_SystemUInt32_3: %SystemUInt32, null
-    __9__intnlparam: %VRCUdonUdonBehaviour, null
-    __10__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_6: %SystemUInt32, null
+    __15__intnlparam: %VRCUdonUdonBehaviour, null
+    __16__intnlparam: %SystemString, null
     __gintnl_SystemInt32_2: %SystemInt32, null
     __const_SystemString_3: %SystemString, null
+    __gintnl_SystemUInt32_7: %SystemUInt32, null
+    __gintnl_SystemInt32_3: %SystemInt32, null
     __intnl_SystemInt32_0: %SystemInt32, null
     __intnl_SystemBoolean_0: %SystemBoolean, null
     __intnl_SystemObjectArray_0: %SystemObjectArray, null
-    __lcl___n_SystemInt32_0: %SystemInt32, null
-    __lcl___r_SystemInt32_0: %SystemInt32, null
-    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_1: %SystemInt32, null
     __intnl_SystemBoolean_1: %SystemBoolean, null
     __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
     __intnl_SystemObject_0: %SystemObject, null
     __intnl_UnityEngineObject_0: %UnityEngineObject, null
     __intnl_UnityEngineObject_1: %UnityEngineObject, null
     __intnl_SystemBoolean_2: %SystemBoolean, null
-    __lcl___e_SystemObject_0: %SystemObject, null
-    __intnl_SystemInt32_1: %SystemInt32, null
-    __intnl_SystemBoolean_3: %SystemBoolean, null
-    __intnl_SystemInt32_2: %SystemInt32, null
     __intnl_SystemObject_1: %SystemObject, null
     __intnl_SystemString_0: %SystemString, null
-    __intnl_SystemInt32_3: %SystemInt32, null
-    __intnl_SystemInt32_4: %SystemInt32, null
-    __intnl_SystemBoolean_4: %SystemBoolean, null
-    __intnl_SystemInt32_5: %SystemInt32, null
-    __intnl_SystemObjectArray_1: %SystemObjectArray, null
     __intnl_SystemObject_2: %SystemObject, null
+    __lcl___e_SystemObject_0: %SystemObject, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __intnl_SystemObject_3: %SystemObject, null
+    __intnl_SystemString_1: %SystemString, null
+    __lcl___n_SystemInt32_0: %SystemInt32, null
+    __lcl___r_SystemInt32_0: %SystemInt32, null
+    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
+    __lcl___u_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_4: %SystemObject, null
+    __intnl_UnityEngineObject_2: %UnityEngineObject, null
+    __intnl_UnityEngineObject_3: %UnityEngineObject, null
+    __intnl_SystemBoolean_5: %SystemBoolean, null
+    __lcl___e_SystemObject_1: %SystemObject, null
+    __intnl_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_6: %SystemBoolean, null
+    __intnl_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemObject_5: %SystemObject, null
+    __intnl_SystemString_2: %SystemString, null
+    __intnl_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_7: %SystemBoolean, null
     __intnl_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemObjectArray_1: %SystemObjectArray, null
+    __intnl_SystemObject_6: %SystemObject, null
+    __intnl_SystemInt32_7: %SystemInt32, null
     __lcl___l_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___z_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___zn_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemString_1: %SystemString, null
+    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemInt32_9: %SystemInt32, null
+    __intnl_SystemBoolean_8: %SystemBoolean, null
+    __intnl_SystemInt32_10: %SystemInt32, null
+    __intnl_SystemObjectArray_2: %SystemObjectArray, null
+    __intnl_SystemObject_7: %SystemObject, null
+    __intnl_SystemString_3: %SystemString, null
 .data_end
 .code_start
     .export _start
@@ -1095,23 +1378,33 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
 # UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____invoke__objectArray__int(object[], int)
 #
         PUSH, __1__intnlparam
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_1
         EXTERN, "SystemArray.__get_Length__SystemInt32"
-        PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __lcl___r_SystemInt32_0
-        COPY
-        PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __lcl___i_SystemInt32_0
-        COPY
-    L0:
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemBoolean_1
-        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        EXTERN, "SystemInt32.__op_Inequality__SystemInt32_SystemInt32__SystemBoolean"
         PUSH, __intnl_SystemBoolean_1
-        JUMP_IF_FALSE, L8
+        JUMP_IF_FALSE, L1
+        PUSH, __gintnl_SystemUInt32_2  ; -> L0
         PUSH, __1__intnlparam
-        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __6__intnlparam
+        COPY
+        PUSH, __2__intnlparam
+        PUSH, __7__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____many__objectArray__int(object[], int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____many__objectArray__int(object[], int)>
+    L0:
+        PUSH, __5__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L1:
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_1  ; 0
         PUSH, __intnl_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_0
@@ -1129,50 +1422,174 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
         PUSH, __intnl_SystemBoolean_2
         JUMP_IF_FALSE, L3
-        PUSH, __gintnl_SystemUInt32_2  ; -> L2
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __intnl_SystemInt32_1
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemUInt32_3  ; -> L2
         PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
         PUSH, __intnl_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_1
         PUSH, __intnl_SystemString_0
         COPY
-        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __1__intnlparam
         PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_2
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemString_0
+        PUSH, __9__intnlparam
+        COPY
+        PUSH, __intnl_SystemObject_2
+        PUSH, __10__intnlparam
+        COPY
+        PUSH, __2__intnlparam
+        PUSH, __11__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____static__string__object__int(string, object, int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____static__string__object__int(string, object, int)>
+    L2:
+        PUSH, __8__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L3:
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_1  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc__p0"
+        PUSH, __2__intnlparam
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __lcl___e_SystemObject_0
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_3
+        JUMP_IF_FALSE, L4
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_2  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc__env"
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+    L4:
+        PUSH, __gintnl_SystemUInt32_4  ; -> L5
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __intnl_SystemString_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __13__intnlparam
+        COPY
+        PUSH, __intnl_SystemString_1
+        PUSH, __14__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+    L5:
+        PUSH, __12__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.EndIf.Square(int)
+#
+        PUSH, __4__intnlparam
+        PUSH, __4__intnlparam
+        PUSH, __3__intnlparam
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____many__objectArray__int(object[], int)
+#
+        PUSH, __6__intnlparam
+        PUSH, __lcl___n_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __lcl___r_SystemInt32_0
+        COPY
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __lcl___i_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_4
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_4
+        JUMP_IF_FALSE, L8
+        PUSH, __6__intnlparam
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemObject_4
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_4
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __intnl_UnityEngineObject_2
+        COPY
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_UnityEngineObject_3
+        COPY
+        PUSH, __intnl_UnityEngineObject_2
+        PUSH, __intnl_UnityEngineObject_3
+        PUSH, __intnl_SystemBoolean_5
+        EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_5
+        JUMP_IF_FALSE, L3
+        PUSH, __gintnl_SystemUInt32_5  ; -> L2
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_2  ; 1
         PUSH, __intnl_SystemInt32_2
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
+        PUSH, __6__intnlparam
         PUSH, __intnl_SystemInt32_2
-        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemObject_5
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_5
+        PUSH, __intnl_SystemString_2
+        COPY
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __6__intnlparam
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemObject_6
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_0
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_5
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_5
         PUSH, __intnl_SystemInt32_4
-        PUSH, __intnl_SystemInt32_3
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         JUMP_IF_FALSE, L1
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         PUSH, __intnl_SystemObjectArray_1
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_1
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_1
         PUSH, __gintnl_SystemObjectArray_0
@@ -1182,7 +1599,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
     L1:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __6__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1190,26 +1607,26 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __intnl_SystemString_0
-        PUSH, __6__intnlparam
+        PUSH, __intnl_SystemString_2
+        PUSH, __9__intnlparam
         COPY
-        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemObject_6
+        PUSH, __10__intnlparam
+        COPY
         PUSH, __7__intnlparam
-        COPY
-        PUSH, __2__intnlparam
-        PUSH, __8__intnlparam
+        PUSH, __11__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1243,8 +1660,8 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
 # Calling UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____static__string__object__int(string, object, int)
         JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____static__string__object__int(string, object, int)>
     L2:
-        PUSH, __5__intnlparam
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __8__intnlparam
+        PUSH, __intnl_SystemInt32_7
         COPY
 # Recursive stack pop
         PUSH, __gintnl_SystemInt32_1
@@ -1277,7 +1694,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1285,7 +1702,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1293,73 +1710,73 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __6__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_7
         PUSH, __lcl___r_SystemInt32_0
         COPY
         JUMP, L7
     L3:
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_1  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc__p0"
-        PUSH, __2__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_2
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __6__intnlparam
+        PUSH, __intnl_SystemInt32_2
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         PUSH, __const_SystemObject_0
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         JUMP_IF_FALSE, L4
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_2  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc__env"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
     L4:
-        PUSH, __gintnl_SystemUInt32_3  ; -> L6
+        PUSH, __gintnl_SystemUInt32_6  ; -> L6
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __intnl_SystemInt32_2
+        PUSH, __intnl_SystemInt32_3
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_2
-        PUSH, __intnl_SystemObject_1
+        PUSH, __6__intnlparam
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemObject_5
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __intnl_SystemObject_1
-        PUSH, __intnl_SystemString_0
+        PUSH, __intnl_SystemObject_5
+        PUSH, __intnl_SystemString_2
         COPY
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_2
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_5
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_5
         PUSH, __intnl_SystemInt32_4
-        PUSH, __intnl_SystemInt32_3
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_7
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_7
         JUMP_IF_FALSE, L5
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         PUSH, __intnl_SystemObjectArray_1
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_1
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_1
         PUSH, __gintnl_SystemObjectArray_0
@@ -1369,7 +1786,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
     L5:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __6__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1377,23 +1794,23 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
-        PUSH, __9__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __15__intnlparam
         COPY
-        PUSH, __intnl_SystemString_0
-        PUSH, __10__intnlparam
+        PUSH, __intnl_SystemString_2
+        PUSH, __16__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1401,7 +1818,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1466,7 +1883,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1474,7 +1891,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1482,7 +1899,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1490,14 +1907,14 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __6__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_3  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc__ret"
-        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemObject_6
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
-        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemObject_6
         PUSH, __lcl___r_SystemInt32_0
         EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
     L7:
@@ -1508,37 +1925,6 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         JUMP, L0
     L8:
         PUSH, __lcl___r_SystemInt32_0
-        PUSH, __0__intnlparam
-        COPY
-        PUSH, __intnl_returnJump_SystemUInt32_0
-        COPY
-        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-        PUSH, __intnl_returnJump_SystemUInt32_0
-        COPY
-        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-#
-# UdonSharpPlusTests.DelegatePreprocessor.EndIf.Square(int)
-#
-        PUSH, __4__intnlparam
-        PUSH, __4__intnlparam
-        PUSH, __3__intnlparam
-        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_returnJump_SystemUInt32_0
-        COPY
-        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-#
-# UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____static__string__object__int(string, object, int)
-#
-        PUSH, __7__intnlparam
-        PUSH, __lcl___l_SystemObjectArray_0
-        COPY
-        PUSH, __const_SystemObject_0
-        PUSH, __lcl___z_SystemObjectArray_0
-        COPY
-        PUSH, __lcl___z_SystemObjectArray_0
-        PUSH, __lcl___zn_SystemInt32_0
-        EXTERN, "SystemArray.__get_Length__SystemInt32"
-        PUSH, __const_SystemInt32_1  ; 0
         PUSH, __5__intnlparam
         COPY
         PUSH, __intnl_returnJump_SystemUInt32_0
@@ -1548,14 +1934,127 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.ClosureIf"
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
 #
+# UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____static__string__object__int(string, object, int)
+#
+        PUSH, __10__intnlparam
+        PUSH, __lcl___l_SystemObjectArray_0
+        COPY
+        PUSH, __const_SystemObject_0
+        PUSH, __lcl___z_SystemObjectArray_0
+        COPY
+        PUSH, __lcl___z_SystemObjectArray_0
+        PUSH, __lcl___zn_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __8__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+#
+        PUSH, __gintnl_SystemUInt32_7  ; -> L1
+# Stack size check
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __gintnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_9
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemBoolean_8
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_8
+        JUMP_IF_FALSE, L0
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_10
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_10
+        PUSH, __intnl_SystemObjectArray_2
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemObjectArray_2
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
+        PUSH, __intnl_SystemObjectArray_2
+        PUSH, __gintnl_SystemObjectArray_0
+        COPY
+# Stack size check end
+# Recursive stack push
+    L0:
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __13__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __14__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+# Recursive stack push end
+        PUSH, __13__intnlparam
+        PUSH, __15__intnlparam
+        COPY
+        PUSH, __14__intnlparam
+        PUSH, __16__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+# Recursive stack pop
+    L1:
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __14__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __13__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+# Recursive stack pop end
+        PUSH, __13__intnlparam
+        PUSH, __const_SystemString_3  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc__ret"
+        PUSH, __intnl_SystemObject_7
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
+        PUSH, __intnl_SystemObject_7
+        PUSH, __12__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
 # UdonSharpPlusTests.DelegatePreprocessor.EndIf.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
 #
-        PUSH, __9__intnlparam
+        PUSH, __15__intnlparam
 # Cow dirty
-        PUSH, __10__intnlparam
-        PUSH, __intnl_SystemString_1
+        PUSH, __16__intnlparam
+        PUSH, __intnl_SystemString_3
         COPY
-        PUSH, __10__intnlparam
+        PUSH, __16__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -1574,11 +2073,16 @@ __const_SystemString_3 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Ca
 __const_SystemUInt32_0 = 4294967295
 __gintnl_SystemInt32_0 = 6
 __gintnl_SystemInt32_2 = 7
+__gintnl_SystemInt32_3 = 2
 __gintnl_SystemObjectArray_0 = [null, null, null, null, null, null, null]
 __gintnl_SystemUInt32_0 = -> Start():L2
 __gintnl_SystemUInt32_1 = -> __dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc__UdonSharpPlusTests_DelegatePreprocessor_EndIf_Square__UdonSharpPlusTests_DelegatePreprocessor_EndIf():L0
-__gintnl_SystemUInt32_2 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____invoke__objectArray__int(object[], int):L2
-__gintnl_SystemUInt32_3 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____invoke__objectArray__int(object[], int):L6
+__gintnl_SystemUInt32_2 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____invoke__objectArray__int(object[], int):L0
+__gintnl_SystemUInt32_3 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____invoke__objectArray__int(object[], int):L2
+__gintnl_SystemUInt32_4 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____invoke__objectArray__int(object[], int):L5
+__gintnl_SystemUInt32_5 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____many__objectArray__int(object[], int):L2
+__gintnl_SystemUInt32_6 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____many__objectArray__int(object[], int):L6
+__gintnl_SystemUInt32_7 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_EndIf_Calc____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string):L1
 __refl_typeid = -6114387282069231873
 __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
 ### NetworkEvents
@@ -1613,32 +2117,51 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
     __gintnl_SystemUInt32_3: %SystemUInt32, null
     __4__intnlparam: %SystemString, null
     __5__intnlparam: %SystemInt32, null
-    __const_SystemString_2: %SystemString, null
     __gintnl_SystemUInt32_4: %SystemUInt32, null
     __6__intnlparam: %SystemString, null
-    __7__intnlparam: %SystemString, null
-    __8__intnlparam: %SystemObject, null
-    __9__intnlparam: %SystemInt32, null
+    __7__intnlparam: %SystemObjectArray, null
+    __8__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_5: %SystemUInt32, null
+    __9__intnlparam: %SystemString, null
+    __10__intnlparam: %SystemString, null
+    __11__intnlparam: %SystemObject, null
+    __12__intnlparam: %SystemInt32, null
+    __const_SystemString_2: %SystemString, null
+    __const_SystemString_3: %SystemString, null
+    __gintnl_SystemUInt32_6: %SystemUInt32, null
+    __13__intnlparam: %SystemString, null
+    __14__intnlparam: %VRCUdonUdonBehaviour, null
+    __15__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_7: %SystemUInt32, null
+    __16__intnlparam: %SystemObjectArray, null
+    __gintnl_SystemUInt32_8: %SystemUInt32, null
+    __17__intnlparam: %SystemString, null
+    __18__intnlparam: %SystemObject, null
+    __const_SystemString_4: %SystemString, null
+    __gintnl_SystemUInt32_9: %SystemUInt32, null
+    __19__intnlparam: %VRCUdonUdonBehaviour, null
+    __20__intnlparam: %SystemString, null
+    __const_SystemString_5: %SystemString, null
+    __const_SystemString_6: %SystemString, null
+    __gintnl_SystemUInt32_10: %SystemUInt32, null
     __gintnl_SystemInt32_0: %SystemInt32, null
     __gintnl_SystemObjectArray_0: %SystemObjectArray, null
     __gintnl_SystemInt32_1: %SystemInt32, null
-    __const_SystemString_3: %SystemString, null
-    __const_SystemString_4: %SystemString, null
-    __gintnl_SystemUInt32_5: %SystemUInt32, null
-    __10__intnlparam: %VRCUdonUdonBehaviour, null
-    __11__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_11: %SystemUInt32, null
+    __21__intnlparam: %VRCUdonUdonBehaviour, null
+    __22__intnlparam: %SystemString, null
     __gintnl_SystemInt32_2: %SystemInt32, null
-    __const_SystemString_5: %SystemString, null
-    __gintnl_SystemUInt32_6: %SystemUInt32, null
-    __12__intnlparam: %SystemString, null
-    __13__intnlparam: %SystemObject, null
-    __gintnl_SystemInt32_3: %SystemInt32, null
-    __const_SystemString_6: %SystemString, null
-    __gintnl_SystemUInt32_7: %SystemUInt32, null
-    __14__intnlparam: %VRCUdonUdonBehaviour, null
-    __15__intnlparam: %SystemString, null
-    __gintnl_SystemInt32_4: %SystemInt32, null
     __const_SystemString_7: %SystemString, null
+    __gintnl_SystemUInt32_12: %SystemUInt32, null
+    __gintnl_SystemInt32_3: %SystemInt32, null
+    __gintnl_SystemUInt32_13: %SystemUInt32, null
+    __gintnl_SystemInt32_4: %SystemInt32, null
+    __gintnl_SystemUInt32_14: %SystemUInt32, null
+    __23__intnlparam: %VRCUdonUdonBehaviour, null
+    __24__intnlparam: %SystemString, null
+    __gintnl_SystemInt32_5: %SystemInt32, null
+    __gintnl_SystemUInt32_15: %SystemUInt32, null
+    __gintnl_SystemInt32_6: %SystemInt32, null
     __lcl_l_SystemObjectArray_0: %SystemObjectArray, null
     __intnl_SystemInt32_0: %SystemInt32, null
     __intnl_SystemBoolean_0: %SystemBoolean, null
@@ -1647,56 +2170,93 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
     __intnl_SystemInt32_1: %SystemInt32, null
     __intnl_SystemBoolean_1: %SystemBoolean, null
     __intnl_SystemObjectArray_1: %SystemObjectArray, null
-    __lcl___n_SystemInt32_0: %SystemInt32, null
-    __lcl___r_SystemString_0: %SystemString, null
-    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_2: %SystemInt32, null
     __intnl_SystemBoolean_2: %SystemBoolean, null
     __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
     __intnl_SystemObject_0: %SystemObject, null
     __intnl_UnityEngineObject_0: %UnityEngineObject, null
     __intnl_UnityEngineObject_1: %UnityEngineObject, null
     __intnl_SystemBoolean_3: %SystemBoolean, null
-    __lcl___e_SystemObject_0: %SystemObject, null
-    __intnl_SystemInt32_2: %SystemInt32, null
-    __intnl_SystemBoolean_4: %SystemBoolean, null
-    __intnl_SystemInt32_3: %SystemInt32, null
     __intnl_SystemObject_1: %SystemObject, null
     __intnl_SystemString_0: %SystemString, null
-    __intnl_SystemInt32_4: %SystemInt32, null
-    __intnl_SystemInt32_5: %SystemInt32, null
-    __intnl_SystemBoolean_5: %SystemBoolean, null
-    __intnl_SystemInt32_6: %SystemInt32, null
-    __intnl_SystemObjectArray_2: %SystemObjectArray, null
     __intnl_SystemObject_2: %SystemObject, null
-    __intnl_SystemString_1: %SystemString, null
-    __lcl___n_SystemInt32_1: %SystemInt32, null
-    __lcl___i_SystemInt32_1: %SystemInt32, null
-    __intnl_SystemBoolean_6: %SystemBoolean, null
-    __lcl___u_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
+    __lcl___e_SystemObject_0: %SystemObject, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
     __intnl_SystemObject_3: %SystemObject, null
+    __intnl_SystemString_1: %SystemString, null
+    __intnl_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemBoolean_5: %SystemBoolean, null
+    __lcl___u_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_4: %SystemObject, null
     __intnl_UnityEngineObject_2: %UnityEngineObject, null
     __intnl_UnityEngineObject_3: %UnityEngineObject, null
-    __intnl_SystemBoolean_7: %SystemBoolean, null
+    __intnl_SystemBoolean_6: %SystemBoolean, null
     __lcl___e_SystemObject_1: %SystemObject, null
-    __intnl_SystemInt32_7: %SystemInt32, null
-    __intnl_SystemBoolean_8: %SystemBoolean, null
-    __intnl_SystemInt32_8: %SystemInt32, null
-    __intnl_SystemObject_4: %SystemObject, null
-    __intnl_SystemString_2: %SystemString, null
-    __intnl_SystemInt32_9: %SystemInt32, null
-    __intnl_SystemInt32_10: %SystemInt32, null
-    __intnl_SystemBoolean_9: %SystemBoolean, null
-    __intnl_SystemInt32_11: %SystemInt32, null
-    __intnl_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_SystemBoolean_7: %SystemBoolean, null
     __intnl_SystemObject_5: %SystemObject, null
+    __intnl_SystemString_2: %SystemString, null
+    __intnl_SystemObject_6: %SystemObject, null
+    __lcl___n_SystemInt32_0: %SystemInt32, null
+    __lcl___r_SystemString_0: %SystemString, null
+    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_8: %SystemBoolean, null
+    __lcl___u_VRCUdonUdonBehaviour_2: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_7: %SystemObject, null
+    __intnl_UnityEngineObject_4: %UnityEngineObject, null
+    __intnl_UnityEngineObject_5: %UnityEngineObject, null
+    __intnl_SystemBoolean_9: %SystemBoolean, null
+    __lcl___e_SystemObject_2: %SystemObject, null
+    __intnl_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemBoolean_10: %SystemBoolean, null
+    __intnl_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemObject_8: %SystemObject, null
+    __intnl_SystemString_3: %SystemString, null
+    __intnl_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemInt32_7: %SystemInt32, null
+    __intnl_SystemBoolean_11: %SystemBoolean, null
+    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemObjectArray_2: %SystemObjectArray, null
+    __intnl_SystemObject_9: %SystemObject, null
+    __intnl_SystemString_4: %SystemString, null
     __lcl___l_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___z_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___zn_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemString_3: %SystemString, null
+    __intnl_SystemInt32_9: %SystemInt32, null
+    __intnl_SystemInt32_10: %SystemInt32, null
+    __intnl_SystemBoolean_12: %SystemBoolean, null
+    __intnl_SystemInt32_11: %SystemInt32, null
+    __intnl_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_SystemObject_10: %SystemObject, null
+    __lcl___n_SystemInt32_1: %SystemInt32, null
+    __lcl___i_SystemInt32_1: %SystemInt32, null
+    __intnl_SystemBoolean_13: %SystemBoolean, null
+    __lcl___u_VRCUdonUdonBehaviour_3: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_11: %SystemObject, null
+    __intnl_UnityEngineObject_6: %UnityEngineObject, null
+    __intnl_UnityEngineObject_7: %UnityEngineObject, null
+    __intnl_SystemBoolean_14: %SystemBoolean, null
+    __lcl___e_SystemObject_3: %SystemObject, null
+    __intnl_SystemInt32_12: %SystemInt32, null
+    __intnl_SystemBoolean_15: %SystemBoolean, null
+    __intnl_SystemInt32_13: %SystemInt32, null
+    __intnl_SystemObject_12: %SystemObject, null
+    __intnl_SystemString_5: %SystemString, null
+    __intnl_SystemInt32_14: %SystemInt32, null
+    __intnl_SystemInt32_15: %SystemInt32, null
+    __intnl_SystemBoolean_16: %SystemBoolean, null
+    __intnl_SystemInt32_16: %SystemInt32, null
+    __intnl_SystemObjectArray_4: %SystemObjectArray, null
+    __intnl_SystemObject_13: %SystemObject, null
     __lcl___l_SystemObjectArray_1: %SystemObjectArray, null
     __lcl___z_SystemObjectArray_1: %SystemObjectArray, null
     __lcl___zn_SystemInt32_1: %SystemInt32, null
-    __intnl_SystemString_4: %SystemString, null
+    __intnl_SystemInt32_17: %SystemInt32, null
+    __intnl_SystemInt32_18: %SystemInt32, null
+    __intnl_SystemBoolean_17: %SystemBoolean, null
+    __intnl_SystemInt32_19: %SystemInt32, null
+    __intnl_SystemObjectArray_5: %SystemObjectArray, null
+    __intnl_SystemString_6: %SystemString, null
+    __intnl_SystemString_7: %SystemString, null
 .data_end
 .code_start
     .export _start
@@ -1852,23 +2412,33 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
 # UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____invoke__objectArray__int(object[], int)
 #
         PUSH, __1__intnlparam
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_2
         EXTERN, "SystemArray.__get_Length__SystemInt32"
-        PUSH, __const_SystemString_2
-        PUSH, __lcl___r_SystemString_0
-        COPY
-        PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __lcl___i_SystemInt32_0
-        COPY
-    L0:
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_2
+        PUSH, __const_SystemInt32_0  ; 3
         PUSH, __intnl_SystemBoolean_2
-        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        EXTERN, "SystemInt32.__op_Inequality__SystemInt32_SystemInt32__SystemBoolean"
         PUSH, __intnl_SystemBoolean_2
-        JUMP_IF_FALSE, L8
+        JUMP_IF_FALSE, L1
+        PUSH, __gintnl_SystemUInt32_4  ; -> L0
         PUSH, __1__intnlparam
-        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __7__intnlparam
+        COPY
+        PUSH, __2__intnlparam
+        PUSH, __8__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____many__objectArray__int(object[], int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____many__objectArray__int(object[], int)>
+    L0:
+        PUSH, __6__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L1:
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_1  ; 0
         PUSH, __intnl_SystemObject_0
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_0
@@ -1886,50 +2456,276 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
         PUSH, __intnl_SystemBoolean_3
         JUMP_IF_FALSE, L3
-        PUSH, __gintnl_SystemUInt32_4  ; -> L2
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __intnl_SystemInt32_2
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemUInt32_5  ; -> L2
         PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_2
+        PUSH, __const_SystemInt32_2  ; 1
         PUSH, __intnl_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_1
         PUSH, __intnl_SystemString_0
         COPY
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_2
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemString_0
+        PUSH, __10__intnlparam
+        COPY
+        PUSH, __intnl_SystemObject_2
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __2__intnlparam
+        PUSH, __12__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____static__string__object__int(string, object, int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____static__string__object__int(string, object, int)>
+    L2:
+        PUSH, __9__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L3:
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_2  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__p0"
+        PUSH, __2__intnlparam
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __lcl___e_SystemObject_0
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_4
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_4
+        JUMP_IF_FALSE, L4
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_3  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__env"
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+    L4:
+        PUSH, __gintnl_SystemUInt32_6  ; -> L5
+        PUSH, __1__intnlparam
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemObject_3
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_3
+        PUSH, __intnl_SystemString_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __14__intnlparam
+        COPY
+        PUSH, __intnl_SystemString_1
+        PUSH, __15__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+    L5:
+        PUSH, __13__intnlparam
+        PUSH, __0__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____invoke__objectArray(object[])
+#
+        PUSH, __3__intnlparam
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __const_SystemInt32_0  ; 3
+        PUSH, __intnl_SystemBoolean_5
+        EXTERN, "SystemInt32.__op_Inequality__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_5
+        JUMP_IF_FALSE, L1
+        PUSH, __gintnl_SystemUInt32_7  ; -> L0
+        PUSH, __3__intnlparam
+        PUSH, __16__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____many__objectArray(object[])
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____many__objectArray(object[])>
+    L0:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L1:
+        PUSH, __3__intnlparam
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __intnl_SystemObject_4
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_4
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __intnl_UnityEngineObject_2
+        COPY
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_UnityEngineObject_3
+        COPY
+        PUSH, __intnl_UnityEngineObject_2
+        PUSH, __intnl_UnityEngineObject_3
+        PUSH, __intnl_SystemBoolean_6
+        EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_6
+        JUMP_IF_FALSE, L3
+        PUSH, __gintnl_SystemUInt32_8  ; -> L2
+        PUSH, __3__intnlparam
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemObject_5
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_5
+        PUSH, __intnl_SystemString_2
+        COPY
+        PUSH, __3__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemObject_6
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemString_2
+        PUSH, __17__intnlparam
+        COPY
+        PUSH, __intnl_SystemObject_6
+        PUSH, __18__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____static__string__object(string, object)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____static__string__object(string, object)>
+    L2:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L3:
+        PUSH, __3__intnlparam
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __lcl___e_SystemObject_1
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __lcl___e_SystemObject_1
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_7
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_7
+        JUMP_IF_FALSE, L4
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __const_SystemString_4  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done__env"
+        PUSH, __lcl___e_SystemObject_1
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+    L4:
+        PUSH, __gintnl_SystemUInt32_9  ; -> L5
+        PUSH, __3__intnlparam
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemObject_5
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_5
+        PUSH, __intnl_SystemString_2
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __19__intnlparam
+        COPY
+        PUSH, __intnl_SystemString_2
+        PUSH, __20__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+    L5:
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.Name(int)
+#
+        PUSH, __const_SystemString_5  ; "n"
+        PUSH, __5__intnlparam
+        PUSH, __4__intnlparam
+        EXTERN, "SystemString.__Concat__SystemObject_SystemObject__SystemString"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____many__objectArray__int(object[], int)
+#
+        PUSH, __7__intnlparam
+        PUSH, __lcl___n_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemString_6
+        PUSH, __lcl___r_SystemString_0
+        COPY
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __lcl___i_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_8
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_8
+        JUMP_IF_FALSE, L8
+        PUSH, __7__intnlparam
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemObject_7
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_7
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        PUSH, __intnl_UnityEngineObject_4
+        COPY
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_UnityEngineObject_5
+        COPY
+        PUSH, __intnl_UnityEngineObject_4
+        PUSH, __intnl_UnityEngineObject_5
+        PUSH, __intnl_SystemBoolean_9
+        EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_9
+        JUMP_IF_FALSE, L3
+        PUSH, __gintnl_SystemUInt32_10  ; -> L2
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemInt32_4
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __7__intnlparam
+        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemObject_8
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_8
+        PUSH, __intnl_SystemString_3
+        COPY
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_5
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_3
-        PUSH, __intnl_SystemObject_2
+        PUSH, __7__intnlparam
+        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemObject_9
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_0
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_7
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_5
-        PUSH, __intnl_SystemInt32_4
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_10
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_10
         JUMP_IF_FALSE, L1
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_6
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_8
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_8
         PUSH, __intnl_SystemObjectArray_2
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_2
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_2
         PUSH, __gintnl_SystemObjectArray_0
@@ -1939,7 +2735,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
     L1:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -1947,26 +2743,26 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __8__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __intnl_SystemString_0
-        PUSH, __7__intnlparam
+        PUSH, __intnl_SystemString_3
+        PUSH, __10__intnlparam
         COPY
-        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemObject_9
+        PUSH, __11__intnlparam
+        COPY
         PUSH, __8__intnlparam
-        COPY
-        PUSH, __2__intnlparam
-        PUSH, __9__intnlparam
+        PUSH, __12__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2000,8 +2796,8 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
 # Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____static__string__object__int(string, object, int)
         JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____static__string__object__int(string, object, int)>
     L2:
-        PUSH, __6__intnlparam
-        PUSH, __intnl_SystemString_1
+        PUSH, __9__intnlparam
+        PUSH, __intnl_SystemString_4
         COPY
 # Recursive stack pop
         PUSH, __gintnl_SystemInt32_1
@@ -2034,7 +2830,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2042,7 +2838,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __8__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2050,73 +2846,73 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __intnl_SystemString_1
+        PUSH, __intnl_SystemString_4
         PUSH, __lcl___r_SystemString_0
         COPY
         JUMP, L7
     L3:
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
-        PUSH, __const_SystemString_3  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__p0"
-        PUSH, __2__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        PUSH, __const_SystemString_2  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__p0"
+        PUSH, __8__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_2
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_2
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __7__intnlparam
+        PUSH, __intnl_SystemInt32_4
+        PUSH, __lcl___e_SystemObject_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_2
         PUSH, __const_SystemObject_0
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_10
         EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_10
         JUMP_IF_FALSE, L4
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
-        PUSH, __const_SystemString_4  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__env"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        PUSH, __const_SystemString_3  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__env"
+        PUSH, __lcl___e_SystemObject_2
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
     L4:
-        PUSH, __gintnl_SystemUInt32_5  ; -> L6
+        PUSH, __gintnl_SystemUInt32_11  ; -> L6
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_5
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __1__intnlparam
-        PUSH, __intnl_SystemInt32_3
-        PUSH, __intnl_SystemObject_1
+        PUSH, __7__intnlparam
+        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemObject_8
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __intnl_SystemObject_1
-        PUSH, __intnl_SystemString_0
+        PUSH, __intnl_SystemObject_8
+        PUSH, __intnl_SystemString_3
         COPY
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_2
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_7
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_5
-        PUSH, __intnl_SystemInt32_4
-        PUSH, __intnl_SystemBoolean_5
+        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemBoolean_11
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_5
+        PUSH, __intnl_SystemBoolean_11
         JUMP_IF_FALSE, L5
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_6
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_8
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_8
         PUSH, __intnl_SystemObjectArray_2
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_2
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_2
         PUSH, __gintnl_SystemObjectArray_0
@@ -2126,7 +2922,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
     L5:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2134,23 +2930,23 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __8__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
-        PUSH, __10__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        PUSH, __21__intnlparam
         COPY
-        PUSH, __intnl_SystemString_0
-        PUSH, __11__intnlparam
+        PUSH, __intnl_SystemString_3
+        PUSH, __22__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2158,7 +2954,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_2
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2223,7 +3019,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2231,7 +3027,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2239,7 +3035,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __2__intnlparam
+        PUSH, __8__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2247,14 +3043,14 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __1__intnlparam
+        PUSH, __7__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
-        PUSH, __const_SystemString_5  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__ret"
-        PUSH, __intnl_SystemObject_2
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_2
+        PUSH, __const_SystemString_7  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__ret"
+        PUSH, __intnl_SystemObject_9
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
-        PUSH, __intnl_SystemObject_2
+        PUSH, __intnl_SystemObject_9
         PUSH, __lcl___r_SystemString_0
         COPY
     L7:
@@ -2265,7 +3061,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         JUMP, L0
     L8:
         PUSH, __lcl___r_SystemString_0
-        PUSH, __0__intnlparam
+        PUSH, __6__intnlparam
         COPY
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -2274,60 +3070,30 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
 #
-# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____invoke__objectArray(object[])
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____static__string__object__int(string, object, int)
 #
-        PUSH, __3__intnlparam
-        PUSH, __lcl___n_SystemInt32_1
-        EXTERN, "SystemArray.__get_Length__SystemInt32"
-        PUSH, __const_SystemInt32_1  ; 0
-        PUSH, __lcl___i_SystemInt32_1
-        COPY
-    L0:
-        PUSH, __lcl___i_SystemInt32_1
-        PUSH, __lcl___n_SystemInt32_1
-        PUSH, __intnl_SystemBoolean_6
-        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_6
-        JUMP_IF_FALSE, L8
-        PUSH, __3__intnlparam
-        PUSH, __lcl___i_SystemInt32_1
-        PUSH, __intnl_SystemObject_3
-        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __intnl_SystemObject_3
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
-        COPY
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
-        PUSH, __intnl_UnityEngineObject_2
+        PUSH, __11__intnlparam
+        PUSH, __lcl___l_SystemObjectArray_0
         COPY
         PUSH, __const_SystemObject_0
-        PUSH, __intnl_UnityEngineObject_3
+        PUSH, __lcl___z_SystemObjectArray_0
         COPY
-        PUSH, __intnl_UnityEngineObject_2
-        PUSH, __intnl_UnityEngineObject_3
-        PUSH, __intnl_SystemBoolean_7
-        EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_7
-        JUMP_IF_FALSE, L3
-        PUSH, __gintnl_SystemUInt32_6  ; -> L2
-        PUSH, __lcl___i_SystemInt32_1
-        PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __intnl_SystemInt32_7
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __3__intnlparam
-        PUSH, __intnl_SystemInt32_7
-        PUSH, __intnl_SystemObject_4
-        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __intnl_SystemObject_4
-        PUSH, __intnl_SystemString_2
+        PUSH, __lcl___z_SystemObjectArray_0
+        PUSH, __lcl___zn_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemString_6
+        PUSH, __9__intnlparam
         COPY
-        PUSH, __lcl___i_SystemInt32_1
-        PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_8
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __3__intnlparam
-        PUSH, __intnl_SystemInt32_8
-        PUSH, __intnl_SystemObject_5
-        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+#
+        PUSH, __gintnl_SystemUInt32_12  ; -> L1
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemInt32_9
@@ -2338,10 +3104,10 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __intnl_SystemInt32_10
         PUSH, __intnl_SystemInt32_9
-        PUSH, __intnl_SystemBoolean_8
+        PUSH, __intnl_SystemBoolean_12
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_8
-        JUMP_IF_FALSE, L1
+        PUSH, __intnl_SystemBoolean_12
+        JUMP_IF_FALSE, L0
         PUSH, __intnl_SystemInt32_9
         PUSH, __const_SystemInt32_3  ; 2
         PUSH, __intnl_SystemInt32_11
@@ -2358,26 +3124,169 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         COPY
 # Stack size check end
 # Recursive stack push
-    L1:
+    L0:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __3__intnlparam
+        PUSH, __14__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __15__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __intnl_SystemString_2
-        PUSH, __12__intnlparam
+        PUSH, __14__intnlparam
+        PUSH, __21__intnlparam
         COPY
-        PUSH, __intnl_SystemObject_5
+        PUSH, __15__intnlparam
+        PUSH, __22__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+# Recursive stack pop
+    L1:
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __15__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __14__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+# Recursive stack pop end
+        PUSH, __14__intnlparam
+        PUSH, __const_SystemString_7  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__ret"
+        PUSH, __intnl_SystemObject_10
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
+        PUSH, __intnl_SystemObject_10
         PUSH, __13__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____many__objectArray(object[])
+#
+        PUSH, __16__intnlparam
+        PUSH, __lcl___n_SystemInt32_1
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_1  ; 0
+        PUSH, __lcl___i_SystemInt32_1
+        COPY
+    L0:
+        PUSH, __lcl___i_SystemInt32_1
+        PUSH, __lcl___n_SystemInt32_1
+        PUSH, __intnl_SystemBoolean_13
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_13
+        JUMP_IF_FALSE, L8
+        PUSH, __16__intnlparam
+        PUSH, __lcl___i_SystemInt32_1
+        PUSH, __intnl_SystemObject_11
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_11
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
+        PUSH, __intnl_UnityEngineObject_6
+        COPY
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_UnityEngineObject_7
+        COPY
+        PUSH, __intnl_UnityEngineObject_6
+        PUSH, __intnl_UnityEngineObject_7
+        PUSH, __intnl_SystemBoolean_14
+        EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_14
+        JUMP_IF_FALSE, L3
+        PUSH, __gintnl_SystemUInt32_13  ; -> L2
+        PUSH, __lcl___i_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __intnl_SystemInt32_12
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __16__intnlparam
+        PUSH, __intnl_SystemInt32_12
+        PUSH, __intnl_SystemObject_12
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_12
+        PUSH, __intnl_SystemString_5
+        COPY
+        PUSH, __lcl___i_SystemInt32_1
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_13
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __16__intnlparam
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __intnl_SystemObject_13
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+# Stack size check
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __gintnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_15
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_15
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __intnl_SystemBoolean_15
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_15
+        JUMP_IF_FALSE, L1
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_16
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_16
+        PUSH, __intnl_SystemObjectArray_4
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __intnl_SystemInt32_14
+        EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __gintnl_SystemObjectArray_0
+        COPY
+# Stack size check end
+# Recursive stack push
+    L1:
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __16__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+# Recursive stack push end
+        PUSH, __intnl_SystemString_5
+        PUSH, __17__intnlparam
+        COPY
+        PUSH, __intnl_SystemObject_13
+        PUSH, __18__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2426,7 +3335,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2434,68 +3343,68 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __3__intnlparam
+        PUSH, __16__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
         JUMP, L7
     L3:
         PUSH, __lcl___i_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_7
+        PUSH, __intnl_SystemInt32_12
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __3__intnlparam
-        PUSH, __intnl_SystemInt32_7
-        PUSH, __lcl___e_SystemObject_1
+        PUSH, __16__intnlparam
+        PUSH, __intnl_SystemInt32_12
+        PUSH, __lcl___e_SystemObject_3
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __lcl___e_SystemObject_1
+        PUSH, __lcl___e_SystemObject_3
         PUSH, __const_SystemObject_0
-        PUSH, __intnl_SystemBoolean_8
+        PUSH, __intnl_SystemBoolean_15
         EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_8
+        PUSH, __intnl_SystemBoolean_15
         JUMP_IF_FALSE, L4
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
-        PUSH, __const_SystemString_6  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done__env"
-        PUSH, __lcl___e_SystemObject_1
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
+        PUSH, __const_SystemString_4  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done__env"
+        PUSH, __lcl___e_SystemObject_3
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
     L4:
-        PUSH, __gintnl_SystemUInt32_7  ; -> L6
+        PUSH, __gintnl_SystemUInt32_14  ; -> L6
         PUSH, __lcl___i_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
-        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemInt32_13
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __3__intnlparam
-        PUSH, __intnl_SystemInt32_8
-        PUSH, __intnl_SystemObject_4
+        PUSH, __16__intnlparam
+        PUSH, __intnl_SystemInt32_13
+        PUSH, __intnl_SystemObject_12
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __intnl_SystemObject_4
-        PUSH, __intnl_SystemString_2
+        PUSH, __intnl_SystemObject_12
+        PUSH, __intnl_SystemString_5
         COPY
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_SystemInt32_14
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __gintnl_SystemInt32_4
-        PUSH, __intnl_SystemInt32_10
+        PUSH, __gintnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_15
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_10
-        PUSH, __intnl_SystemInt32_9
-        PUSH, __intnl_SystemBoolean_9
+        PUSH, __intnl_SystemInt32_15
+        PUSH, __intnl_SystemInt32_14
+        PUSH, __intnl_SystemBoolean_16
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_9
+        PUSH, __intnl_SystemBoolean_16
         JUMP_IF_FALSE, L5
-        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_SystemInt32_14
         PUSH, __const_SystemInt32_3  ; 2
-        PUSH, __intnl_SystemInt32_11
+        PUSH, __intnl_SystemInt32_16
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_11
-        PUSH, __intnl_SystemObjectArray_3
+        PUSH, __intnl_SystemInt32_16
+        PUSH, __intnl_SystemObjectArray_4
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemObjectArray_3
-        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __intnl_SystemInt32_14
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
-        PUSH, __intnl_SystemObjectArray_3
+        PUSH, __intnl_SystemObjectArray_4
         PUSH, __gintnl_SystemObjectArray_0
         COPY
 # Stack size check end
@@ -2503,23 +3412,23 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
     L5:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __3__intnlparam
+        PUSH, __16__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
-        PUSH, __14__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
+        PUSH, __23__intnlparam
         COPY
-        PUSH, __intnl_SystemString_2
-        PUSH, __15__intnlparam
+        PUSH, __intnl_SystemString_5
+        PUSH, __24__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2527,7 +3436,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_1
+        PUSH, __lcl___e_SystemObject_3
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2576,7 +3485,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_1
+        PUSH, __lcl___e_SystemObject_3
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2584,7 +3493,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_3
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_2  ; 1
@@ -2592,7 +3501,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __3__intnlparam
+        PUSH, __16__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
     L7:
@@ -2606,53 +3515,9 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
 #
-# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.Name(int)
-#
-        PUSH, __const_SystemString_7  ; "n"
-        PUSH, __5__intnlparam
-        PUSH, __4__intnlparam
-        EXTERN, "SystemString.__Concat__SystemObject_SystemObject__SystemString"
-        PUSH, __intnl_returnJump_SystemUInt32_0
-        COPY
-        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-#
-# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____static__string__object__int(string, object, int)
-#
-        PUSH, __8__intnlparam
-        PUSH, __lcl___l_SystemObjectArray_0
-        COPY
-        PUSH, __const_SystemObject_0
-        PUSH, __lcl___z_SystemObjectArray_0
-        COPY
-        PUSH, __lcl___z_SystemObjectArray_0
-        PUSH, __lcl___zn_SystemInt32_0
-        EXTERN, "SystemArray.__get_Length__SystemInt32"
-        PUSH, __const_SystemString_2
-        PUSH, __6__intnlparam
-        COPY
-        PUSH, __intnl_returnJump_SystemUInt32_0
-        COPY
-        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-        PUSH, __intnl_returnJump_SystemUInt32_0
-        COPY
-        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-#
-# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
-#
-        PUSH, __10__intnlparam
-# Cow dirty
-        PUSH, __11__intnlparam
-        PUSH, __intnl_SystemString_3
-        COPY
-        PUSH, __11__intnlparam
-        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
-        PUSH, __intnl_returnJump_SystemUInt32_0
-        COPY
-        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
-#
 # UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____static__string__object(string, object)
 #
-        PUSH, __13__intnlparam
+        PUSH, __18__intnlparam
         PUSH, __lcl___l_SystemObjectArray_1
         COPY
         PUSH, __const_SystemObject_0
@@ -2665,14 +3530,109 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.EndIf"
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
 #
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+#
+        PUSH, __gintnl_SystemUInt32_15  ; -> L1
+# Stack size check
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_17
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __gintnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_18
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_18
+        PUSH, __intnl_SystemInt32_17
+        PUSH, __intnl_SystemBoolean_17
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_17
+        JUMP_IF_FALSE, L0
+        PUSH, __intnl_SystemInt32_17
+        PUSH, __const_SystemInt32_3  ; 2
+        PUSH, __intnl_SystemInt32_19
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_19
+        PUSH, __intnl_SystemObjectArray_5
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemObjectArray_5
+        PUSH, __intnl_SystemInt32_17
+        EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
+        PUSH, __intnl_SystemObjectArray_5
+        PUSH, __gintnl_SystemObjectArray_0
+        COPY
+# Stack size check end
+# Recursive stack push
+    L0:
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __19__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __20__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+# Recursive stack push end
+        PUSH, __19__intnlparam
+        PUSH, __23__intnlparam
+        COPY
+        PUSH, __20__intnlparam
+        PUSH, __24__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+# Recursive stack pop
+    L1:
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __20__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_2  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __19__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+# Recursive stack pop end
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+#
+        PUSH, __21__intnlparam
+# Cow dirty
+        PUSH, __22__intnlparam
+        PUSH, __intnl_SystemString_6
+        COPY
+        PUSH, __22__intnlparam
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
 # UdonSharpPlusTests.DelegatePreprocessor.IfDecl.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
 #
-        PUSH, __14__intnlparam
+        PUSH, __23__intnlparam
 # Cow dirty
-        PUSH, __15__intnlparam
-        PUSH, __intnl_SystemString_4
+        PUSH, __24__intnlparam
+        PUSH, __intnl_SystemString_7
         COPY
-        PUSH, __15__intnlparam
+        PUSH, __24__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -2686,25 +3646,35 @@ __const_SystemInt32_2 = 1
 __const_SystemInt32_3 = 2
 __const_SystemString_0 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Name__UdonSharpPlusTests_DelegatePreprocessor_IfDecl"
 __const_SystemString_1 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done__UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Finish__UdonSharpPlusTests_DelegatePreprocessor_IfDecl"
-__const_SystemString_3 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__p0"
-__const_SystemString_4 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__env"
-__const_SystemString_5 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__ret"
-__const_SystemString_6 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done__env"
-__const_SystemString_7 = "n"
+__const_SystemString_2 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__p0"
+__const_SystemString_3 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__env"
+__const_SystemString_4 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done__env"
+__const_SystemString_5 = "n"
+__const_SystemString_7 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__ret"
 __const_SystemUInt32_0 = 4294967295
 __gintnl_SystemInt32_0 = 6
 __gintnl_SystemInt32_2 = 7
-__gintnl_SystemInt32_3 = 4
-__gintnl_SystemInt32_4 = 5
+__gintnl_SystemInt32_3 = 2
+__gintnl_SystemInt32_4 = 4
+__gintnl_SystemInt32_5 = 5
+__gintnl_SystemInt32_6 = 2
 __gintnl_SystemObjectArray_0 = [null, null, null, null, null, null, null]
 __gintnl_SystemUInt32_0 = -> Start():L2
 __gintnl_SystemUInt32_1 = -> Update():L2
+__gintnl_SystemUInt32_10 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____many__objectArray__int(object[], int):L2
+__gintnl_SystemUInt32_11 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____many__objectArray__int(object[], int):L6
+__gintnl_SystemUInt32_12 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string):L1
+__gintnl_SystemUInt32_13 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____many__objectArray(object[]):L2
+__gintnl_SystemUInt32_14 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____many__objectArray(object[]):L6
+__gintnl_SystemUInt32_15 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string):L1
 __gintnl_SystemUInt32_2 = -> __dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done__UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Finish__UdonSharpPlusTests_DelegatePreprocessor_IfDecl():L0
 __gintnl_SystemUInt32_3 = -> __dlg_UdonSharpPlusTests_DelegatePreprocessor_Label__UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Name__UdonSharpPlusTests_DelegatePreprocessor_IfDecl():L0
-__gintnl_SystemUInt32_4 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____invoke__objectArray__int(object[], int):L2
-__gintnl_SystemUInt32_5 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____invoke__objectArray__int(object[], int):L6
-__gintnl_SystemUInt32_6 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____invoke__objectArray(object[]):L2
-__gintnl_SystemUInt32_7 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____invoke__objectArray(object[]):L6
+__gintnl_SystemUInt32_4 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____invoke__objectArray__int(object[], int):L0
+__gintnl_SystemUInt32_5 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____invoke__objectArray__int(object[], int):L2
+__gintnl_SystemUInt32_6 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Label____invoke__objectArray__int(object[], int):L5
+__gintnl_SystemUInt32_7 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____invoke__objectArray(object[]):L0
+__gintnl_SystemUInt32_8 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____invoke__objectArray(object[]):L2
+__gintnl_SystemUInt32_9 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_IfDecl_Done____invoke__objectArray(object[]):L5
 __refl_typeid = -2487776340112824401
 __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
 ### NetworkEvents
@@ -2744,19 +3714,30 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
     __9__intnlparam: %SystemInt32, null
     __gintnl_SystemUInt32_5: %SystemUInt32, null
     __10__intnlparam: %SystemInt32, null
-    __11__intnlparam: %SystemString, null
-    __12__intnlparam: %SystemObject, null
+    __11__intnlparam: %SystemObjectArray, null
+    __12__intnlparam: %SystemInt32, null
+    __gintnl_SystemUInt32_6: %SystemUInt32, null
     __13__intnlparam: %SystemInt32, null
+    __14__intnlparam: %SystemString, null
+    __15__intnlparam: %SystemObject, null
+    __16__intnlparam: %SystemInt32, null
+    __const_SystemString_2: %SystemString, null
+    __const_SystemString_3: %SystemString, null
+    __gintnl_SystemUInt32_7: %SystemUInt32, null
+    __17__intnlparam: %SystemInt32, null
+    __18__intnlparam: %VRCUdonUdonBehaviour, null
+    __19__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_8: %SystemUInt32, null
     __gintnl_SystemInt32_0: %SystemInt32, null
     __gintnl_SystemObjectArray_0: %SystemObjectArray, null
     __gintnl_SystemInt32_1: %SystemInt32, null
-    __const_SystemString_2: %SystemString, null
-    __const_SystemString_3: %SystemString, null
-    __gintnl_SystemUInt32_6: %SystemUInt32, null
-    __14__intnlparam: %VRCUdonUdonBehaviour, null
-    __15__intnlparam: %SystemString, null
+    __gintnl_SystemUInt32_9: %SystemUInt32, null
+    __20__intnlparam: %VRCUdonUdonBehaviour, null
+    __21__intnlparam: %SystemString, null
     __gintnl_SystemInt32_2: %SystemInt32, null
     __const_SystemString_4: %SystemString, null
+    __gintnl_SystemUInt32_10: %SystemUInt32, null
+    __gintnl_SystemInt32_3: %SystemInt32, null
     __lcl_c_SystemObjectArray_0: %SystemObjectArray, null
     __intnl_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___this_SystemObjectArray_0: %SystemObjectArray, null
@@ -2766,32 +3747,52 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
     __intnl_SystemBoolean_0: %SystemBoolean, null
     __intnl_SystemObjectArray_2: %SystemObjectArray, null
     __intnl_SystemObject_1: %SystemObject, null
-    __lcl___n_SystemInt32_0: %SystemInt32, null
-    __lcl___r_SystemInt32_0: %SystemInt32, null
-    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemInt32_1: %SystemInt32, null
     __intnl_SystemBoolean_1: %SystemBoolean, null
     __lcl___u_VRCUdonUdonBehaviour_0: %VRCUdonUdonBehaviour, null
     __intnl_SystemObject_2: %SystemObject, null
     __intnl_UnityEngineObject_0: %UnityEngineObject, null
     __intnl_UnityEngineObject_1: %UnityEngineObject, null
     __intnl_SystemBoolean_2: %SystemBoolean, null
-    __lcl___e_SystemObject_0: %SystemObject, null
-    __intnl_SystemInt32_1: %SystemInt32, null
-    __intnl_SystemBoolean_3: %SystemBoolean, null
-    __intnl_SystemInt32_2: %SystemInt32, null
     __intnl_SystemObject_3: %SystemObject, null
     __intnl_SystemString_0: %SystemString, null
-    __intnl_SystemInt32_3: %SystemInt32, null
-    __intnl_SystemInt32_4: %SystemInt32, null
-    __intnl_SystemBoolean_4: %SystemBoolean, null
-    __intnl_SystemInt32_5: %SystemInt32, null
-    __intnl_SystemObjectArray_3: %SystemObjectArray, null
     __intnl_SystemObject_4: %SystemObject, null
+    __lcl___e_SystemObject_0: %SystemObject, null
+    __intnl_SystemBoolean_3: %SystemBoolean, null
+    __intnl_SystemObject_5: %SystemObject, null
+    __intnl_SystemString_1: %SystemString, null
+    __lcl___n_SystemInt32_0: %SystemInt32, null
+    __lcl___r_SystemInt32_0: %SystemInt32, null
+    __lcl___i_SystemInt32_0: %SystemInt32, null
+    __intnl_SystemBoolean_4: %SystemBoolean, null
+    __lcl___u_VRCUdonUdonBehaviour_1: %VRCUdonUdonBehaviour, null
+    __intnl_SystemObject_6: %SystemObject, null
+    __intnl_UnityEngineObject_2: %UnityEngineObject, null
+    __intnl_UnityEngineObject_3: %UnityEngineObject, null
+    __intnl_SystemBoolean_5: %SystemBoolean, null
+    __lcl___e_SystemObject_1: %SystemObject, null
+    __intnl_SystemInt32_2: %SystemInt32, null
+    __intnl_SystemBoolean_6: %SystemBoolean, null
+    __intnl_SystemInt32_3: %SystemInt32, null
+    __intnl_SystemObject_7: %SystemObject, null
+    __intnl_SystemString_2: %SystemString, null
+    __intnl_SystemInt32_4: %SystemInt32, null
+    __intnl_SystemInt32_5: %SystemInt32, null
+    __intnl_SystemBoolean_7: %SystemBoolean, null
     __intnl_SystemInt32_6: %SystemInt32, null
+    __intnl_SystemObjectArray_3: %SystemObjectArray, null
+    __intnl_SystemObject_8: %SystemObject, null
+    __intnl_SystemInt32_7: %SystemInt32, null
     __lcl___l_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___z_SystemObjectArray_0: %SystemObjectArray, null
     __lcl___zn_SystemInt32_0: %SystemInt32, null
-    __intnl_SystemString_1: %SystemString, null
+    __intnl_SystemInt32_8: %SystemInt32, null
+    __intnl_SystemInt32_9: %SystemInt32, null
+    __intnl_SystemBoolean_8: %SystemBoolean, null
+    __intnl_SystemInt32_10: %SystemInt32, null
+    __intnl_SystemObjectArray_4: %SystemObjectArray, null
+    __intnl_SystemObject_9: %SystemObject, null
+    __intnl_SystemString_3: %SystemString, null
 .data_end
 .code_start
     .export _start
@@ -2961,23 +3962,33 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
 # UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____invoke__objectArray__int(object[], int)
 #
         PUSH, __8__intnlparam
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_1
         EXTERN, "SystemArray.__get_Length__SystemInt32"
-        PUSH, __const_SystemInt32_2  ; 0
-        PUSH, __lcl___r_SystemInt32_0
-        COPY
-        PUSH, __const_SystemInt32_2  ; 0
-        PUSH, __lcl___i_SystemInt32_0
-        COPY
-    L0:
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_1  ; 3
         PUSH, __intnl_SystemBoolean_1
-        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        EXTERN, "SystemInt32.__op_Inequality__SystemInt32_SystemInt32__SystemBoolean"
         PUSH, __intnl_SystemBoolean_1
-        JUMP_IF_FALSE, L8
+        JUMP_IF_FALSE, L1
+        PUSH, __gintnl_SystemUInt32_5  ; -> L0
         PUSH, __8__intnlparam
-        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __11__intnlparam
+        COPY
+        PUSH, __9__intnlparam
+        PUSH, __12__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____many__objectArray__int(object[], int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____many__objectArray__int(object[], int)>
+    L0:
+        PUSH, __10__intnlparam
+        PUSH, __7__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L1:
+        PUSH, __8__intnlparam
+        PUSH, __const_SystemInt32_2  ; 0
         PUSH, __intnl_SystemObject_2
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_2
@@ -2995,50 +4006,164 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
         PUSH, __intnl_SystemBoolean_2
         JUMP_IF_FALSE, L3
-        PUSH, __gintnl_SystemUInt32_5  ; -> L2
-        PUSH, __lcl___i_SystemInt32_0
-        PUSH, __const_SystemInt32_3  ; 1
-        PUSH, __intnl_SystemInt32_1
-        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemUInt32_6  ; -> L2
         PUSH, __8__intnlparam
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __const_SystemInt32_3  ; 1
         PUSH, __intnl_SystemObject_3
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __intnl_SystemObject_3
         PUSH, __intnl_SystemString_0
         COPY
-        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __8__intnlparam
         PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __intnl_SystemObject_4
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemString_0
+        PUSH, __14__intnlparam
+        COPY
+        PUSH, __intnl_SystemObject_4
+        PUSH, __15__intnlparam
+        COPY
+        PUSH, __9__intnlparam
+        PUSH, __16__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____static__string__object__int(string, object, int)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____static__string__object__int(string, object, int)>
+    L2:
+        PUSH, __13__intnlparam
+        PUSH, __7__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+    L3:
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_2  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step__p0"
+        PUSH, __9__intnlparam
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+        PUSH, __8__intnlparam
+        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __lcl___e_SystemObject_0
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_SystemBoolean_3
+        EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_3
+        JUMP_IF_FALSE, L4
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __const_SystemString_3  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step__env"
+        PUSH, __lcl___e_SystemObject_0
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
+    L4:
+        PUSH, __gintnl_SystemUInt32_7  ; -> L5
+        PUSH, __8__intnlparam
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __intnl_SystemObject_5
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_5
+        PUSH, __intnl_SystemString_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __18__intnlparam
+        COPY
+        PUSH, __intnl_SystemString_1
+        PUSH, __19__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+    L5:
+        PUSH, __17__intnlparam
+        PUSH, __7__intnlparam
+        COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____many__objectArray__int(object[], int)
+#
+        PUSH, __11__intnlparam
+        PUSH, __lcl___n_SystemInt32_0
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __const_SystemInt32_2  ; 0
+        PUSH, __lcl___r_SystemInt32_0
+        COPY
+        PUSH, __const_SystemInt32_2  ; 0
+        PUSH, __lcl___i_SystemInt32_0
+        COPY
+    L0:
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __lcl___n_SystemInt32_0
+        PUSH, __intnl_SystemBoolean_4
+        EXTERN, "SystemInt32.__op_LessThan__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_4
+        JUMP_IF_FALSE, L8
+        PUSH, __11__intnlparam
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __intnl_SystemObject_6
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_6
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        COPY
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __intnl_UnityEngineObject_2
+        COPY
+        PUSH, __const_SystemObject_0
+        PUSH, __intnl_UnityEngineObject_3
+        COPY
+        PUSH, __intnl_UnityEngineObject_2
+        PUSH, __intnl_UnityEngineObject_3
+        PUSH, __intnl_SystemBoolean_5
+        EXTERN, "UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_5
+        JUMP_IF_FALSE, L3
+        PUSH, __gintnl_SystemUInt32_8  ; -> L2
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_3  ; 1
         PUSH, __intnl_SystemInt32_2
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __8__intnlparam
+        PUSH, __11__intnlparam
         PUSH, __intnl_SystemInt32_2
-        PUSH, __intnl_SystemObject_4
+        PUSH, __intnl_SystemObject_7
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __intnl_SystemObject_7
+        PUSH, __intnl_SystemString_2
+        COPY
+        PUSH, __lcl___i_SystemInt32_0
+        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __intnl_SystemInt32_3
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __11__intnlparam
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemObject_8
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_0
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_5
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_5
         PUSH, __intnl_SystemInt32_4
-        PUSH, __intnl_SystemInt32_3
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         JUMP_IF_FALSE, L1
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         PUSH, __const_SystemInt32_0  ; 2
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         PUSH, __intnl_SystemObjectArray_3
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_3
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_3
         PUSH, __gintnl_SystemObjectArray_0
@@ -3048,7 +4173,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
     L1:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __8__intnlparam
+        PUSH, __11__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3056,26 +4181,26 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __9__intnlparam
+        PUSH, __12__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __intnl_SystemString_0
-        PUSH, __11__intnlparam
+        PUSH, __intnl_SystemString_2
+        PUSH, __14__intnlparam
         COPY
-        PUSH, __intnl_SystemObject_4
+        PUSH, __intnl_SystemObject_8
+        PUSH, __15__intnlparam
+        COPY
         PUSH, __12__intnlparam
-        COPY
-        PUSH, __9__intnlparam
-        PUSH, __13__intnlparam
+        PUSH, __16__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3109,8 +4234,8 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
 # Calling UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____static__string__object__int(string, object, int)
         JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____static__string__object__int(string, object, int)>
     L2:
-        PUSH, __10__intnlparam
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __13__intnlparam
+        PUSH, __intnl_SystemInt32_7
         COPY
 # Recursive stack pop
         PUSH, __gintnl_SystemInt32_1
@@ -3143,7 +4268,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3151,7 +4276,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __9__intnlparam
+        PUSH, __12__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3159,73 +4284,73 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __8__intnlparam
+        PUSH, __11__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __intnl_SystemInt32_6
+        PUSH, __intnl_SystemInt32_7
         PUSH, __lcl___r_SystemInt32_0
         COPY
         JUMP, L7
     L3:
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_2  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step__p0"
-        PUSH, __9__intnlparam
+        PUSH, __12__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_0  ; 2
-        PUSH, __intnl_SystemInt32_1
+        PUSH, __intnl_SystemInt32_2
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __8__intnlparam
-        PUSH, __intnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __11__intnlparam
+        PUSH, __intnl_SystemInt32_2
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         PUSH, __const_SystemObject_0
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         EXTERN, "SystemObject.__op_Inequality__SystemObject_SystemObject__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_3
+        PUSH, __intnl_SystemBoolean_6
         JUMP_IF_FALSE, L4
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_3  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step__env"
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SetProgramVariable__SystemString_SystemObject__SystemVoid"
     L4:
-        PUSH, __gintnl_SystemUInt32_6  ; -> L6
+        PUSH, __gintnl_SystemUInt32_9  ; -> L6
         PUSH, __lcl___i_SystemInt32_0
         PUSH, __const_SystemInt32_3  ; 1
-        PUSH, __intnl_SystemInt32_2
+        PUSH, __intnl_SystemInt32_3
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __8__intnlparam
-        PUSH, __intnl_SystemInt32_2
-        PUSH, __intnl_SystemObject_3
+        PUSH, __11__intnlparam
+        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemObject_7
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
-        PUSH, __intnl_SystemObject_3
-        PUSH, __intnl_SystemString_0
+        PUSH, __intnl_SystemObject_7
+        PUSH, __intnl_SystemString_2
         COPY
 # Stack size check
         PUSH, __gintnl_SystemObjectArray_0
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __gintnl_SystemInt32_2
-        PUSH, __intnl_SystemInt32_4
+        PUSH, __intnl_SystemInt32_5
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_5
         PUSH, __intnl_SystemInt32_4
-        PUSH, __intnl_SystemInt32_3
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_7
         EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
-        PUSH, __intnl_SystemBoolean_4
+        PUSH, __intnl_SystemBoolean_7
         JUMP_IF_FALSE, L5
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         PUSH, __const_SystemInt32_0  ; 2
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
-        PUSH, __intnl_SystemInt32_5
+        PUSH, __intnl_SystemInt32_6
         PUSH, __intnl_SystemObjectArray_3
         EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __intnl_SystemObjectArray_3
-        PUSH, __intnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_4
         EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
         PUSH, __intnl_SystemObjectArray_3
         PUSH, __gintnl_SystemObjectArray_0
@@ -3235,7 +4360,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
     L5:
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __8__intnlparam
+        PUSH, __11__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3243,23 +4368,23 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __9__intnlparam
+        PUSH, __12__intnlparam
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
         PUSH, __gintnl_SystemInt32_1
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
 # Recursive stack push end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
-        PUSH, __14__intnlparam
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
+        PUSH, __20__intnlparam
         COPY
-        PUSH, __intnl_SystemString_0
-        PUSH, __15__intnlparam
+        PUSH, __intnl_SystemString_2
+        PUSH, __21__intnlparam
         COPY
 # Recursive stack push
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3267,7 +4392,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3332,7 +4457,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___e_SystemObject_0
+        PUSH, __lcl___e_SystemObject_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3340,7 +4465,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3348,7 +4473,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __9__intnlparam
+        PUSH, __12__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
         PUSH, __gintnl_SystemInt32_1
         PUSH, __const_SystemInt32_3  ; 1
@@ -3356,14 +4481,14 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
         PUSH, __gintnl_SystemObjectArray_0
         PUSH, __gintnl_SystemInt32_1
-        PUSH, __8__intnlparam
+        PUSH, __11__intnlparam
         EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
 # Recursive stack pop end
-        PUSH, __lcl___u_VRCUdonUdonBehaviour_0
+        PUSH, __lcl___u_VRCUdonUdonBehaviour_1
         PUSH, __const_SystemString_4  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step__ret"
-        PUSH, __intnl_SystemObject_4
+        PUSH, __intnl_SystemObject_8
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
-        PUSH, __intnl_SystemObject_4
+        PUSH, __intnl_SystemObject_8
         PUSH, __lcl___r_SystemInt32_0
         EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
     L7:
@@ -3374,7 +4499,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         JUMP, L0
     L8:
         PUSH, __lcl___r_SystemInt32_0
-        PUSH, __7__intnlparam
+        PUSH, __10__intnlparam
         COPY
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -3385,7 +4510,7 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
 #
 # UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____static__string__object__int(string, object, int)
 #
-        PUSH, __12__intnlparam
+        PUSH, __15__intnlparam
         PUSH, __lcl___l_SystemObjectArray_0
         COPY
         PUSH, __const_SystemObject_0
@@ -3395,8 +4520,100 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
         PUSH, __lcl___zn_SystemInt32_0
         EXTERN, "SystemArray.__get_Length__SystemInt32"
         PUSH, __const_SystemInt32_2  ; 0
-        PUSH, __10__intnlparam
+        PUSH, __13__intnlparam
         COPY
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+        PUSH, __intnl_returnJump_SystemUInt32_0
+        COPY
+        JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
+#
+# UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+#
+        PUSH, __gintnl_SystemUInt32_10  ; -> L1
+# Stack size check
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemArray.__get_Length__SystemInt32"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __gintnl_SystemInt32_3
+        PUSH, __intnl_SystemInt32_9
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_9
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __intnl_SystemBoolean_8
+        EXTERN, "SystemInt32.__op_GreaterThanOrEqual__SystemInt32_SystemInt32__SystemBoolean"
+        PUSH, __intnl_SystemBoolean_8
+        JUMP_IF_FALSE, L0
+        PUSH, __intnl_SystemInt32_8
+        PUSH, __const_SystemInt32_0  ; 2
+        PUSH, __intnl_SystemInt32_10
+        EXTERN, "SystemInt32.__op_Multiplication__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __intnl_SystemInt32_10
+        PUSH, __intnl_SystemObjectArray_4
+        EXTERN, "SystemObjectArray.__ctor__SystemInt32__SystemObjectArray"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __intnl_SystemInt32_8
+        EXTERN, "SystemArray.__Copy__SystemArray_SystemArray_SystemInt32__SystemVoid"
+        PUSH, __intnl_SystemObjectArray_4
+        PUSH, __gintnl_SystemObjectArray_0
+        COPY
+# Stack size check end
+# Recursive stack push
+    L0:
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __18__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __19__intnlparam
+        EXTERN, "SystemObjectArray.__Set__SystemInt32_SystemObject__SystemVoid"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Addition__SystemInt32_SystemInt32__SystemInt32"
+# Recursive stack push end
+        PUSH, __18__intnlparam
+        PUSH, __20__intnlparam
+        COPY
+        PUSH, __19__intnlparam
+        PUSH, __21__intnlparam
+        COPY
+# Calling UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
+        JUMP, <__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)>
+# Recursive stack pop
+    L1:
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __19__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __const_SystemInt32_3  ; 1
+        PUSH, __gintnl_SystemInt32_1
+        EXTERN, "SystemInt32.__op_Subtraction__SystemInt32_SystemInt32__SystemInt32"
+        PUSH, __gintnl_SystemObjectArray_0
+        PUSH, __gintnl_SystemInt32_1
+        PUSH, __18__intnlparam
+        EXTERN, "SystemObjectArray.__Get__SystemInt32__SystemObject"
+# Recursive stack pop end
+        PUSH, __18__intnlparam
+        PUSH, __const_SystemString_4  ; "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step__ret"
+        PUSH, __intnl_SystemObject_9
+        EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject"
+        PUSH, __intnl_SystemObject_9
+        PUSH, __17__intnlparam
+        EXTERN, "SystemConvert.__ToInt32__SystemObject__SystemInt32"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
         JUMP_INDIRECT, __intnl_returnJump_SystemUInt32_0
@@ -3406,12 +4623,12 @@ __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.IfDecl"
 #
 # UdonSharpPlusTests.DelegatePreprocessor.Region.__cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____send__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string)
 #
-        PUSH, __14__intnlparam
+        PUSH, __20__intnlparam
 # Cow dirty
-        PUSH, __15__intnlparam
-        PUSH, __intnl_SystemString_1
+        PUSH, __21__intnlparam
+        PUSH, __intnl_SystemString_3
         COPY
-        PUSH, __15__intnlparam
+        PUSH, __21__intnlparam
         EXTERN, "VRCUdonCommonInterfacesIUdonEventReceiver.__SendCustomEvent__SystemString__SystemVoid"
         PUSH, __intnl_returnJump_SystemUInt32_0
         COPY
@@ -3431,14 +4648,19 @@ __const_SystemString_4 = "__dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_
 __const_SystemUInt32_0 = 4294967295
 __gintnl_SystemInt32_0 = 6
 __gintnl_SystemInt32_2 = 7
+__gintnl_SystemInt32_3 = 2
 __gintnl_SystemObjectArray_0 = [null, null, null, null, null, null, null]
 __gintnl_SystemUInt32_0 = -> Start():L0
 __gintnl_SystemUInt32_1 = -> Start():L1
+__gintnl_SystemUInt32_10 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____one__UdonSharp_UdonSharpBehaviour__string(UdonSharp.UdonSharpBehaviour, string):L1
 __gintnl_SystemUInt32_2 = -> __dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step__UdonSharpPlusTests_DelegatePreprocessor_Region_Inc__UdonSharpPlusTests_DelegatePreprocessor_Region():L0
 __gintnl_SystemUInt32_3 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor_Counter__ctor():L0
 __gintnl_SystemUInt32_4 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor_Counter__Next__int(object[], int):L2
-__gintnl_SystemUInt32_5 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____invoke__objectArray__int(object[], int):L2
-__gintnl_SystemUInt32_6 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____invoke__objectArray__int(object[], int):L6
+__gintnl_SystemUInt32_5 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____invoke__objectArray__int(object[], int):L0
+__gintnl_SystemUInt32_6 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____invoke__objectArray__int(object[], int):L2
+__gintnl_SystemUInt32_7 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____invoke__objectArray__int(object[], int):L5
+__gintnl_SystemUInt32_8 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____many__objectArray__int(object[], int):L2
+__gintnl_SystemUInt32_9 = -> __cls_UdonSharpPlusTests_DelegatePreprocessor___dlg_UdonSharpPlusTests_DelegatePreprocessor_Counter_Step____many__objectArray__int(object[], int):L6
 __refl_typeid = 771168756759060475
 __refl_typename = "UdonSharpPlusTests.DelegatePreprocessor.Region"
 ### NetworkEvents

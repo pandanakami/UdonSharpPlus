@@ -259,12 +259,36 @@ namespace UdonSharpPlus
                 string ret = hasReturn ? TypeText(invoke.ReturnType) : "void";
                 var ps = invoke.Parameters;
                 var sb = new StringBuilder();
-                // __invoke の引数・ローカル変数は、呼ぶ側のプログラムのヒープの変数。SendCustomEvent の間に同じプログラムで
-                // __invoke がまた動くと上書きされる（#128）。[RecursiveMethod] を付け、SendCustomEvent をユーザーのメソッド（__send）
-                // 経由で呼ぶと、UdonSharp がその前後で値をスタックに積んで戻す
+                // 引数・ローカル変数は、呼ぶ側のプログラムのヒープの変数。SendCustomEvent の間に同じプログラムで
+                // 同じメソッドがまた動くと上書きされる（#128）。[RecursiveMethod] を付け、SendCustomEvent をユーザーのメソッド（__send）
+                // 経由で呼ぶと、UdonSharp がその前後で値をスタックに積んで戻す。
+                // ただし積むときに、値の型（int・bool など。作業用の一時変数も）を 1 つずつボックス化するので、呼ぶたびに十数回の確保になる（#170）。
+                // そこで呼ぶ相手が 1 つのとき（ふつうはこれ）は、__invoke（RecursiveMethod にしない）で引数を渡してから、
+                // 参照だけを持つ __one（RecursiveMethod）で送る。__invoke は __one を呼んだあと自分の変数を使わないので、上書きされてもよい。
+                // 相手が複数（+= でつないだもの）・0 のときは、ループ全体を RecursiveMethod にした __many（前からの作り）で呼ぶ
                 sb.Append($"public static class {info.HelperClass} {{ ");
                 sb.Append($"private static void __send({UsbType} __u, string __name) {{ __u.SendCustomEvent(__name); }} ");
-                sb.Append($"[global::UdonSharp.RecursiveMethod] public static {ret} __invoke({ValueType} __d");
+                string parameters = string.Concat(ps.Select((p, i) => $", {TypeText(p.Type)} __a{i}"));
+                string arguments = string.Concat(ps.Select((p, i) => $", __a{i}"));
+                // __invoke：相手が 1 つなら、ここで渡して __one で送る
+                string Return(string call) => hasReturn ? $"return {call}; " : $"{{ {call}; return; }} ";
+                sb.Append($"public static {ret} __invoke({ValueType} __d{parameters}) {{ ");
+                // null なら __d.Length で実行時例外になる（C# の NullReferenceException に当たる）
+                sb.Append("if (__d.Length != 3) ").Append(Return($"__many(__d{arguments})"));
+                sb.Append($"{UsbType} __u = ({UsbType})__d[0]; ");
+                // 呼ぶ相手のない組（#124）は、振り分けで直接呼ぶ
+                sb.Append("if (__u == null) ").Append(Return($"__static((string)__d[1], __d[2]{arguments})"));
+                for (int i = 0; i < ps.Length; i++)
+                    sb.Append($"__u.SetProgramVariable(\"{info.ParamField(i)}\", __a{i}); ");
+                sb.Append($"object __e = __d[2]; if (__e != null) __u.SetProgramVariable(\"{info.EnvField}\", __e); ");
+                sb.Append(hasReturn ? "return __one(__u, (string)__d[1]); " : "__one(__u, (string)__d[1]); ");
+                sb.Append("} ");
+                // __one：送って、戻り値を読む。積むのは参照（__u・__name）だけ
+                sb.Append($"[global::UdonSharp.RecursiveMethod] private static {ret} __one({UsbType} __u, string __name) {{ __send(__u, __name); ");
+                if (hasReturn)
+                    sb.Append($"return ({ret})__u.GetProgramVariable(\"{info.RetField}\"); ");
+                sb.Append("} ");
+                sb.Append($"[global::UdonSharp.RecursiveMethod] public static {ret} __many({ValueType} __d");
                 for (int i = 0; i < ps.Length; i++)
                     sb.Append($", {TypeText(ps[i].Type)} __a{i}");
                 sb.Append(") { ");
