@@ -47,6 +47,11 @@ namespace UdonSharpPlus
             public string RetField => $"__dlg_{Key}__ret";
             public string EnvField => $"__dlg_{Key}__env";
             public IMethodSymbol Invoke => Symbol.DelegateInvokeMethod;
+            /// <summary>
+            /// コンパイルするコードのどこかで、この型に + / += を使っているか（#173）。使っていなければ、値はいつも相手 1 つの組（要素 3 つ）か null なので、
+            /// 呼び出しの static クラスに、相手が複数のときの部品（__many・__loop・__combine）を入れない（UASM が小さくなる）
+            /// </summary>
+            public bool Combined;
         }
 
         /// <summary>ソースのデリゲートの宣言か、ローカル関数（#123。UdonSharp が未対応なので、メソッドに移す）があるか</summary>
@@ -84,6 +89,7 @@ namespace UdonSharpPlus
                 return trees;
             Prebind.Run(compilation, trees);
 
+            MarkCombined(compilation, trees, delegates);
             var shared = new Shared(delegates, diagnostics, trees);
             var result = new List<SyntaxTree>(trees.Count);
             for (int i = 0; i < trees.Count; i++)
@@ -95,6 +101,35 @@ namespace UdonSharpPlus
             }
 
             return AddStaticDispatchers(AddGeneratedMembers(result, trees, shared), shared);
+        }
+
+        /// <summary>
+        /// + / += を使っているデリゲート型に印を付ける（#173）。つないだデリゲートは、ほかの UdonSharpBehaviour に渡されてそこで呼ばれることがあるので、
+        /// tree（プログラム）ごとではなく、すべての tree を見て決める
+        /// </summary>
+        private static void MarkCombined(CSharpCompilation compilation, List<SyntaxTree> trees, Dictionary<INamedTypeSymbol, DelegateInfo> delegates)
+        {
+            if (delegates.Count == 0)
+                return;
+            DelegateInfo Find(ITypeSymbol type) =>
+                type is INamedTypeSymbol named && (delegates.TryGetValue(named, out var info) || delegates.TryGetValue(named.OriginalDefinition, out info)) ? info : null;
+            foreach (SyntaxTree tree in trees)
+            {
+                SemanticModel model = null;
+                foreach (SyntaxNode node in tree.GetRoot().DescendantNodes())
+                {
+                    ExpressionSyntax typed;
+                    if (node is AssignmentExpressionSyntax assignment && assignment.IsKind(SyntaxKind.AddAssignmentExpression))
+                        typed = assignment.Left;
+                    else if (node is BinaryExpressionSyntax binary && binary.IsKind(SyntaxKind.AddExpression))
+                        typed = binary;
+                    else
+                        continue;
+                    model = model ?? compilation.Model(tree);
+                    if (Find(model.GetTypeInfo(typed).Type) is DelegateInfo info)
+                        info.Combined = true;
+                }
+            }
         }
 
         private static SyntaxTree Reparse(SyntaxNode root, SyntaxTree original) =>
@@ -277,7 +312,9 @@ namespace UdonSharpPlus
                 string Return(string call) => hasReturn ? $"return {call}; " : $"{{ {call}; return; }} ";
                 sb.Append($"public static {ret} __invoke({ValueType} __d{parameters}) {{ ");
                 // null なら __d.Length で実行時例外になる（C# の NullReferenceException に当たる）
-                sb.Append("if (__d.Length != 3) ").Append(Return($"__many(__d{arguments})"));
+                // + / += を使わない型（#173）は、いつも相手 1 つ。null なら __d[0] で実行時例外になる
+                if (info.Combined)
+                    sb.Append("if (__d.Length != 3) ").Append(Return($"__many(__d{arguments})"));
                 sb.Append($"{UsbType} __u = ({UsbType})__d[0]; ");
                 // 呼ぶ相手のない組（#124）は、振り分けで直接呼ぶ
                 sb.Append("if (__u == null) ").Append(Return($"__static((string)__d[1], __d[2]{arguments})"));
@@ -291,46 +328,51 @@ namespace UdonSharpPlus
                 if (hasReturn)
                     sb.Append($"return ({ret})__u.GetProgramVariable(\"{info.RetField}\"); ");
                 sb.Append("} ");
-                // __many：相手が複数（+= でつないだもの）・0 のとき（#173）。ループの番号は呼ぶたびに要るが、int のまま RecursiveMethod で
-                // 積むとボックス化になる。そこで __many（RecursiveMethod にしない）で、引数を 1 回だけ object[] にまとめ、番号を int[] に入れてから、
-                // 参照の変数だけを持つ __loop（RecursiveMethod）で回す。__many は __loop を呼んだあと自分の変数を使わないので、上書きされてもよい
-                // 渡すもの（組の並び・ループの番号・引数）は、1 つの object[]（__p）にまとめる。RecursiveMethod が積んだ値を戻すとき、
-                // Udon は object として書き戻すので、型の付いた値（new の結果・引数など）から写した変数だと、呼ぶたびに入れ物を作り直して確保になる。
-                // object[] から読んだ値（object のまま）を写した変数なら、作り直さない
-                sb.Append($"public static {ret} __many({ValueType} __d{parameters}) {{ ");
-                // __loop の引数も、object[] から読んで渡す（__w[0]）
-                sb.Append($"object[] __w = new object[] {{ new object[] {{ __d, new int[1]{string.Concat(ps.Select((p, i) => $", __a{i}"))} }} }}; ");
-                string packed = "(object[])__w[0]";
-                // null なら __d.Length で実行時例外になる（C# の NullReferenceException に当たる。__invoke が先に止まる）
-                if (hasReturn)
-                    sb.Append($"object __r = __loop({packed}); return __r == null ? default({ret}) : ({ret})__r; ");
-                else
-                    sb.Append($"__loop({packed}); ");
-                sb.Append("} ");
-                // __loop：__c[0] が次の組の位置。戻り値は C# と同じく最後の相手のものだけを使うので、最後の相手のときだけ読む
-                sb.Append($"[global::UdonSharp.RecursiveMethod] private static {(hasReturn ? "object" : "void")} __loop(object[] __p) {{ ");
-                sb.Append($"{ValueType} __d = ({ValueType})__p[0]; int[] __c = (int[])__p[1]; ");
-                if (hasReturn)
-                    sb.Append("object __r = null; ");
-                sb.Append("while (__c[0] < __d.Length) { ");
-                sb.Append($"{UsbType} __u = ({UsbType})__d[__c[0]]; string __name = (string)__d[__c[0] + 1]; object __e = __d[__c[0] + 2]; __c[0] += 3; ");
-                // 呼ぶ相手のない組（#124）は、振り分けで直接呼ぶ
-                string staticCall = $"__static(__name, __e{string.Concat(ps.Select((p, i) => $", ({TypeText(p.Type)})__p[{i + 2}]"))})";
-                sb.Append("if (__u == null) { ");
-                sb.Append(hasReturn ? $"if (__c[0] < __d.Length) {staticCall}; else __r = (object){staticCall}; " : $"{staticCall}; ");
-                sb.Append("continue; } ");
-                for (int i = 0; i < ps.Length; i++)
-                    sb.Append($"__u.SetProgramVariable(\"{info.ParamField(i)}\", __p[{i + 2}]); ");
-                // 外の変数（#121）。使わないラムダ・メソッドでは null なので渡さない（中継メソッドも読まない）
-                sb.Append($"if (__e != null) __u.SetProgramVariable(\"{info.EnvField}\", __e); ");
-                sb.Append("__send(__u, __name); ");
-                if (hasReturn)
-                    sb.Append($"if (__c[0] >= __d.Length) __r = __u.GetProgramVariable(\"{info.RetField}\"); ");
-                sb.Append("} ");
-                if (hasReturn)
-                    sb.Append("return __r; ");
-                sb.Append("} ");
-                sb.Append(CombineCode).Append(' ').Append(RemoveCode).Append(' ').Append(NotNullCode).Append(' ').Append(ArgCode);
+                // + / += を使う型だけ（#173）
+                if (info.Combined)
+                {
+                    // __many：相手が複数（+= でつないだもの）・0 のとき（#173）。ループの番号は呼ぶたびに要るが、int のまま RecursiveMethod で
+                    // 積むとボックス化になる。そこで __many（RecursiveMethod にしない）で、引数を 1 回だけ object[] にまとめ、番号を int[] に入れてから、
+                    // 参照の変数だけを持つ __loop（RecursiveMethod）で回す。__many は __loop を呼んだあと自分の変数を使わないので、上書きされてもよい
+                    // 渡すもの（組の並び・ループの番号・引数）は、1 つの object[]（__p）にまとめる。RecursiveMethod が積んだ値を戻すとき、
+                    // Udon は object として書き戻すので、型の付いた値（new の結果・引数など）から写した変数だと、呼ぶたびに入れ物を作り直して確保になる。
+                    // object[] から読んだ値（object のまま）を写した変数なら、作り直さない
+                    sb.Append($"public static {ret} __many({ValueType} __d{parameters}) {{ ");
+                    // __loop の引数も、object[] から読んで渡す（__w[0]）
+                    sb.Append($"object[] __w = new object[] {{ new object[] {{ __d, new int[1]{string.Concat(ps.Select((p, i) => $", __a{i}"))} }} }}; ");
+                    string packed = "(object[])__w[0]";
+                    // null なら __d.Length で実行時例外になる（C# の NullReferenceException に当たる。__invoke が先に止まる）
+                    if (hasReturn)
+                        sb.Append($"object __r = __loop({packed}); return __r == null ? default({ret}) : ({ret})__r; ");
+                    else
+                        sb.Append($"__loop({packed}); ");
+                    sb.Append("} ");
+                    // __loop：__c[0] が次の組の位置。戻り値は C# と同じく最後の相手のものだけを使うので、最後の相手のときだけ読む
+                    sb.Append($"[global::UdonSharp.RecursiveMethod] private static {(hasReturn ? "object" : "void")} __loop(object[] __p) {{ ");
+                    sb.Append($"{ValueType} __d = ({ValueType})__p[0]; int[] __c = (int[])__p[1]; ");
+                    if (hasReturn)
+                        sb.Append("object __r = null; ");
+                    sb.Append("while (__c[0] < __d.Length) { ");
+                    sb.Append($"{UsbType} __u = ({UsbType})__d[__c[0]]; string __name = (string)__d[__c[0] + 1]; object __e = __d[__c[0] + 2]; __c[0] += 3; ");
+                    // 呼ぶ相手のない組（#124）は、振り分けで直接呼ぶ
+                    string staticCall = $"__static(__name, __e{string.Concat(ps.Select((p, i) => $", ({TypeText(p.Type)})__p[{i + 2}]"))})";
+                    sb.Append("if (__u == null) { ");
+                    sb.Append(hasReturn ? $"if (__c[0] < __d.Length) {staticCall}; else __r = (object){staticCall}; " : $"{staticCall}; ");
+                    sb.Append("continue; } ");
+                    for (int i = 0; i < ps.Length; i++)
+                        sb.Append($"__u.SetProgramVariable(\"{info.ParamField(i)}\", __p[{i + 2}]); ");
+                    // 外の変数（#121）。使わないラムダ・メソッドでは null なので渡さない（中継メソッドも読まない）
+                    sb.Append($"if (__e != null) __u.SetProgramVariable(\"{info.EnvField}\", __e); ");
+                    sb.Append("__send(__u, __name); ");
+                    if (hasReturn)
+                        sb.Append($"if (__c[0] >= __d.Length) __r = __u.GetProgramVariable(\"{info.RetField}\"); ");
+                    sb.Append("} ");
+                    if (hasReturn)
+                        sb.Append("return __r; ");
+                    sb.Append("} ");
+                    sb.Append(CombineCode).Append(' ');
+                }
+                sb.Append(RemoveCode).Append(' ').Append(NotNullCode).Append(' ').Append(ArgCode);
                 sb.Append(" }");
                 return sb.ToString();
             }
