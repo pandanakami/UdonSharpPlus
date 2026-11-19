@@ -328,7 +328,7 @@ public class ClosureUser : UdonSharpBehaviour
                 Assert.That(r.Diagnostics, Is.Empty);
                 string lowered = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "ClosureUser.cs"));
                 Assert.That(lowered.Split('\n').Length, Is.EqualTo(ClosureUser.Split('\n').Length), lowered);
-                Assert.That(lowered, Does.Contain("object __e = __d[__i + 2]; if (__e != null) __u.SetProgramVariable(\"__dlg_Calc__env\", __e);"));
+                Assert.That(lowered, Does.Contain("object __e = __d[2]; if (__e != null) __u.SetProgramVariable(\"__dlg_Calc__env\", __e);"));
                 Assert.That(lowered, Does.Contain("(object[])__env[0]"), "ラムダの本体で、受け取った環境を取り出す");
                 Assert.That(lowered, Does.Contain("((int)(5))"), "定数は値にする");
             }

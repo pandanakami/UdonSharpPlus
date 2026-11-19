@@ -79,10 +79,11 @@ public class Cost : UdonSharpBehaviour
         [TestCase("Func<int, int> h = x => x + n;", "", "0,0,0,3,0,0,0,0,0", TestName = "lambda create (captures a variable)")]
         // デリゲートの呼び出しの補助メソッドは、相手が 1 つのとき（__one）と複数のとき（__many）の 2 つの道を持つので（#170）、
         // Get・Set はコードに 2 組ある（呼ぶたびに通るのは片方）。new object[] は、+= / -= の補助メソッドの 2 つと、
-        // UdonSharp の RecursiveMethod の退避用の配列を大きくし直すもの（入れ子が深いときだけ通る）
-        [TestCase("n = f(1);", "Func<int, int> f = x => x + 1;", "1,2,4,3,0,0,0,0,0", TestName = "delegate call (lambda), first use")]
+        // UdonSharp の RecursiveMethod の退避用の配列を大きくし直すもの（入れ子が深いときだけ通る）、
+        // __many で渡すものをまとめる 2 つ（+= でつないだものを呼ぶときだけ通る。#173）。ほかの配列の 1 つは、__many のループの番号の int[]
+        [TestCase("n = f(1);", "Func<int, int> f = x => x + 1;", "1,2,4,6,0,0,0,0,1", TestName = "delegate call (lambda), first use")]
         [TestCase("n = f(2);", "Func<int, int> f = x => x + 1; n = f(1);", "0,0,0,0,0,0,0,0,0", TestName = "delegate call (lambda), second use")]
-        [TestCase("n = g(1);", "Func<int, int> g = Twice;", "1,2,4,3,0,0,0,0,0", TestName = "delegate call (behaviour method)")]
+        [TestCase("n = g(1);", "Func<int, int> g = Twice;", "1,2,4,6,0,0,0,0,1", TestName = "delegate call (behaviour method)")]
         [TestCase("var t = (1, 2); n = t.Item1;", "", "0,0,0,1,0,0,0,0,0", TestName = "tuple")]
         [TestCase("var a = new { A = 1 }; n = a.A;", "", "0,0,0,1,0,0,0,0,0", TestName = "anonymous type")]
         [TestCase("var l = new List<int>(); l.Add(1);", "", "0,0,0,0,1,0,0,0,0", TestName = "List new")]
@@ -109,7 +110,7 @@ public class Cost : UdonSharpBehaviour
         // List.Sort・タプルのリストの foreach・並べ替えの LINQ（#162）
         // List.Sort の配列 2 つは、使い回す作業用の配列を大きく作り直すところ（16 個を超える要素を初めて並べ替えたときだけ通る。#171）
         [TestCase("nums.Sort((a, b) => b - a);", Nums, "0,0,0,0,0,0,0,0,2", TestName = "List.Sort lambda")]
-        [TestCase("nums.Sort(cmp);", Nums + " Comparison<int> cmp = (a, b) => b - a;", "1,2,6,3,0,0,0,0,2", TestName = "List.Sort with a delegate variable")]
+        [TestCase("nums.Sort(cmp);", Nums + " Comparison<int> cmp = (a, b) => b - a;", "1,2,6,6,0,0,0,0,3", TestName = "List.Sort with a delegate variable")]
         [TestCase("foreach (var t in tl) n += t.Item1;", "var tl = new List<(int, int)> { (1, 2) };", "0,0,0,0,0,0,0,0,0", TestName = "tuple List foreach")]
         [TestCase("foreach (var (a, b) in tl) n += a + b;", "var tl = new List<(int, int)> { (1, 2) };", "0,0,0,0,0,0,0,0,0", TestName = "tuple List foreach with deconstruction")]
         [TestCase("var r = nums.OrderBy(x => -x).ToList();", Nums, "0,0,0,0,1,0,4,0,0", TestName = "LINQ OrderBy.ToList")]
@@ -119,7 +120,7 @@ public class Cost : UdonSharpBehaviour
         [TestCase("int[] a = nums.ToArray();", Nums, "0,0,0,0,0,0,0,0,1", TestName = "List ToArray")]
         [TestCase("string s = string.Join(\",\", nums);", Nums, "0,0,0,0,0,0,0,0,1", TestName = "string.Join of a List")]
         // 重くなる形：デリゲートの変数を LINQ に渡すと、デリゲートの呼び出しになる
-        [TestCase("n = nums.Select(f).Sum();", Nums + " Func<int, int> f = x => x * 2;", "1,2,4,3,0,0,0,0,0", TestName = "LINQ with a delegate variable")]
+        [TestCase("n = nums.Select(f).Sum();", Nums + " Func<int, int> f = x => x * 2;", "1,2,4,6,0,0,0,0,1", TestName = "LINQ with a delegate variable")]
         public void CountsHeavyInstructions(string operation, string setup, string expected)
         {
             int[] before = Count(setup + " n = 1;");

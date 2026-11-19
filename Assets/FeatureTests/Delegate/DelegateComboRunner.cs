@@ -17,7 +17,7 @@ namespace FeatureTests.Delegate
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果（エディタで Scenario() を普通の C# として実行して確かめたもの）
-        private const string Expected = "48,8,2009,1016;43;26,30,30;36,9,5;6,4,10,7;14,9,2;5101,32017;14,120,1003,1004;3,10,Unit,43;7,55;17,13;sa,3,xy;2.5;2;15;9,10,10|True,True";
+        private const string Expected = "48,8,2009,1016;43;26,30,30;36,9,5;6,4,10,7;14,9,2;5101,32017;14,120,1003,1004;3,10,Unit,43;7,55;17,13;sa,3,xy;2.5;2;15;9,10,10|True,True|6:a1b1a10b10a100b100c100i105c10i15c1,3:a1b1a10b10c10i30c1";
 
         public DelegateComboUnit unit;
         public DelegateComboDerived derived;
@@ -158,8 +158,47 @@ namespace FeatureTests.Delegate
 
             // D2
             s += "|" + (publicCalc == null) + "," + (publicCalcs == null || publicCalcs.Length == 0);
+
+            // A10（#173）：+= でつないだものを呼んでいる途中で、相手の中から同じデリゲートをまた呼ぶ（入れ子）。
+            // 外側の続き（残りの相手・戻り値）が、内側の呼び出しで壊れない。外の変数を使うラムダも混ぜる
+            int k = 5;
+            _chain = ChainA;
+            _chain += ChainB;
+            _chain += ChainC;
+            _chain += x => x + k;
+            _chainDepth = 0;
+            _chainLog = "";
+            int r1 = _chain(1);
+            s += "|" + r1 + ":" + _chainLog;
+            _chain = ChainA;
+            _chain += ChainB;
+            _chain += ChainC;
+            _chainDepth = 1;
+            _chainLog = "";
+            int r2 = _chain(1);
+            s += "," + r2 + ":" + _chainLog;
             return s;
         }
+
+        private Calc _chain;
+        private int _chainDepth;
+        private string _chainLog = "";
+
+        private int ChainA(int x) { _chainLog += "a" + x; return x + 1; }
+
+        private int ChainB(int x)
+        {
+            _chainLog += "b" + x;
+            if (_chainDepth < 2)
+            {
+                _chainDepth++;
+                int inner = _chain(x * 10);
+                _chainLog += "i" + inner;
+            }
+            return x + 2;
+        }
+
+        private int ChainC(int x) { _chainLog += "c" + x; return x * 3; }
 
         private static int Seven2(int x) => 7 + x;
 
