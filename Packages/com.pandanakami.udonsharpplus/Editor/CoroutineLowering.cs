@@ -27,7 +27,7 @@ namespace UdonSharpPlus
     /// - ほかの段（List・デリゲート・普通のクラスなど）を書き換えたあとの、最後の段に置く（状態に入れる値の型が、Udon の型になっているため）
     /// - 行は増やさない（メソッドの頭はその行に、yield はその行に置き換え、生成したメンバーはクラスの閉じ括弧の行に置く）
     /// </summary>
-    internal static class CoroutineLowering
+    internal static partial class CoroutineLowering
     {
         private const string EnumeratorName = "System.Collections.IEnumerator";
         private const string CoroutineName = "UnityEngine.Coroutine";
@@ -163,7 +163,7 @@ namespace UdonSharpPlus
 
         // ---- クラスの書き換え ----------------------------------------------------
 
-        private sealed class ClassRewriter
+        private sealed partial class ClassRewriter
         {
             private readonly SemanticModel _model;
             private readonly ClassDeclarationSyntax _cls;
@@ -238,56 +238,7 @@ namespace UdonSharpPlus
                 _edits.Add(name.Span, call.Parent is ExpressionStatementSyntax ? "__co_go" : "__co_start");
             }
 
-            private void RewriteCoroutine(Coroutine co)
-            {
-                MethodDeclarationSyntax m = co.Declaration;
-                BlockSyntax body = m.Body;
-                var parameters = m.ParameterList.Parameters
-                    .Select(p => (Type: _edits.Take(p.Type), Name: p.Identifier.ValueText, Default: p.Default != null ? " " + _edits.Take(p.Default) : ""))
-                    .ToList();
-                string modifiers = string.Join(" ", m.Modifiers.Select(t => t.ValueText));
-
-                // 頭：修飾子から本体の開き括弧まで（引数が複数行なら、その分の改行を残す）
-                var headSpan = TextSpan.FromBounds(m.Modifiers.Count > 0 ? m.Modifiers.First().SpanStart : m.ReturnType.SpanStart, body.OpenBraceToken.Span.End);
-                string headText = _edits.Take(headSpan);
-                var restores = new StringBuilder();
-                for (int i = 0; i < parameters.Count; i++)
-                    restores.Append($"{parameters[i].Type} {parameters[i].Name} = ({parameters[i].Type})__s[{i + 1}]; ");
-                _edits.Add(headSpan, $"private void {co.StepName}(object[] __s) {{ int[] __h = (int[])__s[0]; {restores}int __pc = __h[2]; while (true) {{ switch (__pc) {{ case 0:" + LineBreaks(headText));
-
-                // yield
-                int next = 1;
-                foreach (YieldStatementSyntax y in Yields(body))
-                {
-                    if (y.IsKind(SyntaxKind.YieldBreakStatement))
-                    {
-                        _edits.Take(y);
-                        _edits.Add(y.Span, "{ __co_done(__s); return; }");
-                        continue;
-                    }
-                    if (y.Parent != body)
-                    {
-                        Error(y, Loc.T("if・ループなどの中の yield return は、まだ対応していません", "yield return inside if statements, loops and similar is not supported yet"));
-                        continue;
-                    }
-                    string wait = Wait(y.Expression);
-                    if (wait == null)
-                        continue;
-                    string original = _edits.Take(y);
-                    _edits.Add(y.Span, $"__h[2] = {next}; {wait} return; case {next}:" + LineBreaks(original));
-                    next++;
-                }
-
-                // 終わり：本体の閉じ括弧
-                _edits.Add(body.CloseBraceToken.Span, "__co_done(__s); return; } } }");
-
-                // 開始のメソッド（元の名前・引数で、状態を作って番号を返す）
-                string args = string.Join(", ", parameters.Select(p => $"{p.Type} {p.Name}{p.Default}"));
-                var stores = new StringBuilder();
-                for (int i = 0; i < parameters.Count; i++)
-                    stores.Append($"__s[{i + 1}] = {parameters[i].Name}; ");
-                _members.Add($"{(modifiers.Length > 0 ? modifiers + " " : "")}int {m.Identifier.ValueText}({args}) {{ object[] __s = __co_alloc({co.Id}, {1 + parameters.Count}); {stores}return ((int[])__s[0])[0]; }}");
-            }
+            private void RewriteCoroutine(Coroutine co) => new BodyWriter(this, co).Run();
 
             /// <summary>yield return の値に合わせた、待つ処理の呼び出し（未対応ならエラーにして null）</summary>
             private string Wait(ExpressionSyntax value)

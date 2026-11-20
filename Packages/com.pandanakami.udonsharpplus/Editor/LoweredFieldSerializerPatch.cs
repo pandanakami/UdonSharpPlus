@@ -88,6 +88,10 @@ namespace UdonSharpPlus
                     return typeof(object[]);
             }
 
+            // コルーチンの値（Coroutine・IEnumerator。#107 で状態の番号の int に書き換える）
+            if (type == typeof(Coroutine) || type == typeof(System.Collections.IEnumerator))
+                return typeof(int);
+
             // .NET のデリゲート（Action・Func・Predicate・Comparison。#125）
             if (typeof(Delegate).IsAssignableFrom(type) && type.Namespace == "System" && !type.IsNested)
             {

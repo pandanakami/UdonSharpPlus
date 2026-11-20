@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 
@@ -77,10 +78,105 @@ private IEnumerator Bar() { yield return null; yield break; }";
             AssertError(Basic + "\nvoid Late() { try { } finally { } }", "Try/Catch/Finally", BodyLine + 11);
         }
 
-        [Test]
-        public void ErrorForYieldInsideLoop()
+        /// <summary>書き換え後の CoUse.cs（エラーがないこと）</summary>
+        private static string Lowered(string name, string body)
         {
-            AssertError("IEnumerator Foo() { for (int i = 0; i < 3; i++) { yield return null; } }", "if・ループなどの中の yield return", BodyLine);
+            string dir = Path.GetFullPath(Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusCoroutine_" + name));
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+            try
+            {
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir,
+                    new TestSource("CoUse.cs", Head + "public class CoUse : UdonSharpBehaviour\n{\n" + body + "\n}"));
+                Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, body + "\n" + string.Join("\n", r.Diagnostics));
+                return File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "CoUse.cs"));
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
+
+        // ---- 2 段階目：yield をまたぐ変数と、if・ループ・switch の中の yield ----------------------
+
+        [Test]
+        public void YieldInsideStatementsCompiles()
+        {
+            CompileOk(@"IEnumerator Foo(int n)
+{
+    int total = 0;
+    for (int i = 0; i < n; i++) { if (i == 1) continue; total += i; yield return null; if (total > 9) break; }
+    var list = new System.Collections.Generic.List<int> { 1, 2 };
+    foreach (int x in list) { yield return null; total += x; }
+    var map = new System.Collections.Generic.Dictionary<string, int> { { ""a"", 1 } };
+    foreach (var kv in map) { yield return null; total += kv.Value; }
+    int[] arr = { 5, 6 };
+    foreach (var a in arr) { yield return new WaitForSeconds(0.1f); total += a; }
+    foreach (char c in ""ab"") { yield return null; total += c; }
+    while (total > 0) { total -= 10; if (total < 5) { yield return null; } else total--; }
+    do { n--; yield return null; } while (n > 0);
+    switch (total) { case 1: case 2: yield return null; break; default: total = 3; break; }
+    Debug.Log(total + n);
+}");
+        }
+
+        [Test]
+        public void RenamesSameNamesInSiblingScopes()
+        {
+            string code = Lowered("Rename", @"IEnumerator Foo()
+{
+    for (int i = 0; i < 2; i++) yield return null;
+    for (int i = 0; i < 3; i++) yield return null;
+    { int k = 1; Debug.Log(k); }
+    int k2 = 0; yield return null; Debug.Log(k2);
+}");
+            Assert.That(code, Does.Contain("i__0"));
+            Assert.That(code, Does.Contain("i__1"));
+        }
+
+        [Test]
+        public void SavesOnlyVariablesUsedAfterTheYield()
+        {
+            // a は yield のあとで使わない。b は 1 つ目の yield のあとで宣言する。b を書くのは 2 つ目の yield だけ。
+            // n は書き換えないので、yield のたびには書かない（再開のたびに頭で読む）
+            string code = Lowered("Saved", @"IEnumerator Foo(int n)
+{
+    int a = n; Debug.Log(a);
+    yield return null;
+    int b = n + 1;
+    yield return null;
+    Debug.Log(b);
+}");
+            string step = code.Substring(code.IndexOf("__co_Foo_0"), code.IndexOf("int Foo(") - code.IndexOf("__co_Foo_0"));
+            Assert.That(step, Does.Not.Match(@"__s\[\d+\] = a;"));
+            Assert.That(step, Does.Not.Match(@"__s\[\d+\] = n;"));
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(step, @"__s\[\d+\] = b;").Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SavesLoopVariablesAcrossIterations()
+        {
+            string code = Lowered("Loop", @"IEnumerator Foo()
+{
+    int sum = 0;
+    for (int i = 0; i < 3; i++) { yield return null; sum += i; }
+    Debug.Log(sum);
+}");
+            Assert.That(code, Does.Match(@"__s\[\d+\] = i;"));
+            Assert.That(code, Does.Match(@"__s\[\d+\] = sum;"));
+        }
+
+        [Test]
+        public void ErrorForYieldInsideTry()
+        {
+            AssertError("IEnumerator Foo() { lock (this) { yield return null; } }", "この文（try・using・lock", BodyLine);
+        }
+
+        [Test]
+        public void ErrorForForeachOverOtherCollections()
+        {
+            AssertError("IEnumerator Foo() { foreach (Transform t in transform) { yield return null; } }", "yield return を含む foreach", BodyLine);
         }
 
         [Test]
