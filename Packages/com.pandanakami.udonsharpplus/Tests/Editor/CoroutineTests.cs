@@ -220,7 +220,62 @@ IEnumerator Foo() { yield return null; }";
         [Test]
         public void ErrorForUnsupportedYieldValue()
         {
-            AssertError("IEnumerator Foo()\n{\n    yield return 3;\n}", "この yield return の値は", BodyLine + 2);
+            AssertError("IEnumerator Foo()\n{\n    yield return new WaitForEndOfFrame();\n}", "この yield return の値は", BodyLine + 2);
+        }
+
+        // ---- 4 段階目：WaitUntil・WaitWhile・WaitForSecondsRealtime・子のコルーチン ----------------------
+
+        [Test]
+        public void WaitUntilBecomesALoopOverTheCondition()
+        {
+            string code = Lowered("WaitUntil", @"private bool _ready;
+private bool Ready() => _ready;
+IEnumerator Foo()
+{
+    int n = 0;
+    yield return new WaitUntil(() => _ready && n < 3);
+    yield return new WaitWhile(Ready);
+    yield return new WaitForSecondsRealtime(0.5f);
+    yield return 0;
+    Debug.Log(n);
+}");
+            Assert.That(code, Does.Not.Contain("WaitUntil"));
+            Assert.That(code, Does.Not.Contain("WaitWhile"));
+            Assert.That(code, Does.Not.Contain("WaitForSecondsRealtime"));
+            Assert.That(code, Does.Contain("(_ready && n < 3)"));
+            Assert.That(code, Does.Contain("Ready()"));
+            Assert.That(code, Does.Contain("realtimeSinceStartup"));
+        }
+
+        [Test]
+        public void CachedWaitForSecondsBecomesSeconds()
+        {
+            string code = Lowered("Cached", @"private WaitForSeconds _wait = new WaitForSeconds(0.5f);
+IEnumerator Foo() { var w = new WaitForSecondsRealtime(1f); yield return _wait; yield return w; }");
+            Assert.That(code, Does.Contain("private float _wait = (float)(0.5f);"));
+            Assert.That(code, Does.Contain("__co_ws(__s, _wait)"));
+        }
+
+        [Test]
+        public void WaitsForChildCoroutines()
+        {
+            string code = Lowered("Child", @"private Coroutine _c;
+IEnumerator Child() { yield return null; }
+IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); _c = StartCoroutine(Child()); yield return _c; }");
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_await\(__s, Child\(\)\)").Count, Is.EqualTo(2));
+            Assert.That(code, Does.Contain("__co_await(__s, _c)"));
+        }
+
+        [Test]
+        public void ErrorForWaitUntilWithBlockLambda()
+        {
+            AssertError("IEnumerator Foo() { yield return new WaitUntil(() => { return true; }); }", "WaitUntil・WaitWhile の条件は", BodyLine);
+        }
+
+        [Test]
+        public void ErrorForStoredWaitUntil()
+        {
+            AssertError("IEnumerator Foo() { WaitUntil w = new WaitUntil(() => true); yield return w; }", "WaitUntil・WaitWhile を変数に入れて", BodyLine);
         }
 
         [Test]

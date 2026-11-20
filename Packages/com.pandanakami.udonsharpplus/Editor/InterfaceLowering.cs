@@ -162,6 +162,10 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
+            // コルーチンの下ごしらえ（#107）：WaitUntil・WaitWhile のラムダを、デリゲートの段より前にふつうの文にする
+            current = CoroutineLowering.Prepare(current, diagnostics, GetMetadataReferences());
+            SourceMap.RegisterTrees(current);
+
             // ソースで宣言したデリゲート → object[] と、呼び出しの static クラス・中継メソッド（#69 / #119）。
             // 生成するコードは普通のクラス・インタフェースの型のままなので、それらの段より前に置く
             if (DelegateLowering.MayHaveDelegates(current))

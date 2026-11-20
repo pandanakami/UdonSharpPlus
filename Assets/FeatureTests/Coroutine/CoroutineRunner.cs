@@ -21,7 +21,9 @@ namespace FeatureTests.Coroutines
         // C：D・F の場面（yield をまたぐ変数・if・ループ・switch の中の yield）。E：foreach の中の yield（秒を待つので、フレームは見ない）
         private const string Expected = "A=x0@0;s;y0@0;e0;x1@1;y1@1;x2@2;y2@2;z0@0;z1@1;z2@2;|B=qok;pok;"
                                         + "|C=m0=3@1;k0=3@1;m2=26@2;k2=26@2;m3=59@3;kend26@4;B=e2o1d0d1two@4;mend59@5;|E=ab34p1;"
+                                        + "|H=1a@1;1end@1;3a@1;3end@1;4a@1;4end@1;5a@1;5end@1;6a@1;6end@1;7s@1;8a@1;8end@1;9a@1;9end@1;10a@1;10end@1;11a1@1;11end@1;12a@1;12end@1;2f@2;2a@2;2end@2;|W=wTrueTrue;"
                                         + "|G=t0;u0;nTrueTrue;t1;u1;s0;s1;u2;end;v0;v1;fin;allTrue;inactiveTrue;disabledTrue;inactiveStartTrue;";
+        // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // G：StopCoroutine（Coroutine・IEnumerator の値）・止めた番号でほかを止めない・自分を止めると次の yield で止まる・
         //    Coroutine の null との比較、StopAllCoroutines・GameObject を非アクティブにすると止まる・ビヘイビアを無効にしても止まらない・
         //    非アクティブの GameObject では開始しない（Peer で確かめる）
@@ -37,6 +39,12 @@ namespace FeatureTests.Coroutines
         private Coroutine _y;
         private Coroutine _me;
         private string _stops = "";
+        private string _nest = "";
+        private string _cached = "";
+        private int _n0;
+        private bool _flag;
+        private Coroutine _done;
+        private Coroutine _child;
 
         private int F() => Time.frameCount;
 
@@ -55,7 +63,71 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Branches(2, F()));
             StartCoroutine(Stopper());
             StartCoroutine(PeerTest());
+            StartCoroutine(Nest());
+            StartCoroutine(Cached());
             StartCoroutine(Judge());
+        }
+
+        // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（普通の Unity で測ったものと同じ場面。どの待ち方も最低 1 フレーム待つ）
+        private string N() => "@" + (Time.frameCount - _n0);
+
+        private IEnumerator Nest()
+        {
+            _n0 = Time.frameCount;
+            _done = StartCoroutine(Sync());
+            StartCoroutine(Case("1", WaitTrue()));
+            StartCoroutine(Case("2", WaitLater()));
+            StartCoroutine(Case("3", ChildSync()));
+            StartCoroutine(Case("4", ChildOne()));
+            StartCoroutine(Case("5", EnumOne()));
+            StartCoroutine(Case("6", Finished()));
+            StartCoroutine(Case("7", StoppedChild()));
+            StartCoroutine(Case("8", Realtime0()));
+            StartCoroutine(Case("9", Seconds0()));
+            StartCoroutine(Case("10", YieldInt()));
+            StartCoroutine(Case("11", WaitWhileFalse()));
+            StartCoroutine(Case("12", EnumSync()));
+            yield return null;
+        }
+
+        private IEnumerator Case(string name, IEnumerator body)
+        {
+            yield return StartCoroutine(body);
+            _nest += name + "end" + N() + ";";
+        }
+
+        private IEnumerator Sync() { if (_n0 < 0) yield return null; }
+        private IEnumerator One() { yield return null; }
+        private bool Flag() => _flag;
+
+        private IEnumerator WaitTrue() { yield return new WaitUntil(() => true); _nest += "1a" + N() + ";"; }
+        private IEnumerator WaitLater() { StartCoroutine(SetFlag()); yield return new WaitUntil(Flag); _nest += "2a" + N() + ";"; }
+        private IEnumerator SetFlag() { yield return null; yield return null; _flag = true; _nest += "2f" + N() + ";"; }
+        private IEnumerator ChildSync() { yield return StartCoroutine(Sync()); _nest += "3a" + N() + ";"; }
+        private IEnumerator ChildOne() { yield return StartCoroutine(One()); _nest += "4a" + N() + ";"; }
+        private IEnumerator EnumOne() { yield return One(); _nest += "5a" + N() + ";"; }
+        private IEnumerator Finished() { yield return _done; _nest += "6a" + N() + ";"; }
+        private IEnumerator StoppedChild() { _child = StartCoroutine(Long()); StartCoroutine(StopLater()); yield return _child; _nest += "7a" + N() + ";"; }
+        private IEnumerator Long() { for (int i = 0; i < 100; i++) yield return null; }
+        private IEnumerator StopLater() { yield return null; StopCoroutine(_child); _nest += "7s" + N() + ";"; }
+        private IEnumerator Realtime0() { yield return new WaitForSecondsRealtime(0f); _nest += "8a" + N() + ";"; }
+        private IEnumerator Seconds0() { yield return new WaitForSeconds(0f); _nest += "9a" + N() + ";"; }
+        private IEnumerator YieldInt() { yield return 5; _nest += "10a" + N() + ";"; }
+        private IEnumerator WaitWhileFalse() { int n = 0; yield return new WaitWhile(() => n++ < 0); _nest += "11a" + n + N() + ";"; }
+        private IEnumerator EnumSync() { yield return Sync(); _nest += "12a" + N() + ";"; }
+
+        // E の続き：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す（秒を待つので、フレームは見ない）
+        private WaitForSeconds _short = new WaitForSeconds(0.05f);
+
+        private IEnumerator Cached()
+        {
+            float t = Time.time;
+            yield return _short;
+            yield return _short;
+            var real = new WaitForSecondsRealtime(0.05f);
+            float r = Time.realtimeSinceStartup;
+            yield return real;
+            _cached += "w" + (Time.time - t >= 0.1f) + (Time.realtimeSinceStartup - r >= 0.05f) + ";";
         }
 
         private IEnumerator Ticker(string tag)
@@ -261,7 +333,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|G=" + _stops;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|G=" + _stops;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;
