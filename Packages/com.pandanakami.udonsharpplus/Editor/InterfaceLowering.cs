@@ -200,6 +200,13 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
+            // コルーチン → 状態機械と遅れのイベント（#107）。状態に入れる値の型が Udon の型になっているよう、ほかの段のあとに置く
+            if (CoroutineLowering.MayHaveCoroutines(current))
+            {
+                current = CoroutineLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // 4) 基底と派生の UdonSharpBehaviour の両方にできた同じ名前の生成メソッドは、派生の側の名前を変える（#111）
             if (!diagnostics.HasErrors)
             {
