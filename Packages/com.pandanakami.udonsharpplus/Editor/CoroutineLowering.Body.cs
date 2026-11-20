@@ -69,7 +69,15 @@ namespace UdonSharpPlus
 
                 private static string Label(int n) => $"__pc = {n}; continue; case {n}:";
                 private static string Jump(int n) => $"{{ __pc = {n}; continue; }}";
-                private static string TypeText(ITypeSymbol type) => type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                /// <summary>頭で宣言する変数の型（Coroutine・IEnumerator は状態の番号の int）</summary>
+                private static string TypeText(ITypeSymbol type)
+                {
+                    if (IsHandle(type))
+                        return "int";
+                    if (type is IArrayTypeSymbol array && IsHandle(array.ElementType))
+                        return "int[]";
+                    return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                }
 
                 public void Run()
                 {
@@ -113,7 +121,7 @@ namespace UdonSharpPlus
                     var headSpan = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(
                         m.Modifiers.Count > 0 ? m.Modifiers.First().SpanStart : m.ReturnType.SpanStart, _body.OpenBraceToken.Span.End);
                     string headText = _edits.Take(headSpan);
-                    _edits.Add(headSpan, $"private void {_co.StepName}(object[] __s) {{ int[] __h = (int[])__s[0]; {head}int __pc = __h[2]; while (true) {{ switch (__pc) {{ case 0:" + LineBreaks(headText));
+                    _edits.Add(headSpan, $"private void {_co.StepName}(object[] __s) {{ int[] __h = (int[])__s[0]; __h[5] = 1; {head}int __pc = __h[2]; while (true) {{ switch (__pc) {{ case 0:" + LineBreaks(headText));
                     _edits.Add(_body.CloseBraceToken.Span, "__co_done(__s); return; } } }");
 
                     // 開始のメソッド（元の名前・引数で、状態を作って番号を返す）

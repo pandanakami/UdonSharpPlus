@@ -179,6 +179,44 @@ private IEnumerator Bar() { yield return null; yield break; }";
             AssertError("IEnumerator Foo() { foreach (Transform t in transform) { yield return null; } }", "yield return を含む foreach", BodyLine);
         }
 
+        // ---- 3 段階目：停止と、Coroutine・IEnumerator の値 ----------------------
+
+        private const string Stops = @"private Coroutine _c;
+private IEnumerator _e;
+void Start() { _c = StartCoroutine(Foo()); _e = Foo(); StartCoroutine(_e); if (_c != null) StopCoroutine(_c); StopCoroutine(_e); _c = null; StopAllCoroutines(); }
+IEnumerator Foo() { yield return null; }";
+
+        [Test]
+        public void StopCallsAndNullComparisons()
+        {
+            string code = Lowered("Stops", Stops);
+            Assert.That(code, Does.Contain("if (_c != 0) __co_stop(_c);"));
+            Assert.That(code, Does.Contain("__co_stop(_e);"));
+            Assert.That(code, Does.Contain("_c = 0;"));
+            Assert.That(code, Does.Contain("__co_stopall();"));
+        }
+
+        [Test]
+        public void GeneratesOnDisable()
+        {
+            var entries = CompileOk(Stops).Programs.Single().EntryPoints.ToList();
+            Assert.That(entries, Does.Contain("_onDisable"));
+        }
+
+        [Test]
+        public void StopsAtTheStartOfUsersOnDisable()
+        {
+            string code = Lowered("UserOnDisable", Stops + "\nvoid OnDisable() { Debug.Log(1); }");
+            Assert.That(code, Does.Contain("void OnDisable() { __co_off(); Debug.Log(1); }"));
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"void OnDisable\(\)").Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ErrorForStringStop()
+        {
+            AssertError("void Start() { StopCoroutine(\"Foo\"); }\nIEnumerator Foo() { yield return null; }", "文字列で指定する StopCoroutine", BodyLine);
+        }
+
         [Test]
         public void ErrorForUnsupportedYieldValue()
         {

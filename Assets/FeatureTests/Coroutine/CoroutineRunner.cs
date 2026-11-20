@@ -20,9 +20,14 @@ namespace FeatureTests.Coroutines
         // A の続き：yield break・終わった状態の使い回し（z は、x・y が終わったあとに開始する）
         // C：D・F の場面（yield をまたぐ変数・if・ループ・switch の中の yield）。E：foreach の中の yield（秒を待つので、フレームは見ない）
         private const string Expected = "A=x0@0;s;y0@0;e0;x1@1;y1@1;x2@2;y2@2;z0@0;z1@1;z2@2;|B=qok;pok;"
-                                        + "|C=m0=3@1;k0=3@1;m2=26@2;k2=26@2;m3=59@3;kend26@4;B=e2o1d0d1two@4;mend59@5;|E=ab34p1;";
+                                        + "|C=m0=3@1;k0=3@1;m2=26@2;k2=26@2;m3=59@3;kend26@4;B=e2o1d0d1two@4;mend59@5;|E=ab34p1;"
+                                        + "|G=t0;u0;nTrueTrue;t1;u1;s0;s1;u2;end;v0;v1;fin;allTrue;inactiveTrue;disabledTrue;inactiveStartTrue;";
+        // G：StopCoroutine（Coroutine・IEnumerator の値）・止めた番号でほかを止めない・自分を止めると次の yield で止まる・
+        //    Coroutine の null との比較、StopAllCoroutines・GameObject を非アクティブにすると止まる・ビヘイビアを無効にしても止まらない・
+        //    非アクティブの GameObject では開始しない（Peer で確かめる）
 
         public Text display;
+        public CoroutinePeer peer;
 
         private string _log = "";
         private string _timed = "";
@@ -30,6 +35,8 @@ namespace FeatureTests.Coroutines
         private string _lists = "";
         private float _t0;
         private Coroutine _y;
+        private Coroutine _me;
+        private string _stops = "";
 
         private int F() => Time.frameCount;
 
@@ -46,7 +53,90 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Count("k", 3, F()));
             StartCoroutine(Lists(F()));
             StartCoroutine(Branches(2, F()));
+            StartCoroutine(Stopper());
+            StartCoroutine(PeerTest());
             StartCoroutine(Judge());
+        }
+
+        private IEnumerator Ticker(string tag)
+        {
+            for (int i = 0; ; i++)
+            {
+                _stops += tag + i + ";";
+                yield return null;
+            }
+        }
+
+        private IEnumerator SelfStop()
+        {
+            yield return null;
+            _stops += "s0;";
+            StopCoroutine(_me);
+            _stops += "s1;";
+            yield return null;
+            _stops += "s2;";
+        }
+
+        private IEnumerator Stopper()
+        {
+            Coroutine none = null;
+            Coroutine c = StartCoroutine(Ticker("t"));
+            IEnumerator e = Ticker("u");
+            StartCoroutine(e);
+            _me = StartCoroutine(SelfStop());
+            _stops += "n" + (none == null) + (c != null) + ";";
+            yield return null;
+            StopCoroutine(c);
+            yield return null;
+            StopCoroutine(e);
+            yield return null;
+            yield return null;
+            _stops += "end;";
+            Coroutine v = StartCoroutine(Ticker("v"));
+            StopCoroutine(c);
+            yield return null;
+            StopCoroutine(v);
+            yield return null;
+            _stops += "fin;";
+        }
+
+        private IEnumerator PeerTest()
+        {
+            if (peer == null)
+            {
+                _stops += "nopeer;";
+                yield break;
+            }
+            peer.Begin("a");
+            for (int k = 0; k < 3; k++) yield return null;
+            peer.StopAll();
+            int n1 = peer.log.Length;
+            for (int k = 0; k < 3; k++) yield return null;
+            _stops += "all" + (n1 >= 3 && peer.log.Length == n1) + ";";
+
+            peer.Begin("b");
+            for (int k = 0; k < 3; k++) yield return null;
+            peer.gameObject.SetActive(false);
+            int n2 = peer.log.Length;
+            for (int k = 0; k < 3; k++) yield return null;
+            peer.gameObject.SetActive(true);
+            for (int k = 0; k < 3; k++) yield return null;
+            _stops += "inactive" + (peer.log.Length == n2) + ";";
+
+            peer.Begin("c");
+            for (int k = 0; k < 2; k++) yield return null;
+            peer.enabled = false;
+            int n3 = peer.log.Length;
+            for (int k = 0; k < 3; k++) yield return null;
+            _stops += "disabled" + (peer.log.Length > n3) + ";";
+            peer.enabled = true;
+            peer.StopAll();
+
+            peer.gameObject.SetActive(false);
+            bool none = peer.BeginReturnsNull("d");
+            peer.gameObject.SetActive(true);
+            for (int k = 0; k < 3; k++) yield return null;
+            _stops += "inactiveStart" + (none && peer.log.IndexOf('d') < 0) + ";";
         }
 
         // D：yield をまたぐローカル変数（同じコルーチンを 2 つ同時に動かしても、変数は別々）・for の continue・break・入れ子のループ
@@ -171,7 +261,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|G=" + _stops;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;
