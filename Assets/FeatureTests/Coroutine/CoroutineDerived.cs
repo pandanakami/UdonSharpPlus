@@ -23,6 +23,12 @@ namespace FeatureTests.Coroutines
             hello += "d";
         }
 
+        protected override IEnumerator Tail(string tag)
+        {
+            yield return null;
+            tail += tag + "d";
+        }
+
         protected override IEnumerator Greet()
         {
             yield return null;

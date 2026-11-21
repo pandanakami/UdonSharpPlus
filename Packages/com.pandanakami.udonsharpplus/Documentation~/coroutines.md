@@ -102,7 +102,7 @@ private IEnumerator Foo(int n)
   - 1 フレームより短い正の値（`WaitForSeconds(0.000001f)`）：Unity では `yield return null` の後ろで再開します。こちらは前です
 - **待ち続けるもの**（Unity と同じ）：`WaitForSeconds` の NaN（Unity と同じ警告を出します）・正の無限大、`WaitForSecondsRealtime` の正の無限大、自分自身の `Coroutine` を待つ、互いに待つ、ほかのコルーチンがもう待っているものを待つ（Unity と同じエラーを出します）は、二度と再開しません。止めるまで、状態を持ったままです。なお Unity では、NaN と負の値の `WaitForSeconds` を同じプレイで使うと、すべてのコルーチンが止まる不具合がありますが、それはまねていません
 - **止めたものを待つ**：止めた `Coroutine` を `yield return` すると、Unity と同じく、その場で続きが動きます（終わったものなら次のフレーム）。ただし、同じ状態（下の「仕組み」）を 2 回以上止めたときは、古いほうの `Coroutine` は終わったものとして扱います（1 フレーム遅れます）
-- **`Coroutine`・`IEnumerator` の値**は、そのビヘイビアの中の番号（`int`）です。ほかのビヘイビアに渡したり、`[UdonSynced]` にしたりしても、意味はありません
+- **`Coroutine`・`IEnumerator` の値**は、そのビヘイビアの中の番号（`int`）です。ほかのビヘイビアに渡しても、意味はありません。そのフィールドは、Unity と同じくシリアライズしません（public でも Inspector に出ず、配列は `null` で始まります）。`[SerializeField]`・`[UdonSynced]` を付けるとコンパイルエラーです
 - **生成するイベント**：再開に使う `__co_frame`・`__co_sec` は、遅れのイベントで呼ぶため public です。`SendCustomEvent` で外から呼ばないでください（`__co_frame` は、待ち始めたフレームのうちは何もしませんが、`__co_sec` は、期限の前に再開することがあります）
 - **`OnDisable`**：GameObject を非アクティブにしたときに止めるため、コルーチンを使うビヘイビアに `OnDisable` を生成します。自分で `OnDisable` を書いていれば、その先頭で止めます。継承でつながったクラスでは、書き換え後のコードの中で `OnDisable` を `public override`（または `public virtual`）にすることがあります（元のソースは変えません）
 - **型パターン**（`x is Bullet b`）は、UdonSharp も UdonSharp Plus も対応していないので、コルーチンの中でも使えません

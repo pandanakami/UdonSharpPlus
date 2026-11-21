@@ -93,6 +93,36 @@ IEnumerator Hold<T>(T value)
         }
 
         [Test]
+        public void HandleFieldsAreNotSerialized()
+        {
+            // Unity は Coroutine・IEnumerator のフィールドをシリアライズしない。int にしたあとも、シリアライズさせない
+            // （シリアライズすると、Inspector に番号が出て、配列は null ではなく空の配列で始まる。#127 と同じ）
+            CompileResult r = CompileOk(@"public Coroutine c;
+public IEnumerator e;
+public Coroutine[] cs;
+[VRC.Udon.Serialization.OdinSerializer.OdinSerialize] public Coroutine oc;
+[VRC.Udon.Serialization.OdinSerializer.OdinSerialize]
+private IEnumerator op;
+public int[] ints;
+void Start() { c = StartCoroutine(Foo()); Debug.Log(cs == null); Debug.Log(e == null); Debug.Log(oc == null); Debug.Log(op == null); }
+IEnumerator Foo() { yield return null; }");
+            var defaults = r.Programs.Single().HeapDefaults;
+            foreach (string name in new[] { "c", "e", "cs", "oc", "op" })
+                Assert.That(defaults.ContainsKey(name), Is.False, $"{name} = {(defaults.TryGetValue(name, out string v) ? v : "")}");
+            Assert.That(defaults["ints"], Is.EqualTo("[]"), "書き換えない型の配列は、UdonSharp のとおり空の配列");
+        }
+
+        [TestCase("[SerializeField] private Coroutine c;")]
+        [TestCase("[UdonSynced] public int n; [UdonSynced] public Coroutine c;")]
+        public void ErrorForSerializedOrSyncedHandleField(string field)
+        {
+            CompileResult r = Compile(field + "\nIEnumerator Foo() { yield return null; }");
+            var errors = r.Diagnostics.Where(d => d.StartsWith("Error")).ToList();
+            Assert.That(errors.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(errors[0], Does.Contain("Coroutine・IEnumerator のフィールドは、シリアライズ・同期できません").And.Contain($"CoUse.cs({BodyLine},"));
+        }
+
+        [Test]
         public void KeepsLinesAfterMultiLineStatements()
         {
             // 複数行の宣言・yield の値・if の条件・while の条件のあとでも、うしろの行がずれない（#107 の追加テスト案の 14）

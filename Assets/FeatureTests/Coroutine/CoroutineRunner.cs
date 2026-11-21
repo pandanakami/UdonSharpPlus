@@ -22,7 +22,7 @@ namespace FeatureTests.Coroutines
     }
 
     // #107：コルーチン。普通の Unity と同じ順・同じフレームで動くかを確かめる
-    public class CoroutineRunner : UdonSharpBehaviour
+    public partial class CoroutineRunner : UdonSharpBehaviour
     {
         // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
         [HideInInspector] public bool resultReady;
@@ -44,7 +44,8 @@ namespace FeatureTests.Coroutines
                                         + "|S=w-1@1;w0@1;wTiny@1;r-1@1;rTiny@1;rNaN@1;"
                                         + "|Q=c1=2,2;c5=6,6;f12;g1=9,3;d1=12;d5=16;f9;a26,24t,3q2,50;a721,714t,8q7,7;g0=12,3;n113;o13,13;r3,True,12,7;w3;sFalse=3;sTrue=12;"
                                         + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;"
-                                        + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;";
+                                        + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;"
+                                        + "|Y=g3;gs;pt5;atd;wrapTrue;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
         // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
@@ -119,6 +120,7 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Graph());
             StartCoroutine(Combo());
             StartCoroutine(Misc());
+            StartCoroutine(More());
             StartCoroutine(Judge());
         }
 
@@ -818,6 +820,61 @@ namespace FeatureTests.Coroutines
             P("dict" + sum);
         }
 
+        // Y：ジェネリックメソッド・partial の別のファイル・abstract のコルーチン（Derived で確かめる）
+        // Z：同じ状態を、世代の 1 周（32767 回）より多く使い回しても、古い番号で新しいものを止めない
+        private string _more = "";
+        private int _zTicks;
+
+        private void Y(string s) { _more += s + ";"; }
+
+        private IEnumerator More()
+        {
+            StartCoroutine(YGen(3));
+            StartCoroutine(YGen("s"));
+            yield return StartCoroutine(YPart(5));
+            if (derived != null)
+            {
+                derived.BeginTail();
+                for (int k = 0; k < 3; k++) yield return null;
+                Y("a" + derived.tail);
+            }
+
+            Coroutine first = StartCoroutine(ZLong(true));
+            StopCoroutine(first);
+            int left = 32766;
+            while (left > 0)
+            {
+                int n = left < 4096 ? left : 4096;
+                for (int i = 0; i < n; i++)
+                    StartCoroutine(ZLong(false));
+                left -= n;
+                yield return null;
+            }
+            Coroutine now = StartCoroutine(ZLong(true));
+            StopCoroutine(first);
+            int t0 = _zTicks;
+            for (int k = 0; k < 3; k++) yield return null;
+            Y("wrap" + (_zTicks > t0));
+            StopCoroutine(now);
+        }
+
+        private IEnumerator YGen<T>(T value)
+        {
+            yield return null;
+            Y("g" + value);
+        }
+
+        private IEnumerator ZLong(bool run)
+        {
+            if (!run)
+                yield break;
+            while (true)
+            {
+                _zTicks++;
+                yield return null;
+            }
+        }
+
         private IEnumerator Steps(string tag, int start)
         {
             _log += tag + "0@" + (F() - start) + ";";
@@ -852,7 +909,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc + "|Y=" + _more;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;

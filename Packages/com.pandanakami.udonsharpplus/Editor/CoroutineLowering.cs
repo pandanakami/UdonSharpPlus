@@ -324,6 +324,8 @@ namespace UdonSharpPlus
                 {
                     if (node is InvocationExpressionSyntax call)
                         RewriteCall(call);
+                    else if (node is FieldDeclarationSyntax field)
+                        KeepUnserialized(field);
                     else if (node is TypeSyntax type && IsHandleType(type))
                         _edits.Add(type.Span, "int");
                     else if ((node.IsKind(SyntaxKind.NullLiteralExpression) || node.IsKind(SyntaxKind.DefaultLiteralExpression) || node is DefaultExpressionSyntax)
@@ -373,6 +375,32 @@ namespace UdonSharpPlus
 
                 if (_members.Count > 0)
                     _edits.Add(new TextSpan(_cls.CloseBraceToken.SpanStart, 0), string.Join(" ", _members) + " ");
+            }
+
+            /// <summary>
+            /// Coroutine・IEnumerator（とその配列）のフィールドは、Unity と同じくシリアライズさせない。int にしたままシリアライズさせると、
+            /// Inspector に番号が出て、配列は null ではなく空の配列で始まる（#127 と同じ）。public なら [NonSerialized] を足し、
+            /// [OdinSerialize] は外す。[SerializeField]・[UdonSynced] はエラー（番号は、そのビヘイビアの中だけのもの）
+            /// </summary>
+            private void KeepUnserialized(FieldDeclarationSyntax field)
+            {
+                ITypeSymbol t = _model.GetTypeInfo(field.Declaration.Type).Type;
+                if (!IsHandle(t) && !(t is IArrayTypeSymbol array && IsHandle(array.ElementType)))
+                    return;
+                var attributes = field.AttributeLists.SelectMany(l => l.Attributes).ToList();
+                var names = attributes.Select(a => _model.SymbolInfoOf(a).Symbol?.ContainingType?.Name).ToList();
+                if (names.Contains("SerializeField") || names.Contains("UdonSyncedAttribute") || names.Contains("SerializeReference"))
+                {
+                    Error(field, Loc.T("Coroutine・IEnumerator のフィールドは、シリアライズ・同期できません（[SerializeField] / [UdonSynced] は付けられません。値はそのビヘイビアの中だけの番号です）",
+                        "Coroutine / IEnumerator fields cannot be serialized or synced ([SerializeField] / [UdonSynced] cannot be used; the value is a number that only means something inside this behaviour)"));
+                    return;
+                }
+                foreach (AttributeListSyntax list in field.AttributeLists)
+                    if (list.Attributes.All(SerializationFields.IsOdinSerialize))
+                        _edits.Add(list.Span, "");
+                bool nonSerialized = attributes.Any(a => a.Name.ToString().EndsWith("NonSerialized") || a.Name.ToString().EndsWith("NonSerializedAttribute"));
+                if (field.Modifiers.Any(SyntaxKind.PublicKeyword) && !nonSerialized)
+                    _edits.Add(new TextSpan(field.Modifiers.First().SpanStart, 0), "[global::System.NonSerialized] ");
             }
 
             /// <summary>IEnumerator・Coroutine の型を書いたところ（修飾名は外側だけ）</summary>
@@ -504,9 +532,10 @@ namespace UdonSharpPlus
                              + "object[] s = new object[size]; int[] h = new int[10]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }";
                 yield return "private object[] __co_get(int c) { int i = (c & 65535) - 1; if (i < 0 || i >= __co_used) return null; object[] s = (object[])__co_slots[i]; if (((int[])s[0])[0] != c) return null; return s; }";
                 // 古い番号を無効にする（世代を進める）
-                yield return "private void __co_bump(int[] h) { int g = (h[0] >> 16) + 1; if (g > 32767) g = 1; h[0] = (g << 16) | (h[0] & 65535); h[3] = 0; }";
+                // 世代を使い切ったら（32767）、世代を 0 にして引退させる（空きに戻さないので、古い番号が新しい開始を指すことはない。#107）
+                yield return "private void __co_bump(int[] h) { int g = (h[0] >> 16) + 1; if (g > 32767) g = 0; h[0] = (g << 16) | (h[0] & 65535); h[3] = 0; }";
                 // 空きに戻す：参照を切って、空きのつなぎに入れる
-                yield return "private void __co_recycle(object[] s) { int[] h = (int[])s[0]; for (int i = 1; i < s.Length; i++) s[i] = null; h[2] = -1; h[5] = 0; h[6] = 0; h[7] = 0; h[8] = 0; h[4] = __co_free[h[1]]; __co_free[h[1]] = h[0] & 65535; }";
+                yield return "private void __co_recycle(object[] s) { int[] h = (int[])s[0]; for (int i = 1; i < s.Length; i++) s[i] = null; h[2] = -1; h[5] = 0; h[6] = 0; h[7] = 0; h[8] = 0; if ((h[0] >> 16) == 0) return; h[4] = __co_free[h[1]]; __co_free[h[1]] = h[0] & 65535; }";
                 // 止める。動いている途中（自分を止めたときなど）なら、次の yield で空きに戻す（Unity と同じく、次の yield まで動く）
                 yield return "private void __co_kill(object[] s) { int[] h = (int[])s[0]; h[9] = h[0]; __co_bump(h); if (h[5] != 0) h[6] = 1; else __co_recycle(s); }";
                 // 終わり。待っている親があれば、同じフレームのうちに再開する（親がまだ yield の途中なら、次のフレーム）
