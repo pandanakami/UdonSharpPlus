@@ -30,7 +30,7 @@ UdonSharp Plus の機能は、書き換えたあと、UdonSharp で書けるコ�
 | LINQ・List のメソッドに直接書いたラムダ | 手で書いた `for` ループと同じ（`ToList()` なら、結果の `DataList` 1 つ） |
 | `GroupBy` | 上に加えて、グループごとにキーのボックス化（グループをつなぎの外に出すときは、グループごとに `new object[]` と `new DataList()` も） |
 | 演算子のオーバーロード・ジェネリックメソッド | 同じ UdonSharpBehaviour の static メソッドの呼び出しと同じ |
-| コルーチン | `yield return` で待つたびに、遅れのイベントの予約 1 つ（確保 1 回）。状態は使い回すので、同時に動く数が増えたときだけ `object[]`（下の「コルーチン」） |
+| コルーチン | 次のフレームを待つものがあるビヘイビアごとに 1 フレーム 1 回、`WaitForSeconds` で待つたびに 1 回の、遅れのイベントの予約。状態は使い回すので、同時に動く数が増えたときだけ `object[]`（下の「コルーチン」） |
 
 ほかの UdonSharpBehaviour のメソッドを呼ぶ重さについては、下の「ボックス化と、ほかの UdonSharpBehaviour とのやり取り」を見てください。
 
@@ -158,21 +158,20 @@ UdonSharp Plus の機能は、書き換えたあと、UdonSharp で書けるコ�
 |---|---|---|
 | 開始して、最初の `yield return` の前に終わる（引数なし） | — | — |
 | 同じ（`int` の引数 2 つ） | — | 2 回・40 B（引数のボックス化） |
-| `yield return null` で待つ開始 | — | 1 回・73 B（遅れのイベントの予約） |
+| `yield return null` で待つ開始 | — | —（下の「次のフレームの予約」だけ） |
 | その再開 | — | — |
-| `yield return` をまたぐ `int` の変数がある（`int` の引数 1 つも） | — | 3 回・113 B（予約と、引数・変数のボックス化） |
-| `WaitForSeconds` で待つ開始 | — | 1 回・73 B |
-| `WaitUntil` で待つ開始・条件が成り立つまでの毎フレーム | — | 1 回・74 B・毎フレーム 1 回・89 B |
-| 子のコルーチンを待つ開始（子が `yield return null`） | — | 1 回・75 B（子の予約。親は確保しない） |
-| 毎フレーム `yield return null` するコルーチン | — | 毎フレーム 1 回・89 B |
-| 戻り値を使う開始（`c = StartCoroutine(...)`） | — | 上より 3 回・65 B 多い ※ |
-| `StopCoroutine` | — | — |
+| `yield return` をまたぐ `int` の変数がある（`int` の引数 1 つも） | — | 2 回・40 B（引数・変数のボックス化） |
+| `WaitForSeconds` で待つ開始 | — | 1 回・72 B（遅れのイベントの予約） |
+| `WaitUntil` で待つ開始・条件を調べ直すフレーム | — | —（下の「次のフレームの予約」だけ） |
+| 子のコルーチンを待つ開始（子が `yield return null`） | — | —（同じ） |
+| **次のフレームの予約**：次のフレームを待つもの（`yield return null`・`WaitUntil`・`WaitWhile` など）が、ビヘイビアに 1 つ以上ある | — | ビヘイビアごとに 1 フレーム 1 回・72 B（待っているコルーチンの数によらない） |
+| 戻り値を使う開始（`c = StartCoroutine(...)`） | — | 使わない開始と同じ |
+| `StopCoroutine`・`StopCoroutine(Foo())` | — | — |
 | 使い回せる状態がないときの開始（そのメソッドが同時に動いている数が、それまでより増えたとき） | `object[]`・`int[]` 各 1 | 上より 2 回・146 B 多い |
 
-- **待つたびに 1 回の確保**は、Udon の `SendCustomEventDelayedFrames`・`SendCustomEventDelayedSeconds` が、予約するたびにするものです。`yield return` で待つたびに必ず起きます
+- **遅れのイベントの予約**（`SendCustomEventDelayedFrames`・`SendCustomEventDelayedSeconds`）は、Udon が予約するたびに 1 回確保します。次のフレームの予約は、ビヘイビアごとに 1 フレーム 1 回にまとめています（その代わり、ビヘイビアをまたいだ再開の順番は Unity と違うことがあります。[コルーチン](coroutines.md) の「注意」）。秒の予約は、`WaitForSeconds` で待つたびに 1 回です
 - `object[]` から値の型を取り出すこと（再開したときに引数・変数を読み戻すこと）は、確保になりません。入れるほう（ボックス化）は、`int` 1 つにつき 1 回・20 B です
 - 状態の表・待ち行列の配列は、足りなくなったときだけ 2 倍に広げます
-- ※ 開始の部品に `[RecursiveMethod]` を付けているため、呼ぶたびに中のローカル変数を退避します（入れ子で開始されても戻り値を失わないため）
 
 ## 読み方
 

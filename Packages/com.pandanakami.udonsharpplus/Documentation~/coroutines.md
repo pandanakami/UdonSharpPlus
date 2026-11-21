@@ -1,6 +1,6 @@
 # コルーチン（実験的）
 
-UdonSharpBehaviour で、`IEnumerator` を返すメソッドに `yield return` を書き、`StartCoroutine` で動かせます（UdonSharp 自体は対応していません）。動く順番・再開するフレームは、普通の Unity のコルーチンに合わせています。
+UdonSharpBehaviour で、`IEnumerator` を返すメソッドに `yield return` を書き、`StartCoroutine` で動かせます（UdonSharp 自体は対応していません）。動く順番・再開するフレームは、普通の Unity のコルーチンに合わせています（ビヘイビアをまたいだ再開の順番だけは違うことがあります。下の「注意」）。
 
 ```csharp
 public class Door : UdonSharpBehaviour
@@ -58,7 +58,7 @@ public class Door : UdonSharpBehaviour
   - GameObject を非アクティブにすると（親を非アクティブにしたときも）、すべて止まります。アクティブに戻しても再開しません
   - 非アクティブの GameObject では開始せず、`null` を返して、Unity と同じエラーのログを出します（`OnDisable` の中の `StartCoroutine` も同じです）
   - `Destroy` すると止まります
-- **タイミング**（Unity と同じ）：最初の `yield return` までは `StartCoroutine` の中で動きます。同じフレームに再開するものは、ビヘイビアをまたいでも、待ち始めた順に再開します。どの待ち方も、最低 1 フレーム待ちます
+- **タイミング**（Unity と同じ）：最初の `yield return` までは `StartCoroutine` の中で動きます。同じビヘイビアの中で、同じフレームに再開するものは、待ち始めた順に再開します（ビヘイビアをまたいだ順は、下の「注意」）。どの待ち方も、最低 1 フレーム待ちます
 
 未対応の書き方（コンパイルエラーになります）：
 
@@ -99,11 +99,13 @@ private IEnumerator Foo(int n)
 
 ## 注意
 
+- **ビヘイビアをまたいだ、再開の順番**：次のフレームを待つもの（`yield return null`・`WaitUntil`・`WaitWhile` など）は、遅れのイベントの確保を減らすため、ビヘイビアごとにまとめて再開します。同じビヘイビアの中の順は Unity と同じですが、ビヘイビアをまたぐと、Unity と順が違うことがあります。例えば、同じフレームに A の a1 → B の b1 → A の a2 の順で待ち始めると、Unity は a1 → b1 → a2、こちらは a1 → a2 → b1 です（ビヘイビアどうしは、前のフレームで、そのビヘイビアが最初に待ち始めた順）。Unity も、ビヘイビアをまたいだ順はドキュメントで約束していません
 - **同じフレームの中の、再開の順番**：何フレーム目に再開するかは Unity と同じですが、同じフレームに、秒の待ちと `yield return null` の両方が再開するときは、順番が違うことがあります。Unity は、秒の待ちも `yield return null` も、期限の順に 1 つの列に並べるためです
   - `WaitForSeconds(0)`：`yield return null` と同じ順です（Unity とも同じ）
   - 負の値（`WaitForSeconds(-1)`。残りの時間を計算して待つときに、なりえます）：Unity では、そのフレームの先頭で再開します。こちらは `yield return null` と同じ順です
   - 1 フレームより短い正の値（`WaitForSeconds(0.000001f)`）：Unity では `yield return null` の後ろで再開します。こちらは前です
 - **待ち続けるもの**（Unity と同じ）：`WaitForSeconds` の NaN（Unity と同じ警告を出します）・正の無限大、`WaitForSecondsRealtime` の正の無限大、自分自身の `Coroutine` を待つ、互いに待つ、ほかのコルーチンがもう待っているものを待つ（Unity と同じエラーを出します）は、二度と再開しません。止めるまで、状態を持ったままです。なお Unity では、NaN と負の値の `WaitForSeconds` を同じプレイで使うと、すべてのコルーチンが止まる不具合がありますが、それはまねていません
+- **作ったまま開始しない `IEnumerator`**：`IEnumerator e = Foo();` で作った状態は、開始するか止めるまで表に残ります（どこからも使われなくなったかは分からないため）。`Update` などで作り続けると、表が増え続けます。なお、`StopCoroutine(Foo())`（作ったばかりのものを止める形。Unity でも何も起きません）は、状態を残しません
 - **止めたものを待つ**：止めた `Coroutine` を `yield return` すると、Unity と同じく、その場で続きが動きます（終わったものなら次のフレーム）。ただし、同じ状態（下の「仕組み」）を 2 回以上止めたときは、古いほうの `Coroutine` は終わったものとして扱います（1 フレーム遅れます）
 - **`Coroutine`・`IEnumerator` の値**は、そのビヘイビアの中の番号（`int`）です。ほかのビヘイビアに渡しても、意味はありません。そのフィールドは、Unity と同じくシリアライズしません（public でも Inspector に出ず、配列は `null` で始まります）。`[SerializeField]`・`[UdonSynced]` を付けるとコンパイルエラーです。`object` として扱うと番号として動くので、`ReferenceEquals(c, null)`・`Equals(c, null)` は、`c` が null でも false になり、`Debug.Log(c)`・`ToString()` は番号を出します（`c == null` を使ってください）
 - **生成するイベント**：再開に使う `__co_frame`・`__co_sec` は、遅れのイベントで呼ぶため public です。`SendCustomEvent` で外から呼ばないでください（`__co_frame` は、待ち始めたフレームのうちは何もしませんが、`__co_sec` は、期限の前に再開することがあります）
@@ -116,5 +118,5 @@ private IEnumerator Foo(int n)
 
 - コルーチンのメソッドは、再開する位置で分けた状態機械（`while (true) { switch (__pc) { case 0: ... } }`）のメソッドになります。UdonSharp は `goto` に対応していないので、`yield return` を含むループは、状態の行き来にします。`yield return` を含まない部分は、そのまま残ります
 - 開始ごとの状態は `object[]` です（見出しの `int[]`・引数・`yield return` をまたぐローカル変数）。`Coroutine`・`IEnumerator` の値は、状態の番号（`int`）になります。終わった・止めた状態は表に残し、同じメソッドの次の開始で使い回します。古い番号は、世代を進めて見つからなくします
-- 待つ処理は、遅れのイベントにします：`yield return null` は `SendCustomEventDelayedFrames`（`yield` のたびに 1 つ）、`WaitForSeconds` は `SendCustomEventDelayedSeconds`。`WaitUntil`・`WaitWhile`・`WaitForSecondsRealtime` は、条件を調べて `yield return null` をくり返すループになります
+- 待つ処理は、遅れのイベントにします：`yield return null` は `SendCustomEventDelayedFrames`（ビヘイビアごとに 1 フレーム 1 つ。届いたら、前のフレームまでに待ち始めたものを全部再開します）、`WaitForSeconds` は `SendCustomEventDelayedSeconds`。`WaitUntil`・`WaitWhile`・`WaitForSecondsRealtime` は、条件を調べて `yield return null` をくり返すループになります
 - 行は増やしません（メソッドの頭はその行に、`yield return` はその行に置き換え、生成したメンバーはクラスの閉じ括弧の行に置きます）。書き換え後のソースは、`Library/UdonSharpPlus/` で見られます

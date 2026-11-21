@@ -23,7 +23,7 @@ namespace UdonSharpPlus
     /// - Coroutine・IEnumerator の値は、状態の番号（int）。番号は「世代 &lt;&lt; 16 | 表の位置 + 1」で、0 は null。終わった・止めた状態は世代を
     ///   進めて表に残し、同じメソッドの次の開始で使い回す。古い番号は表で見つからなくなる（#107 の決めたこと 9）
     /// - 待つ処理：yield return null は SendCustomEventDelayedFrames(…, 1)、WaitForSeconds は SendCustomEventDelayedSeconds。
-    ///   届いたイベントは、待っている番号を予約した順に再開する。止めた状態の番号は見つからないので捨てる
+    ///   次のフレームの予約は、ビヘイビアごとに 1 フレーム 1 回にまとめ、届いたら待ち始めた順に全部再開する（#174）。止めた状態の番号は見つからないので捨てる
     /// - ほかの段（List・デリゲート・普通のクラスなど）を書き換えたあとの、最後の段に置く（状態に入れる値の型が、Udon の型になっているため）
     /// - 行は増やさない（メソッドの頭はその行に、yield はその行に置き換え、生成したメンバーはクラスの閉じ括弧の行に置く）
     /// </summary>
@@ -463,13 +463,25 @@ namespace UdonSharpPlus
                 }
                 string target;
                 if (method.Name == "StopCoroutine")
-                    target = "__co_stop";
+                    // StopCoroutine(Foo()) は、作ったばかりの（開始していない）状態を止めるので、Unity でも何も起きない。その状態はどこからも使えないので、
+                    // 空きに戻す（Update などで呼び続けても、状態が増え続けない。#174）
+                    target = IsFreshCoroutine(call.ArgumentList.Arguments.FirstOrDefault()?.Expression) ? "__co_drop" : "__co_stop";
                 else if (method.Name == "StopAllCoroutines")
                     target = "__co_stopall";
                 else
                     // 戻り値を使わないときは、開始したあとに何もしないメソッドにする（入れ子で呼ばれても、ローカル変数が上書きされて困ることがない）
                     target = call.Parent is ExpressionStatementSyntax ? "__co_go" : "__co_start";
                 _edits.Add(name.Span, target);
+            }
+
+            /// <summary>この組のコルーチンのメソッドを、その場で呼んだ式か（新しい状態の番号を返す）</summary>
+            private bool IsFreshCoroutine(ExpressionSyntax e)
+            {
+                while (e is ParenthesizedExpressionSyntax p)
+                    e = p.Expression;
+                if (!(e is InvocationExpressionSyntax inv) || !(_model.SymbolInfoOf(inv).Symbol is IMethodSymbol m))
+                    return false;
+                return _work.Coroutines.Any(c => SymbolEqualityComparer.Default.Equals(c.Symbol, m.OriginalDefinition));
             }
 
             private void RewriteCoroutine(Coroutine co) => new BodyWriter(this, co).Run();
@@ -543,14 +555,18 @@ namespace UdonSharpPlus
                 yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) __co_bump(h); __co_recycle(s); "
                              + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
                 yield return "protected void __co_stop(int c) { object[] s = __co_get(c); if (s != null && ((int[])s[0])[3] != 0) __co_kill(s); }";
+                yield return "protected void __co_drop(int c) { object[] s = __co_get(c); if (s == null) return; int[] h = (int[])s[0]; if (h[3] != 0) return; __co_bump(h); __co_recycle(s); }";
                 yield return "protected void __co_stopall() { for (int i = 0; i < __co_used; i++) { object[] s = (object[])__co_slots[i]; if (((int[])s[0])[3] != 0) __co_kill(s); } }";
                 // GameObject が非アクティブになったときだけ止める（ビヘイビアを無効にしただけなら止めない。Unity と同じ）
                 yield return "protected void __co_off() { if (!gameObject.activeInHierarchy) __co_stopall(); }";
 
                 string inactive = "UnityEngine.Debug.LogError(\"Coroutine couldn't be started because the the game object '\" + gameObject.name + \"' is inactive!\");";
                 yield return $"protected void __co_go(int c) {{ object[] s = __co_get(c); if (s == null) return; int[] h = (int[])s[0]; if (h[3] != 0) return; if (!gameObject.activeInHierarchy) {{ {inactive} __co_kill(s); return; }} h[3] = 1; __co_step(s); }}";
-                // 戻り値を使う開始は、入れ子で呼ばれても戻り値を失わないよう RecursiveMethod にする
-                yield return $"[UdonSharp.RecursiveMethod] protected int __co_start(int c) {{ object[] s = __co_get(c); if (s == null) return 0; int[] h = (int[])s[0]; if (h[3] != 0) return c; if (!gameObject.activeInHierarchy) {{ {inactive} __co_kill(s); return 0; }} h[3] = 1; __co_step(s); return c; }}";
+                // 戻り値を使う開始。動かしている途中に入れ子で呼ばれると引数・ローカル変数が上書きされるので、戻す番号は自分の積み上げに退避する
+                // （RecursiveMethod は呼ぶたびにローカル変数を退避して、確保が 3 回増えるので使わない。#174）
+                yield return "private int[] __co_rs = new int[4]; private int __co_rn;";
+                yield return $"protected int __co_start(int c) {{ object[] s = __co_get(c); if (s == null) return 0; int[] h = (int[])s[0]; if (h[3] != 0) return c; if (!gameObject.activeInHierarchy) {{ {inactive} __co_kill(s); return 0; }} h[3] = 1; "
+                             + "if (__co_rn == __co_rs.Length) { int[] g = new int[__co_rn * 2]; for (int i = 0; i < __co_rn; i++) g[i] = __co_rs[i]; __co_rs = g; } __co_rs[__co_rn] = c; __co_rn++; __co_step(s); __co_rn--; return __co_rs[__co_rn]; }";
 
                 // 派生クラスのコルーチンは、派生クラスの override（__co_stepx）が振り分ける
                 yield return $"protected virtual void __co_stepx(object[] s, int id) {{ switch (id) {{ {Cases(_work.Root)}}} }}";
@@ -572,13 +588,20 @@ namespace UdonSharpPlus
                              + $"if (!gameObject.activeInHierarchy) {{ {inactive2} __co_kill(k); __co_wf(s); return; }} "
                              + "__co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); __co_kill(k); return; } kh[7] = hd[0]; kh[8] = 1; kh[3] = 1; __co_step(k); }";
 
-                // 次のフレーム（yield return null）。yield のたびにイベントを 1 つ予約し、届くたびに待ち行列の先頭を 1 つ再開する
-                // （イベントは予約した順に届くので、ビヘイビアをまたいでも、待ち始めた順に再開する。Unity と同じ。#107）
+                // 次のフレーム（yield return null など）。待ち行列に入れ、まだ予約していなければイベントを 1 つ予約する（ビヘイビアごとに 1 フレーム 1 回。
+                // 予約のたびに確保があるため。#174）。届いたら、前のフレームまでに待ち始めたものを、待ち始めた順に全部再開する
+                // （同じビヘイビアの中の順は Unity と同じ。ビヘイビアをまたいだ順は、Unity と違うことがある）
+                // 予約は、そのフレームで最初に待ち始めたときにする（前のフレームの予約がまだ届いていなくても、それは今のフレームに届くので、別に予約する）。
+                // ビヘイビアどうしの再開の順は、前のフレームで各ビヘイビアが最初に待ち始めた順になる
+                yield return "private int __co_fr = -1;";
                 yield return "protected void __co_wf(object[] s) { int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } "
-                             + "if (__co_fh + __co_fn == __co_fq.Length) { int len = __co_fn * 2 < 8 ? 8 : __co_fn * 2; int[] g = new int[len]; int[] gf = new int[len]; for (int i = 0; i < __co_fn; i++) { g[i] = __co_fq[__co_fh + i]; gf[i] = __co_ff[__co_fh + i]; } __co_fq = g; __co_ff = gf; __co_fh = 0; } "
-                             + "__co_fq[__co_fh + __co_fn] = hd[0]; __co_ff[__co_fh + __co_fn] = UnityEngine.Time.frameCount; __co_fn++; SendCustomEventDelayedFrames(\"__co_frame\", 1); }";
-                yield return "public void __co_frame() { if (__co_fn == 0 || __co_ff[__co_fh] >= UnityEngine.Time.frameCount) return; int c = __co_fq[__co_fh]; __co_fh++; __co_fn--; if (__co_fn == 0) __co_fh = 0; "
-                             + "object[] s = __co_get(c); if (s != null) __co_step(s); }";
+                             // 行列の末尾に届いたら、前に詰める。半分より多く埋まっているときだけ、2 倍の配列に広げる（毎フレーム待つものが多いと、詰めるたびに確保していた。#174）
+                             + "if (__co_fh + __co_fn == __co_fq.Length) { int[] g = __co_fq; int[] gf = __co_ff; if (__co_fn * 2 > __co_fq.Length) { g = new int[__co_fq.Length * 2]; gf = new int[__co_fq.Length * 2]; } "
+                             + "for (int i = 0; i < __co_fn; i++) { g[i] = __co_fq[__co_fh + i]; gf[i] = __co_ff[__co_fh + i]; } __co_fq = g; __co_ff = gf; __co_fh = 0; } "
+                             + "__co_fq[__co_fh + __co_fn] = hd[0]; __co_ff[__co_fh + __co_fn] = UnityEngine.Time.frameCount; __co_fn++; int f = UnityEngine.Time.frameCount; if (__co_fr != f) { __co_fr = f; SendCustomEventDelayedFrames(\"__co_frame\", 1); } }";
+                // 待ち始めたフレームのうちに呼ばれたら（外から呼ばれたときなど）、何も再開しない。再開したものがまた待つと、行列の後ろに今のフレームで入るので、ここでは再開しない
+                yield return "public void __co_frame() { int f = UnityEngine.Time.frameCount; "
+                             + "while (__co_fn > 0 && __co_ff[__co_fh] < f) { int c = __co_fq[__co_fh]; __co_fh++; __co_fn--; if (__co_fn == 0) __co_fh = 0; object[] s = __co_get(c); if (s != null) __co_step(s); } }";
 
                 // NaN・正の無限大は、Unity と同じく二度と再開しない（NaN は Unity と同じ警告を出す）。#107 の追加テスト案の 12
                 string naninf = "if (t != t) { UnityEngine.Debug.LogWarning(\"float.NaN has been passed into WaitForSeconds which will result in an infinite wait time.\"); __co_park(s); return; } if (t > float.MaxValue) { __co_park(s); return; } ";

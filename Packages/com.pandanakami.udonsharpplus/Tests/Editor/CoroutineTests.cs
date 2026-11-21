@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 
 namespace UdonSharpPlus.Tests
@@ -297,6 +298,18 @@ IEnumerator Foo() { yield return null; }";
         }
 
         [Test]
+        public void StopOfFreshCoroutineDropsState()
+        {
+            // StopCoroutine(Foo()) は作ったばかりの状態を空きに戻す（#174）。変数に入れたものは、あとで開始できるのでふつうに止める
+            string code = Lowered("StopFresh", @"private IEnumerator _e;
+void Update() { StopCoroutine(Foo()); StopCoroutine((Foo())); _e = Foo(); StopCoroutine(_e); }
+IEnumerator Foo() { yield return null; }");
+            Assert.That(code, Does.Contain("__co_drop(Foo());"));
+            Assert.That(code, Does.Contain("__co_drop((Foo()));"));
+            Assert.That(code, Does.Contain("__co_stop(_e);"));
+        }
+
+        [Test]
         public void GeneratesOnDisable()
         {
             var entries = CompileOk(Stops).Programs.Single().EntryPoints.ToList();
@@ -402,7 +415,17 @@ IEnumerator Foo() { yield return null; }");
         public void FrameEventIgnoresCallsInTheSameFrame()
         {
             string code = Lowered("Guard2", "IEnumerator Foo() { yield return null; }");
-            Assert.That(code, Does.Contain("__co_ff[__co_fh] >= UnityEngine.Time.frameCount"));
+            Assert.That(code, Does.Contain("__co_ff[__co_fh] < f"));
+        }
+
+        [Test]
+        public void FrameEventIsReservedOncePerFrame()
+        {
+            // 次のフレームの予約は、ビヘイビアごとに 1 フレーム 1 回（#174）
+            string code = Lowered("FrameOnce", "IEnumerator Foo() { yield return null; }");
+            Assert.That(code, Does.Contain("if (__co_fr != f) { __co_fr = f; SendCustomEventDelayedFrames(\"__co_frame\", 1); }"));
+            Assert.That(Regex.Matches(code, "SendCustomEventDelayedFrames").Count, Is.EqualTo(1));
+            Assert.That(code, Does.Not.Contain("RecursiveMethod"), "戻り値を使う開始は、自分の積み上げで退避する");
         }
 
         [Test]

@@ -62,14 +62,14 @@ namespace FeatureTests.Coroutines
         private const string Expected = "A=x0@0;s;y0@0;e0;x1@1;y1@1;x2@2;y2@2;z0@0;z1@1;z2@2;|B=qok;pok;"
                                         + "|C=m0=3@1;k0=3@1;m2=26@2;k2=26@2;m3=59@3;kend26@4;B=e2o1d0d1two@4;mend59@5;|E=ab34p1;"
                                         + "|H=1a@1;1end@1;3a@1;3end@1;4a@1;4end@1;5a@1;5end@1;6a@1;6end@1;7s@1;8a@1;8end@1;9a@1;9end@1;10a@1;10end@1;11a1@1;11end@1;12a@1;12end@1;2f@2;2a@2;2end@2;|W=wTrueTrue;"
-                                        + "|R=r1;|O=5,7;1,8;2,9;|I=b0;d0;b1;d1;derived;own;b0;b1;off;|K=20;churnTrue;|L=True1,1,-1;stoppedTrue;"
+                                        + "|R=r1;|O=5,7;1,8;2,9;|I=b0;d0;b1;d1;derived;own;b0;off;|K=20;churnTrue;|L=True1,1,-1;stoppedTrue;"
                                         + "|G=t0;u0;nTrueTrue;t1;u1;s0;s1;u2;end;v0;v1;fin;allTrue;inactiveTrue;disabledTrue;inactiveStartTrue;"
                                         + "|X=f0@0;s0@0;s0a@0;c@1;da@1;db@1;es@1;f0a@1;f1@1;s1@1;s1a@1;f2@1;a3@2;a2@2;a1@2;a@2;f1a@2;ev3@2;g3@2;bc@3;bp1@3;ei@3;ew@3;"
                                         + "|S=w-1@1;w0@1;wTiny@1;r-1@1;rTiny@1;rNaN@1;"
                                         + "|Q=c1=2,2;c5=6,6;f12;g1=9,3;d1=12;d5=16;f9;a26,24t,3q2,50;a721,714t,8q7,7;g0=12,3;n113;o13,13;r3,True,12,7;w3;sFalse=3;sTrue=12;"
                                         + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;"
                                         + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;"
-                                        + "|Y=g3;gs;pt5;atd;wrapTrue;"
+                                        + "|Y=g3;gs;pt5;atd;wrapTrue;gk;"
                                         + "|U=c1@1;e1@1;t1@1;a1@2;b2@3;prop@4;until@6;sb1@7;sa@8;sdb@8;lam@10;frames@10;/t2True;wpTrue;wrTrue;waTrue;rtTrue;"
                                         + "|N=d6,21;n1x;n2x;i67;gq13;l01020/789;f55;ka;tTrueTrue;|M=a0.25;c3;a0.5;c2;a0.75;c1;c2;idle;a1;c1;wh;faded;ring;chase;whe;rest;whey;done;alpha1,timer0,ai2;/spawn3s0s1s2;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
@@ -295,8 +295,8 @@ namespace FeatureTests.Coroutines
             derived.Begin();
             derived.BeginMore();
             for (int k = 0; k < 4; k++) yield return null;
+            // 待っているところで非アクティブにする（同じフレームのうち。次のフレームにすると、ビヘイビアをまたいだ再開の順に頼ることになる。#174）
             derived.Begin();
-            yield return null;
             derived.gameObject.SetActive(false);
             derived.gameObject.SetActive(true);
             for (int k = 0; k < 3; k++) yield return null;
@@ -885,6 +885,14 @@ namespace FeatureTests.Coroutines
             for (int k = 0; k < 3; k++) yield return null;
             Y("wrap" + (_zTicks > t0));
             StopCoroutine(now);
+
+            // StopCoroutine(Foo()) は何も起きない（作ったばかりの状態は空きに戻す。#174）。変数に入れたものは、止めたあとでも開始できる
+            for (int i = 0; i < 100; i++)
+                StopCoroutine(YGen(i));
+            IEnumerator kept = YGen("k");
+            StopCoroutine(kept);
+            StartCoroutine(kept);
+            for (int k = 0; k < 2; k++) yield return null;
         }
 
         private IEnumerator YGen<T>(T value)
