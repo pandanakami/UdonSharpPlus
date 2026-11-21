@@ -108,6 +108,13 @@ UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、
 - 対応していない VRChat SDK では、コンソールに `[UdonSharpPlus]` で始まる、UdonSharp の内部が変わっているため無効にした、というエラーが出ます。そのときは UdonSharp Plus を更新してください。
 - 本パッケージが出すエラー・警告・注意の文言は、既定では英語です。Project Settings > Udon Sharp Plus で日本語にできます。詳しいドキュメントは日本語です。
 
+## 対応予定
+
+次のものに対応する予定です（まだ使えません）。時期は決まっておらず、内容も変わることがあります。
+
+- UniTask（`async` / `await`）
+- ScriptableObject
+
 ## 免責事項
 
 UdonSharp Plus を使うことによって生じたいかなる損害についても、作者は一切の責任を負いません。自己責任でお使いください。

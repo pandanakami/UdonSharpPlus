@@ -108,6 +108,13 @@ That's all. Nothing else is required. Optional settings (message language and co
 - On an unsupported VRChat SDK, the console shows an error starting with `[UdonSharpPlus]` saying the package was disabled because UdonSharp internals changed. Update UdonSharp Plus when you see it.
 - The package's error, warning and notice messages are in English by default. You can switch them to Japanese in Project Settings > Udon Sharp Plus. The detailed documentation is in Japanese for now.
 
+## Planned
+
+These are planned but not supported yet. There is no fixed schedule, and the scope may change.
+
+- UniTask (`async` / `await`)
+- ScriptableObject
+
 ## Disclaimer
 
 The author accepts no liability whatsoever for any damage resulting from the use of UdonSharp Plus. Use it at your own risk.
