@@ -13,6 +13,9 @@ namespace FeatureTests.Syntax
         public int bonus;
         public SwPlain(int bonus) { this.bonus = bonus; }
 
+        // #202：普通のクラスの中の switch 式
+        public string Tag(int n) => n switch { > 0 => "p" + bonus, _ => "z" };
+
         public string Grade(int score)
         {
             switch (score + bonus)
@@ -25,7 +28,8 @@ namespace FeatureTests.Syntax
         }
     }
 
-    // #198 のパネル：パターンのラベル（when・関係・and / or / not・var・型）を含む switch 文。UdonSharp はこれを黙って読み飛ばしていた
+    // #198 のパネル：パターンのラベル（when・関係・and / or / not・var・型）を含む switch 文。UdonSharp はこれを黙って読み飛ばしていた。
+    // #202 の switch 式（E・F・G・H と、コルーチンの中）も、このパネルで確かめる
     public class SwitchRunner : UdonSharpBehaviour
     {
         // #106: 結果。FeatureTestResults（エディタ）が GetProgramVariable で読み、全パネルの結果をまとめる
@@ -35,7 +39,7 @@ namespace FeatureTests.Syntax
         [HideInInspector] public string resultText = "";
 
         // 普通の C# での結果（Scenario() と Co() を普通の C# として実行して確かめたもの）
-        private const string Expected = "P=gbdnull;R=neg,small,small,mid,even12,odd13;M=xxzyy;K=sbLnnLnnDnone;L=z0.0.7.h.H.H.7;N=teenlong-short-;S=lomidhi;C=ABE20C;Y=s0s1w2w3;";
+        private const string Expected = "P=gbdnull;R=neg,small,small,mid,even12,odd13;M=xxzyy;K=sbLnnLnnDnone;L=z0.0.7.h.H.H.7;N=teenlong-short-;S=lomidhi;C=ABE20C;E=negsmalleven8odd;F=sb-0132KN?;G=ab40c4123p7z;H=onemany;Y=As0s1w2w3;";
 
         public Text display;
 
@@ -169,6 +173,58 @@ namespace FeatureTests.Syntax
             }
         }
 
+        // ---- #202：switch 式 ----
+        private string _fieldStr = "k";
+
+        private string Expr(int n) => n switch
+        {
+            < 0 => "neg",
+            0 or 1 => "small",
+            var x when x % 2 == 0 => "even" + x,
+            _ => "odd",
+        };
+
+        private string Kind2(SwKind k) => k switch { SwKind.Small => "s", SwKind.Big or SwKind.Huge => "b", _ => "-" };
+
+        private int Nest(int a, int b) => a switch { 0 => b switch { 0 => 0, _ => 1 }, _ => b switch { > 5 => 3, _ => 2 } };
+
+        private string FieldSw() => _fieldStr switch { "k" => "K", null => "N", _ => "?" };
+
+        // 調べる式がメソッドの呼び出し（1 回だけ評価する）：return・宣言・代入・プロパティ
+        private int Prop => Next(4) switch { 4 => 40, _ => 0 };
+
+        private string Calls()
+        {
+            _evals = 0;
+            var a = Next(1) switch { 1 => "a", _ => "-" };
+            string b;
+            b = Next(2) switch { 2 => "b", _ => "-" };
+            int p = Prop;
+            return a + b + p + Ret() + _evals;
+        }
+
+        private string Ret()
+        {
+            return Next(3) switch { < 3 => "lo", 3 => "c", _ => "hi" };
+        }
+
+        private static int Fl(float f) => f switch { < 0.5f => 1, >= 0.5f and < 2f => 2, _ => 3 };
+
+        public string Exprs()
+        {
+            string r = "";
+            r += "E=" + Expr(-1) + Expr(1) + Expr(8) + Expr(9) + ";";
+            r += "F=" + Kind2(SwKind.Small) + Kind2(SwKind.Huge) + Kind2(SwKind.None) + Nest(0, 0) + Nest(0, 9) + Nest(1, 9) + Nest(1, 1) + FieldSw();
+            _fieldStr = null;
+            r += FieldSw();
+            _fieldStr = "z";
+            r += FieldSw() + ";";
+            r += "G=" + Calls() + Fl(0.1f) + Fl(1f) + Fl(5f) + new SwPlain(7).Tag(1) + new SwPlain(7).Tag(0) + ";";
+            System.Func<int, string> lam = x => x switch { 1 => "one", _ => "many" };
+            r += "H=" + lam(1) + lam(5) + ";";
+            return r;
+        }
+
         public string Scenario()
         {
             string r = "";
@@ -190,6 +246,7 @@ namespace FeatureTests.Syntax
         {
             for (int i = 0; i < 4; i++)
             {
+                _co += i switch { 0 => "A", _ => "" };   // #202：コルーチンの中の switch 式
                 switch (i)
                 {
                     case var k when k >= 2:
@@ -207,7 +264,7 @@ namespace FeatureTests.Syntax
 
         public void Run()
         {
-            string actual = Scenario() + "Y=" + _co + ";";
+            string actual = Scenario() + Exprs() + "Y=" + _co + ";";
             bool ok = actual == Expected;
             string text = "#198 switch patterns\n" + (ok ? "RESULT: OK (same as C#)" : "RESULT: NG") + "\n\n";
             string[] e = Expected.Split(';');

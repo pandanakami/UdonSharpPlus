@@ -151,6 +151,68 @@ public string Range(int n)
             }
         }
 
+        // ---- switch 式（#202） ----
+
+        [Test]
+        public void SwitchExpressionOnVariableBecomesTernary()
+        {
+            // 調べる式が引数なら、そのまま何度も読む。パターンの変数・when は、その引数を読む
+            string code = Lowered("ExprSimple", "public string F(int n) => n switch { < 0 => \"neg\", 0 => \"zero\", var x when x > 100 => \"big\" + x, _ => \"pos\" };");
+            Assert.That(code, Does.Contain("((n) < (0)) ? (string)(\"neg\") : ((n) == (0)) ? (string)(\"zero\") : ((true) && ((n) > 100)) ? (string)(\"big\" + (n)) : (string)(\"pos\"))"));
+            Assert.That(code, Does.Not.Contain(" switch "));
+        }
+
+        [Test]
+        public void SwitchExpressionOnCallUsesTemporary()
+        {
+            // 調べる式がメソッドの呼び出しなら、文の前で一時変数に入れる（1 回だけ評価する）
+            string code = Lowered("ExprHoist", @"private int _c;
+int Next() { _c++; return _c; }
+public int G() { return Next() switch { 1 => 10, _ => 0 }; }
+public int H() { var y = Next() switch { 2 => 20, _ => 0 }; return y; }
+public int P => Next() switch { 3 => 30, _ => 0 };");
+            Assert.That(code, Does.Contain("{ { var __se0 = (Next()); return ((__se0 == (1)) ? (int)(10) : (int)(0)); }"));
+            Assert.That(code, Does.Contain("var __se1 = (Next()); var y = ((__se1 == (2)) ? (int)(20) : (int)(0));"));
+            Assert.That(code, Does.Contain("public int P { get { var __se2 = (Next()); return ((__se2 == (3)) ? (int)(30) : (int)(0)); } }"));
+        }
+
+        [Test]
+        public void SwitchExpressionWithoutCatchAllCallsNoMatch()
+        {
+            // どの腕にも合わないとき（C# では例外）は、エラーのログを出して止めるメソッドを呼ぶ
+            string code = Lowered("ExprNoMatch", "public int H(int n) => n switch { 1 => 10, 2 => 20 };");
+            Assert.That(code, Does.Match(@"\(int\)__sw_nomatch_\d+\(\)\)"));
+            Assert.That(code, Does.Match(@"private static object __sw_nomatch_\d+\(\) \{ UnityEngine\.Debug\.LogError"));
+        }
+
+        [Test]
+        public void NestedSwitchExpressionAndLines()
+        {
+            // 腕の中の switch 式も書き換える。腕を並べた行は、元の行に残る
+            string body = @"public string N(int a, int b) => a switch
+{
+    0 => b switch { 0 => ""00"", _ => ""0x"" },
+    _ => ""x"",
+};
+public int Marker() { return 777; }";
+            string code = Lowered("ExprNested", body);
+            Assert.That(code, Does.Contain("((b) == (0)) ? (string)(\"00\") : (string)(\"0x\")"));
+            string original = Head + "public class SwUse : UdonSharpBehaviour\n{\n" + body + "\n}";
+            int Line(string s, string text) => s.Substring(0, s.IndexOf(text)).Count(c => c == '\n');
+            Assert.That(Line(code, "return 777;"), Is.EqualTo(Line(original, "return 777;")));
+            Assert.That(Line(code, "(string)(\"x\")"), Is.EqualTo(Line(original, "_ => \"x\"")));
+        }
+
+        [Test]
+        public void WhenWithOnlyPatternVariable()
+        {
+            // when の条件がパターンの変数だけのときも、置き換える
+            string code = Lowered("WhenOnly", "public int F(bool f) { switch (f) { case var b when b: return 1; default: return 0; } }");
+            Assert.That(code, Does.Contain("(true) && (__sw0)"));
+        }
+
+        [TestCase("int Next() => 1; public int K() => 1 + (Next() switch { 1 => 1, _ => 2 });", "調べる式を変数・引数・フィールド・定数にしてください")]
+        [TestCase("public int K(object o) => o switch { 1 => 1, _ => 2 };", "の switch 式は未対応です")]
         [TestCase("public int F(object o) { switch (o) { case 1 when o != null: return 1; } return 0; }", "の switch では、パターン・when の付いた case は未対応です")]
         [TestCase("public int F(string s) { switch (s) { case { Length: 0 }: return 1; } return 0; }", "このパターン（プロパティ・位置のパターンなど）は未対応です")]
         [TestCase("public int F(int n) { switch (n) { case long l: return 1; } return 0; }", "switch の式と違う型の型パターン")]
