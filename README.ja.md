@@ -23,6 +23,7 @@ UdonSharp のコンパイラに Harmony でパッチを当て、UdonSharp がコ
 | タプル | `(int, string)`、`(1, "a")`、`var (lo, hi) = Range(list);`・`(a, b) = (b, a);`、`==`・`ToString` |
 | 演算子のオーバーロード | `public static Vec operator +(Vec a, Vec b)`、`a + b`・`a += b`・`==`、`implicit operator Vec(int v)` |
 | コルーチン | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`、`StartCoroutine(Open())`、`StopCoroutine(c)`、`WaitUntil`、`yield return StartCoroutine(Child())` |
+| `switch` のパターン | `case > 5:`、`case 1 or 2:`、`case var x when x > 100:`、`var s = n switch { < 0 => "neg", _ => "pos" };` |
 
 ```csharp
 using System.Collections.Generic;
@@ -106,12 +107,6 @@ UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、
 - どの機能も実験的です。思ったとおりに動かないときは、書き換え後のソース（プロジェクトの `Library/UdonSharpPlus/`）を見ると、何に書き換わったか分かります。
 - 対応していない VRChat SDK では、コンソールに `[UdonSharpPlus]` で始まる、UdonSharp の内部が変わっているため無効にした、というエラーが出ます。そのときは UdonSharp Plus を更新してください。
 - 本パッケージが出すエラー・警告・注意の文言は、既定では英語です。Project Settings > Udon Sharp Plus で日本語にできます。詳しいドキュメントは日本語です。
-
-## 対応予定
-
-次のものに対応する予定です（まだ使えません）。時期は決まっておらず、内容も変わることがあります。
-
-- コルーチン
 
 ## 免責事項
 

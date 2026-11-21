@@ -23,6 +23,7 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Tuples | `(int, string)`, `(1, "a")`, `var (lo, hi) = Range(list);`, `(a, b) = (b, a);`, `==`, `ToString` |
 | Operator overloading | `public static Vec operator +(Vec a, Vec b)`, `a + b`, `a += b`, `==`, `implicit operator Vec(int v)` |
 | Coroutines | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`, `StartCoroutine(Open())`, `StopCoroutine(c)`, `WaitUntil`, `yield return StartCoroutine(Child())` |
+| `switch` patterns | `case > 5:`, `case 1 or 2:`, `case var x when x > 100:`, `var s = n switch { < 0 => "neg", _ => "pos" };` |
 
 ```csharp
 using System.Collections.Generic;
@@ -106,12 +107,6 @@ That's all. Nothing else is required. Optional settings (message language and co
 - All features are experimental. If something does not work as expected, the rewritten source in your project's `Library/UdonSharpPlus/` shows what your code was turned into.
 - On an unsupported VRChat SDK, the console shows an error starting with `[UdonSharpPlus]` saying the package was disabled because UdonSharp internals changed. Update UdonSharp Plus when you see it.
 - The package's error, warning and notice messages are in English by default. You can switch them to Japanese in Project Settings > Udon Sharp Plus. The detailed documentation is in Japanese for now.
-
-## Planned
-
-These are planned but not supported yet. There is no fixed schedule, and the scope may change.
-
-- Coroutines
 
 ## Disclaimer
 

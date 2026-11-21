@@ -3,7 +3,7 @@
   "displayName": "UdonSharp Plus",
   "version": "0.1.5",
   "unity": "2022.3",
-  "description": "Editor-only extension that lets UdonSharp compile more of C#: interfaces, plain classes, generics, List / Dictionary, lambdas, LINQ (including GroupBy), delegates, local functions, anonymous types, tuples and operator overloading. Applied with Harmony patches; depends on UdonSharp internals of VRChat Worlds SDK 3.10.x.",
+  "description": "Editor-only extension that lets UdonSharp compile more of C#: interfaces, plain classes, generics, List / Dictionary, lambdas, LINQ (including GroupBy), delegates, local functions, anonymous types, tuples, operator overloading, coroutines, and switch patterns and expressions. Applied with Harmony patches; depends on UdonSharp internals of VRChat Worlds SDK 3.10.x.",
   "author": {
     "name": "pandanakami",
     "url": "https://github.com/pandanakami"
