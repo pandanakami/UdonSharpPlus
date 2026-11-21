@@ -22,6 +22,9 @@ namespace UdonSharpPlus
                     || (n is IdentifierNameSyntax id && (id.Identifier.ValueText == "IEnumerator" || UsesCoroutineApi(id))))))
                 return;
             var compilation = Compilations.For(trees, references);
+            var sourceClasses = trees.SelectMany(t => TypeDeclarations.Of<ClassDeclarationSyntax>(t.GetRoot())
+                    .Select(c => compilation.Model(t).GetDeclaredSymbol(c) as INamedTypeSymbol))
+                .Where(c => c != null).Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default).ToList();
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
@@ -35,18 +38,48 @@ namespace UdonSharpPlus
                                                                         || a is BaseMethodDeclarationSyntax || a is AccessorDeclarationSyntax);
                     if (owner == null || !reported.Add(owner))
                         continue;
+                    // UdonSharpBehaviour の中はそのまま、普通のクラスの中は、UdonSharpBehaviour から使われるときだけ（owner。#49 と同じ）。
+                    // MonoBehaviour など、UdonSharp Plus が書き換えないクラスの中は調べない（普通の Unity のコルーチン・列挙のための yield）
+                    if (!(owner.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault() is TypeDeclarationSyntax typeDecl)
+                        || !(model.GetDeclaredSymbol(typeDecl) is INamedTypeSymbol containing))
+                        continue;
+                    string tag = null;
+                    if (!InterfaceLowering.IsUdonSharpBehaviour(containing))
+                    {
+                        if (!ClassLowering.IsPlainClass(containing))
+                            continue;
+                        tag = ClassLowering.TagOf(containing);
+                    }
                     string message = YieldPlaceError(model, owner);
                     if (message != null)
-                        diagnostics.Error(PlaceLocation(owner), message);
+                        diagnostics.Error(PlaceLocation(owner), message, tag);
                 }
 
-                // インタフェースのメソッドの IEnumerator（インタフェースを通してコルーチンを開始する形）
+                // インタフェースのメソッドの IEnumerator（インタフェースを通してコルーチンを開始する形）。
+                // 実装する UdonSharpBehaviour・普通のクラス（使われるもの）があるときだけ
                 foreach (InterfaceDeclarationSyntax itf in TypeDeclarations.Of<InterfaceDeclarationSyntax>(root))
+                {
+                    if (!(model.GetDeclaredSymbol(itf) is INamedTypeSymbol itfType))
+                        continue;
+                    var implementers = sourceClasses.Where(t => t.AllInterfaces.Contains(itfType, SymbolEqualityComparer.Default)).ToList();
+                    bool byBehaviour = implementers.Any(InterfaceLowering.IsUdonSharpBehaviour);
+                    var plainTags = implementers.Where(ClassLowering.IsPlainClass).Select(ClassLowering.TagOf).ToList();
+                    if (!byBehaviour && plainTags.Count == 0)
+                        continue;
                     foreach (MethodDeclarationSyntax m in itf.Members.OfType<MethodDeclarationSyntax>())
-                        if (model.GetDeclaredSymbol(m) is IMethodSymbol s && s.ReturnType.ToDisplayString() == EnumeratorName)
-                            diagnostics.Error(m.Identifier.GetLocation(), Loc.T(
-                                "インタフェースのメソッドのコルーチン（IEnumerator を返すメソッド）は未対応です。インタフェースには、コルーチンを開始する void のメソッドを書いてください",
-                                "Coroutines in interface methods (methods returning IEnumerator) are not supported. Declare a void method that starts the coroutine instead"));
+                    {
+                        if (!(model.GetDeclaredSymbol(m) is IMethodSymbol s) || s.ReturnType.ToDisplayString() != EnumeratorName)
+                            continue;
+                        string message = Loc.T(
+                            "インタフェースのメソッドのコルーチン（IEnumerator を返すメソッド）は未対応です。インタフェースには、コルーチンを開始する void のメソッドを書いてください",
+                            "Coroutines in interface methods (methods returning IEnumerator) are not supported. Declare a void method that starts the coroutine instead");
+                        if (byBehaviour)
+                            diagnostics.Error(m.Identifier.GetLocation(), message);
+                        else
+                            foreach (string t in plainTags)
+                                diagnostics.Error(m.Identifier.GetLocation(), message, t);
+                    }
+                }
 
                 // IEnumerator の値の使い方（UdonSharpBehaviour の中）
                 foreach (ClassDeclarationSyntax cls in TypeDeclarations.Of<ClassDeclarationSyntax>(root))
@@ -115,7 +148,7 @@ namespace UdonSharpPlus
             if (!(node is InvocationExpressionSyntax call) || !(model.GetSymbolInfo(call).Symbol is IMethodSymbol method)
                 || method.ReturnType.ToDisplayString() != EnumeratorName)
                 return;
-            if (method.DeclaringSyntaxReferences.Length == 0)
+            if (method.DeclaringSyntaxReferences.Length == 0 && method.MethodKind != MethodKind.DelegateInvoke)
             {
                 // 外部のメソッドが返す IEnumerator（transform.GetEnumerator() など）
                 diagnostics.Error(call.GetLocation(), Loc.T(

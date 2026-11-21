@@ -24,6 +24,17 @@ namespace FeatureTests.Coroutines
             }
         }
 
+        // P：派生の override が base のコルーチンを待つ（hello に書く）
+        [HideInInspector] public string hello = "";
+
+        public void BeginHello() { StartCoroutine(Hello()); }
+
+        protected virtual IEnumerator Hello()
+        {
+            yield return null;
+            hello += "b";
+        }
+
         protected virtual IEnumerator Greet()
         {
             yield return null;

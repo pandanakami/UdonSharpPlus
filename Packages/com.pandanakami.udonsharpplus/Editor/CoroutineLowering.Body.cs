@@ -93,7 +93,9 @@ namespace UdonSharpPlus
                         if (_model.GetDeclaredSymbol(p) is IParameterSymbol symbol)
                             _bySymbol[symbol] = v;
                     }
-                    string defaults = string.Join(", ", parameters.Select((p, i) => $"{_vars[i].Type} {_vars[i].Name}{(p.Default != null ? " " + _edits.Take(p.Default) : "")}"));
+                    // 開始のメソッドの引数は、元の修飾子（params）・既定値のまま（ref・out・in は C# がコルーチンに許さない）
+                    string defaults = string.Join(", ", parameters.Select((p, i) =>
+                        $"{(p.Modifiers.Any(SyntaxKind.ParamsKeyword) ? "params " : "")}{_vars[i].Type} {_vars[i].Name}{(p.Default != null ? " " + _edits.Take(p.Default) : "")}"));
                     _nextSlot = parameters.Count + 1;
 
                     // yield return を含む文と、頭で宣言するローカル変数・ループ

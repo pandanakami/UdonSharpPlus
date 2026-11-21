@@ -50,6 +50,8 @@ public class Door : UdonSharpBehaviour
 - **yield をまたげる構文**：`if`／`else`、`for`・`while`・`do`（`break`・`continue` も）、`foreach`（List・Dictionary・配列・文字列）、`switch` 文
 - **yield をまたぐ値**：ローカル変数・引数・`out var` の変数・ラムダが捕まえた変数、匿名型・タプル・普通のクラス・List・LINQ の結果など
 - `Coroutine`・`IEnumerator` の値を、配列・List・Dictionary・普通のクラスのフィールドに入れる（`Contains`・`IndexOf`・`Remove` も使えます）
+- コルーチンを返すデリゲート（`Func<IEnumerator> f = Foo; StartCoroutine(f());`）、コルーチンの値を返すだけのメソッド（`IEnumerator Make() => Foo(3);`）
+- 引数の既定値・名前付きの引数・`params`、オーバーロード、`[RecursiveMethod]`、`partial` クラスの別のファイルに書いたコルーチン
 - **ビヘイビアと GameObject の状態**（Unity と同じ）：
   - ビヘイビアを無効にしても（`enabled = false`）、止まりません
   - GameObject を非アクティブにすると（親を非アクティブにしたときも）、すべて止まります。アクティブに戻しても再開しません

@@ -17,6 +17,12 @@ namespace FeatureTests.Coroutines
             log += "own;";
         }
 
+        protected override IEnumerator Hello()
+        {
+            yield return base.Hello();
+            hello += "d";
+        }
+
         protected override IEnumerator Greet()
         {
             yield return null;

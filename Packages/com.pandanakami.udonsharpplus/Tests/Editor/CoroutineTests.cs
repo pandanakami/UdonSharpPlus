@@ -464,10 +464,20 @@ IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); 
         [Test]
         public void ErrorForCoroutineInPlainClass()
         {
-            CompileResult r = Compile("void Start() { }\n}\npublic class Plain { public IEnumerator Foo() { yield return null; } ");
+            CompileResult r = Compile("void Start() { var p = new Plain(); }\n}\npublic class Plain { public IEnumerator Foo() { yield return null; } ");
             var errors = r.Diagnostics.Where(d => d.StartsWith("Error")).ToList();
             Assert.That(errors.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
             Assert.That(errors[0], Does.Contain("UdonSharpBehaviour でないクラスのメソッドのコルーチン").And.Contain($"CoUse.cs({BodyLine + 2},"));
+        }
+
+        [Test]
+        public void NoErrorForYieldOutsideUdonSharp()
+        {
+            // UdonSharp Plus が書き換えないもの（MonoBehaviour のコルーチン・列挙のための yield、UdonSharpBehaviour から使われない普通のクラス）は、
+            // 同じアセンブリにあっても調べない
+            CompileOk("void Start() { }\n}\n"
+                + "public class Mono : MonoBehaviour { IEnumerator Start() { yield return new WaitForEndOfFrame(); } System.Collections.Generic.IEnumerable<int> Nums() { yield return 1; } IEnumerator Run() { IEnumerator e = transform.GetEnumerator(); e.MoveNext(); yield return e; } }\n"
+                + "public class Unused { public IEnumerator Foo() { yield return null; } System.Collections.Generic.IEnumerable<int> Nums() { yield return 1; } ");
         }
 
         [Test]

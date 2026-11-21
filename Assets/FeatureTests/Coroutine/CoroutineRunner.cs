@@ -43,7 +43,8 @@ namespace FeatureTests.Coroutines
                                         + "|X=f0@0;s0@0;s0a@0;c@1;da@1;db@1;es@1;f0a@1;f1@1;s1@1;s1a@1;f2@1;a3@2;a2@2;a1@2;a@2;f1a@2;ev3@2;g3@2;bc@3;bp1@3;ei@3;ew@3;"
                                         + "|S=w-1@1;w0@1;wTiny@1;r-1@1;rTiny@1;rNaN@1;"
                                         + "|Q=c1=2,2;c5=6,6;f12;g1=9,3;d1=12;d5=16;f9;a26,24t,3q2,50;a721,714t,8q7,7;g0=12,3;n113;o13,13;r3,True,12,7;w3;sFalse=3;sTrue=12;"
-                                        + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;";
+                                        + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;"
+                                        + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
         // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
@@ -59,6 +60,8 @@ namespace FeatureTests.Coroutines
         // S：WaitForSeconds・WaitForSecondsRealtime の負・0・極小・NaN・正の無限大（無限大・NaN の WaitForSeconds と、無限大の Realtime は再開しない）
         // Q：ラムダが捕まえたローカル変数・匿名型・タプル・普通のクラス・List・GroupBy・LINQ・演算子を、yield をまたいで使う（#107 の追加テスト案の 3・6・7・8）
         // V：親の GameObject を非アクティブにすると止まる・OnDisable の中では開始しない・OnDisable の中の StopAllCoroutines・Destroy したものは動かない（案の 13。Peer で確かめる）
+        // P：オーバーロード・既定の引数・params・デリゲートが返す IEnumerator・ハンドルを返すメソッド・三項演算子・else／while／do／for (;;) の yield・
+        //    同じ名前の変数・構造体・[RecursiveMethod] の再帰・Dictionary の foreach・base のコルーチンを待つ（Derived で確かめる）
 
         public Text display;
         public CoroutinePeer peer;
@@ -115,6 +118,7 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Collections());
             StartCoroutine(Graph());
             StartCoroutine(Combo());
+            StartCoroutine(Misc());
             StartCoroutine(Judge());
         }
 
@@ -714,6 +718,106 @@ namespace FeatureTests.Coroutines
             _life += "destroy" + n3 + "," + ext.Length + ";";
         }
 
+        // P：そのほかの書き方（オーバーロード・既定の引数・params・デリゲートが返す IEnumerator・ハンドルを返すメソッド・三項演算子・
+        //    else／while／do／for (;;) の yield・同じ名前の変数・構造体・[RecursiveMethod] の再帰・Dictionary の foreach・base のコルーチン）
+        private string _misc = "";
+        private System.Collections.Generic.Dictionary<string, int> _pDict = new System.Collections.Generic.Dictionary<string, int>();
+
+        private void P(string s) { _misc += s + ";"; }
+
+        private IEnumerator Misc()
+        {
+            StartCoroutine(POver(1));
+            StartCoroutine(POver("s"));
+            StartCoroutine(PDefault());
+            StartCoroutine(PDefault(b: 7));
+            StartCoroutine(PParams(1, 2, 3));
+            System.Func<IEnumerator> f = PPlain;
+            System.Func<int, IEnumerator> g = n => PNum(n);
+            StartCoroutine(f());
+            yield return StartCoroutine(g(4));
+            Coroutine h = StartCoroutine(PMake());
+            yield return h;
+            bool yes = _misc.Length > 0;
+            Coroutine t = yes ? StartCoroutine(PNum(5)) : null;
+            yield return t;
+            yield return StartCoroutine(PFlow(3));
+            yield return StartCoroutine(PBlocks());
+            yield return StartCoroutine(PRec(2));
+            _pDict["a"] = 1;
+            _pDict["b"] = 2;
+            yield return StartCoroutine(PDict());
+            if (derived != null)
+            {
+                derived.BeginHello();
+                for (int k = 0; k < 4; k++) yield return null;
+                P("h" + derived.hello);
+            }
+        }
+
+        private IEnumerator POver(int n) { yield return null; P("oi" + n); }
+        private IEnumerator POver(string s) { yield return null; P("os" + s); }
+        private IEnumerator PDefault(int a = 1, int b = 5) { yield return null; P("d" + a + b); }
+        private IEnumerator PParams(params int[] xs) { yield return null; P("p" + xs.Length + xs[2]); }
+        private IEnumerator PPlain() { yield return null; P("f"); }
+        private IEnumerator PNum(int n) { yield return null; P("n" + n); }
+        private IEnumerator PMake() => PNum(9);
+
+        private IEnumerator PFlow(int n)
+        {
+            if (n < 0) P("never");
+            else yield return null;
+            while (n-- > 1) yield return null;
+            do yield return null; while (n > 5);
+            for (int i = 0; ; i++)
+            {
+                if (i == 2) { P("fl" + i + n); yield break; }
+                yield return null;
+            }
+        }
+
+        private IEnumerator PBlocks()
+        {
+            {
+                int x = 1;
+                yield return null;
+                P("b" + x);
+            }
+            {
+                string x = "two";
+                yield return null;
+                P("b" + x);
+            }
+            Vector3 v = Vector3.one;
+            v.x = 2;
+            yield return null;
+            v.y += 1;
+            const int K = 3;
+            string s = $"v{v.x}{v.y}";
+            yield return null;
+            P($"{s}{K}");
+        }
+
+        [UdonSharp.RecursiveMethod]
+        private IEnumerator PRec(int n)
+        {
+            yield return null;
+            if (n > 0)
+                yield return StartCoroutine(PRec(n - 1));
+            P("r" + n);
+        }
+
+        private IEnumerator PDict()
+        {
+            int sum = 0;
+            foreach (var kv in _pDict)
+            {
+                yield return null;
+                sum += kv.Value * (kv.Key == "a" ? 10 : 100);
+            }
+            P("dict" + sum);
+        }
+
         private IEnumerator Steps(string tag, int start)
         {
             _log += tag + "0@" + (F() - start) + ";";
@@ -748,7 +852,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;
