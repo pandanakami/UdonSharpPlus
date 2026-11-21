@@ -120,6 +120,14 @@ namespace UdonSharpPlus
             // コンパイル時の注意（#118）。書き換える前の元のソースから探し、最後にエラーがなければ出す
             Notices.Found notices = Notices.Scan(original, GetMetadataReferences(), UdonSharpPlusSettings.IsEnabled);
 
+            // パターンのラベル（when・関係・or など）を含む switch 文 → if で決めた番号の switch（#198）。UdonSharp はパターンのラベルを黙って読み飛ばす。
+            // 書き換えたあとはふつうの C# なので、ほかの段より前に置く
+            if (SwitchLowering.MayHavePatternSwitches(current))
+            {
+                current = SwitchLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // 匿名型（new { ... }）→ メンバーの並びごとの普通のクラス（#70）。ジェネリクスの前に 1 回（匿名型を型引数にするジェネリックメソッドのため）、
             // 型引数を使う匿名型はジェネリクスのあとにもう 1 回（型引数が決まってから）
             int anonymousCount = 0;

@@ -488,12 +488,9 @@ namespace UdonSharpPlus
                         SwitchSectionSyntax section = s.Sections[i];
                         foreach (SwitchLabelSyntax label in section.Labels)
                         {
+                            // パターンのラベル（when・var x など）は、switch の段（#198）が番号の case に書き換えてあるので、ここには来ない
                             if (label.DescendantNodes().OfType<SingleVariableDesignationSyntax>().Any())
                                 _o.Error(label, Loc.T("yield return を含む switch の、変数を宣言する case は未対応です", "A case that declares a variable is not supported in a switch containing yield return"));
-                            else if (label is CasePatternSwitchLabelSyntax guarded && guarded.WhenClause != null)
-                                // UdonSharp は when を正しく扱えない（条件を見ないことがある。#107 で確かめた）
-                                _o.Error(guarded.WhenClause, Loc.T("yield return を含む switch の、when の付いた case は未対応です（UdonSharp が when を正しく扱えないため）。case の中で if を使ってください",
-                                    "A case with when is not supported in a switch containing yield return (UdonSharp does not handle when correctly). Use if inside the case"));
                             hasDefault |= label is DefaultSwitchLabelSyntax;
                             dispatch.Append(_edits.Take(label)).Append(' ');
                         }

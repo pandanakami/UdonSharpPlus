@@ -340,6 +340,13 @@ IEnumerator Bar(int n) { yield return null; }");
         }
 
         [Test]
+        public void SwitchWithPatternsAcrossYield()
+        {
+            // パターンのラベルは switch の段（#198）が先に番号の case にするので、yield をまたいでも使える
+            CompileOk("IEnumerator Foo(int n) { switch (n) { case var k when k > 1: yield return null; Debug.Log(k); break; case 1 or 2: yield return null; break; default: break; } }");
+        }
+
+        [Test]
         public void LocalFunctionCoroutine()
         {
             // ローカル関数のコルーチン（#174）。デリゲートの段がメソッドに移し、外の変数は環境で共有する。WaitUntil も下ごしらえする
@@ -550,7 +557,6 @@ IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); 
         [TestCase("static void S() { IEnumerator L() { yield return null; } } void Start() { }", "static のローカル関数")]
         [TestCase("void Start() { System.Collections.Generic.IEnumerable<int> L() { yield return 1; } }", "列挙のための yield")]
         [TestCase("int P { get { yield return null; } }", "プロパティ・インデクサーの中の yield")]
-        [TestCase("IEnumerator Foo(int n) { switch (n) { case 1 when n > 0: yield return null; break; } }", "when の付いた case は未対応です")]
         [TestCase("private Coroutine[] _cs = new Coroutine[1]; int I() => 0; void Start() { _cs[I()] = _cs[I()] ?? StartCoroutine(Foo()); }\nIEnumerator Foo() { yield return null; }", "?? ・ ??= の左には")]
         public void OneErrorForUnsupportedForm(string body, string message)
         {

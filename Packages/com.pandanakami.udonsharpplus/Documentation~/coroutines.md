@@ -74,8 +74,6 @@ public class Door : UdonSharpBehaviour
 | ほかのビヘイビアのコルーチン（`other.StartCoroutine(...)`、`StartCoroutine(other.Foo())`） | そのビヘイビアに、コルーチンを開始する public メソッドを作って呼んでください |
 | `try`／`catch`／`finally`・`using`・`lock` の中の `yield return` | `yield return` を外に出してください |
 | `yield return` を含む `foreach` で、List・Dictionary・配列・文字列以外を回す（`foreach (Transform t in transform)`） | 配列などに入れてから回してください |
-| `yield return` を含む `switch` の、変数を宣言する `case` | 変数の宣言を `switch` の外に出してください |
-| `yield return` を含む `switch` の、`when` の付いた `case` | `case` の中で `if` を使ってください（UdonSharp が `when` を正しく扱えないため） |
 | `Coroutine`・`IEnumerator` の `??`・`??=` の左に、メソッドの呼び出しなどを書く（`_cs[Next()] ??= ...`） | 変数に入れてから使ってください（左を 2 回読むため） |
 | `IEnumerator<T>`・`IEnumerable`・`IEnumerable<T>` を返す `yield`（列挙のための `yield`） | List などに入れて返してください（`IEnumerator` はコルーチンにだけ使えます） |
 | `IEnumerator` の `MoveNext`・`Current`・`Reset`、外部のメソッドが返す `IEnumerator`（`transform.GetEnumerator()` など） | `IEnumerator` はコルーチンにだけ使えます |

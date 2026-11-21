@@ -22,6 +22,7 @@ New
 
 Fixes
 
+- A `switch` statement with pattern labels (`case "b" when n > 0:`, `case > 5:`, `case 1 or 2:`, `case var x:`, ...) now works as in C#. UdonSharp silently ignored these labels, so a case could be entered without checking its condition. Patterns work on numbers, char, bool, string and enum; other patterns are compile errors.
 - A constructor or method parameter of a plain class named with a C# keyword (`@class`, `@event`) no longer breaks the compile.
 - A plain class field whose type is written with `global::` (`public global::IFoo f;`) no longer stops the compile with an internal error.
 - A plain class field with a short array initializer (`public int[] n = { 1, 2 };`) no longer breaks the compile.
@@ -52,6 +53,7 @@ Fixes
 
 直したこと
 
+- パターンのラベル（`case "b" when n > 0:`・`case > 5:`・`case 1 or 2:`・`case var x:` など）を含む `switch` 文が、C# と同じに動くようにしました。UdonSharp がこうしたラベルを黙って読み飛ばすため、条件を見ずに `case` に入ることがありました。数・文字・`bool`・文字列・enum の `switch` で使えます。それ以外のパターンはコンパイルエラーです。
 - 普通のクラスのコンストラクタ・メソッドの引数に、C# のキーワードと同じ名前（`@class`・`@event`）を使うと、コンパイルが壊れていたのを直しました。
 - 普通のクラスのフィールドの型を `global::` つきで書くと（`public global::IFoo f;`）、内部のエラーでコンパイルが止まっていたのを直しました。
 - 普通のクラスのフィールドに、配列の初期化子の省略形（`public int[] n = { 1, 2 };`）を書くと、コンパイルが壊れていたのを直しました。
