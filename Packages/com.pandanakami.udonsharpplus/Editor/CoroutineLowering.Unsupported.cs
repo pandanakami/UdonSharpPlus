@@ -18,13 +18,26 @@ namespace UdonSharpPlus
         /// </summary>
         private static void CheckUnsupported(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
-            if (!trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is YieldStatementSyntax
+            if (!trees.Any(t => MayContain(t.GetRoot(), EnumeratorWords) && t.GetRoot().DescendantNodes().Any(n => n is YieldStatementSyntax
                     || (n is IdentifierNameSyntax id && (id.Identifier.ValueText == "IEnumerator" || UsesCoroutineApi(id))))))
                 return;
             var compilation = Compilations.For(trees, references);
             var sourceClasses = trees.SelectMany(t => TypeDeclarations.Of<ClassDeclarationSyntax>(t.GetRoot())
                     .Select(c => compilation.Model(t).GetDeclaredSymbol(c) as INamedTypeSymbol))
                 .Where(c => c != null).Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default).ToList();
+            // ソースの、IEnumerator を返すメソッドの名前（宣言だけから。ほかのビヘイビアのコルーチンの呼び出しを見つけるため）と、
+            // 外部のもので IEnumerator を返すことの多い GetEnumerator
+            var enumeratorMethods = new HashSet<string>(System.StringComparer.Ordinal) { "GetEnumerator" };
+            foreach (INamedTypeSymbol t in TreeFilter.SourceTypes(compilation.Assembly.GlobalNamespace))
+                foreach (ISymbol member in t.GetMembers())
+                    if (member is IMethodSymbol method && method.ReturnType.SpecialType == SpecialType.System_Collections_IEnumerator)
+                        enumeratorMethods.Add(method.Name);
+            // IEnumerator の using の別名（どのファイルのものも）
+            var enumeratorAliases = new HashSet<string>(System.StringComparer.Ordinal);
+            foreach (SyntaxTree tree in trees)
+                foreach (UsingDirectiveSyntax u in tree.GetRoot().DescendantNodes(n => !(n is TypeDeclarationSyntax)).OfType<UsingDirectiveSyntax>())
+                    if (u.Alias != null && u.Name.DescendantTokens().Any(tk => tk.ValueText == "IEnumerator"))
+                        enumeratorAliases.Add(u.Alias.Name.Identifier.ValueText);
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
@@ -81,13 +94,16 @@ namespace UdonSharpPlus
                     }
                 }
 
-                // IEnumerator の値の使い方（UdonSharpBehaviour の中）
+                // IEnumerator の値の使い方（UdonSharpBehaviour の中）。
+                // コルーチンに関わる名前を含まないクラスは、呼び出しの名前が、ソースの IEnumerator を返すメソッドか GetEnumerator のものだけを
+                // 問い合わせる（すべての呼び出しの問い合わせに、1 秒ほどかかっていた。#203）
                 foreach (ClassDeclarationSyntax cls in TypeDeclarations.Of<ClassDeclarationSyntax>(root))
                 {
                     if (!(model.GetDeclaredSymbol(cls) is INamedTypeSymbol type) || !InterfaceLowering.IsUdonSharpBehaviour(type))
                         continue;
+                    HashSet<string> only = TouchesEnumerators(cls, enumeratorAliases) ? null : enumeratorMethods;
                     foreach (SyntaxNode node in OwnNodes(cls))
-                        CheckEnumeratorUse(model, node, diagnostics);
+                        CheckEnumeratorUse(model, node, diagnostics, only);
                 }
             }
         }
@@ -156,7 +172,31 @@ namespace UdonSharpPlus
             }
         }
 
-        private static void CheckEnumeratorUse(SemanticModel model, SyntaxNode node, InterfaceLowering.LoweringDiagnostics diagnostics)
+        private static readonly string[] EnumeratorWords = { "yield", "IEnumerator", "StartCoroutine", "StopCoroutine", "StopAllCoroutines" };
+
+        /// <summary>cls が、コルーチン・IEnumerator に関わる名前（yield・IEnumerator とその別名・StartCoroutine など）を含むか</summary>
+        private static bool TouchesEnumerators(ClassDeclarationSyntax cls, HashSet<string> aliases)
+        {
+            if (!MayContain(cls, EnumeratorWords) && (aliases.Count == 0 || !MayContain(cls, aliases.ToArray())))
+                return false;
+            return cls.DescendantTokens().Any(t => t.IsKind(SyntaxKind.YieldKeyword)
+                || t.IsKind(SyntaxKind.IdentifierToken) && (System.Array.IndexOf(EnumeratorWords, t.ValueText) >= 0 || aliases.Contains(t.ValueText)));
+        }
+
+        /// <summary>呼び出しの名前（Foo()・x.Foo()・x?.Foo()・Foo&lt;T&gt;()）。分からない形は null</summary>
+        private static string InvokedName(InvocationExpressionSyntax call)
+        {
+            switch (call.Expression)
+            {
+                case SimpleNameSyntax name: return name.Identifier.ValueText;
+                case MemberAccessExpressionSyntax access: return access.Name.Identifier.ValueText;
+                case MemberBindingExpressionSyntax binding: return binding.Name.Identifier.ValueText;
+                default: return null;
+            }
+        }
+
+        /// <param name="only">null でなければ、呼び出しは、名前がこの中のものだけを調べる</param>
+        private static void CheckEnumeratorUse(SemanticModel model, SyntaxNode node, InterfaceLowering.LoweringDiagnostics diagnostics, HashSet<string> only)
         {
             // e.MoveNext()・e.Current・e.Reset()
             if (node is MemberAccessExpressionSyntax access
@@ -169,7 +209,8 @@ namespace UdonSharpPlus
                 return;
             }
 
-            if (!(node is InvocationExpressionSyntax call) || !(model.GetSymbolInfo(call).Symbol is IMethodSymbol method)
+            if (!(node is InvocationExpressionSyntax call) || only != null && InvokedName(call) is string invoked && !only.Contains(invoked)
+                || !(model.GetSymbolInfo(call).Symbol is IMethodSymbol method)
                 || method.ReturnType.ToDisplayString() != EnumeratorName)
                 return;
             if (method.DeclaringSyntaxReferences.Length == 0 && method.MethodKind != MethodKind.DelegateInvoke)

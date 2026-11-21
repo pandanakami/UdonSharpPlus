@@ -27,12 +27,19 @@ namespace UdonSharpPlus
         public static List<SyntaxTree> Prepare(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
             CheckUnsupported(trees, diagnostics, references);
-            if (!trees.Any(t => t.GetRoot().DescendantNodes().Any(n => (n is IdentifierNameSyntax id && IsWaitName(id.Identifier.ValueText))
+            if (!trees.Any(t => MayContain(t.GetRoot(), PrepareWords) && t.GetRoot().DescendantNodes().Any(n => (n is IdentifierNameSyntax id && IsWaitName(id.Identifier.ValueText))
                                                                        || n.IsKind(SyntaxKind.CoalesceExpression) || n.IsKind(SyntaxKind.CoalesceAssignmentExpression))))
                 return trees;
             var compilation = Compilations.For(trees, references);
             var result = new List<SyntaxTree>(trees.Count);
             int temp = 0;
+            // 待つ型の using の別名（どのファイルのものも）。クラスと型の名前を、文字で選ぶのに使う（#203）
+            var waitNames = new HashSet<string>(System.StringComparer.Ordinal) { "WaitUntil", "WaitWhile", "WaitForSecondsRealtime", "WaitForSeconds" };
+            foreach (SyntaxTree tree in trees)
+                foreach (UsingDirectiveSyntax u in tree.GetRoot().DescendantNodes(n => !(n is TypeDeclarationSyntax)).OfType<UsingDirectiveSyntax>())
+                    if (u.Alias != null && u.Name.DescendantTokens().Any(tk => IsWaitName(tk.ValueText)))
+                        waitNames.Add(u.Alias.Name.Identifier.ValueText);
+            string[] words = waitNames.Concat(new[] { "yield", "??" }).ToArray();
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
@@ -41,8 +48,12 @@ namespace UdonSharpPlus
                 {
                     if (!(model.GetDeclaredSymbol(cls) is INamedTypeSymbol type) || !InterfaceLowering.IsUdonSharpBehaviour(type))
                         continue;
+                    // 書き換えるのは、待つ型の名前・yield・?? のところだけ。どれも含まないクラスは見ない（#203）。
+                    // 待つ型の値は、ほかのクラスのメンバーからも来るので、yield を含むクラスは見る
+                    if (!MayContain(cls, words))
+                        continue;
                     edits = edits ?? new Edits(tree.GetText());
-                    new Preparer(model, cls, edits, diagnostics).Run(ref temp);
+                    new Preparer(model, cls, edits, diagnostics, waitNames).Run(ref temp);
                 }
                 result.Add(edits != null && edits.Any
                     ? CSharpSyntaxTree.ParseText(edits.Apply(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8)
@@ -50,6 +61,8 @@ namespace UdonSharpPlus
             }
             return result;
         }
+
+        private static readonly string[] PrepareWords = { "WaitUntil", "WaitWhile", "WaitForSeconds", "??" };
 
         private static bool IsWaitType(string name) =>
             name == WaitForSecondsName || name == WaitForSecondsRealtimeName || name == WaitUntilName || name == WaitWhileName;
@@ -66,8 +79,12 @@ namespace UdonSharpPlus
             private readonly Edits _edits;
             private readonly InterfaceLowering.LoweringDiagnostics _diagnostics;
 
-            public Preparer(SemanticModel model, ClassDeclarationSyntax cls, Edits edits, InterfaceLowering.LoweringDiagnostics diagnostics)
+            /// <summary>待つ型の名前と、その using の別名</summary>
+            private readonly HashSet<string> _waitNames;
+
+            public Preparer(SemanticModel model, ClassDeclarationSyntax cls, Edits edits, InterfaceLowering.LoweringDiagnostics diagnostics, HashSet<string> waitNames)
             {
+                _waitNames = waitNames;
                 _model = model;
                 _cls = cls;
                 _edits = edits;
@@ -83,7 +100,7 @@ namespace UdonSharpPlus
                 {
                     // WaitForSeconds・WaitForSecondsRealtime の型 → float（秒）
                     if (node is TypeSyntax type && type is NameSyntax && !(type.Parent is QualifiedNameSyntax) && !(type.Parent is MemberAccessExpressionSyntax)
-                        && !(type.Parent is ObjectCreationExpressionSyntax))
+                        && !(type.Parent is ObjectCreationExpressionSyntax) && (_waitNames.Contains(RightmostName((NameSyntax)type)) || type.IsVar))
                     {
                         string name = (_model.GetSymbolInfo(type).Symbol as INamedTypeSymbol)?.ToDisplayString();
                         if (name == WaitForSecondsName || name == WaitForSecondsRealtimeName)
@@ -118,10 +135,24 @@ namespace UdonSharpPlus
                 // yield return の外の new WaitForSeconds(t) → (float)(t)（変数に入れて使い回すもの）
                 foreach (ObjectCreationExpressionSyntax create in OwnNodes(_cls).OfType<ObjectCreationExpressionSyntax>())
                 {
+                    if (!(create.Type is NameSyntax created) || !_waitNames.Contains(RightmostName(created)))
+                        continue;
                     string name = TypeName(create);
                     if ((name == WaitForSecondsName || name == WaitForSecondsRealtimeName) && !yields.Contains(create) && create.ArgumentList?.Arguments.Count == 1
                         && !(create.Parent is YieldStatementSyntax))
                         _edits.Add(create.Span, $"(float)({_edits.Take(create.ArgumentList.Arguments[0].Expression)})");
+                }
+            }
+
+            /// <summary>名前のいちばん右（UnityEngine.WaitForSeconds の WaitForSeconds）。型の問い合わせを、待つ型の名前のものだけにするため（#203）</summary>
+            private static string RightmostName(NameSyntax name)
+            {
+                switch (name)
+                {
+                    case QualifiedNameSyntax q: return q.Right.Identifier.ValueText;
+                    case AliasQualifiedNameSyntax a: return a.Name.Identifier.ValueText;
+                    case SimpleNameSyntax s: return s.Identifier.ValueText;
+                    default: return null;
                 }
             }
 

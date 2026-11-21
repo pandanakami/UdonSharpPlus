@@ -35,9 +35,33 @@ namespace UdonSharpPlus
         private const string WaitForSecondsName = "UnityEngine.WaitForSeconds";
         private const string DataTokenName = "VRC.SDK3.Data.DataToken";
 
+        private static readonly string[] CoroutineWords = { "yield", "StartCoroutine", "StopCoroutine", "StopAllCoroutines" };
+
         public static bool MayHaveCoroutines(IEnumerable<SyntaxTree> trees) =>
-            trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is YieldStatementSyntax
+            trees.Any(t => MayContain(t.GetRoot(), CoroutineWords) && t.GetRoot().DescendantNodes().Any(n => n is YieldStatementSyntax
                 || (n is IdentifierNameSyntax id && UsesCoroutineApi(id))));
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<SyntaxTree, string> Texts =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<SyntaxTree, string>();
+
+        /// <summary>
+        /// node のテキストが、words のどれかを文字として含むか（ノードを全部たどる前に、含まないものを外すため。#203）。
+        /// 識別子の文字を \u で書いたものは文字では分からないので、\u・\U があれば true にする
+        /// </summary>
+        private static bool MayContain(SyntaxNode node, string[] words)
+        {
+            string text = Texts.GetValue(node.SyntaxTree, t => t.GetText().ToString());
+            int start = node.Span.Start;
+            int length = System.Math.Min(node.Span.End, text.Length) - start;
+            if (length <= 0)
+                return false;
+            if (text.IndexOf("\\u", start, length, System.StringComparison.Ordinal) >= 0 || text.IndexOf("\\U", start, length, System.StringComparison.Ordinal) >= 0)
+                return true;
+            foreach (string w in words)
+                if (text.IndexOf(w, start, length, System.StringComparison.Ordinal) >= 0)
+                    return true;
+            return false;
+        }
 
         private static bool UsesCoroutineApi(IdentifierNameSyntax id)
         {
@@ -103,8 +127,12 @@ namespace UdonSharpPlus
                 {
                     if (!(model.GetDeclaredSymbol(cls) is INamedTypeSymbol type) || !InterfaceLowering.IsUdonSharpBehaviour(type))
                         continue;
-                    List<MethodDeclarationSyntax> methods = cls.Members.OfType<MethodDeclarationSyntax>().Where(m => IsCoroutine(model, m)).ToList();
-                    bool uses = methods.Count > 0 || OwnNodes(cls).OfType<IdentifierNameSyntax>().Any(UsesCoroutineApi);
+                    // yield・StartCoroutine などを文字として含まないクラスは、中をたどらない（#203）
+                    bool mayUse = MayContain(cls, CoroutineWords);
+                    List<MethodDeclarationSyntax> methods = mayUse
+                        ? cls.Members.OfType<MethodDeclarationSyntax>().Where(m => IsCoroutine(model, m)).ToList()
+                        : new List<MethodDeclarationSyntax>();
+                    bool uses = methods.Count > 0 || mayUse && OwnNodes(cls).OfType<IdentifierNameSyntax>().Any(UsesCoroutineApi);
                     decls.Add((tree, cls, type.OriginalDefinition, methods, uses));
                 }
             }

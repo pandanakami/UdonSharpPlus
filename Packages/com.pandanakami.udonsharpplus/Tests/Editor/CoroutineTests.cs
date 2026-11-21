@@ -508,6 +508,30 @@ IEnumerator Foo() { var w = new WaitForSecondsRealtime(1f); yield return _wait; 
             Assert.That(code, Does.Contain("__co_ws(__s, _wait)"));
         }
 
+        // #203：下ごしらえは、待つ型の名前（using の別名も）・yield・?? を含むクラスだけを見る
+        [Test]
+        public void AliasedWaitForSecondsBecomesSeconds()
+        {
+            string dir = Path.GetFullPath(Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusCoroutine_Alias"));
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+            try
+            {
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir,
+                    new TestSource("CoUse.cs", Head + "using W = UnityEngine.WaitForSeconds;\npublic class CoUse : UdonSharpBehaviour\n{\npublic CoHolder holder;\nIEnumerator Foo() { yield return holder.wait; }\nvoid Start() { StartCoroutine(Foo()); }\n}\n"
+                        + "public class CoHolder : UdonSharpBehaviour\n{\npublic W wait = new W(0.5f);\n}"));
+                Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", r.Diagnostics));
+                string code = File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "CoUse.cs"));
+                Assert.That(code, Does.Contain("public float wait = (float)(0.5f);"));
+                Assert.That(code, Does.Contain("__co_ws(__s, holder.wait)"));
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
+
         [Test]
         public void WaitsForChildCoroutines()
         {
@@ -552,6 +576,9 @@ IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); 
         [TestCase("void Start() { IEnumerator e = Foo(); e.MoveNext(); }\nIEnumerator Foo() { yield return null; }", "IEnumerator の MoveNext")]
         [TestCase("public CoUse other; IEnumerator Get() { return other.Foo(); } void Start() { StartCoroutine(Get()); }\npublic IEnumerator Foo() { yield return null; }", "ほかのビヘイビアのコルーチン（other.Foo")]
         [TestCase("public CoUse other; void Start() { StartCoroutine(other.Foo()); }\npublic IEnumerator Foo() { yield return null; }", "ほかのビヘイビアのコルーチン（other.Foo")]
+        // #203：コルーチンに関わる名前を含まないクラスでも、名前で選んだ呼び出しは調べる
+        [TestCase("void Start() { var e = new int[2].GetEnumerator(); }\n}\npublic class CoOther : UdonSharpBehaviour { void Start() { StartCoroutine(Foo()); } IEnumerator Foo() { yield return null; } ", "外部のメソッド（Array.GetEnumerator）")]
+        [TestCase("public CoPeer other; void Start() { var x = other.Foo(); }\n}\npublic class CoPeer : UdonSharpBehaviour { public IEnumerator Foo() { yield return null; } ", "ほかのビヘイビアのコルーチン（other.Foo")]
         [TestCase("static IEnumerator Foo() { yield return null; } void Start() { StartCoroutine(Foo()); }", "static メソッドのコルーチン")]
         [TestCase("void Start() { static IEnumerator L() { yield return null; } StartCoroutine(L()); }", "static のローカル関数")]
         [TestCase("static void S() { IEnumerator L() { yield return null; } } void Start() { }", "static のローカル関数")]

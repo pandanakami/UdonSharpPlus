@@ -184,7 +184,8 @@ namespace UdonSharpPlus
             || member is IMethodSymbol m && (m.MethodKind == MethodKind.UserDefinedOperator || m.MethodKind == MethodKind.Conversion
                                              || m.Name == "GetEnumerator" || m.Name == "Deconstruct" || m.Name == "Add");
 
-        private static IEnumerable<INamedTypeSymbol> SourceTypes(INamespaceSymbol ns)
+        /// <summary>ns の中の、ソースにある型（入れ子の型も）</summary>
+        internal static IEnumerable<INamedTypeSymbol> SourceTypes(INamespaceSymbol ns)
         {
             foreach (INamespaceOrTypeSymbol member in ns.GetMembers())
             {

@@ -25,26 +25,52 @@ namespace UdonSharpPlus
 
             private ReentryCheck(Compilation compilation) { _compilation = compilation; }
 
+            /// <summary>
+            /// method の、クラスの中の本体のある宣言（なければ null）。前はすべてのクラスのメソッドの宣言を先に問い合わせて表にしていたが、
+            /// たどるのはコルーチンから呼ぶものだけなので、要るときにシンボルから引く（#203）
+            /// </summary>
+            private MethodDeclarationSyntax DeclarationOf(IMethodSymbol method)
+            {
+                if (_methods.TryGetValue(method, out MethodDeclarationSyntax found))
+                    return found;
+                found = null;
+                if (method.MethodKind != MethodKind.ReducedExtension && SymbolEqualityComparer.Default.Equals(method, method.OriginalDefinition))
+                    foreach (SyntaxReference reference in method.DeclaringSyntaxReferences)
+                        if (reference.GetSyntax() is MethodDeclarationSyntax decl && decl.Parent is ClassDeclarationSyntax
+                            && (decl.Body != null || decl.ExpressionBody != null))
+                        {
+                            found = decl;
+                            break;
+                        }
+                _methods[method] = found;
+                return found;
+            }
+
             public static void Run(Compilation compilation, IEnumerable<SyntaxTree> trees, IEnumerable<TypeWork> works, InterfaceLowering.LoweringDiagnostics diagnostics)
             {
                 var check = new ReentryCheck(compilation);
+                // override の表。全部のメソッドの宣言を問い合わせず、ソースの型の override のメンバーだけから作る（#203）。
+                // 候補の並びは、前と同じファイルとソースの順（たどった道の名前がエラーの文に入るため）
+                var treeIndex = new Dictionary<SyntaxTree, int>();
                 foreach (SyntaxTree tree in trees)
+                    if (!treeIndex.ContainsKey(tree))
+                        treeIndex[tree] = treeIndex.Count;
+                var overriding = new List<(IMethodSymbol Symbol, MethodDeclarationSyntax Decl)>();
+                foreach (INamedTypeSymbol type in TreeFilter.SourceTypes(compilation.Assembly.GlobalNamespace))
                 {
-                    SemanticModel model = compilation.Model(tree);
-                    foreach (ClassDeclarationSyntax cls in TypeDeclarations.Of<ClassDeclarationSyntax>(tree.GetRoot()))
-                        foreach (MethodDeclarationSyntax m in cls.Members.OfType<MethodDeclarationSyntax>())
-                        {
-                            if (m.Body == null && m.ExpressionBody == null || !(model.GetDeclaredSymbol(m) is IMethodSymbol symbol))
-                                continue;
-                            check._methods[symbol] = m;
-                            for (IMethodSymbol o = symbol.OverriddenMethod; o != null; o = o.OverriddenMethod)
-                            {
-                                if (!check._overrides.TryGetValue(o.OriginalDefinition, out var list))
-                                    check._overrides[o.OriginalDefinition] = list = new List<IMethodSymbol>();
-                                list.Add(symbol);
-                            }
-                        }
+                    if (type.TypeKind != TypeKind.Class)
+                        continue;
+                    foreach (ISymbol member in type.GetMembers())
+                        if (member is IMethodSymbol method && method.IsOverride && check.DeclarationOf(method) is MethodDeclarationSyntax decl)
+                            overriding.Add((method, decl));
                 }
+                foreach (var (symbol, _) in overriding.OrderBy(o => treeIndex.TryGetValue(o.Decl.SyntaxTree, out int i) ? i : int.MaxValue).ThenBy(o => o.Decl.SpanStart))
+                    for (IMethodSymbol o = symbol.OverriddenMethod; o != null; o = o.OverriddenMethod)
+                    {
+                        if (!check._overrides.TryGetValue(o.OriginalDefinition, out var list))
+                            check._overrides[o.OriginalDefinition] = list = new List<IMethodSymbol>();
+                        list.Add(symbol);
+                    }
                 foreach (TypeWork work in works)
                     foreach (Coroutine co in work.Coroutines)
                         if (co.Symbol != null)
@@ -75,7 +101,7 @@ namespace UdonSharpPlus
             {
                 foreach (IMethodSymbol candidate in Candidates(target))
                 {
-                    if (!visited.Add((candidate, start)) || !_methods.TryGetValue(candidate, out MethodDeclarationSyntax decl))
+                    if (!visited.Add((candidate, start)) || !(DeclarationOf(candidate) is MethodDeclarationSyntax decl))
                         continue;
                     foreach ((_, IMethodSymbol next, bool nextStart) in Sites(decl, firstSegment: start))
                     {
@@ -125,7 +151,7 @@ namespace UdonSharpPlus
                         continue;
                     }
                     // コルーチンを直接呼ぶだけ（Foo()）は、状態を作るだけで中身は動かない
-                    if (_coroutines.Contains(method.OriginalDefinition) || !_methods.ContainsKey(method.OriginalDefinition))
+                    if (_coroutines.Contains(method.OriginalDefinition) || DeclarationOf(method.OriginalDefinition) == null)
                         continue;
                     yield return (call, method.OriginalDefinition, false);
                 }
