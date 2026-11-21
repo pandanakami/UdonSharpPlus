@@ -325,9 +325,43 @@ IEnumerator Foo() { yield return null; }");
         }
 
         [Test]
-        public void ErrorForStringStop()
+        public void StartAndStopByName()
         {
-            AssertError("void Start() { StopCoroutine(\"Foo\"); }\nIEnumerator Foo() { yield return null; }", "文字列で指定する StopCoroutine", BodyLine);
+            // 文字列で指定する開始・停止（#174）。value は Foo の引数に渡す。object の値はキャストする
+            string code = Lowered("ByName", @"private Coroutine _c; private object _o = 3; private string _n = ""Foo"";
+void Start() { StartCoroutine(""Foo""); StartCoroutine(nameof(Bar), 5); _c = StartCoroutine(""Bar"", _o); StopCoroutine(""Foo""); StopCoroutine(_n); }
+IEnumerator Foo() { yield return null; }
+IEnumerator Bar(int n) { yield return null; }");
+            Assert.That(code, Does.Contain("__co_go(__co_named(this.Foo()));"));
+            Assert.That(code, Does.Contain("__co_go(__co_named(this.Bar((5))));"));
+            Assert.That(code, Does.Contain("_c = __co_start(__co_named(this.Bar((int)(_o))));"));
+            Assert.That(code, Does.Contain("__co_stopn(\"Foo\");"));
+            Assert.That(code, Does.Contain("__co_stopn(_n);"));
+        }
+
+        [Test]
+        public void LocalFunctionCoroutine()
+        {
+            // ローカル関数のコルーチン（#174）。デリゲートの段がメソッドに移し、外の変数は環境で共有する。WaitUntil も下ごしらえする
+            string code = Lowered("LocalCo", @"private bool _go;
+void Start() { int n = 0; IEnumerator Blink(int k) { n += k; yield return new WaitUntil(() => _go); n++; Debug.Log(n); } StartCoroutine(Blink(2)); StopCoroutine(Blink(1)); }");
+            Assert.That(code, Does.Not.Contain("yield return new"));
+            Assert.That(code, Does.Not.Contain("yield return null"));
+            Assert.That(code, Does.Not.Contain("WaitUntil"));
+            Assert.That(code, Does.Match(@"__co_go\(__lf_Blink__\d+_\d+\("));
+            Assert.That(code, Does.Match(@"__co_drop\(__lf_Blink__\d+_\d+\("));
+            Assert.That(code, Does.Contain("\"Blink\""), "ログの名前は元の名前");
+        }
+
+        [Test]
+        public void ErrorsForStartByName()
+        {
+            const string co = "\nIEnumerator Foo() { yield return null; }\nIEnumerator Bar(int n) { yield return null; }";
+            AssertError("private string _n = \"Foo\"; void Start() { StartCoroutine(_n); }" + co, "名前を定数", BodyLine);
+            AssertError("void Start() { StartCoroutine(\"Baz\"); }" + co, "Baz というメソッドがありません", BodyLine);
+            AssertError("void Start() { StartCoroutine(\"Bar\"); }" + co, "引数の数が合いません", BodyLine);
+            AssertError("void Start() { StartCoroutine(\"Foo\", 1); }" + co, "引数の数が合いません", BodyLine);
+            AssertError("void Start() { StartCoroutine(\"Bar\", \"x\"); }" + co, "この値は Bar の引数", BodyLine);
         }
 
         // ---- 同じコルーチンへの再入（#107 の決めたこと 10） ----------------------
@@ -490,12 +524,6 @@ IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); 
         }
 
         [Test]
-        public void ErrorForStringStart()
-        {
-            AssertError("void Start() { StartCoroutine(\"Foo\"); }\nIEnumerator Foo() { yield return null; }", "文字列で指定する StartCoroutine", BodyLine);
-        }
-
-        [Test]
         public void ErrorForOtherBehavioursStart()
         {
             AssertError("public CoUse other;\nvoid Start() { other.StartCoroutine(Foo()); }\nIEnumerator Foo() { yield return null; }", "ほかのビヘイビアの StartCoroutine", BodyLine + 1);
@@ -518,7 +546,9 @@ IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); 
         [TestCase("public CoUse other; IEnumerator Get() { return other.Foo(); } void Start() { StartCoroutine(Get()); }\npublic IEnumerator Foo() { yield return null; }", "ほかのビヘイビアのコルーチン（other.Foo")]
         [TestCase("public CoUse other; void Start() { StartCoroutine(other.Foo()); }\npublic IEnumerator Foo() { yield return null; }", "ほかのビヘイビアのコルーチン（other.Foo")]
         [TestCase("static IEnumerator Foo() { yield return null; } void Start() { StartCoroutine(Foo()); }", "static メソッドのコルーチン")]
-        [TestCase("void Start() { IEnumerator L() { yield return null; } StartCoroutine(L()); }", "ローカル関数のコルーチン")]
+        [TestCase("void Start() { static IEnumerator L() { yield return null; } StartCoroutine(L()); }", "static のローカル関数")]
+        [TestCase("static void S() { IEnumerator L() { yield return null; } } void Start() { }", "static のローカル関数")]
+        [TestCase("void Start() { System.Collections.Generic.IEnumerable<int> L() { yield return 1; } }", "列挙のための yield")]
         [TestCase("int P { get { yield return null; } }", "プロパティ・インデクサーの中の yield")]
         [TestCase("IEnumerator Foo(int n) { switch (n) { case 1 when n > 0: yield return null; break; } }", "when の付いた case は未対応です")]
         [TestCase("private Coroutine[] _cs = new Coroutine[1]; int I() => 0; void Start() { _cs[I()] = _cs[I()] ?? StartCoroutine(Foo()); }\nIEnumerator Foo() { yield return null; }", "?? ・ ??= の左には")]

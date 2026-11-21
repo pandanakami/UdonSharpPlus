@@ -69,7 +69,7 @@ namespace FeatureTests.Coroutines
                                         + "|Q=c1=2,2;c5=6,6;f12;g1=9,3;d1=12;d5=16;f9;a26,24t,3q2,50;a721,714t,8q7,7;g0=12,3;n113;o13,13;r3,True,12,7;w3;sFalse=3;sTrue=12;"
                                         + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;"
                                         + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;"
-                                        + "|Y=g3;gs;pt5;atd;wrapTrue;gk;"
+                                        + "|Y=g3;gs;pt5;atd;wrapTrue;gk;a0;b0;c0;o;a1;b1;c1;o1;stop;e0;c2;c3;o;o1;z0;w;z1;gq;x0;s;z2;x1;y;z3;x2;x3;lf113;lf123;ls123;"
                                         + "|U=c1@1;e1@1;t1@1;a1@2;b2@3;prop@4;until@6;sb1@7;sa@8;sdb@8;lam@10;frames@10;/t2True;wpTrue;wrTrue;waTrue;rtTrue;"
                                         + "|N=d6,21;n1x;n2x;i67;gq13;l01020/789;f55;ka;tTrueTrue;|M=a0.25;c3;a0.5;c2;a0.75;c1;c2;idle;a1;c1;wh;faded;ring;chase;whe;rest;whey;done;alpha1,timer0,ai2;/spawn3s0s1s2;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
@@ -83,7 +83,7 @@ namespace FeatureTests.Coroutines
         //    Coroutine の null との比較、StopAllCoroutines・GameObject を非アクティブにすると止まる・ビヘイビアを無効にしても止まらない・
         //    非アクティブの GameObject では開始しない（Peer で確かめる）
         // X：子→孫→ひ孫・一つの子を二つの親が待つ（2 つ目は再開しない）・自分を待つ・互いに待つ（再開しない）・親を止めても子は動く・
-        //    終わったものを待つと次のフレーム、止めたものを待つとその場で続く・WaitUntil の評価回数（#107 の追加テスト案の 4・12）
+        //    一度も yield せずに終わったものを待つと次のフレーム、止めたものを待つとその場で続く・WaitUntil の評価回数（#107 の追加テスト案の 4・12）
         // S：WaitForSeconds・WaitForSecondsRealtime の負・0・極小・NaN・正の無限大（無限大・NaN の WaitForSeconds と、無限大の Realtime は再開しない）
         // Q：ラムダが捕まえたローカル変数・匿名型・タプル・普通のクラス・List・GroupBy・LINQ・演算子を、yield をまたいで使う（#107 の追加テスト案の 3・6・7・8）
         // V：親の GameObject を非アクティブにすると止まる・OnDisable の中では開始しない・OnDisable の中の StopAllCoroutines・Destroy したものは動かない（案の 13。Peer で確かめる）
@@ -553,7 +553,7 @@ namespace FeatureTests.Coroutines
         // 親を止めても、親が開始した子（待っていたものも）は動く
         private IEnumerator GStopParent() { Coroutine p = StartCoroutine(GParent()); yield return null; StopCoroutine(p); X("es"); }
         private IEnumerator GParent() { StartCoroutine(GLong(3, "ei")); yield return StartCoroutine(GLong(3, "ew")); X("eNever"); }
-        // 終わったものを待つと次のフレーム、止めたものを待つとその場で続く
+        // 一度も yield せずに終わったものを待つと次のフレーム、止めたものを待つとその場で続く
         private IEnumerator GHandle(string n, bool stop, bool late)
         {
             if (late) yield return null;
@@ -893,6 +893,77 @@ namespace FeatureTests.Coroutines
             StopCoroutine(kept);
             StartCoroutine(kept);
             for (int k = 0; k < 2; k++) yield return null;
+
+            // 文字列で指定する開始・停止（#174）。StopCoroutine("名前") が止めるのは、名前で開始したものだけ（c は止まらない）
+            StartCoroutine("YTick", "a");
+            StartCoroutine(nameof(YTick), "b");
+            StartCoroutine(YTick("c"));
+            Coroutine once = StartCoroutine(nameof(YOnce));
+            yield return null;
+            StopCoroutine("YTick");
+            Y("stop");
+            yield return once;
+            StartCoroutine("YTick", "e");
+            StopCoroutine(_yName);
+            for (int k = 0; k < 4; k++) yield return null;
+
+            // 一度 yield してから終わったものを待つと、その場で続く（前のフレームより前に終わったものも）。一度も yield せずに終わったものは次のフレーム（#174）
+            Coroutine done = StartCoroutine(YOnce());
+            for (int k = 0; k < 3; k++) yield return null;
+            StartCoroutine(YTick("z"));
+            yield return done;
+            Y("w");
+            Coroutine quick = StartCoroutine(YGen("q"));
+            yield return null;
+            StopCoroutine(quick);
+            StartCoroutine(YTick("x"));
+            yield return StartCoroutine(_yNever ? YOnce() : YSync());
+            Y("y");
+            for (int k = 0; k < 4; k++) yield return null;
+
+            // ローカル関数のコルーチン（#174）。外の変数は、yield をまたいでも外と共有する
+            int shared = 0;
+            IEnumerator LocalCo(int add)
+            {
+                shared += add;
+                yield return null;
+                shared += 10;
+                Y("lf" + shared);
+            }
+            StartCoroutine(LocalCo(1));
+            shared += 100;
+            Coroutine lc = StartCoroutine(LocalCo(2));
+            yield return lc;
+            Y("ls" + shared);
+        }
+
+        private string _yName = "YTick";
+
+        private IEnumerator YTick(string tag)
+        {
+            for (int i = 0; ; i++)
+            {
+                Y(tag + i);
+                if (i == 3)
+                    yield break;
+                yield return null;
+            }
+        }
+
+        private bool _yNever;
+
+        private IEnumerator YSync()
+        {
+            if (_yNever)
+                yield return null;
+            Y("s");
+        }
+
+        private IEnumerator YOnce()
+        {
+            Y("o");
+            yield return null;
+            Y("o1");
         }
 
         private IEnumerator YGen<T>(T value)

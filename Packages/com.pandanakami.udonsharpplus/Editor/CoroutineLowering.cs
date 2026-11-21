@@ -222,6 +222,18 @@ namespace UdonSharpPlus
             m.Body != null && Yields(m.Body).Any()
             && model.GetDeclaredSymbol(m) is IMethodSymbol symbol && symbol.ReturnType.ToDisplayString() == EnumeratorName && !symbol.IsStatic;
 
+        /// <summary>
+        /// ログ・名前の比べに使うコルーチンの名前。デリゲートの段が移したローカル関数（__lf_Foo__t_n）は、元の名前（Foo）。
+        /// ローカル関数は StopCoroutine("Foo") では止まらない（文字列では開始できないので、名前で開始した印が付かない）
+        /// </summary>
+        private static string DisplayName(string name)
+        {
+            if (!name.StartsWith("__lf_"))
+                return name;
+            int end = name.LastIndexOf("__", System.StringComparison.Ordinal);
+            return end > 5 ? name.Substring(5, end - 5) : name;
+        }
+
         private static IEnumerable<YieldStatementSyntax> Yields(SyntaxNode body) =>
             body.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax || n is LocalFunctionStatementSyntax)).OfType<YieldStatementSyntax>();
 
@@ -451,14 +463,14 @@ namespace UdonSharpPlus
                 SimpleNameSyntax name = call.Expression is MemberAccessExpressionSyntax access ? access.Name : call.Expression as SimpleNameSyntax;
                 if (name == null)
                     return;
-                if (method.Parameters.Any(p => p.Type.SpecialType == SpecialType.System_String))
-                {
-                    Error(call, Loc.T($"文字列で指定する {method.Name} は未対応です。{method.Name}(Foo()) のように、コルーチンの値で書いてください", $"{method.Name} with a method name string is not supported. Pass the coroutine value, like {method.Name}(Foo())"));
-                    return;
-                }
                 if (call.Expression is MemberAccessExpressionSyntax receiver && !(receiver.Expression is ThisExpressionSyntax || receiver.Expression is BaseExpressionSyntax))
                 {
                     Error(call, Loc.T($"ほかのビヘイビアの {method.Name} は未対応です。そのビヘイビアのメソッドの中で呼んでください", $"Calling {method.Name} on another behaviour is not supported. Call it from a method of that behaviour"));
+                    return;
+                }
+                if (method.Parameters.Length > 0 && method.Parameters[0].Type.SpecialType == SpecialType.System_String)
+                {
+                    RewriteByName(call, method, name);
                     return;
                 }
                 string target;
@@ -472,6 +484,76 @@ namespace UdonSharpPlus
                     // 戻り値を使わないときは、開始したあとに何もしないメソッドにする（入れ子で呼ばれても、ローカル変数が上書きされて困ることがない）
                     target = call.Parent is ExpressionStatementSyntax ? "__co_go" : "__co_start";
                 _edits.Add(name.Span, target);
+            }
+
+            /// <summary>
+            /// 文字列で指定する StartCoroutine("Foo")・StartCoroutine("Foo", value)・StopCoroutine("Foo")（#174）。
+            /// 開始は、名前を定数にして、StartCoroutine(Foo(value)) と同じに開始し、名前で開始した印を付ける（__co_named）。
+            /// 止めるのは、Unity と同じく、名前で開始したもののうち、その名前のものを全部（__co_stopn。名前は実行時の文字列でよい）
+            /// </summary>
+            private void RewriteByName(InvocationExpressionSyntax call, IMethodSymbol method, SimpleNameSyntax name)
+            {
+                var args = call.ArgumentList.Arguments;
+                if (method.Name == "StopCoroutine")
+                {
+                    _edits.Add(name.Span, "__co_stopn");
+                    return;
+                }
+                Optional<object> constant = _model.GetConstantValue(args[0].Expression);
+                if (!constant.HasValue || !(constant.Value is string target))
+                {
+                    Error(args[0], Loc.T("文字列で指定する StartCoroutine は、名前を定数（\"Foo\"・nameof(Foo)）で書いてください", "StartCoroutine with a method name needs a constant name (\"Foo\" or nameof(Foo))"));
+                    return;
+                }
+                var candidates = _model.LookupSymbols(call.SpanStart, _type, target).OfType<IMethodSymbol>()
+                    .Where(m => !m.IsStatic && m.ReturnType.ToDisplayString() == EnumeratorName).ToList();
+                // override は基底の宣言と同じものとして数える
+                candidates = candidates.Where(m => !candidates.Any(o => !SymbolEqualityComparer.Default.Equals(o, m) && SymbolEqualityComparer.Default.Equals(o.OverriddenMethod, m))).ToList();
+                if (candidates.Count == 0)
+                {
+                    Error(args[0], Loc.T($"StartCoroutine(\"{target}\")：このクラスに、IEnumerator を返す {target} というメソッドがありません", $"StartCoroutine(\"{target}\"): this class has no method named {target} that returns IEnumerator"));
+                    return;
+                }
+                if (candidates.Count > 1)
+                {
+                    Error(args[0], Loc.T($"StartCoroutine(\"{target}\")：{target} という名前のメソッドが複数あります。StartCoroutine({target}(...)) と書いてください", $"StartCoroutine(\"{target}\"): there are several methods named {target}. Write StartCoroutine({target}(...))"));
+                    return;
+                }
+                IMethodSymbol co = candidates[0];
+                if (co.IsGenericMethod)
+                {
+                    Error(args[0], Loc.T($"StartCoroutine(\"{target}\")：ジェネリックのメソッドは、文字列では開始できません（Unity も同じ）。StartCoroutine({target}(...)) と書いてください", $"StartCoroutine(\"{target}\"): a generic method cannot be started by name (same as Unity). Write StartCoroutine({target}(...))"));
+                    return;
+                }
+                bool hasValue = args.Count > 1;
+                if (co.Parameters.Length != (hasValue ? 1 : 0))
+                {
+                    Error(call, Loc.T($"StartCoroutine(\"{target}\")：{target} の引数の数が合いません（文字列で指定するときは、引数なしか、値 1 つの StartCoroutine(\"{target}\", value)）",
+                        $"StartCoroutine(\"{target}\"): the number of arguments of {target} does not match (with a method name, use no argument or one value: StartCoroutine(\"{target}\", value))"));
+                    return;
+                }
+                _edits.Add(name.Span, call.Parent is ExpressionStatementSyntax ? "__co_go" : "__co_start");
+                string callee = "this." + (SyntaxFacts.GetKeywordKind(co.Name) != SyntaxKind.None ? "@" : "") + co.Name;
+                if (!hasValue)
+                {
+                    _edits.Add(args[0].Span, $"__co_named({callee}())");
+                    return;
+                }
+                ExpressionSyntax value = args[1].Expression;
+                ITypeSymbol paramType = co.Parameters[0].Type;
+                string cast = "";
+                if (!_model.ClassifyConversion(value, paramType).IsImplicit)
+                {
+                    if (_model.GetTypeInfo(value).Type?.SpecialType != SpecialType.System_Object)
+                    {
+                        Error(value, Loc.T($"StartCoroutine(\"{target}\", value)：この値は {target} の引数（{paramType.ToDisplayString()}）に渡せません", $"StartCoroutine(\"{target}\", value): this value cannot be passed to the parameter of {target} ({paramType.ToDisplayString()})"));
+                        return;
+                    }
+                    cast = "(" + paramType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + ")";
+                }
+                // "Foo", value → __co_named(this.Foo((T)(value)))（value の中の置き換えを残すため、前とうしろだけを置き換える）
+                _edits.Add(TextSpan.FromBounds(args[0].SpanStart, value.SpanStart), $"__co_named({callee}({cast}(");
+                _edits.Add(new TextSpan(value.Span.End, 0), ")))");
             }
 
             /// <summary>この組のコルーチンのメソッドを、その場で呼んだ式か（新しい状態の番号を返す）</summary>
@@ -531,7 +613,7 @@ namespace UdonSharpPlus
                 yield return $"private int[] __co_free = new int[{System.Math.Max(count, 1)}];";
                 // コルーチンのメソッドごとの「動いているか」（同じコルーチンへの再入を止める。#107 の決めたこと 10）
                 yield return $"private int[] __co_on = new int[{System.Math.Max(count, 1)}];";
-                yield return "private string[] __co_names = new string[] { " + string.Join(", ", _work.Coroutines.Select(c => "\"" + c.Declaration.Identifier.ValueText + "\"")) + " };";
+                yield return "private string[] __co_names = new string[] { " + string.Join(", ", _work.Coroutines.Select(c => "\"" + DisplayName(c.Declaration.Identifier.ValueText) + "\"")) + " };";
                 // 次のフレームを待っているものの番号と、待ち始めたフレーム（外から __co_frame を呼ばれても、待ち始めたフレームのうちには再開しない）
                 yield return "private int[] __co_fq = new int[8]; private int[] __co_ff = new int[8]; private int __co_fh; private int __co_fn;";
                 yield return "private int[] __co_sh = new int[8]; private float[] __co_st = new float[8]; private int[] __co_sf = new int[8]; private int __co_sn;";
@@ -539,10 +621,12 @@ namespace UdonSharpPlus
                 // 状態を作る（同じメソッドの空いた状態があれば使い回す）。
                 // 見出し：[0] 番号 [1] メソッドの番号 [2] 再開する位置 [3] 開始したか [4] 空きのつなぎ [5] 動いている途中か [6] 動いている途中で止められたか
                 // [7] 終わるのを待っている親の番号 [8] 親がまだ yield の途中か（子が最初の yield より前に終わったら、親は次のフレームで再開する）
-                // [9] この状態で最後に止めたものの番号（止めたものを待つと、Unity ではその場で続きが動く。終わったものなら次のフレーム）
-                yield return "protected object[] __co_alloc(int id, int size) { int f = __co_free[id]; if (f != 0) { object[] r = (object[])__co_slots[f - 1]; int[] rh = (int[])r[0]; __co_free[id] = rh[4]; rh[2] = 0; rh[3] = 0; rh[4] = 0; rh[5] = 0; rh[6] = 0; rh[7] = 0; rh[8] = 0; return r; } "
+                // [9] この状態の直近 32 世代が、一度も yield せずに（StartCoroutine の中で）終わったか（世代 & 31 のビット）。Unity では、それを待つと
+                //     次のフレームで続きが動く。ほかの、もう終わった・止めたものを待つと、その場で続きが動く（Unity で測った結果。#174）
+                // [10] 文字列の StartCoroutine("Foo") で開始したか（StopCoroutine("Foo") が止めるのは、これだけ。Unity と同じ）
+                yield return "protected object[] __co_alloc(int id, int size) { int f = __co_free[id]; if (f != 0) { object[] r = (object[])__co_slots[f - 1]; int[] rh = (int[])r[0]; __co_free[id] = rh[4]; rh[2] = 0; rh[3] = 0; rh[4] = 0; rh[5] = 0; rh[6] = 0; rh[7] = 0; rh[8] = 0; rh[10] = 0; return r; } "
                              + "if (__co_used == __co_slots.Length) { object[] g = new object[__co_used * 2]; for (int i = 0; i < __co_used; i++) g[i] = __co_slots[i]; __co_slots = g; } "
-                             + "object[] s = new object[size]; int[] h = new int[10]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }";
+                             + "object[] s = new object[size]; int[] h = new int[11]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }";
                 yield return "private object[] __co_get(int c) { int i = (c & 65535) - 1; if (i < 0 || i >= __co_used) return null; object[] s = (object[])__co_slots[i]; if (((int[])s[0])[0] != c) return null; return s; }";
                 // 古い番号を無効にする（世代を進める）
                 // 世代を使い切ったら（32767）、世代を 0 にして引退させる（空きに戻さないので、古い番号が新しい開始を指すことはない。#107）
@@ -550,11 +634,13 @@ namespace UdonSharpPlus
                 // 空きに戻す：参照を切って、空きのつなぎに入れる
                 yield return "private void __co_recycle(object[] s) { int[] h = (int[])s[0]; for (int i = 1; i < s.Length; i++) s[i] = null; h[2] = -1; h[5] = 0; h[6] = 0; h[7] = 0; h[8] = 0; if ((h[0] >> 16) == 0) return; h[4] = __co_free[h[1]]; __co_free[h[1]] = h[0] & 65535; }";
                 // 止める。動いている途中（自分を止めたときなど）なら、次の yield で空きに戻す（Unity と同じく、次の yield まで動く）
-                yield return "private void __co_kill(object[] s) { int[] h = (int[])s[0]; h[9] = h[0]; __co_bump(h); if (h[5] != 0) h[6] = 1; else __co_recycle(s); }";
+                yield return "private void __co_kill(object[] s) { int[] h = (int[])s[0]; h[9] &= ~(1 << ((h[0] >> 16) & 31)); __co_bump(h); if (h[5] != 0) h[6] = 1; else __co_recycle(s); }";
                 // 終わり。待っている親があれば、同じフレームのうちに再開する（親がまだ yield の途中なら、次のフレーム）
-                yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) __co_bump(h); __co_recycle(s); "
+                yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) { int b = 1 << ((h[0] >> 16) & 31); if (h[2] == 0) h[9] |= b; else h[9] &= ~b; __co_bump(h); } __co_recycle(s); "
                              + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
                 yield return "protected void __co_stop(int c) { object[] s = __co_get(c); if (s != null && ((int[])s[0])[3] != 0) __co_kill(s); }";
+                yield return "protected int __co_named(int c) { object[] s = __co_get(c); if (s != null) ((int[])s[0])[10] = 1; return c; }";
+                yield return "protected void __co_stopn(string n) { for (int i = 0; i < __co_used; i++) { object[] s = (object[])__co_slots[i]; int[] h = (int[])s[0]; if (h[3] != 0 && h[10] != 0 && __co_names[h[1]] == n) __co_kill(s); } }";
                 yield return "protected void __co_drop(int c) { object[] s = __co_get(c); if (s == null) return; int[] h = (int[])s[0]; if (h[3] != 0) return; __co_bump(h); __co_recycle(s); }";
                 yield return "protected void __co_stopall() { for (int i = 0; i < __co_used; i++) { object[] s = (object[])__co_slots[i]; if (((int[])s[0])[3] != 0) __co_kill(s); } }";
                 // GameObject が非アクティブになったときだけ止める（ビヘイビアを無効にしただけなら止めない。Unity と同じ）
@@ -575,13 +661,15 @@ namespace UdonSharpPlus
                     " : the same coroutine was started with StartCoroutine while it was running, so it was stopped (its local variables would be overwritten; it can be started with yield return StartCoroutine(...))");
                 yield return $"private void __co_step(object[] s) {{ int id = ((int[])s[0])[1]; if (__co_on[id] != 0) {{ UnityEngine.Debug.LogError(\"[UdonSharpPlus] \" + __co_names[id] + \"{reenter}\"); __co_kill(s); return; }} __co_on[id] = 1; __co_stepx(s, id); }}";
 
-                // 子のコルーチンを待つ。終わっている（番号が見つからない）なら次のフレーム、止めたものならその場で続ける。まだ開始していなければ、親を覚えてから開始する
+                // 子のコルーチンを待つ。もう終わった・止めたもの（番号が見つからない）なら、その場で続ける。ただし、一度も yield せずに終わったもの（[9]）と null は
+                // 次のフレーム（Unity と同じ。#174）。まだ開始していなければ、親を覚えてから開始する
                 // 自分を待つ・ほかの親が待っているものを待つと、Unity と同じく二度と再開しない（止めるまで状態を持ったまま）。#107 の追加テスト案の 4
                 // 待つのをやめて、再開を予約しないでおく。動いている途中で止められていたら空きに戻す（戻したら false）
                 yield return "private bool __co_park(object[] s) { int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return false; } return true; }";
                 string inactive2 = "UnityEngine.Debug.LogError(\"Coroutine couldn't be started because the the game object '\" + gameObject.name + \"' is inactive!\");";
                 yield return "protected void __co_await(object[] s, int c) { int[] hd = (int[])s[0]; object[] k = __co_get(c); "
-                             + "if (k == null) { int i = (c & 65535) - 1; if (c != 0 && i >= 0 && i < __co_used && ((int[])((object[])__co_slots[i])[0])[9] == c) { if (__co_park(s)) __co_step(s); return; } __co_wf(s); return; } "
+                             + "if (k == null) { if (c == 0) { __co_wf(s); return; } int i = (c & 65535) - 1; if (i >= 0 && i < __co_used) { int[] sh = (int[])((object[])__co_slots[i])[0]; int g = c >> 16; int now = sh[0] >> 16; "
+                             + "if (g < now && now - g <= 31 && (sh[9] & (1 << (g & 31))) != 0) { __co_wf(s); return; } } if (__co_park(s)) __co_step(s); return; } "
                              + "if (k == s) { __co_park(s); return; } int[] kh = (int[])k[0]; "
                              + "if (kh[7] != 0) { UnityEngine.Debug.LogError(\"Another coroutine is already waiting for this coroutine!\"); __co_park(s); return; } "
                              + "if (kh[3] != 0) { __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } kh[7] = hd[0]; kh[8] = kh[5]; return; } "

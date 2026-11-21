@@ -99,9 +99,20 @@ namespace UdonSharpPlus
             {
                 case AnonymousFunctionExpressionSyntax _:
                     return null;   // C# でもエラー（CS1621）
-                case LocalFunctionStatementSyntax _:
-                    return Loc.T("ローカル関数のコルーチンは未対応です。クラスのメソッドにしてください",
-                        "Coroutines in local functions are not supported. Make it a method of the class");
+                case LocalFunctionStatementSyntax local:
+                    // ローカル関数は、デリゲートの段がクラスのメソッドに移すので、そのメソッドのコルーチンになる（#174）
+                    if (!(model.GetDeclaredSymbol(local) is IMethodSymbol fn))
+                        return null;
+                    if (fn.ReturnType.ToDisplayString() != EnumeratorName)
+                        return Loc.T($"{fn.ReturnType.ToDisplayString()} を返す yield（列挙のための yield）は未対応です。コルーチンは、IEnumerator を返すローカル関数・メソッドに書いてください",
+                            $"yield returning {fn.ReturnType.ToDisplayString()} (an iterator for enumeration) is not supported. Write coroutines as local functions or methods returning IEnumerator");
+                    if (!InterfaceLowering.IsUdonSharpBehaviour(fn.ContainingType))
+                        return Loc.T("UdonSharpBehaviour でないクラスのコルーチンは未対応です。UdonSharpBehaviour のメソッドに書いてください",
+                            "Coroutines in classes that are not UdonSharpBehaviour are not supported. Write them in an UdonSharpBehaviour");
+                    if (IsStaticLocal(fn))
+                        return Loc.T("static のローカル関数・static メソッドの中のローカル関数のコルーチンは未対応です。static を外してください",
+                            "Coroutines in static local functions, or in local functions inside static methods, are not supported. Remove static");
+                    return null;
                 case AccessorDeclarationSyntax _:
                     return Loc.T("プロパティ・インデクサーの中の yield は未対応です。コルーチンは、IEnumerator を返すメソッドに書いてください",
                         "yield inside a property or indexer is not supported. Write coroutines as methods returning IEnumerator");
@@ -119,6 +130,19 @@ namespace UdonSharpPlus
                 return Loc.T("static メソッドのコルーチンは未対応です。static を外してください",
                     "Coroutines in static methods are not supported. Remove static");
             return null;
+        }
+
+        /// <summary>static のローカル関数か、static のメンバーの中のローカル関数か（移したメソッドが static になる）</summary>
+        private static bool IsStaticLocal(IMethodSymbol fn)
+        {
+            ISymbol s = fn;
+            while (s is IMethodSymbol m && (m.MethodKind == MethodKind.LocalFunction || m.MethodKind == MethodKind.AnonymousFunction))
+            {
+                if (m.IsStatic)
+                    return true;
+                s = m.ContainingSymbol;
+            }
+            return s?.IsStatic == true;
         }
 
         private static Location PlaceLocation(SyntaxNode owner)

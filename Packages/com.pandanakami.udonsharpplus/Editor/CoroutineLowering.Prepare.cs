@@ -100,8 +100,12 @@ namespace UdonSharpPlus
                              .OrderByDescending(n => n.SpanStart).ToList())
                     Coalesce(node);
 
-                foreach (MethodDeclarationSyntax m in _cls.Members.OfType<MethodDeclarationSyntax>().Where(m => IsCoroutine(_model, m)))
-                    foreach (YieldStatementSyntax y in Yields(m.Body).Where(y => y.IsKind(SyntaxKind.YieldReturnStatement)))
+                // コルーチンのメソッドと、コルーチンのローカル関数（デリゲートの段がメソッドに移す。#174）
+                var bodies = _cls.Members.OfType<MethodDeclarationSyntax>().Where(m => IsCoroutine(_model, m)).Select(m => (SyntaxNode)m.Body)
+                    .Concat(OwnNodes(_cls).OfType<LocalFunctionStatementSyntax>().Where(l => l.Body != null && Yields(l.Body).Any()
+                        && _model.GetDeclaredSymbol(l) is IMethodSymbol fn && fn.ReturnType.ToDisplayString() == EnumeratorName).Select(l => (SyntaxNode)l.Body));
+                foreach (SyntaxNode body in bodies)
+                    foreach (YieldStatementSyntax y in Yields(body).Where(y => y.IsKind(SyntaxKind.YieldReturnStatement)))
                     {
                         string code = Yield(y.Expression, ref temp);
                         if (code == null)
