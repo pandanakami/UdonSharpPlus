@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,6 +10,15 @@ namespace FeatureTests.Coroutines
     public class CoBox
     {
         public Coroutine handle;
+    }
+
+    // #107：演算子を持つ普通のクラス（コルーチンの Q の段で使う）
+    public class CoNum
+    {
+        public int v;
+        public CoNum(int v) { this.v = v; }
+        public static CoNum operator +(CoNum a, CoNum b) => new CoNum(a.v + b.v);
+        public static implicit operator int(CoNum a) => a.v;
     }
 
     // #107：コルーチン。普通の Unity と同じ順・同じフレームで動くかを確かめる
@@ -31,7 +41,9 @@ namespace FeatureTests.Coroutines
                                         + "|R=r1;|O=5,7;1,8;2,9;|I=b0;d0;b1;d1;derived;own;b0;b1;off;|K=20;churnTrue;|L=True1,1,-1;stoppedTrue;"
                                         + "|G=t0;u0;nTrueTrue;t1;u1;s0;s1;u2;end;v0;v1;fin;allTrue;inactiveTrue;disabledTrue;inactiveStartTrue;"
                                         + "|X=f0@0;s0@0;s0a@0;c@1;da@1;db@1;es@1;f0a@1;f1@1;s1@1;s1a@1;f2@1;a3@2;a2@2;a1@2;a@2;f1a@2;ev3@2;g3@2;bc@3;bp1@3;ei@3;ew@3;"
-                                        + "|S=w-1@1;w0@1;wTiny@1;r-1@1;rTiny@1;rNaN@1;";
+                                        + "|S=w-1@1;w0@1;wTiny@1;r-1@1;rTiny@1;rNaN@1;"
+                                        + "|Q=c1=2,2;c5=6,6;f12;g1=9,3;d1=12;d5=16;f9;a26,24t,3q2,50;a721,714t,8q7,7;g0=12,3;n113;o13,13;r3,True,12,7;w3;sFalse=3;sTrue=12;"
+                                        + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
         // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
@@ -45,6 +57,8 @@ namespace FeatureTests.Coroutines
         // X：子→孫→ひ孫・一つの子を二つの親が待つ（2 つ目は再開しない）・自分を待つ・互いに待つ（再開しない）・親を止めても子は動く・
         //    終わったものを待つと次のフレーム、止めたものを待つとその場で続く・WaitUntil の評価回数（#107 の追加テスト案の 4・12）
         // S：WaitForSeconds・WaitForSecondsRealtime の負・0・極小・NaN・正の無限大（無限大・NaN の WaitForSeconds と、無限大の Realtime は再開しない）
+        // Q：ラムダが捕まえたローカル変数・匿名型・タプル・普通のクラス・List・GroupBy・LINQ・演算子を、yield をまたいで使う（#107 の追加テスト案の 3・6・7・8）
+        // V：親の GameObject を非アクティブにすると止まる・OnDisable の中では開始しない・OnDisable の中の StopAllCoroutines・Destroy したものは動かない（案の 13。Peer で確かめる）
 
         public Text display;
         public CoroutinePeer peer;
@@ -100,6 +114,7 @@ namespace FeatureTests.Coroutines
             StartCoroutine(ManyTest());
             StartCoroutine(Collections());
             StartCoroutine(Graph());
+            StartCoroutine(Combo());
             StartCoroutine(Judge());
         }
 
@@ -355,6 +370,7 @@ namespace FeatureTests.Coroutines
             peer.gameObject.SetActive(true);
             for (int k = 0; k < 3; k++) yield return null;
             _stops += "inactiveStart" + (none && peer.log.IndexOf('d') < 0) + ";";
+            yield return StartCoroutine(Life());
         }
 
         // D：yield をまたぐローカル変数（同じコルーチンを 2 つ同時に動かしても、変数は別々）・for の continue・break・入れ子のループ
@@ -530,6 +546,174 @@ namespace FeatureTests.Coroutines
         private IEnumerator GFlipper() { _gFlip = 1; yield return null; _gFlip = 2; yield return null; _gFlip = 3; yield return null; _gFlip = 4; }
         private float NaN() => float.NaN;
 
+        // Q：ラムダ・匿名型・タプル・普通のクラス・List・LINQ・演算子を、yield をまたいで使う（#107 の追加テスト案の 3・6・7・8）
+        private string _combo = "";
+        private System.Action _qBump;
+        private CoNum _qShared;
+
+        private void Q(string s) { _combo += s + ";"; }
+
+        private IEnumerator Combo()
+        {
+            StartCoroutine(QCapture(1));
+            StartCoroutine(QCapture(5));
+            StartCoroutine(QWait());
+            StartCoroutine(QBumper());
+            StartCoroutine(QPass());
+            StartCoroutine(QShapes(2));
+            StartCoroutine(QShapes(7));
+            StartCoroutine(QLinq());
+            StartCoroutine(QOps());
+            yield return null;
+            _qShared.v = 50;
+        }
+
+        // ラムダが捕まえたローカル変数を、yield のあとに読み書きする（多重に動かしても混ざらない）
+        private IEnumerator QCapture(int k)
+        {
+            int n = k;
+            System.Func<int> get = () => n;
+            System.Action inc = () => n++;
+            yield return null;
+            inc();
+            Q("c" + k + "=" + get() + "," + n);
+            n += 10;
+            yield return null;
+            Q("d" + k + "=" + get());
+        }
+
+        // 同じローカル変数を、WaitUntil の条件とふつうのラムダの両方が使う
+        private IEnumerator QWait()
+        {
+            int n = 0;
+            _qBump = () => n++;
+            yield return new WaitUntil(() => n >= 3);
+            Q("w" + n);
+        }
+
+        private IEnumerator QBumper()
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                yield return null;
+                if (_qBump != null) _qBump();
+            }
+        }
+
+        // 子のコルーチンにデリゲートを渡す
+        private IEnumerator QPass()
+        {
+            int m = 4;
+            yield return StartCoroutine(QChild(x => x * m));
+            m = 6;
+            yield return StartCoroutine(QChild(x => x + m));
+        }
+
+        private IEnumerator QChild(System.Func<int, int> f)
+        {
+            yield return null;
+            Q("f" + f(3));
+        }
+
+        // 匿名型・入れ子のタプル・分解した変数・普通のクラスを、yield をまたいで持つ（外から変えた普通のクラスは、最新の中身を読む）
+        private IEnumerator QShapes(int k)
+        {
+            var a = new { Name = "a" + k, V = k * 3 };
+            var t = (k, (k * 2, "t"));
+            var (p, q) = (k + 1, "q" + k);
+            var box = new CoNum(k);
+            if (k == 2) _qShared = box;
+            yield return null;
+            yield return null;
+            Q(a.Name + a.V + "," + t.Item1 + t.Item2.Item1 + t.Item2.Item2 + "," + p + q + "," + box.v);
+        }
+
+        // List・GroupBy・匿名型の List・LINQ の結果を、yield をまたいで使う
+        private IEnumerator QLinq()
+        {
+            var list = new System.Collections.Generic.List<int> { 1, 2, 3, 4, 5, 6 };
+            var groups = list.GroupBy(x => x % 2).ToList();
+            var rows = list.Select(x => new { X = x, Sq = x * x }).ToList();
+            var evens = list.Where(x => x % 2 == 0).ToList();
+            yield return null;
+            list.Add(8);
+            foreach (var g in groups)
+            {
+                Q("g" + g.Key + "=" + g.Sum() + "," + g.Count());
+                yield return null;
+            }
+            Q("r" + rows.Count(e => e.Sq > 10) + "," + rows.Select(e => e.X).Contains(3) + "," + evens.Sum() + "," + list.Count);
+            var sums = new[] { new[] { 1, 2 }, new[] { 3, 4, 5 } }.SelectMany(z => z).GroupBy(z => z > 2).Select(gg => new { K = gg.Key, S = gg.Sum() }).ToList();
+            yield return null;
+            foreach (var s in sums)
+                Q("s" + s.K + "=" + s.S);
+        }
+
+        // ユーザー定義の演算子の結果を yield をまたいで持ち、再開後に複合代入・暗黙の変換をする
+        private IEnumerator QOps()
+        {
+            CoNum x = new CoNum(1) + new CoNum(2);
+            yield return null;
+            x += new CoNum(10);
+            int iv = x;
+            yield return StartCoroutine(QNumChild(x + new CoNum(100)));
+            Q("o" + x.v + "," + iv);
+        }
+
+        private IEnumerator QNumChild(int v)
+        {
+            yield return null;
+            Q("n" + v);
+        }
+
+        // V：親の GameObject を非アクティブにすると止まる・OnDisable の中で開始する（非アクティブなので開始しない）・
+        //    OnDisable の中の StopAllCoroutines（ビヘイビアを無効にしたとき）・Destroy したものは動かない（#107 の追加テスト案の 13）
+        [HideInInspector] public string ext = "";
+        public GameObject peerParent;
+        private string _life = "";
+
+        private IEnumerator Life()
+        {
+            if (peerParent == null)
+            {
+                _life += "noparent;";
+                yield break;
+            }
+            peer.Begin("p");
+            for (int k = 0; k < 3; k++) yield return null;
+            peerParent.SetActive(false);
+            int n1 = peer.log.Length;
+            for (int k = 0; k < 3; k++) yield return null;
+            peerParent.SetActive(true);
+            for (int k = 0; k < 3; k++) yield return null;
+            _life += "parent" + (peer.log.Length == n1) + ";";
+
+            peer.ArmRestart();
+            peer.gameObject.SetActive(false);
+            peer.gameObject.SetActive(true);
+            for (int k = 0; k < 3; k++) yield return null;
+            _life += "restart" + peer.note + (peer.log.IndexOf('x') < 0) + ";";
+
+            peer.ArmStop();
+            peer.Begin("s");
+            for (int k = 0; k < 2; k++) yield return null;
+            peer.enabled = false;
+            int n2 = peer.log.Length;
+            for (int k = 0; k < 3; k++) yield return null;
+            peer.enabled = true;
+            _life += "stop" + peer.note + (peer.log.Length == n2) + ";";
+
+            GameObject copy = Instantiate(peer.gameObject);
+            CoroutinePeer cp = copy.GetComponent<CoroutinePeer>();
+            cp.sink = this;   // Udon の Instantiate は、実行中に変えた変数をコピーに写さない
+            cp.BeginExt("e");
+            for (int k = 0; k < 2; k++) yield return null;
+            Destroy(copy);
+            int n3 = ext.Length;
+            for (int k = 0; k < 3; k++) yield return null;
+            _life += "destroy" + n3 + "," + ext.Length + ";";
+        }
+
         private IEnumerator Steps(string tag, int start)
         {
             _log += tag + "0@" + (F() - start) + ";";
@@ -564,7 +748,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs);
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;
