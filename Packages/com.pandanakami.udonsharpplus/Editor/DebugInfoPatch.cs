@@ -23,7 +23,7 @@ namespace UdonSharpPlus
     {
         private sealed class MethodState
         {
-            public SourceMap.Entry First;   // メソッドの最初の印（印のないノードはここにする）
+            public SourceMap.Entry First;   // メソッドの最初の印（印のないノードはここにする）。null なら、コピーではなく、元のメソッドの中に印（InPlace）があるもの
         }
 
         private static FieldInfo _currentSpan;       // MethodDebugMarker?
@@ -70,9 +70,15 @@ namespace UdonSharpPlus
                 var symbol = _roslynSymbol.GetValue(methodSymbol) as ISymbol;
                 if (symbol == null || symbol.DeclaringSyntaxReferences.Length == 0)
                     return;
-                SourceMap.Entry first = SourceMap.FirstIn(symbol.DeclaringSyntaxReferences[0].GetSyntax());
+                SyntaxNode declaration = symbol.DeclaringSyntaxReferences[0].GetSyntax();
+                SourceMap.Entry first = SourceMap.FirstIn(declaration);
                 if (first == null)
-                    return;   // コピーではない
+                {
+                    // コピーではない。元のメソッドの中に印（switch の条件など。#205）があれば、その印の中のノードだけを印の位置にする
+                    if (SourceMap.HasInPlace(declaration))
+                        Current.Add(__instance, new MethodState { First = null });
+                    return;
+                }
 
                 object compileContext = _compileContext.GetValue(context);
                 string path = DiagnosticLocationPatch.FileNameOf(compileContext, first);
@@ -96,6 +102,14 @@ namespace UdonSharpPlus
             try
             {
                 SourceMap.Entry entry = SourceMap.Find(node.GetLocation());
+                if (state.First == null)
+                {
+                    // 元のメソッド：印の中のノードは印の位置にし、それ以外は U# の処理に任せる（区間のデータは同じものを使う）
+                    if (entry == null || !entry.InPlace)
+                        return true;
+                    Record(__instance, context, entry.Line, entry.Character);
+                    return false;
+                }
                 // 別のクラスのコピーの印を拾ったら（メソッドの外の印）、メソッドの最初の印にする。
                 // クラス名のない印（ラムダの本体・ローカル関数を移したメソッドの印。#123・#124）は、同じファイルなら同じメソッドのものとみなす
                 // （普通のクラスの中のラムダは、最初の印がクラス名のない印、文ごとの印がクラス名のある印になる。#133）

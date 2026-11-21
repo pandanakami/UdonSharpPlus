@@ -86,7 +86,8 @@ namespace UdonSharpPlus
             }
 
             /// <summary>
-            /// switch 式がどの腕にも合わないとき（C# では SwitchExpressionException）に呼ぶメソッド。エラーのログを出し、null の参照で実行時例外にして止める。
+            /// switch 式がどの腕にも合わないとき（C# では SwitchExpressionException）に呼ぶメソッド。エラーのログを出し、null の配列を返す。
+            /// 呼ぶ側が __sw_nomatch_N()[0] と添字を読み、その場で実行時例外にして止める（例外の位置が、元の switch 式に出るように。#205）。
             /// partial のクラスのほかのファイルと名前が重ならないよう、ファイルの番号を付ける
             /// </summary>
             private string NoMatchName => $"__sw_nomatch_{_treeIndex}";
@@ -97,7 +98,7 @@ namespace UdonSharpPlus
                     "[UdonSharpPlus] switch expression: no arm matched (SwitchExpressionException in C#)");
                 foreach (TypeDeclarationSyntax type in _noMatch)
                     _changes.Add(new TextChange(new TextSpan(type.CloseBraceToken.SpanStart, 0),
-                        $" private static object {NoMatchName}() {{ UnityEngine.Debug.LogError(\"{message}\"); object o = null; o.GetHashCode(); return null; }} "));
+                        $" private static object[] {NoMatchName}() {{ UnityEngine.Debug.LogError(\"{message}\"); return null; }} "));
             }
 
             /// <summary>書き換え済みの範囲の中か（外側の switch を書き換えたときに、一緒に書き換えたもの）</summary>
@@ -163,11 +164,12 @@ namespace UdonSharpPlus
                 bool first = true;
                 // 必ず合うもの（下）を default にするので、それより前の default: は、使われない case にする（default が 2 つにならないように）
                 bool catchAll = false;
-                var sections = new List<(List<string> Conditions, Dictionary<string, ITypeSymbol> Declared, bool HasDefault)>();
+                var sections = new List<(List<string> Conditions, List<string> Marks, Dictionary<string, ITypeSymbol> Declared, bool HasDefault)>();
                 for (int i = 0; i < node.Sections.Count; i++)
                 {
                     SwitchSectionSyntax section = node.Sections[i];
                     var conditions = new List<string>();
+                    var marks = new List<string>();   // 条件ごとの、元のラベルの位置の印（#205）
                     var declared = new Dictionary<string, ITypeSymbol>();
                     bool hasDefault = false;
                     foreach (SwitchLabelSyntax label in section.Labels)
@@ -179,6 +181,7 @@ namespace UdonSharpPlus
                                 break;
                             case CaseSwitchLabelSyntax constant:
                                 conditions.Add($"{v} == ({Render(constant.Value, null)})");
+                                marks.Add(SourceMap.InPlaceMarker(label));
                                 break;
                             case CasePatternSwitchLabelSyntax pattern:
                                 var designations = new Dictionary<ISymbol, string>(SymbolEqualityComparer.Default);
@@ -191,6 +194,7 @@ namespace UdonSharpPlus
                                 if (pattern.WhenClause != null)
                                     condition = $"({condition}) && ({Render(pattern.WhenClause.Condition, designations.ToDictionary(p => p.Key, p => v, SymbolEqualityComparer.Default))})";
                                 conditions.Add(condition);
+                                marks.Add(SourceMap.InPlaceMarker(label));
                                 break;
                         }
                     }
@@ -198,14 +202,14 @@ namespace UdonSharpPlus
                     // （return で終わるメソッドなど）が、終わりまで行けることになり、「値を返さない道がある」エラーになるため
                     if (conditions.Contains("true"))
                         catchAll = true;
-                    sections.Add((conditions, declared, hasDefault));
+                    sections.Add((conditions, marks, declared, hasDefault));
                 }
                 if (_failed)
                     return;
                 for (int i = 0; i < node.Sections.Count; i++)
                 {
                     SwitchSectionSyntax section = node.Sections[i];
-                    var (conditions, declared, hasDefault) = sections[i];
+                    var (conditions, marks, declared, hasDefault) = sections[i];
                     bool unreachable = false;
                     if (conditions.Contains("true"))
                     {
@@ -219,7 +223,9 @@ namespace UdonSharpPlus
                     }
                     if (conditions.Count > 0)
                     {
-                        string joined = conditions.Count == 1 ? conditions[0] : string.Join(" || ", conditions.Select(x => "(" + x + ")"));
+                        // 条件は switch の行にまとめて置くので、各条件の前に元のラベルの位置の印を置き、条件の中の実行時例外・エラーを
+                        // そのラベルの位置に出す（#205）
+                        string joined = conditions.Count == 1 ? marks[0] + conditions[0] : string.Join(" || ", conditions.Select((x, k) => "(" + marks[k] + x + ")"));
                         head.Append(first ? "" : "else ").Append($"if ({joined}) {c} = {i}; ");
                         first = false;
                     }
@@ -414,7 +420,8 @@ namespace UdonSharpPlus
                     }
                     if (node.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault() is TypeDeclarationSyntax holder)
                         _noMatch.Add(holder);
-                    sb.Append($"{cast}{NoMatchName}()");
+                    // 印（SourceMap）で、ここの実行時例外を元の switch 式の位置に出す
+                    sb.Append($"{cast}{SourceMap.InPlaceMarker(node)}{NoMatchName}()[0]");
                 }
                 sb.Append(')');
                 string code = sb.ToString();

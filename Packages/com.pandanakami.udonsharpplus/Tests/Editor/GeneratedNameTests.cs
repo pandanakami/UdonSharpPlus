@@ -289,6 +289,50 @@ namespace UdonSharpPlusTests.GeneratedName
         }
 
         /// <summary>
+        /// コルーチン（#107）の番号と、switch 式（#202）のどの腕にも合わないときのメソッドの名前も、ファイルの順番で変わらない（#205）。
+        /// どちらも partial の両方のファイルに書く
+        /// </summary>
+        [Test]
+        public void CoroutineAndSwitchDoNotDependOnFileOrder()
+        {
+            const string first = @"using UdonSharp;
+using System.Collections;
+namespace UdonSharpPlusTests.GeneratedName
+{
+    public partial class CoOrder : UdonSharpBehaviour
+    {
+        public int a1;
+        void Start() { StartCoroutine(A(1)); StartCoroutine(B()); }
+        IEnumerator A(int n) { yield return null; a1 = n switch { 1 => 2, 2 => 3 }; }
+        string S(int n) { switch (n) { case > 0 when n < 5: return ""s""; default: return ""d""; } }
+    }
+}";
+            const string second = @"using UdonSharp;
+using System.Collections;
+namespace UdonSharpPlusTests.GeneratedName
+{
+    public partial class CoOrder
+    {
+        public float b1;
+        IEnumerator B() { yield return new UnityEngine.WaitForSeconds(1f); b1 = a1 switch { 0 => 1f, 3 => 2f }; }
+    }
+}";
+            var texts = new System.Collections.Generic.List<string>();
+            foreach (bool reversed in new[] { false, true })
+            {
+                var a = new TestSource("CoOrder.cs", first);
+                var b = new TestSource("CoOrder.Part.cs", second);
+                CompileResult result = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, _dir, reversed ? new[] { b, a } : new[] { a, b });
+                Assert.That(System.Linq.Enumerable.Where(result.Diagnostics, d => d.StartsWith("Error")), Is.Empty, string.Join("\n", result.Diagnostics));
+                texts.Add(Dumped("CoOrder.cs") + "\n----\n" + Dumped("CoOrder.Part.cs") + "\n----\n" + result["UdonSharpPlusTests.GeneratedName.CoOrder"].Uasm);
+                TearDown();
+            }
+            Assert.That(texts[1], Is.EqualTo(texts[0]));
+            // 拡張子を除いたパスの順（CoOrder.cs が先）：A が 0 番、B が 1 番
+            Assert.That(texts[0], Does.Contain("__co_A_0").And.Contain("__co_B_1"));
+        }
+
+        /// <summary>
         /// 書き換えるもののない partial の UdonSharpBehaviour でも、フィールドの並び（プログラムのデータの並び）がファイルの順番で変わらない（#164）。
         /// Roslyn は partial のクラスのメンバーをファイルの順に並べるので、U# に渡すファイルの順番を決まった順にしている
         /// </summary>

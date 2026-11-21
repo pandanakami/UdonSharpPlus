@@ -24,6 +24,11 @@ namespace UdonSharpPlus
             public int Character;   // 0 始まり
             public string ClassName;
             public string MemberName;
+            /// <summary>
+            /// 元のメソッドの中に置いた印（コピーではない。switch の条件など、まとめて置いた式の元の位置。#205）。
+            /// デバッグ情報は、この印のあるメソッドをコピーとは扱わず、印の中のノードだけを印の位置にする
+            /// </summary>
+            public bool InPlace;
         }
 
         private static readonly Regex MarkerPattern = new Regex(@"^/\*cus@(\d+)\*/$", RegexOptions.Compiled);
@@ -161,6 +166,39 @@ namespace UdonSharpPlus
             }
         }
 
+        /// <summary>
+        /// 元のメソッドの中で、式を別の場所にまとめて置くときの印（#205。InPlace）。その式の中の実行時例外・エラーを、original の位置に出す
+        /// </summary>
+        public static string InPlaceMarker(SyntaxNode original)
+        {
+            FileLinePositionSpan span = original.GetLocation().GetLineSpan();
+            lock (Gate)
+            {
+                _entries.Add(new Entry
+                {
+                    TreeIndex = _treeIndex.TryGetValue(original.SyntaxTree, out int index) ? index : -1,
+                    Line = span.StartLinePosition.Line,
+                    Character = span.StartLinePosition.Character,
+                    InPlace = true,
+                });
+                return $"/*cus@{_entries.Count - 1}*/";
+            }
+        }
+
+        /// <summary>ノードの中に、元のメソッドの中に置いた印（InPlace）があるか</summary>
+        public static bool HasInPlace(SyntaxNode node)
+        {
+            foreach (SyntaxTrivia trivia in node.DescendantTrivia())
+            {
+                if (!IsMarker(trivia))
+                    continue;
+                Entry entry = EntryOf(int.Parse(MarkerPattern.Match(trivia.ToString()).Groups[1].Value));
+                if (entry != null && entry.InPlace)
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>エラーメッセージに付ける補足：「（汎用クラス Saver のメソッド Exists の中）」</summary>
         public static string Describe(Entry entry)
         {
@@ -252,7 +290,7 @@ namespace UdonSharpPlus
                 return id < _entries.Count ? _entries[id] : null;
         }
 
-        /// <summary>ノードの中の最初の印（生成コードでなければ null）</summary>
+        /// <summary>ノードの中の最初の印（生成コードでなければ null）。元のメソッドの中に置いた印（InPlace）は数えない</summary>
         public static Entry FirstIn(SyntaxNode node)
         {
             foreach (SyntaxTrivia trivia in node.DescendantTrivia())
@@ -260,8 +298,12 @@ namespace UdonSharpPlus
                 if (!IsMarker(trivia))
                     continue;
                 int id = int.Parse(MarkerPattern.Match(trivia.ToString()).Groups[1].Value);
+                Entry entry;
                 lock (Gate)
-                    return id < _entries.Count ? _entries[id] : null;
+                    entry = id < _entries.Count ? _entries[id] : null;
+                if (entry != null && entry.InPlace)
+                    continue;
+                return entry;
             }
             return null;
         }

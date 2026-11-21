@@ -103,6 +103,13 @@ namespace UdonSharpPlus.Tests
         [TestCase("public class P { }", "var d = new System.Collections.Generic.Dictionary<(int, int), int>();")]
         [TestCase("public interface I { int X { get; } }", "I i = null;")]
         [TestCase("public class G<T> { public T v; }", "var g = typeof(G<>);")]
+        // #205：0.1.5 で足したコルーチン（#107・#174）と switch（#198・#202）のエラー
+        [TestCase("public class P { }", "StartCoroutine(W()); System.Collections.IEnumerator W() { yield return new UnityEngine.WaitForEndOfFrame(); }")]
+        [TestCase("public class P { }", "static System.Collections.IEnumerator L() { yield return null; } StartCoroutine(L());")]
+        [TestCase("public class P { }", "StartCoroutine(C()); System.Collections.IEnumerator C() { StartCoroutine(C()); yield return null; }")]
+        [TestCase("public class P { }", "System.Collections.IEnumerator e = new int[2].GetEnumerator(); StartCoroutine(e);")]
+        [TestCase("public class P { }", "object o = 1; switch (o) { case int i: break; }")]
+        [TestCase("public class P { }", "int n = 1; int m = 1 + (n.GetHashCode() switch { 1 => 2, _ => 3 });")]
         public void EnglishErrorsHaveNoJapanese(string declarations, string body)
         {
             CompileResult r = Compile(false,

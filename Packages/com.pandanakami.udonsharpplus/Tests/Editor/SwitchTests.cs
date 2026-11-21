@@ -71,7 +71,10 @@ public string Range(int n)
         [Test]
         public void PatternLabelsBecomeNumberedCases()
         {
-            string code = Lowered("Patterns", Patterns);
+            string marked = Lowered("Patterns", Patterns);
+            // 条件の前の、元のラベルの位置の印（#205）。ここでは印を除いて形を見る
+            Assert.That(marked, Does.Match(@"if \(/\*cus@\d+\*/\(__sw0 == \(""b""\)\) && \(n > 0\)\) __sc0 = 0; else if \(/\*cus@\d+\*/__sw0 == "));
+            string code = System.Text.RegularExpressions.Regex.Replace(marked, @"/\*cus@\d+\*/", "");
             Assert.That(code, Does.Contain("var __sw0 = (k); int __sc0 = -1; if ((__sw0 == (\"b\")) && (n > 0)) __sc0 = 0; else if (__sw0 == (\"b\")) __sc0 = 1; switch (__sc0)"));
             Assert.That(code, Does.Contain("if (__sw1 < (0)) __sc1 = 0; else if ((__sw1 == (0)) || (__sw1 == (1))) __sc1 = 1;"));
             Assert.That(code, Does.Contain("else if ((true) && (__sw1 % 2 == 0)) __sc1 = 3;"), "when の中の変数は、switch の式の一時変数を読む");
@@ -179,10 +182,11 @@ public int P => Next() switch { 3 => 30, _ => 0 };");
         [Test]
         public void SwitchExpressionWithoutCatchAllCallsNoMatch()
         {
-            // どの腕にも合わないとき（C# では例外）は、エラーのログを出して止めるメソッドを呼ぶ
+            // どの腕にも合わないとき（C# では例外）は、エラーのログを出すメソッドを呼び、返る null の配列の添字を読んで、その場で止める。
+            // 呼び出しの前の印で、実行時例外を元の switch 式の位置に出す（#205）
             string code = Lowered("ExprNoMatch", "public int H(int n) => n switch { 1 => 10, 2 => 20 };");
-            Assert.That(code, Does.Match(@"\(int\)__sw_nomatch_\d+\(\)\)"));
-            Assert.That(code, Does.Match(@"private static object __sw_nomatch_\d+\(\) \{ UnityEngine\.Debug\.LogError"));
+            Assert.That(code, Does.Match(@"\(int\)/\*cus@\d+\*/__sw_nomatch_\d+\(\)\[0\]\)"));
+            Assert.That(code, Does.Match(@"private static object\[\] __sw_nomatch_\d+\(\) \{ UnityEngine\.Debug\.LogError\(""[^""]*""\); return null; \}"));
         }
 
         [Test]
@@ -219,6 +223,40 @@ public int Marker() { return 777; }";
         public void Errors(string body, string message)
         {
             AssertError(body, message, BodyLine);
+        }
+
+        /// <summary>
+        /// 条件の判定は switch の行にまとめて置くが、その中の実行時例外の位置（デバッグ情報）は、元の case のラベルの行を指す（#205。印で戻す）
+        /// </summary>
+        [Test]
+        public void ConditionsPointToTheirLabelLines()
+        {
+            // 行番号は 1 始まり（@" の直後の改行が 1 行目）
+            const string source = @"
+using UdonSharp;
+namespace UdonSharpPlusTests.SwDebug
+{
+    public class SwUser : UdonSharpBehaviour
+    {
+        public int z;
+        public string W(int n)
+        {
+            switch (n)
+            {
+                case var k when 10 / z > k: return ""a"";
+                case 1 or 2: return ""b"";
+                default: return ""c"";
+            }
+        }
+    }
+}";
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("SwUser.cs", source));
+            Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", r.Diagnostics));
+            DebugMethodInfo w = r["SwUser"].DebugMethods.FirstOrDefault(m => m.MethodName == "W");
+            Assert.That(w, Is.Not.Null, string.Join(" / ", r["SwUser"].DebugMethods));
+            int[] lines = w.Positions.Select(p => p.Line + 1).ToArray();
+            Assert.That(lines, Does.Contain(12), "when の条件：" + w);
+            Assert.That(lines, Does.Contain(13), "case 1 or 2 の条件：" + w);
         }
     }
 }

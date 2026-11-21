@@ -37,7 +37,7 @@ namespace FeatureTests.Syntax
 
     public partial class NullProbe : UdonSharpBehaviour
     {
-        public const int Count = 73;
+        public const int Count = 76;
 
         public int caseId;
         public bool started;
@@ -129,6 +129,9 @@ namespace FeatureTests.Syntax
                 case 70: return "exception inside GroupBy key selector";
                 case 71: return "exception inside LINQ on a group";
                 case 72: return "exception inside GroupBy element selector (multi-line)";
+                case 73: return "switch expression with no matching arm";
+                case 74: return "exception inside switch when clause";
+                case 75: return "exception after yield in a coroutine";
             }
             return "?";
         }
@@ -283,6 +286,10 @@ namespace FeatureTests.Syntax
                     observed = "" + rows.Count;
                     break;
                 }
+                case 75:
+                    // #205：コルーチンの yield のあとの例外。止まったあと、続きは動かない（finished はコルーチンの中で立てる）
+                    StartCoroutine(Co75());
+                    return;
                 default:
                     RunLinq();   // 31 以降は NullProbe.Linq.cs
                     break;

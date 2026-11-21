@@ -35,7 +35,7 @@ Fixes
 - Calling a delegate allocates less memory: about 2 allocations per call instead of 17 (the arguments and the return value), so it puts less pressure on the garbage collector when called every frame. A delegate made inside a plain class no longer allocates when called (3 allocations before), and a delegate combined with `+=` takes about 5 allocations per call however many methods it holds (about 12 per method before).
 - `List.Sort` with a lambda (`list.Sort((a, b) => a - b)`) no longer allocates on every call inside an `UdonSharpBehaviour`: it reuses its work arrays (2 allocations per call before). Inside plain class methods it still allocates them on every call.
 - `GroupBy` allocates less when the groups stay inside the LINQ chain (for example `list.GroupBy(x => x.team).Select(g => new { g.Key, N = g.Count() })`, or `.Count()`): the group containers are reused, so 3 groups take 3 allocations (boxing the keys) instead of 30. When a group leaves the chain (`ToList()`, `First()`, `foreach`, or stored or passed to a method inside a lambda), and inside plain class methods, the groups are still created on every call.
-- U# compiles are faster: in a test project with about 10,000 lines, the rewriting by UdonSharp Plus went from about 68 to 23 seconds, and the whole U# compile from about 87 to 43 seconds.
+- U# compiles are faster. The rewriting by UdonSharp Plus used to take about 3.6 times as long as UdonSharp's own compile; it now takes about 1.5 times as long, including the coroutine and `switch` rewriting added in this version (in a test project with about 10,000 lines: about 32 seconds for the rewriting and about 21 seconds for UdonSharp). See the "コンパイルにかかる時間" (compile time) section in Documentation~/how-it-works.md.
 
 ### 日本語
 
@@ -67,7 +67,7 @@ Fixes
 - デリゲートの呼び出しで確保するメモリを減らしました。1 回あたり 17 回だった確保が、約 2 回（引数と戻り値の受け渡しの分）になり、毎フレーム呼んでも GC の負担が小さくなります。普通のクラスの中で作ったデリゲートは、呼んでも確保しなくなりました（前は 3 回）。`+=` でつないだデリゲートは、つないだメソッドの数によらず、1 回の呼び出しで約 5 回になりました（前はメソッド 1 つにつき約 12 回）。
 - ラムダを渡す `List.Sort`（`list.Sort((a, b) => a - b)`）が、`UdonSharpBehaviour` の中では呼ぶたびに確保しなくなりました。並べ替えの作業用の配列を使い回します（前は呼ぶたびに 2 回）。普通のクラスのメソッドの中では、前と同じく呼ぶたびに作ります。
 - `GroupBy` で、グループが LINQ のつなぎの外に出ないとき（`list.GroupBy(x => x.team).Select(g => new { g.Key, N = g.Count() })` や `.Count()` など）の確保を減らしました。グループの入れ物を使い回すので、グループが 3 つなら 30 回だった確保が 3 回（キーのボックス化）になります。グループを外に出すとき（`ToList()`・`First()`・`foreach`、ラムダの中で変数に入れる・メソッドに渡す）と、普通のクラスのメソッドの中では、前と同じく呼ぶたびに作ります。
-- U# のコンパイルを速くしました。約 1 万行のテスト用のプロジェクトで、UdonSharp Plus の書き換えが 約 68 秒から 約 23 秒に、U# のコンパイル全体が 約 87 秒から 約 43 秒になりました。
+- U# のコンパイルを速くしました。UdonSharp Plus の書き換えにかかる時間は、UdonSharp 自体のコンパイルの 約 3.6 倍でしたが、この版で足したコルーチン・`switch` の書き換えを含めて 約 1.5 倍になりました（約 1 万行のテスト用のプロジェクトで、書き換えが 約 32 秒、UdonSharp が 約 21 秒）。Documentation~/how-it-works.md の「コンパイルにかかる時間」も見てください。
 
 ## [0.1.4]
 

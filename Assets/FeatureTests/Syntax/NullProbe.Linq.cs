@@ -22,6 +22,16 @@ namespace FeatureTests.Syntax
             return (one / d, 0);   // ここ
         }
 
+        private System.Collections.IEnumerator Co75()
+        {
+            var list = new List<int> { 1 };
+            yield return null;
+            int zero = list.Count - 1;
+            observed = "" + (10 / zero);   // ここ
+            finished = true;
+            UnityEngine.Debug.Log("[FeatureTests] #79 null " + caseId + " " + NameOf(caseId) + ": finished " + observed);
+        }
+
         private void RunLinq()
         {
             var nums = new List<int> { 1, 2, 3 };
@@ -254,6 +264,26 @@ namespace FeatureTests.Syntax
                                  x => 10 / (x - x))   // ここ
                         .ToList();
                     observed = "" + g72.Count;
+                    break;
+                }
+                case 73:
+                {
+                    // #205：どの腕にも合わない switch 式（C# では SwitchExpressionException）
+                    int n73 = caseId;
+#pragma warning disable CS8509
+                    observed = n73 switch { 0 => "zero", < 0 => "neg" };   // ここ
+#pragma warning restore CS8509
+                    break;
+                }
+                case 74:
+                {
+                    // #205：パターンの switch 文の when の中の例外
+                    int zero74 = caseId - 74;
+                    switch (caseId)
+                    {
+                        case var k when 10 / zero74 > k: observed = "when"; break;   // ここ
+                        default: observed = "default"; break;
+                    }
                     break;
                 }
             }
