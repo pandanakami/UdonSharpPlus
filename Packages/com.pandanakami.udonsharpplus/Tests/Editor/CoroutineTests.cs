@@ -93,6 +93,20 @@ IEnumerator Hold<T>(T value)
         }
 
         [Test]
+        public void CoalesceTernaryAndNullCastCompile()
+        {
+            // c ?? d・c ??= d（番号の 0 が null）、待ち方の三項演算子、(IEnumerator)null
+            string code = Lowered("Coalesce", @"private Coroutine _c;
+private IEnumerator _e;
+private bool _f;
+void Start() { _c = _c ?? StartCoroutine(Foo()); _e ??= Foo(); StartCoroutine((IEnumerator)null); }
+IEnumerator Foo() { yield return _f ? null : new WaitForSeconds(1f); yield return new WaitForSeconds(_f ? 1f : 2f); }");
+            Assert.That(code, Does.Contain("((_c) != 0 ? (_c) : (__co_start(Foo())))"));
+            Assert.That(code, Does.Contain("_e = ((_e) != 0 ? (_e) : (Foo()))"));
+            Assert.That(code, Does.Contain("__co_ws(__s, 1f)"));
+        }
+
+        [Test]
         public void HandleFieldsAreNotSerialized()
         {
             // Unity は Coroutine・IEnumerator のフィールドをシリアライズしない。int にしたあとも、シリアライズさせない
@@ -483,6 +497,8 @@ IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); 
         [TestCase("static IEnumerator Foo() { yield return null; } void Start() { StartCoroutine(Foo()); }", "static メソッドのコルーチン")]
         [TestCase("void Start() { IEnumerator L() { yield return null; } StartCoroutine(L()); }", "ローカル関数のコルーチン")]
         [TestCase("int P { get { yield return null; } }", "プロパティ・インデクサーの中の yield")]
+        [TestCase("IEnumerator Foo(int n) { switch (n) { case 1 when n > 0: yield return null; break; } }", "when の付いた case は未対応です")]
+        [TestCase("private Coroutine[] _cs = new Coroutine[1]; int I() => 0; void Start() { _cs[I()] = _cs[I()] ?? StartCoroutine(Foo()); }\nIEnumerator Foo() { yield return null; }", "?? ・ ??= の左には")]
         public void OneErrorForUnsupportedForm(string body, string message)
         {
             CompileResult r = Compile(body);

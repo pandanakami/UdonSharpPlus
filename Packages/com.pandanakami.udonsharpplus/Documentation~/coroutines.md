@@ -50,6 +50,7 @@ public class Door : UdonSharpBehaviour
 - **yield をまたげる構文**：`if`／`else`、`for`・`while`・`do`（`break`・`continue` も）、`foreach`（List・Dictionary・配列・文字列）、`switch` 文
 - **yield をまたぐ値**：ローカル変数・引数・`out var` の変数・ラムダが捕まえた変数、匿名型・タプル・普通のクラス・List・LINQ の結果など
 - `Coroutine`・`IEnumerator` の値を、配列・List・Dictionary・普通のクラスのフィールドに入れる（`Contains`・`IndexOf`・`Remove` も使えます）
+- `Coroutine`・`IEnumerator` の `??`・`??=`（`_c = _c ?? StartCoroutine(Foo());`、`_e ??= Foo();`）、待ち方の三項演算子（`yield return fast ? null : new WaitForSeconds(1f);`）
 - コルーチンを返すデリゲート（`Func<IEnumerator> f = Foo; StartCoroutine(f());`）、コルーチンの値を返すだけのメソッド（`IEnumerator Make() => Foo(3);`）
 - 引数の既定値・名前付きの引数・`params`、オーバーロード、`[RecursiveMethod]`、`partial` クラスの別のファイルに書いたコルーチン
 - **ビヘイビアと GameObject の状態**（Unity と同じ）：
@@ -72,6 +73,8 @@ public class Door : UdonSharpBehaviour
 | `try`／`catch`／`finally`・`using`・`lock` の中の `yield return` | `yield return` を外に出してください |
 | `yield return` を含む `foreach` で、List・Dictionary・配列・文字列以外を回す（`foreach (Transform t in transform)`） | 配列などに入れてから回してください |
 | `yield return` を含む `switch` の、変数を宣言する `case` | 変数の宣言を `switch` の外に出してください |
+| `yield return` を含む `switch` の、`when` の付いた `case` | `case` の中で `if` を使ってください（UdonSharp が `when` を正しく扱えないため） |
+| `Coroutine`・`IEnumerator` の `??`・`??=` の左に、メソッドの呼び出しなどを書く（`_cs[Next()] ??= ...`） | 変数に入れてから使ってください（左を 2 回読むため） |
 | `IEnumerator<T>`・`IEnumerable`・`IEnumerable<T>` を返す `yield`（列挙のための `yield`） | List などに入れて返してください（`IEnumerator` はコルーチンにだけ使えます） |
 | `IEnumerator` の `MoveNext`・`Current`・`Reset`、外部のメソッドが返す `IEnumerator`（`transform.GetEnumerator()` など） | `IEnumerator` はコルーチンにだけ使えます |
 | static メソッド・UdonSharpBehaviour でないクラスのメソッド・ローカル関数・インタフェースのメソッド・プロパティのコルーチン | UdonSharpBehaviour のインスタンスメソッドにしてください |
@@ -102,7 +105,7 @@ private IEnumerator Foo(int n)
   - 1 フレームより短い正の値（`WaitForSeconds(0.000001f)`）：Unity では `yield return null` の後ろで再開します。こちらは前です
 - **待ち続けるもの**（Unity と同じ）：`WaitForSeconds` の NaN（Unity と同じ警告を出します）・正の無限大、`WaitForSecondsRealtime` の正の無限大、自分自身の `Coroutine` を待つ、互いに待つ、ほかのコルーチンがもう待っているものを待つ（Unity と同じエラーを出します）は、二度と再開しません。止めるまで、状態を持ったままです。なお Unity では、NaN と負の値の `WaitForSeconds` を同じプレイで使うと、すべてのコルーチンが止まる不具合がありますが、それはまねていません
 - **止めたものを待つ**：止めた `Coroutine` を `yield return` すると、Unity と同じく、その場で続きが動きます（終わったものなら次のフレーム）。ただし、同じ状態（下の「仕組み」）を 2 回以上止めたときは、古いほうの `Coroutine` は終わったものとして扱います（1 フレーム遅れます）
-- **`Coroutine`・`IEnumerator` の値**は、そのビヘイビアの中の番号（`int`）です。ほかのビヘイビアに渡しても、意味はありません。そのフィールドは、Unity と同じくシリアライズしません（public でも Inspector に出ず、配列は `null` で始まります）。`[SerializeField]`・`[UdonSynced]` を付けるとコンパイルエラーです
+- **`Coroutine`・`IEnumerator` の値**は、そのビヘイビアの中の番号（`int`）です。ほかのビヘイビアに渡しても、意味はありません。そのフィールドは、Unity と同じくシリアライズしません（public でも Inspector に出ず、配列は `null` で始まります）。`[SerializeField]`・`[UdonSynced]` を付けるとコンパイルエラーです。`object` として扱うと番号として動くので、`ReferenceEquals(c, null)`・`Equals(c, null)` は、`c` が null でも false になり、`Debug.Log(c)`・`ToString()` は番号を出します（`c == null` を使ってください）
 - **生成するイベント**：再開に使う `__co_frame`・`__co_sec` は、遅れのイベントで呼ぶため public です。`SendCustomEvent` で外から呼ばないでください（`__co_frame` は、待ち始めたフレームのうちは何もしませんが、`__co_sec` は、期限の前に再開することがあります）
 - **`OnDisable`**：GameObject を非アクティブにしたときに止めるため、コルーチンを使うビヘイビアに `OnDisable` を生成します。自分で `OnDisable` を書いていれば、その先頭で止めます。継承でつながったクラスでは、書き換え後のコードの中で `OnDisable` を `public override`（または `public virtual`）にすることがあります（元のソースは変えません）
 - **型パターン**（`x is Bullet b`）は、UdonSharp も UdonSharp Plus も対応していないので、コルーチンの中でも使えません

@@ -329,7 +329,8 @@ namespace UdonSharpPlus
                     else if (node is TypeSyntax type && IsHandleType(type))
                         _edits.Add(type.Span, "int");
                     else if ((node.IsKind(SyntaxKind.NullLiteralExpression) || node.IsKind(SyntaxKind.DefaultLiteralExpression) || node is DefaultExpressionSyntax)
-                             && IsHandle(_model.GetTypeInfo(node).ConvertedType))
+                             && (IsHandle(_model.GetTypeInfo(node).ConvertedType)
+                                 || (node.Parent is CastExpressionSyntax nullCast && IsHandle(_model.GetTypeInfo(nullCast.Type).Type))))   // (IEnumerator)null
                         _edits.Add(node.Span, "0");   // Coroutine・IEnumerator の null は 0
                     else if (node is CastExpressionSyntax cast)
                         RewriteTokenCast(cast);

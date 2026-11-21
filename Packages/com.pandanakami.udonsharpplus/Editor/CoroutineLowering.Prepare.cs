@@ -27,7 +27,8 @@ namespace UdonSharpPlus
         public static List<SyntaxTree> Prepare(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
             CheckUnsupported(trees, diagnostics, references);
-            if (!trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is IdentifierNameSyntax id && IsWaitName(id.Identifier.ValueText))))
+            if (!trees.Any(t => t.GetRoot().DescendantNodes().Any(n => (n is IdentifierNameSyntax id && IsWaitName(id.Identifier.ValueText))
+                                                                       || n.IsKind(SyntaxKind.CoalesceExpression) || n.IsKind(SyntaxKind.CoalesceAssignmentExpression))))
                 return trees;
             var compilation = Compilations.For(trees, references);
             var result = new List<SyntaxTree>(trees.Count);
@@ -49,6 +50,9 @@ namespace UdonSharpPlus
             }
             return result;
         }
+
+        private static bool IsWaitType(string name) =>
+            name == WaitForSecondsName || name == WaitForSecondsRealtimeName || name == WaitUntilName || name == WaitWhileName;
 
         private static bool IsWaitName(string name) =>
             name == "WaitUntil" || name == "WaitWhile" || name == "WaitForSecondsRealtime" || name == "WaitForSeconds";
@@ -89,6 +93,13 @@ namespace UdonSharpPlus
                     }
                 }
 
+                // Coroutine・IEnumerator の c ?? d → ((c) != null ? (c) : (d))、c ??= d → c = (...)（あとの段が、番号の int の比べにする）。
+                // ほかの段が書き換える前に、C# のまま置き換える（内側のものから）。左は 2 回読むので、呼び出し・代入・++ などを含むものはエラー
+                foreach (ExpressionSyntax node in OwnNodes(_cls).OfType<ExpressionSyntax>()
+                             .Where(n => (n.IsKind(SyntaxKind.CoalesceExpression) || n.IsKind(SyntaxKind.CoalesceAssignmentExpression)) && IsHandleName(TypeName(CoalesceLeft(n))))
+                             .OrderByDescending(n => n.SpanStart).ToList())
+                    Coalesce(node);
+
                 foreach (MethodDeclarationSyntax m in _cls.Members.OfType<MethodDeclarationSyntax>().Where(m => IsCoroutine(_model, m)))
                     foreach (YieldStatementSyntax y in Yields(m.Body).Where(y => y.IsKind(SyntaxKind.YieldReturnStatement)))
                     {
@@ -112,10 +123,43 @@ namespace UdonSharpPlus
 
             private void Error(SyntaxNode at, string message) => _diagnostics.Error(at.GetLocation(), message);
 
+            private static bool IsHandleName(string name) => name == EnumeratorName || name == CoroutineName;
+
+            private static ExpressionSyntax CoalesceLeft(ExpressionSyntax n) => n is BinaryExpressionSyntax b ? b.Left : ((AssignmentExpressionSyntax)n).Left;
+
+            private void Coalesce(ExpressionSyntax node)
+            {
+                ExpressionSyntax left = CoalesceLeft(node);
+                ExpressionSyntax right = node is BinaryExpressionSyntax b ? b.Right : ((AssignmentExpressionSyntax)node).Right;
+                if (left.DescendantNodesAndSelf().Any(n => n is InvocationExpressionSyntax || n is AssignmentExpressionSyntax
+                        || n is PrefixUnaryExpressionSyntax || n is PostfixUnaryExpressionSyntax))
+                {
+                    Error(left, Loc.T("Coroutine・IEnumerator の ?? ・ ??= の左には、変数・フィールド・要素を書いてください（メソッドの呼び出しなどは、変数に入れてから使ってください）",
+                        "The left side of ?? / ??= on a Coroutine / IEnumerator must be a variable, field or element (store a method call in a variable first)"));
+                    return;
+                }
+                string l = _edits.Take(left);
+                string r = _edits.Take(right);
+                string value = $"(({l}) != null ? ({l}) : ({r}))";
+                string original = _edits.Take(node);
+                _edits.Add(node.Span, KeepLines(node is AssignmentExpressionSyntax ? $"{l} = {value}" : value, original));
+            }
+
             /// <summary>yield return の書き換え（書き換えないものは null）</summary>
             private string Yield(ExpressionSyntax value, ref int temp)
             {
                 string type = TypeName(value);
+                // yield return c ? A : B（待ち方の型のもの）→ if (c) { yield return A; } else { yield return B; }（A・B はそれぞれ書き換える）
+                ExpressionSyntax inner = value;
+                while (inner is ParenthesizedExpressionSyntax paren)
+                    inner = paren.Expression;
+                if (inner is ConditionalExpressionSyntax conditional && IsWaitType(type))
+                {
+                    string condition = _edits.Take(conditional.Condition);
+                    string whenTrue = Yield(conditional.WhenTrue, ref temp) ?? $"yield return {_edits.Take(conditional.WhenTrue)};";
+                    string whenFalse = Yield(conditional.WhenFalse, ref temp) ?? $"yield return {_edits.Take(conditional.WhenFalse)};";
+                    return $"if ({condition}) {{ {whenTrue} }} else {{ {whenFalse} }}";
+                }
                 var create = value as ObjectCreationExpressionSyntax;
                 if (type == WaitUntilName || type == WaitWhileName)
                 {

@@ -45,7 +45,8 @@ namespace FeatureTests.Coroutines
                                         + "|Q=c1=2,2;c5=6,6;f12;g1=9,3;d1=12;d5=16;f9;a26,24t,3q2,50;a721,714t,8q7,7;g0=12,3;n113;o13,13;r3,True,12,7;w3;sFalse=3;sTrue=12;"
                                         + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;"
                                         + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;"
-                                        + "|Y=g3;gs;pt5;atd;wrapTrue;";
+                                        + "|Y=g3;gs;pt5;atd;wrapTrue;"
+                                        + "|U=c1@1;e1@1;t1@1;a1@2;b2@3;prop@4;until@6;sb1@7;sa@8;sdb@8;lam@10;frames@10;/t2True;wpTrue;wrTrue;waTrue;rtTrue;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
         // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
@@ -121,6 +122,7 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Combo());
             StartCoroutine(Misc());
             StartCoroutine(More());
+            StartCoroutine(Gaps());
             StartCoroutine(Judge());
         }
 
@@ -875,6 +877,115 @@ namespace FeatureTests.Coroutines
             }
         }
 
+        // U：?? ・ ??=・三項演算子の yield・foreach の分解・object に入れたハンドル・タプルのハンドル・WaitForSeconds の引数・戻り値・配列・
+        //    引数を使う WaitUntil・ループの中の WaitForSecondsRealtime・文字列の switch・ラムダの中の開始・プロパティのハンドル
+        //    （フレームを見るものは _gaps、秒を待つものは _gapsB に、待った時間が足りたかだけを書く）
+        private string _gaps = "";
+        private string _gapsB = "";
+        private Coroutine _uc;
+        private IEnumerator _ue;
+        private bool _uFlag;
+        private WaitForSeconds[] _uWaits = { new WaitForSeconds(0.05f), new WaitForSeconds(0.1f) };
+        private int _u0;
+
+        private void U(string s) { _gaps += s + "@" + (Time.frameCount - _u0) + ";"; }
+        private void UB(string s) { _gapsB += s + ";"; }
+        private Coroutine UCurrent => _uc;
+        private IEnumerator UNext => UTick("prop");
+
+        private IEnumerator Gaps()
+        {
+            _u0 = Time.frameCount;
+            _uc = _uc ?? StartCoroutine(UTick("c1"));
+            _uc = _uc ?? StartCoroutine(UTick("never"));
+            _ue ??= UTick("e1");
+            _ue ??= UTick("never2");
+            StartCoroutine(_ue);
+            _uFlag = true;
+            yield return _uFlag ? null : new WaitForSeconds(1f);
+            U("t1");
+            var pairs = new (int, string)[] { (1, "a"), (2, "b") };
+            foreach (var (n, s) in pairs)
+            {
+                yield return null;
+                U(s + n);
+            }
+            object o = StartCoroutine(UTick("box"));
+            StopCoroutine((Coroutine)o);
+            (Coroutine, int) tp = (StartCoroutine(UTick("tup")), 1);
+            StopCoroutine(tp.Item1);
+            _uc = StartCoroutine(UTick("p1"));
+            StopCoroutine(UCurrent);
+            yield return StartCoroutine(UNext);
+            yield return StartCoroutine(UUntil(Time.frameCount + 2));
+            yield return StartCoroutine(USwitch("b", 1));
+            yield return StartCoroutine(USwitch("a", 0));
+            yield return StartCoroutine(USwitch("b", 0));
+            System.Func<Coroutine> f = () => StartCoroutine(UTick("lam"));
+            Coroutine lc = f();
+            yield return lc;
+            U("frames");
+
+            float t0 = Time.time;
+            yield return !_uFlag ? null : new WaitForSeconds(0.1f);
+            UB("t2" + (Time.time - t0 >= 0.1f));
+            yield return StartCoroutine(UWait(_uWaits[0]));
+            t0 = Time.time;
+            yield return UMake();
+            UB("wr" + (Time.time - t0 >= 0.05f));
+            t0 = Time.time;
+            yield return _uWaits[1];
+            UB("wa" + (Time.time - t0 >= 0.1f));
+            float r0 = Time.realtimeSinceStartup;
+            for (int i = 0; i < 2; i++)
+                yield return new WaitForSecondsRealtime(0.02f);
+            UB("rt" + (Time.realtimeSinceStartup - r0 >= 0.04f));
+        }
+
+        private IEnumerator UTick(string tag)
+        {
+            yield return null;
+            U(tag);
+        }
+
+        private IEnumerator UUntil(int frame)
+        {
+            yield return new WaitUntil(() => Time.frameCount >= frame);
+            U("until");
+        }
+
+        private IEnumerator USwitch(string k, int n)
+        {
+            switch (k)
+            {
+                case "a":
+                    yield return null;
+                    U("sa");
+                    break;
+                case "b":
+                    if (n > 0)
+                    {
+                        yield return null;
+                        U("sb" + n);
+                    }
+                    else
+                        U("sd" + k);
+                    break;
+                default:
+                    U("sd" + k);
+                    break;
+            }
+        }
+
+        private IEnumerator UWait(WaitForSeconds w)
+        {
+            float s = Time.time;
+            yield return w;
+            UB("wp" + (Time.time - s >= 0.05f));
+        }
+
+        private WaitForSeconds UMake() => new WaitForSeconds(0.05f);
+
         private IEnumerator Steps(string tag, int start)
         {
             _log += tag + "0@" + (F() - start) + ";";
@@ -909,7 +1020,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc + "|Y=" + _more;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc + "|Y=" + _more + "|U=" + _gaps + "/" + _gapsB;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;
