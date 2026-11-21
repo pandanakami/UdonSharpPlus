@@ -3,7 +3,7 @@
 Changes in each version of UdonSharp Plus. Each section is used as the body of the GitHub release.
 UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリリースの本文になります。
 
-## [0.1.5]
+## [0.1.6]
 
 ### English
 
