@@ -22,6 +22,7 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Anonymous types | `var p = new { Name = "a", Hp = 10 };`, `p.Hp`, `list.Select(x => new { x.Name, x.Hp })`, `ToString()`, `Equals` |
 | Tuples | `(int, string)`, `(1, "a")`, `var (lo, hi) = Range(list);`, `(a, b) = (b, a);`, `==`, `ToString` |
 | Operator overloading | `public static Vec operator +(Vec a, Vec b)`, `a + b`, `a += b`, `==`, `implicit operator Vec(int v)` |
+| Coroutines | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`, `StartCoroutine(Open())`, `StopCoroutine(c)`, `WaitUntil`, `yield return StartCoroutine(Child())` |
 
 ```csharp
 using System.Collections.Generic;

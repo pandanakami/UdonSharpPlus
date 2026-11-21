@@ -123,7 +123,7 @@ namespace UdonSharpPlus
                     var headSpan = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(
                         m.Modifiers.Count > 0 ? m.Modifiers.First().SpanStart : m.ReturnType.SpanStart, _body.OpenBraceToken.Span.End);
                     string headText = _edits.Take(headSpan);
-                    _edits.Add(headSpan, $"private void {_co.StepName}(object[] __s) {{ int[] __h = (int[])__s[0]; __h[5] = 1; {head}int __pc = __h[2]; while (true) {{ switch (__pc) {{ case 0:" + LineBreaks(headText));
+                    _edits.Add(headSpan, $"private void {_co.StepName}(object[] __s) {{ int[] __h = (int[])__s[0]; __h[5] = 1; {head}int __pc = __h[2]; while (true) {{ switch (__pc) {{ case 0:" + LineBreaks(headText));   // 頭の中身（引数の読み出し）に、元の改行は入らない
                     _edits.Add(_body.CloseBraceToken.Span, "__co_done(__s); return; } } }");
 
                     // 開始のメソッド（元の名前・引数で、状態を作って番号を返す）
@@ -377,7 +377,7 @@ namespace UdonSharpPlus
                         code.Append($"{v.Name} = {(value is InitializerExpressionSyntax ? $"new {v.Type} {text}" : text)}; ");
                     }
                     string original = _edits.Take(d);
-                    _edits.Add(d.Span, code + LineBreaks(original));
+                    _edits.Add(d.Span, KeepLines(code.ToString(), original));
                 }
 
                 private void Yield(YieldStatementSyntax y)
@@ -390,7 +390,7 @@ namespace UdonSharpPlus
                     string saves = string.Concat(saved.Select(v => $"__s[{v.Slot}] = {v.Name}; "));
                     string restores = string.Concat(saved.Where(v => !v.IsParam).Select(v => $" {v.Name} = ({v.Type})__s[{v.Slot}];"));
                     string original = _edits.Take(y);
-                    _edits.Add(y.Span, $"{saves}__h[2] = {n}; {wait} return; case {n}:{restores}" + LineBreaks(original));
+                    _edits.Add(y.Span, KeepLines($"{saves}__h[2] = {n}; {wait} return; case {n}:{restores}", original));
                 }
 
                 /// <summary>頭（キーワードから閉じ括弧まで）を置き換える。中の式は先に Take で取り出しておく</summary>
@@ -398,7 +398,7 @@ namespace UdonSharpPlus
                 {
                     var span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(first.SpanStart, last.Span.End);
                     string original = _edits.Take(span);
-                    _edits.Add(span, code + LineBreaks(original));
+                    _edits.Add(span, KeepLines(code, original));
                 }
 
                 private void End(StatementSyntax s, string code) => _edits.Add(new Microsoft.CodeAnalysis.Text.TextSpan(s.Span.End, 0), " " + code);
@@ -494,7 +494,7 @@ namespace UdonSharpPlus
                         dispatch.Append($"__pc = {labels[i]}; continue; ");
                         var labelSpan = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(section.Labels.First().SpanStart, section.Labels.Last().Span.End);
                         string original = _edits.Take(labelSpan);
-                        _edits.Add(labelSpan, Label(labels[i]) + LineBreaks(original));
+                        _edits.Add(labelSpan, KeepLines(Label(labels[i]), original));
                     }
                     dispatch.Append("} ").Append(hasDefault ? "" : $"__pc = {end}; continue;");
                     Head(s.SwitchKeyword, s.OpenBraceToken, dispatch.ToString());

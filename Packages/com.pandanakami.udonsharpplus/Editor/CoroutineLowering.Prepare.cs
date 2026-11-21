@@ -26,6 +26,7 @@ namespace UdonSharpPlus
         /// </summary>
         public static List<SyntaxTree> Prepare(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
+            CheckUnsupported(trees, diagnostics, references);
             if (!trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is IdentifierNameSyntax id && IsWaitName(id.Identifier.ValueText))))
                 return trees;
             var compilation = Compilations.For(trees, references);
@@ -96,7 +97,7 @@ namespace UdonSharpPlus
                             continue;
                         yields.Add(y.Expression);
                         string original = _edits.Take(y);
-                        _edits.Add(y.Span, code + LineBreaks(original));
+                        _edits.Add(y.Span, KeepLines(code, original));
                     }
 
                 // yield return の外の new WaitForSeconds(t) → (float)(t)（変数に入れて使い回すもの）

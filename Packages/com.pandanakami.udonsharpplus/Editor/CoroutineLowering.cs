@@ -220,7 +220,7 @@ namespace UdonSharpPlus
         /// <summary>IEnumerator を返し、本体に yield があるメソッド（ラムダ・ローカル関数の中の yield は数えない）</summary>
         private static bool IsCoroutine(SemanticModel model, MethodDeclarationSyntax m) =>
             m.Body != null && Yields(m.Body).Any()
-            && model.GetDeclaredSymbol(m) is IMethodSymbol symbol && symbol.ReturnType.ToDisplayString() == EnumeratorName;
+            && model.GetDeclaredSymbol(m) is IMethodSymbol symbol && symbol.ReturnType.ToDisplayString() == EnumeratorName && !symbol.IsStatic;
 
         private static IEnumerable<YieldStatementSyntax> Yields(SyntaxNode body) =>
             body.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax || n is LocalFunctionStatementSyntax)).OfType<YieldStatementSyntax>();
@@ -285,6 +285,13 @@ namespace UdonSharpPlus
 
         /// <summary>text の改行の数だけの改行（置き換えたところのうしろの行をずらさないため）</summary>
         private static string LineBreaks(string text) => new string('\n', text.Count(c => c == '\n'));
+
+        /// <summary>
+        /// 置き換えた code のうしろに、元の original より足りない分の改行を足す（置き換えたところのうしろの行をずらさないため）。
+        /// code の中に、取り出した中の式（複数行のもの）の改行が入っていれば、その分は足さない
+        /// </summary>
+        private static string KeepLines(string code, string original) =>
+            code + new string('\n', System.Math.Max(0, original.Count(c => c == '\n') - code.Count(c => c == '\n')));
 
         // ---- クラスの書き換え ----------------------------------------------------
 
@@ -455,6 +462,19 @@ namespace UdonSharpPlus
                 // 数・bool・文字列など（Unity では、null と同じく次のフレームまで待つ）
                 if (type != null && (type.IsValueType || type.SpecialType == SpecialType.System_String))
                     return "__co_wf(__s);";
+                // WaitForEndOfFrame・WaitForFixedUpdate は非対応（#107 の決めたこと 2 の続き。遅れのイベントでは Unity と同じタイミングにできない）
+                if (type?.ToDisplayString() == "UnityEngine.WaitForEndOfFrame")
+                {
+                    Error(value, Loc.T("WaitForEndOfFrame は未対応です（Udon の遅れのイベントでは、そのフレームの描画のあとに再開できません）。次のフレームでよければ yield return null、そのフレームの最後に動かすなら PostLateUpdate() に書いてください",
+                        "WaitForEndOfFrame is not supported (Udon's delayed events cannot resume after the frame is rendered). Use yield return null if the next frame is fine, or write the code in PostLateUpdate() to run at the end of the frame"));
+                    return null;
+                }
+                if (type?.ToDisplayString() == "UnityEngine.WaitForFixedUpdate")
+                {
+                    Error(value, Loc.T("WaitForFixedUpdate は未対応です（Udon の遅れのイベントでは、物理の計算のあとに再開できません）。物理に合わせる処理は FixedUpdate() に書いてください",
+                        "WaitForFixedUpdate is not supported (Udon's delayed events cannot resume after the physics step). Write physics-timed code in FixedUpdate()"));
+                    return null;
+                }
                 Error(value, Loc.T("この yield return の値は未対応です（null・WaitForSeconds・WaitForSecondsRealtime・WaitUntil・WaitWhile・子のコルーチンに対応しています）", "This yield return value is not supported (null, WaitForSeconds, WaitForSecondsRealtime, WaitUntil, WaitWhile and child coroutines are supported)"));
                 return null;
             }

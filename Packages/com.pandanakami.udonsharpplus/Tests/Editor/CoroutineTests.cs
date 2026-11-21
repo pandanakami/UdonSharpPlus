@@ -78,6 +78,46 @@ private IEnumerator Bar() { yield return null; yield break; }";
             AssertError(Basic + "\nvoid Late() { try { } finally { } }", "Try/Catch/Finally", BodyLine + 11);
         }
 
+        [Test]
+        public void GenericCoroutineMethodIsCopiedPerTypeArgument()
+        {
+            // ジェネリックメソッドのコルーチン：型引数ごとのコピーが、それぞれ状態機械になる
+            string code = Lowered("Generic", @"private string _log = """";
+void Start() { StartCoroutine(Hold(3)); StartCoroutine(Hold(""a"")); }
+IEnumerator Hold<T>(T value)
+{
+    yield return null;
+    _log += value.ToString();
+}");
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"private void __co_Hold\w*\(object\[\] __s\)").Count, Is.EqualTo(2), code);
+        }
+
+        [Test]
+        public void KeepsLinesAfterMultiLineStatements()
+        {
+            // 複数行の宣言・yield の値・if の条件・while の条件のあとでも、うしろの行がずれない（#107 の追加テスト案の 14）
+            AssertError(@"IEnumerator Foo(int n)
+{
+    int y = n
+        + 1;
+    yield return new WaitForSeconds(y
+        * 0.5f);
+    if (y > 0
+        && n > 0)
+    {
+        yield return null;
+    }
+    while (y > 0
+        && n > 0)
+    {
+        y--;
+        yield return null;
+    }
+    Debug.Log(y);
+}
+void Late() { try { } finally { } }", "Try/Catch/Finally", BodyLine + 19);
+        }
+
         /// <summary>書き換え後の CoUse.cs（エラーがないこと）</summary>
         private static string Lowered(string name, string body)
         {
@@ -324,7 +364,7 @@ IEnumerator Foo() { yield return null; }");
         [Test]
         public void ErrorForUnsupportedYieldValue()
         {
-            AssertError("IEnumerator Foo()\n{\n    yield return new WaitForEndOfFrame();\n}", "この yield return の値は", BodyLine + 2);
+            AssertError("IEnumerator Foo()\n{\n    yield return Resources.UnloadUnusedAssets();\n}", "この yield return の値は", BodyLine + 2);
         }
 
         // ---- 4 段階目：WaitUntil・WaitWhile・WaitForSecondsRealtime・子のコルーチン ----------------------
@@ -392,6 +432,51 @@ IEnumerator Foo() { yield return StartCoroutine(Child()); yield return Child(); 
         public void ErrorForOtherBehavioursStart()
         {
             AssertError("public CoUse other;\nvoid Start() { other.StartCoroutine(Foo()); }\nIEnumerator Foo() { yield return null; }", "ほかのビヘイビアの StartCoroutine", BodyLine + 1);
+        }
+
+        // ---- 5 段階目：対応しない書き方（#107 の追加テスト案の 15）。原因のところに 1 つだけ出る ----------------------
+
+        [TestCase("IEnumerator Foo() { try { } finally { yield return null; } }", "この文（try・using・lock")]
+        [TestCase("IEnumerator Foo() { yield return null; using (var d = new System.IO.MemoryStream()) { yield return null; yield return null; } }", "この文（try・using・lock")]
+        [TestCase("IEnumerator Foo() { yield return null; lock (this) { yield return null; } yield return null; }", "この文（try・using・lock")]
+        [TestCase("IEnumerator Foo() { yield return new WaitForEndOfFrame(); }", "WaitForEndOfFrame は未対応です")]
+        [TestCase("private WaitForEndOfFrame _w = new WaitForEndOfFrame(); IEnumerator Foo() { yield return _w; }", "WaitForEndOfFrame は未対応です")]
+        [TestCase("IEnumerator Foo() { var w = new WaitForFixedUpdate(); yield return w; }", "WaitForFixedUpdate は未対応です")]
+        [TestCase("void Start() { IEnumerator e = new int[2].GetEnumerator(); StartCoroutine(e); }", "外部のメソッド（Array.GetEnumerator）")]
+        [TestCase("IEnumerator Foo() { yield return transform.GetEnumerator(); }", "外部のメソッド（Transform.GetEnumerator）")]
+        [TestCase("System.Collections.Generic.IEnumerator<int> Foo() { yield return 1; }", "を返す yield（列挙のための yield）")]
+        [TestCase("IEnumerable Foo() { yield return null; }", "を返す yield（列挙のための yield）")]
+        [TestCase("System.Collections.Generic.IEnumerable<int> Foo() { yield return 1; }", "を返す yield（列挙のための yield）")]
+        [TestCase("void Start() { IEnumerator e = Foo(); e.MoveNext(); }\nIEnumerator Foo() { yield return null; }", "IEnumerator の MoveNext")]
+        [TestCase("public CoUse other; IEnumerator Get() { return other.Foo(); } void Start() { StartCoroutine(Get()); }\npublic IEnumerator Foo() { yield return null; }", "ほかのビヘイビアのコルーチン（other.Foo")]
+        [TestCase("public CoUse other; void Start() { StartCoroutine(other.Foo()); }\npublic IEnumerator Foo() { yield return null; }", "ほかのビヘイビアのコルーチン（other.Foo")]
+        [TestCase("static IEnumerator Foo() { yield return null; } void Start() { StartCoroutine(Foo()); }", "static メソッドのコルーチン")]
+        [TestCase("void Start() { IEnumerator L() { yield return null; } StartCoroutine(L()); }", "ローカル関数のコルーチン")]
+        [TestCase("int P { get { yield return null; } }", "プロパティ・インデクサーの中の yield")]
+        public void OneErrorForUnsupportedForm(string body, string message)
+        {
+            CompileResult r = Compile(body);
+            var errors = r.Diagnostics.Where(d => d.StartsWith("Error")).ToList();
+            Assert.That(errors.Count, Is.EqualTo(1), body + "\n" + string.Join("\n", r.Diagnostics));
+            Assert.That(errors[0], Does.Contain(message).And.Contain($"CoUse.cs({BodyLine},"), body);
+        }
+
+        [Test]
+        public void ErrorForCoroutineInPlainClass()
+        {
+            CompileResult r = Compile("void Start() { }\n}\npublic class Plain { public IEnumerator Foo() { yield return null; } ");
+            var errors = r.Diagnostics.Where(d => d.StartsWith("Error")).ToList();
+            Assert.That(errors.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(errors[0], Does.Contain("UdonSharpBehaviour でないクラスのメソッドのコルーチン").And.Contain($"CoUse.cs({BodyLine + 2},"));
+        }
+
+        [Test]
+        public void ErrorForCoroutineInInterface()
+        {
+            CompileResult r = Compile("void Start() { }\n}\npublic interface ICo { IEnumerator Foo(); }\npublic class CoImpl : UdonSharpBehaviour, ICo { public IEnumerator Foo() { yield return null; } ");
+            var errors = r.Diagnostics.Where(d => d.StartsWith("Error")).ToList();
+            Assert.That(errors.Count, Is.EqualTo(1), string.Join("\n", r.Diagnostics));
+            Assert.That(errors[0], Does.Contain("インタフェースのメソッドのコルーチン").And.Contain($"CoUse.cs({BodyLine + 2},"));
         }
     }
 }

@@ -156,7 +156,7 @@ int n = big.Count();   // C# では 10 も数える。ここでは Where を呼�
 
 ## IEnumerable
 
-`IEnumerable<T>` には対応しません。Udon には `IEnumerable` の中を回す手段（`GetEnumerator`／`MoveNext`／`Current`）がなく、List・Dictionary は内部では `DataList`／`DataDictionary` になるためです。
+`IEnumerable<T>` には対応しません。Udon には `IEnumerable` の中を回す手段（`GetEnumerator`／`MoveNext`／`Current`）がなく、List・Dictionary は内部では `DataList`／`DataDictionary` になるためです。`IEnumerator`（ジェネリックでないもの）は、[コルーチン](coroutines.md)にだけ使えます。
 
 - List・Dictionary・LINQ の結果を `IEnumerable<T>` などのインタフェース型として扱うと、コンパイルエラーになります（変数・フィールドの初期化、代入、引数、戻り値）。`var` で受けるか、`ToList()`／`ToArray()` にしてください
 

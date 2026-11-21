@@ -22,6 +22,7 @@ UdonSharp のコンパイラに Harmony でパッチを当て、UdonSharp がコ
 | 匿名型 | `var p = new { Name = "a", Hp = 10 };`、`p.Hp`、`list.Select(x => new { x.Name, x.Hp })`、`ToString()`、`Equals` |
 | タプル | `(int, string)`、`(1, "a")`、`var (lo, hi) = Range(list);`・`(a, b) = (b, a);`、`==`・`ToString` |
 | 演算子のオーバーロード | `public static Vec operator +(Vec a, Vec b)`、`a + b`・`a += b`・`==`、`implicit operator Vec(int v)` |
+| コルーチン | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`、`StartCoroutine(Open())`、`StopCoroutine(c)`、`WaitUntil`、`yield return StartCoroutine(Child())` |
 
 ```csharp
 using System.Collections.Generic;
