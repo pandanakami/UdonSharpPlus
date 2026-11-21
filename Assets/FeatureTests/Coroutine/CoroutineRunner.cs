@@ -29,7 +29,9 @@ namespace FeatureTests.Coroutines
                                         + "|C=m0=3@1;k0=3@1;m2=26@2;k2=26@2;m3=59@3;kend26@4;B=e2o1d0d1two@4;mend59@5;|E=ab34p1;"
                                         + "|H=1a@1;1end@1;3a@1;3end@1;4a@1;4end@1;5a@1;5end@1;6a@1;6end@1;7s@1;8a@1;8end@1;9a@1;9end@1;10a@1;10end@1;11a1@1;11end@1;12a@1;12end@1;2f@2;2a@2;2end@2;|W=wTrueTrue;"
                                         + "|R=r1;|O=5,7;1,8;2,9;|I=b0;d0;b1;d1;derived;own;b0;b1;off;|K=20;churnTrue;|L=True1,1,-1;stoppedTrue;"
-                                        + "|G=t0;u0;nTrueTrue;t1;u1;s0;s1;u2;end;v0;v1;fin;allTrue;inactiveTrue;disabledTrue;inactiveStartTrue;";
+                                        + "|G=t0;u0;nTrueTrue;t1;u1;s0;s1;u2;end;v0;v1;fin;allTrue;inactiveTrue;disabledTrue;inactiveStartTrue;"
+                                        + "|X=f0@0;s0@0;s0a@0;c@1;da@1;db@1;es@1;f0a@1;f1@1;s1@1;s1a@1;f2@1;a3@2;a2@2;a1@2;a@2;f1a@2;ev3@2;g3@2;bc@3;bp1@3;ei@3;ew@3;"
+                                        + "|S=w-1@1;w0@1;wTiny@1;r-1@1;rTiny@1;rNaN@1;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
         // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
@@ -40,6 +42,9 @@ namespace FeatureTests.Coroutines
         // G：StopCoroutine（Coroutine・IEnumerator の値）・止めた番号でほかを止めない・自分を止めると次の yield で止まる・
         //    Coroutine の null との比較、StopAllCoroutines・GameObject を非アクティブにすると止まる・ビヘイビアを無効にしても止まらない・
         //    非アクティブの GameObject では開始しない（Peer で確かめる）
+        // X：子→孫→ひ孫・一つの子を二つの親が待つ（2 つ目は再開しない）・自分を待つ・互いに待つ（再開しない）・親を止めても子は動く・
+        //    終わったものを待つと次のフレーム、止めたものを待つとその場で続く・WaitUntil の評価回数（#107 の追加テスト案の 4・12）
+        // S：WaitForSeconds・WaitForSecondsRealtime の負・0・極小・NaN・正の無限大（無限大・NaN の WaitForSeconds と、無限大の Realtime は再開しない）
 
         public Text display;
         public CoroutinePeer peer;
@@ -94,6 +99,7 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Inherit());
             StartCoroutine(ManyTest());
             StartCoroutine(Collections());
+            StartCoroutine(Graph());
             StartCoroutine(Judge());
         }
 
@@ -439,6 +445,91 @@ namespace FeatureTests.Coroutines
             _loops += "B=" + s + "@" + (F() - start) + ";";
         }
 
+        // X：待つ形の異常系と秒の境界（#107 の追加テスト案の 4・12。普通の Unity で測ったものと同じ場面）
+        private string _graph = "";
+        private int _g0;
+        private Coroutine _gShared;
+        private Coroutine _gSelf;
+        private Coroutine _gA;
+        private Coroutine _gB;
+        private int _gEvals;
+        private int _gFlip;
+        private string[] _gSecs = new string[9];
+
+        private void X(string s) { _graph += s + "@" + (Time.frameCount - _g0) + ";"; }
+
+        private IEnumerator Graph()
+        {
+            _g0 = Time.frameCount;
+            StartCoroutine(GChain());
+            _gShared = StartCoroutine(GLong(3, "bc"));
+            StartCoroutine(GWait("bp1"));
+            StartCoroutine(GWait("bp2"));
+            _gSelf = StartCoroutine(GSelf());
+            _gA = StartCoroutine(GCycleA());
+            _gB = StartCoroutine(GCycleB());
+            StartCoroutine(GStopParent());
+            StartCoroutine(GHandle("f0", false, false));
+            StartCoroutine(GHandle("s0", true, false));
+            StartCoroutine(GHandle("f1", false, true));
+            StartCoroutine(GHandle("s1", true, true));
+            StartCoroutine(GSecs(0, "w-1", -1f));
+            StartCoroutine(GSecs(1, "w0", 0f));
+            StartCoroutine(GSecs(2, "wTiny", 1e-6f));
+            StartCoroutine(GSecs(3, "wInf", float.PositiveInfinity));
+            StartCoroutine(GSecs(4, "wNaN", NaN()));
+            StartCoroutine(GReal(5, "r-1", -1f));
+            StartCoroutine(GReal(6, "rTiny", 1e-6f));
+            StartCoroutine(GReal(7, "rNaN", float.NaN));
+            StartCoroutine(GReal(8, "rInf", float.PositiveInfinity));
+            StartCoroutine(GEvals());
+            StartCoroutine(GFlip());
+            yield return null;
+        }
+
+        // 子→孫→ひ孫が終わると、同じフレームのうちに親まで順に再開する
+        private IEnumerator GChain() { yield return StartCoroutine(GC1()); X("a"); }
+        private IEnumerator GC1() { yield return StartCoroutine(GC2()); X("a1"); }
+        private IEnumerator GC2() { yield return StartCoroutine(GC3()); X("a2"); }
+        private IEnumerator GC3() { yield return null; yield return null; X("a3"); }
+        private IEnumerator GLong(int k, string n) { for (int i = 0; i < k; i++) yield return null; X(n); }
+        // 一つの子を二つの親が待つ：2 つ目はエラーになり、二度と再開しない
+        private IEnumerator GWait(string n) { yield return _gShared; X(n); }
+        // 自分を待つ・互いに待つ：二度と再開しない
+        private IEnumerator GSelf() { yield return null; X("c"); yield return _gSelf; X("cNever"); }
+        private IEnumerator GCycleA() { yield return null; X("da"); yield return _gB; X("daNever"); }
+        private IEnumerator GCycleB() { yield return null; X("db"); yield return _gA; X("dbNever"); }
+        // 親を止めても、親が開始した子（待っていたものも）は動く
+        private IEnumerator GStopParent() { Coroutine p = StartCoroutine(GParent()); yield return null; StopCoroutine(p); X("es"); }
+        private IEnumerator GParent() { StartCoroutine(GLong(3, "ei")); yield return StartCoroutine(GLong(3, "ew")); X("eNever"); }
+        // 終わったものを待つと次のフレーム、止めたものを待つとその場で続く
+        private IEnumerator GHandle(string n, bool stop, bool late)
+        {
+            if (late) yield return null;
+            X(n);
+            Coroutine c = stop ? StartCoroutine(GLong(100, "never")) : StartCoroutine(Sync());
+            if (stop) StopCoroutine(c);
+            yield return c;
+            X(n + "a");
+        }
+        // 秒の境界：0 以下・極小は次のフレーム、正の無限大・NaN の WaitForSeconds は二度と再開しない。
+        // 同じフレームに再開するものの中の順番は、Unity と違うことがある（Unity は秒と yield return null を期限の順に 1 つの列に並べる）ので、場面ごとの場所に書いて、順番は比べない
+        private IEnumerator GSecs(int i, string n, float t) { yield return new WaitForSeconds(t); _gSecs[i] = n + "@" + (Time.frameCount - _g0) + ";"; }
+        private IEnumerator GReal(int i, string n, float t) { yield return new WaitForSecondsRealtime(t); _gSecs[i] = n + "@" + (Time.frameCount - _g0) + ";"; }
+        // WaitUntil の条件は、yield のときと、そのあと毎フレーム 1 回ずつ評価する
+        private bool GEval() { _gEvals++; return _gEvals >= 3; }
+        private IEnumerator GEvals() { yield return new WaitUntil(GEval); X("ev" + _gEvals); }
+        private IEnumerator GFlip()
+        {
+            StartCoroutine(GFlipper());
+            yield return new WaitUntil(() => _gFlip == 1 || _gFlip == 3);
+            X("f" + _gFlip);
+            yield return new WaitUntil(() => _gFlip == 3);
+            X("g" + _gFlip);
+        }
+        private IEnumerator GFlipper() { _gFlip = 1; yield return null; _gFlip = 2; yield return null; _gFlip = 3; yield return null; _gFlip = 4; }
+        private float NaN() => float.NaN;
+
         private IEnumerator Steps(string tag, int start)
         {
             _log += tag + "0@" + (F() - start) + ";";
@@ -473,7 +564,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs);
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;

@@ -473,21 +473,22 @@ namespace UdonSharpPlus
                 yield return "private string[] __co_names = new string[] { " + string.Join(", ", _work.Coroutines.Select(c => "\"" + c.Declaration.Identifier.ValueText + "\"")) + " };";
                 // 次のフレームを待っているものの番号と、待ち始めたフレーム（外から __co_frame を呼ばれても、待ち始めたフレームのうちには再開しない）
                 yield return "private int[] __co_fq = new int[8]; private int[] __co_ff = new int[8]; private int __co_fh; private int __co_fn;";
-                yield return "private int[] __co_sh = new int[8]; private float[] __co_st = new float[8]; private int __co_sn;";
+                yield return "private int[] __co_sh = new int[8]; private float[] __co_st = new float[8]; private int[] __co_sf = new int[8]; private int __co_sn;";
 
                 // 状態を作る（同じメソッドの空いた状態があれば使い回す）。
                 // 見出し：[0] 番号 [1] メソッドの番号 [2] 再開する位置 [3] 開始したか [4] 空きのつなぎ [5] 動いている途中か [6] 動いている途中で止められたか
                 // [7] 終わるのを待っている親の番号 [8] 親がまだ yield の途中か（子が最初の yield より前に終わったら、親は次のフレームで再開する）
+                // [9] この状態で最後に止めたものの番号（止めたものを待つと、Unity ではその場で続きが動く。終わったものなら次のフレーム）
                 yield return "protected object[] __co_alloc(int id, int size) { int f = __co_free[id]; if (f != 0) { object[] r = (object[])__co_slots[f - 1]; int[] rh = (int[])r[0]; __co_free[id] = rh[4]; rh[2] = 0; rh[3] = 0; rh[4] = 0; rh[5] = 0; rh[6] = 0; rh[7] = 0; rh[8] = 0; return r; } "
                              + "if (__co_used == __co_slots.Length) { object[] g = new object[__co_used * 2]; for (int i = 0; i < __co_used; i++) g[i] = __co_slots[i]; __co_slots = g; } "
-                             + "object[] s = new object[size]; int[] h = new int[9]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }";
+                             + "object[] s = new object[size]; int[] h = new int[10]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }";
                 yield return "private object[] __co_get(int c) { int i = (c & 65535) - 1; if (i < 0 || i >= __co_used) return null; object[] s = (object[])__co_slots[i]; if (((int[])s[0])[0] != c) return null; return s; }";
                 // 古い番号を無効にする（世代を進める）
                 yield return "private void __co_bump(int[] h) { int g = (h[0] >> 16) + 1; if (g > 32767) g = 1; h[0] = (g << 16) | (h[0] & 65535); h[3] = 0; }";
                 // 空きに戻す：参照を切って、空きのつなぎに入れる
                 yield return "private void __co_recycle(object[] s) { int[] h = (int[])s[0]; for (int i = 1; i < s.Length; i++) s[i] = null; h[2] = -1; h[5] = 0; h[6] = 0; h[7] = 0; h[8] = 0; h[4] = __co_free[h[1]]; __co_free[h[1]] = h[0] & 65535; }";
                 // 止める。動いている途中（自分を止めたときなど）なら、次の yield で空きに戻す（Unity と同じく、次の yield まで動く）
-                yield return "private void __co_kill(object[] s) { int[] h = (int[])s[0]; __co_bump(h); if (h[5] != 0) h[6] = 1; else __co_recycle(s); }";
+                yield return "private void __co_kill(object[] s) { int[] h = (int[])s[0]; h[9] = h[0]; __co_bump(h); if (h[5] != 0) h[6] = 1; else __co_recycle(s); }";
                 // 終わり。待っている親があれば、同じフレームのうちに再開する（親がまだ yield の途中なら、次のフレーム）
                 yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) __co_bump(h); __co_recycle(s); "
                              + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
@@ -508,10 +509,15 @@ namespace UdonSharpPlus
                     " : the same coroutine was started with StartCoroutine while it was running, so it was stopped (its local variables would be overwritten; it can be started with yield return StartCoroutine(...))");
                 yield return $"private void __co_step(object[] s) {{ int id = ((int[])s[0])[1]; if (__co_on[id] != 0) {{ UnityEngine.Debug.LogError(\"[UdonSharpPlus] \" + __co_names[id] + \"{reenter}\"); __co_kill(s); return; }} __co_on[id] = 1; __co_stepx(s, id); }}";
 
-                // 子のコルーチンを待つ。終わっている（番号が見つからない）なら次のフレーム。まだ開始していなければ、親を覚えてから開始する
+                // 子のコルーチンを待つ。終わっている（番号が見つからない）なら次のフレーム、止めたものならその場で続ける。まだ開始していなければ、親を覚えてから開始する
+                // 自分を待つ・ほかの親が待っているものを待つと、Unity と同じく二度と再開しない（止めるまで状態を持ったまま）。#107 の追加テスト案の 4
+                // 待つのをやめて、再開を予約しないでおく。動いている途中で止められていたら空きに戻す（戻したら false）
+                yield return "private bool __co_park(object[] s) { int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return false; } return true; }";
                 string inactive2 = "UnityEngine.Debug.LogError(\"Coroutine couldn't be started because the the game object '\" + gameObject.name + \"' is inactive!\");";
-                yield return "protected void __co_await(object[] s, int c) { int[] hd = (int[])s[0]; object[] k = __co_get(c); if (k == null || k == s) { __co_wf(s); return; } int[] kh = (int[])k[0]; "
-                             + "if (kh[7] != 0) { UnityEngine.Debug.LogError(\"Another coroutine is already waiting for this coroutine!\"); __co_wf(s); return; } "
+                yield return "protected void __co_await(object[] s, int c) { int[] hd = (int[])s[0]; object[] k = __co_get(c); "
+                             + "if (k == null) { int i = (c & 65535) - 1; if (c != 0 && i >= 0 && i < __co_used && ((int[])((object[])__co_slots[i])[0])[9] == c) { if (__co_park(s)) __co_step(s); return; } __co_wf(s); return; } "
+                             + "if (k == s) { __co_park(s); return; } int[] kh = (int[])k[0]; "
+                             + "if (kh[7] != 0) { UnityEngine.Debug.LogError(\"Another coroutine is already waiting for this coroutine!\"); __co_park(s); return; } "
                              + "if (kh[3] != 0) { __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } kh[7] = hd[0]; kh[8] = kh[5]; return; } "
                              + $"if (!gameObject.activeInHierarchy) {{ {inactive2} __co_kill(k); __co_wf(s); return; }} "
                              + "__co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); __co_kill(k); return; } kh[7] = hd[0]; kh[8] = 1; kh[3] = 1; __co_step(k); }";
@@ -524,12 +530,15 @@ namespace UdonSharpPlus
                 yield return "public void __co_frame() { if (__co_fn == 0 || __co_ff[__co_fh] >= UnityEngine.Time.frameCount) return; int c = __co_fq[__co_fh]; __co_fh++; __co_fn--; if (__co_fn == 0) __co_fh = 0; "
                              + "object[] s = __co_get(c); if (s != null) __co_step(s); }";
 
-                // 秒（WaitForSeconds）。イベントは期限の順に届くので、届くたびに期限がいちばん早いもの（同じなら先に予約したもの）を再開する
-                yield return "protected void __co_ws(object[] s, float t) { if (t <= 0f) { __co_wf(s); return; } int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } "
-                             + "if (__co_sn == __co_sh.Length) { int[] g = new int[__co_sn * 2]; float[] gt = new float[__co_sn * 2]; for (int i = 0; i < __co_sn; i++) { g[i] = __co_sh[i]; gt[i] = __co_st[i]; } __co_sh = g; __co_st = gt; } "
-                             + "__co_sh[__co_sn] = hd[0]; __co_st[__co_sn] = UnityEngine.Time.time + t; __co_sn++; SendCustomEventDelayedSeconds(\"__co_sec\", t); }";
-                yield return "public void __co_sec() { if (__co_sn == 0) return; int b = 0; for (int i = 1; i < __co_sn; i++) if (__co_st[i] < __co_st[b]) b = i; int c = __co_sh[b]; "
-                             + "for (int i = b + 1; i < __co_sn; i++) { __co_sh[i - 1] = __co_sh[i]; __co_st[i - 1] = __co_st[i]; } __co_sn--; object[] s = __co_get(c); if (s != null) __co_step(s); }";
+                // NaN・正の無限大は、Unity と同じく二度と再開しない（NaN は Unity と同じ警告を出す）。#107 の追加テスト案の 12
+                string naninf = "if (t != t) { UnityEngine.Debug.LogWarning(\"float.NaN has been passed into WaitForSeconds which will result in an infinite wait time.\"); __co_park(s); return; } if (t > float.MaxValue) { __co_park(s); return; } ";
+                // 秒（WaitForSeconds）。待ち始めたフレームのうちに届いたら（ごく短い秒）、Unity と同じく次のフレームまで待つ。イベントは期限の順に届くので、届くたびに期限がいちばん早いもの（同じなら先に予約したもの）を再開する
+                yield return "protected void __co_ws(object[] s, float t) { if (t <= 0f) { __co_wf(s); return; } " + naninf + " int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } "
+                             + "if (__co_sn == __co_sh.Length) { int[] g = new int[__co_sn * 2]; float[] gt = new float[__co_sn * 2]; int[] gf = new int[__co_sn * 2]; for (int i = 0; i < __co_sn; i++) { g[i] = __co_sh[i]; gt[i] = __co_st[i]; gf[i] = __co_sf[i]; } __co_sh = g; __co_st = gt; __co_sf = gf; } "
+                             + "__co_sh[__co_sn] = hd[0]; __co_st[__co_sn] = UnityEngine.Time.time + t; __co_sf[__co_sn] = UnityEngine.Time.frameCount; __co_sn++; SendCustomEventDelayedSeconds(\"__co_sec\", t); }";
+                yield return "public void __co_sec() { if (__co_sn == 0) return; int b = 0; for (int i = 1; i < __co_sn; i++) if (__co_st[i] < __co_st[b]) b = i; int c = __co_sh[b]; int sf = __co_sf[b]; "
+                             + "for (int i = b + 1; i < __co_sn; i++) { __co_sh[i - 1] = __co_sh[i]; __co_st[i - 1] = __co_st[i]; __co_sf[i - 1] = __co_sf[i]; } __co_sn--; object[] s = __co_get(c); if (s == null) return; "
+                             + "if (sf >= UnityEngine.Time.frameCount) { __co_wf(s); return; } __co_step(s); }";
             }
         }
     }
