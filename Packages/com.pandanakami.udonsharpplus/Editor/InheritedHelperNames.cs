@@ -25,7 +25,10 @@ namespace UdonSharpPlus
         private static string Key(INamedTypeSymbol symbol) =>
             new string(symbol.ToDisplayString().Select(c => char.IsLetterOrDigit(c) || c == '_' ? c : '_').ToArray());
 
-        /// <summary>生成メソッドの名前（ユーザーのコードは __ で始まる名前を使わない）</summary>
+        /// <summary>
+        /// 生成メソッドの名前（ユーザーのコードは __ で始まる名前を使わない）。基底の生成メソッドを override するもの
+        /// （コルーチンの振り分けの __co_stepx。#107）は、名前を変えると override でなくなるので対象にしない
+        /// </summary>
         private static bool IsGenerated(string name) => name.StartsWith("__");
 
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, IEnumerable<MetadataReference> references)
@@ -50,7 +53,7 @@ namespace UdonSharpPlus
                         continue;
                     if (!declared.TryGetValue(symbol, out var names))
                         declared[symbol] = names = new HashSet<string>();
-                    names.UnionWith(node.Members.OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText).Where(IsGenerated));
+                    names.UnionWith(node.Members.OfType<MethodDeclarationSyntax>().Where(m => !m.Modifiers.Any(SyntaxKind.OverrideKeyword)).Select(m => m.Identifier.ValueText).Where(IsGenerated));
                     declarations.Add((i, node, symbol));
                 }
             }
@@ -74,7 +77,7 @@ namespace UdonSharpPlus
                 partIndex[d.Symbol] = partIndex.TryGetValue(d.Symbol, out int k) ? k + 1 : 1;
 
                 var map = new Dictionary<string, string>();
-                foreach (string name in d.Node.Members.OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText).Where(IsGenerated).Distinct())
+                foreach (string name in d.Node.Members.OfType<MethodDeclarationSyntax>().Where(m => !m.Modifiers.Any(SyntaxKind.OverrideKeyword)).Select(m => m.Identifier.ValueText).Where(IsGenerated).Distinct())
                 {
                     string final = inherited.Contains(name) ? $"{name}__{Key(d.Symbol)}" : name;
                     if (earlier.Contains(final))
@@ -85,7 +88,7 @@ namespace UdonSharpPlus
                 }
                 if (map.Count > 0)
                     renames[d.Node] = map;
-                foreach (string name in map.Keys.Concat(d.Node.Members.OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText).Where(IsGenerated)))
+                foreach (string name in map.Keys.Concat(d.Node.Members.OfType<MethodDeclarationSyntax>().Where(m => !m.Modifiers.Any(SyntaxKind.OverrideKeyword)).Select(m => m.Identifier.ValueText).Where(IsGenerated)))
                 {
                     if (!classFinal.TryGetValue(d.Symbol, out var names))
                         classFinal[d.Symbol] = names = new Dictionary<string, string>();

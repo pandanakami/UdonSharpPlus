@@ -43,6 +43,8 @@ namespace UdonSharpPlus.Tests
             yield return new TestCaseData(typeof(Coroutine), "System.Int32");   // コルーチンの値（#107）
             yield return new TestCaseData(typeof(System.Collections.IEnumerator), "System.Int32");
             yield return new TestCaseData(typeof(Coroutine[]), "System.Int32[]");
+            yield return new TestCaseData(typeof(WaitForSeconds), "System.Single");
+            yield return new TestCaseData(typeof(WaitForSecondsRealtime), "System.Single");
         }
 
         [TestCaseSource(nameof(Lowered))]

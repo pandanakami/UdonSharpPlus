@@ -33,6 +33,7 @@ namespace UdonSharpPlus
         private const string CoroutineName = "UnityEngine.Coroutine";
         private const string MonoBehaviourName = "UnityEngine.MonoBehaviour";
         private const string WaitForSecondsName = "UnityEngine.WaitForSeconds";
+        private const string DataTokenName = "VRC.SDK3.Data.DataToken";
 
         public static bool MayHaveCoroutines(IEnumerable<SyntaxTree> trees) =>
             trees.Any(t => t.GetRoot().DescendantNodes().Any(n => n is YieldStatementSyntax
@@ -54,23 +55,47 @@ namespace UdonSharpPlus
             public string StepName;
         }
 
+        /// <summary>
+        /// 継承でつながった UdonSharpBehaviour の組（いちばん上の、ソースにある基底のクラスが Root）。
+        /// 状態の表・待つ処理・OnDisable は Root に 1 組だけ置き、コルーチンの番号は組の全体で振る（#107 の追加テスト案の 10）
+        /// </summary>
         private sealed class TypeWork
         {
-            public INamedTypeSymbol Type;
+            public INamedTypeSymbol Root;
             public readonly List<Coroutine> Coroutines = new List<Coroutine>();
-            /// <summary>状態の表・待つ処理などを置く宣言（partial のときは最初の宣言）</summary>
+            /// <summary>状態の表・待つ処理などを置く宣言（Root の最初の宣言）</summary>
             public ClassDeclarationSyntax Host;
-            /// <summary>ユーザーが書いた OnDisable（あれば、その先頭で止める。なければ Host に作る）</summary>
-            public MethodDeclarationSyntax OnDisable;
+            /// <summary>クラスごとの、状態機械のメソッドへの振り分け（override）を置く宣言（そのクラスの最初の宣言）</summary>
+            public readonly Dictionary<INamedTypeSymbol, ClassDeclarationSyntax> DispatchHosts = new Dictionary<INamedTypeSymbol, ClassDeclarationSyntax>(SymbolEqualityComparer.Default);
+            /// <summary>
+            /// ユーザーが書いた OnDisable（その先頭で止める）と、宣言の書き換え：Override = 親をさかのぼって、生成した virtual の OnDisable が
+            /// あるので public override にする。Public = 自分で virtual / override と書いたもので、組に生成した virtual があるので、public にそろえる
+            /// </summary>
+            public readonly Dictionary<MethodDeclarationSyntax, OnDisableEdit> OnDisables = new Dictionary<MethodDeclarationSyntax, OnDisableEdit>();
+            /// <summary>OnDisable を生成する宣言と、virtual にするか（子孫のどれかが OnDisable を書いているとき）</summary>
+            public readonly Dictionary<ClassDeclarationSyntax, bool> GeneratedOnDisables = new Dictionary<ClassDeclarationSyntax, bool>();
+
+            public IEnumerable<Coroutine> Of(INamedTypeSymbol type) =>
+                Coroutines.Where(c => SymbolEqualityComparer.Default.Equals(c.Symbol?.ContainingType, type));
+        }
+
+        private enum OnDisableEdit { None, Override, Public }
+
+        /// <summary>type から基底をたどった、ソースにあるいちばん上の UdonSharpBehaviour</summary>
+        private static INamedTypeSymbol RootOf(INamedTypeSymbol type, HashSet<INamedTypeSymbol> inSource)
+        {
+            INamedTypeSymbol t = type;
+            while (t.BaseType != null && inSource.Contains(t.BaseType.OriginalDefinition))
+                t = t.BaseType.OriginalDefinition;
+            return t;
         }
 
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
             var compilation = Compilations.For(trees, references);
 
-            // 1) コルーチンを使う UdonSharpBehaviour と、そのコルーチンのメソッド（番号は tree の順に振る）
-            var works = new Dictionary<INamedTypeSymbol, TypeWork>(SymbolEqualityComparer.Default);
-            var classes = new List<(SyntaxTree Tree, ClassDeclarationSyntax Class, TypeWork Work)>();
+            // 1) ソースの UdonSharpBehaviour の宣言（tree の順）
+            var decls = new List<(SyntaxTree Tree, ClassDeclarationSyntax Class, INamedTypeSymbol Type, List<MethodDeclarationSyntax> Methods, bool Uses)>();
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
@@ -79,44 +104,49 @@ namespace UdonSharpPlus
                     if (!(model.GetDeclaredSymbol(cls) is INamedTypeSymbol type) || !InterfaceLowering.IsUdonSharpBehaviour(type))
                         continue;
                     List<MethodDeclarationSyntax> methods = cls.Members.OfType<MethodDeclarationSyntax>().Where(m => IsCoroutine(model, m)).ToList();
-                    if (methods.Count == 0 && !OwnNodes(cls).OfType<IdentifierNameSyntax>().Any(UsesCoroutineApi))
-                        continue;
-                    if (!works.TryGetValue(type, out TypeWork work))
-                        works[type] = work = new TypeWork { Type = type, Host = cls };
-                    foreach (MethodDeclarationSyntax m in methods)
-                    {
-                        int id = work.Coroutines.Count;
-                        work.Coroutines.Add(new Coroutine
-                        {
-                            Declaration = m, Symbol = model.GetDeclaredSymbol(m), Id = id,
-                            StepName = $"__co_{m.Identifier.ValueText}_{id}",
-                        });
-                    }
-                    classes.Add((tree, cls, work));
+                    bool uses = methods.Count > 0 || OwnNodes(cls).OfType<IdentifierNameSyntax>().Any(UsesCoroutineApi);
+                    decls.Add((tree, cls, type.OriginalDefinition, methods, uses));
                 }
             }
-            if (classes.Count == 0)
+            var inSource = new HashSet<INamedTypeSymbol>(decls.Select(d => d.Type), SymbolEqualityComparer.Default);
+
+            // 2) コルーチンを使うクラスの組。番号は組の全体で、tree の順に振る
+            var works = new Dictionary<INamedTypeSymbol, TypeWork>(SymbolEqualityComparer.Default);   // Root → 組
+            foreach (var d in decls.Where(d => d.Uses))
+            {
+                INamedTypeSymbol root = RootOf(d.Type, inSource);
+                if (!works.ContainsKey(root))
+                    works[root] = new TypeWork { Root = root };
+            }
+            if (works.Count == 0)
                 return trees;
 
-            // ユーザーが書いた OnDisable（partial のほかの宣言にあってもよい）
-            foreach (SyntaxTree tree in trees)
+            var classes = new List<(SyntaxTree Tree, ClassDeclarationSyntax Class, INamedTypeSymbol Type, TypeWork Work)>();
+            foreach (var d in decls)
             {
-                SemanticModel model = compilation.Model(tree);
-                foreach (ClassDeclarationSyntax cls in TypeDeclarations.Of<ClassDeclarationSyntax>(tree.GetRoot()))
+                if (!works.TryGetValue(RootOf(d.Type, inSource), out TypeWork work))
+                    continue;
+                SemanticModel model = compilation.Model(d.Tree);
+                if (work.Host == null && SymbolEqualityComparer.Default.Equals(d.Type, work.Root))
+                    work.Host = d.Class;
+                if (d.Methods.Count > 0 && !work.DispatchHosts.ContainsKey(d.Type))
+                    work.DispatchHosts[d.Type] = d.Class;
+                foreach (MethodDeclarationSyntax m in d.Methods)
                 {
-                    if (!(model.GetDeclaredSymbol(cls) is INamedTypeSymbol type) || !works.TryGetValue(type, out TypeWork work))
-                        continue;
-                    MethodDeclarationSyntax onDisable = cls.Members.OfType<MethodDeclarationSyntax>().FirstOrDefault(m =>
-                        m.Identifier.ValueText == "OnDisable" && m.ParameterList.Parameters.Count == 0 && m.Body != null && !m.Modifiers.Any(SyntaxKind.StaticKeyword));
-                    if (onDisable == null)
-                        continue;
-                    work.OnDisable = onDisable;
-                    if (!classes.Any(c => c.Class == cls))
-                        classes.Add((tree, cls, work));
+                    int id = work.Coroutines.Count;
+                    work.Coroutines.Add(new Coroutine { Declaration = m, Symbol = model.GetDeclaredSymbol(m), Id = id, StepName = $"__co_{m.Identifier.ValueText}_{id}" });
                 }
+                classes.Add((d.Tree, d.Class, d.Type, work));
             }
+            PlanOnDisable(classes.Select(c => (c.Class, c.Type, c.Work)).ToList(), inSource);
+            // DispatchHosts のうち、Root の分は Host の振り分け（virtual）に入れる
+            foreach (TypeWork work in works.Values)
+                work.DispatchHosts.Remove(work.Root);
 
-            // 2) ファイルごとに書き換える
+            // 同じコルーチンへの再入（コンパイル時にたどれるもの。#107 の決めたこと 10）
+            ReentryCheck.Run(compilation, trees, works.Values, diagnostics);
+
+            // 3) ファイルごとに書き換える
             var result = new List<SyntaxTree>(trees.Count);
             foreach (SyntaxTree tree in trees)
             {
@@ -128,11 +158,63 @@ namespace UdonSharpPlus
                 }
                 SemanticModel model = compilation.Model(tree);
                 var edits = new Edits(tree.GetText());
-                foreach (var (_, cls, work) in mine)
-                    new ClassRewriter(model, cls, work, edits, diagnostics).Run();
-                result.Add(CSharpSyntaxTree.ParseText(edits.Apply(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8));
+                foreach (var (_, cls, type, work) in mine)
+                    new ClassRewriter(model, cls, type, work, edits, diagnostics).Run();
+                result.Add(edits.Any ? CSharpSyntaxTree.ParseText(edits.Apply(), (CSharpParseOptions)tree.Options, tree.FilePath, Encoding.UTF8) : tree);
             }
             return result;
+        }
+
+        /// <summary>
+        /// GameObject が非アクティブになったら止める OnDisable の置き場所（#107 の決めたこと 6）。U# は基底と派生の両方に同じ名前の
+        /// メソッドを置けない（隠すのは未対応）が、virtual / override は書ける。
+        /// - ユーザーが書いた OnDisable：その先頭で止める。親をさかのぼって、生成した virtual の OnDisable があれば、
+        ///   public override にして base.OnDisable() も呼ぶ（書き換え後のコードだけを変え、元のソースは変えない）
+        /// - 書いていないクラス：親をさかのぼって OnDisable（ユーザーのもの・生成したもの）があれば、それを引き継ぐので作らない。
+        ///   なければ作る。子孫のどれかが OnDisable を書いていれば public virtual にする
+        /// </summary>
+        private static void PlanOnDisable(List<(ClassDeclarationSyntax Class, INamedTypeSymbol Type, TypeWork Work)> classes, HashSet<INamedTypeSymbol> inSource)
+        {
+            var user = new Dictionary<INamedTypeSymbol, MethodDeclarationSyntax>(SymbolEqualityComparer.Default);
+            var first = new Dictionary<INamedTypeSymbol, ClassDeclarationSyntax>(SymbolEqualityComparer.Default);
+            foreach (var (cls, type, _) in classes)
+            {
+                if (!first.ContainsKey(type))
+                    first[type] = cls;
+                MethodDeclarationSyntax onDisable = cls.Members.OfType<MethodDeclarationSyntax>().FirstOrDefault(m =>
+                    m.Identifier.ValueText == "OnDisable" && m.ParameterList.Parameters.Count == 0 && m.Body != null && !m.Modifiers.Any(SyntaxKind.StaticKeyword));
+                if (onDisable != null && !user.ContainsKey(type))
+                    user[type] = onDisable;
+            }
+
+            IEnumerable<INamedTypeSymbol> Ancestors(INamedTypeSymbol t)
+            {
+                for (INamedTypeSymbol b = t.BaseType?.OriginalDefinition; b != null && inSource.Contains(b); b = b.BaseType?.OriginalDefinition)
+                    yield return b;
+            }
+
+            // 基底から順に（親が先に決まるように）
+            var generated = new Dictionary<INamedTypeSymbol, bool>(SymbolEqualityComparer.Default);   // 型 → virtual か
+            foreach (INamedTypeSymbol type in first.Keys.OrderBy(t => Ancestors(t).Count()))
+            {
+                if (user.ContainsKey(type) || Ancestors(type).Any(a => user.ContainsKey(a) || generated.ContainsKey(a)))
+                    continue;
+                bool descendantWrites = user.Keys.Any(u => Ancestors(u).Contains(type, SymbolEqualityComparer.Default));
+                generated[type] = descendantWrites;
+            }
+
+            TypeWork WorkOf(INamedTypeSymbol type) => classes.First(c => SymbolEqualityComparer.Default.Equals(c.Type, type)).Work;
+            foreach (var pair in generated)
+                WorkOf(pair.Key).GeneratedOnDisables[first[pair.Key]] = pair.Value;
+            foreach (var pair in user)
+            {
+                // いちばん近い、OnDisable のある親が、生成した virtual のものなら override にする
+                INamedTypeSymbol nearest = Ancestors(pair.Key).FirstOrDefault(a => user.ContainsKey(a) || generated.ContainsKey(a));
+                bool toOverride = nearest != null && !user.ContainsKey(nearest) && generated[nearest];
+                bool chain = pair.Value.Modifiers.Any(SyntaxKind.VirtualKeyword) || pair.Value.Modifiers.Any(SyntaxKind.OverrideKeyword);
+                bool anyVirtual = generated.Any(g => g.Value && SymbolEqualityComparer.Default.Equals(RootOf(g.Key, inSource), RootOf(pair.Key, inSource)));
+                WorkOf(pair.Key).OnDisables[pair.Value] = toOverride ? OnDisableEdit.Override : chain && anyVirtual ? OnDisableEdit.Public : OnDisableEdit.None;
+            }
         }
 
         /// <summary>IEnumerator を返し、本体に yield があるメソッド（ラムダ・ローカル関数の中の yield は数えない）</summary>
@@ -166,9 +248,12 @@ namespace UdonSharpPlus
 
             public void Add(TextSpan span, string text)
             {
-                // 同じところへの同じ置き換えは 1 つにする
-                if (!_list.Any(e => e.Span == span && e.Text == text))
-                    _list.Add((span, text));
+                // 同じところへの同じ置き換えは 1 つにする。先に足した置き換えの中に入るもの（default(Coroutine) → 0 の中の型など）は、
+                // 外側が中身ごと置き換えるので捨てる（境目への挿入は残す）
+                if (_list.Any(e => (e.Span == span && e.Text == text)
+                                   || (e.Span.Length > 0 && e.Span.Contains(span) && e.Span != span && !(span.Length == 0 && (span.Start == e.Span.Start || span.Start == e.Span.End)))))
+                    return;
+                _list.Add((span, text));
             }
 
             public string Take(SyntaxNode node) => Take(node.Span);
@@ -187,8 +272,15 @@ namespace UdonSharpPlus
                 return sb.Append(_text.ToString(TextSpan.FromBounds(pos, span.End))).ToString();
             }
 
-            public string Apply() =>
-                _text.WithChanges(_list.OrderBy(e => e.Span.Start).Select(e => new TextChange(e.Span, e.Text))).ToString();
+            public string Apply()
+            {
+                var sorted = _list.OrderBy(e => e.Span.Start).ThenBy(e => e.Span.Length).ToList();
+                for (int i = 1; i < sorted.Count; i++)
+                    if (sorted[i].Span.Start < sorted[i - 1].Span.End)
+                        throw new System.InvalidOperationException($"[UdonSharpPlus] coroutine lowering: overlapping edits at {_text.Lines.GetLinePosition(sorted[i].Span.Start)}: "
+                                                                   + $"'{_text.ToString(sorted[i - 1].Span)}' → '{sorted[i - 1].Text}' / '{_text.ToString(sorted[i].Span)}' → '{sorted[i].Text}'");
+                return _text.WithChanges(sorted.Select(e => new TextChange(e.Span, e.Text))).ToString();
+            }
         }
 
         /// <summary>text の改行の数だけの改行（置き換えたところのうしろの行をずらさないため）</summary>
@@ -200,15 +292,17 @@ namespace UdonSharpPlus
         {
             private readonly SemanticModel _model;
             private readonly ClassDeclarationSyntax _cls;
+            private readonly INamedTypeSymbol _type;
             private readonly TypeWork _work;
             private readonly Edits _edits;
             private readonly InterfaceLowering.LoweringDiagnostics _diagnostics;
             private readonly List<string> _members = new List<string>();
 
-            public ClassRewriter(SemanticModel model, ClassDeclarationSyntax cls, TypeWork work, Edits edits, InterfaceLowering.LoweringDiagnostics diagnostics)
+            public ClassRewriter(SemanticModel model, ClassDeclarationSyntax cls, INamedTypeSymbol type, TypeWork work, Edits edits, InterfaceLowering.LoweringDiagnostics diagnostics)
             {
                 _model = model;
                 _cls = cls;
+                _type = type;
                 _work = work;
                 _edits = edits;
                 _diagnostics = diagnostics;
@@ -228,6 +322,8 @@ namespace UdonSharpPlus
                     else if ((node.IsKind(SyntaxKind.NullLiteralExpression) || node.IsKind(SyntaxKind.DefaultLiteralExpression) || node is DefaultExpressionSyntax)
                              && IsHandle(_model.GetTypeInfo(node).ConvertedType))
                         _edits.Add(node.Span, "0");   // Coroutine・IEnumerator の null は 0
+                    else if (node is CastExpressionSyntax cast)
+                        RewriteTokenCast(cast);
                     else if (node is BinaryExpressionSyntax compare && (compare.IsKind(SyntaxKind.EqualsExpression) || compare.IsKind(SyntaxKind.NotEqualsExpression)))
                     {
                         // _co != null（null の型は object になる）
@@ -239,10 +335,25 @@ namespace UdonSharpPlus
                 }
 
                 // GameObject が非アクティブになったら止める（#107 の決めたこと 6）。ユーザーの OnDisable があれば、その先頭で
-                if (_work.OnDisable != null && _work.OnDisable.Parent == _cls)
-                    _edits.Add(new TextSpan(_work.OnDisable.Body.OpenBraceToken.Span.End, 0), " __co_off();");
-                if (_work.OnDisable == null && _cls == _work.Host)
-                    _members.Add("private void OnDisable() { __co_off(); }");
+                // （継承でつながったクラスのどれかが OnDisable を書いていれば、書いたものすべての先頭で。U# は基底と派生の両方に同じ名前の
+                // メソッドを置けないので、生成するのは 1 つも書いていないときだけ）
+                foreach (var pair in _work.OnDisables.Where(p => p.Key.Parent == _cls))
+                {
+                    MethodDeclarationSyntax onDisable = pair.Key;
+                    _edits.Add(new TextSpan(onDisable.Body.OpenBraceToken.Span.End, 0), pair.Value == OnDisableEdit.Override ? " __co_off(); base.OnDisable();" : " __co_off();");
+                    if (pair.Value == OnDisableEdit.None)
+                        continue;
+                    // アクセス修飾子を public に、Override なら virtual でなく override に
+                    string keep = pair.Value == OnDisableEdit.Override ? "override"
+                        : string.Join(" ", onDisable.Modifiers.Where(t => !(t.IsKind(SyntaxKind.PrivateKeyword) || t.IsKind(SyntaxKind.ProtectedKeyword) || t.IsKind(SyntaxKind.InternalKeyword) || t.IsKind(SyntaxKind.PublicKeyword))).Select(t => t.ValueText));
+                    string modifiers = "public" + (keep.Length > 0 ? " " + keep : "");
+                    if (onDisable.Modifiers.Count > 0)
+                        _edits.Add(TextSpan.FromBounds(onDisable.Modifiers.First().SpanStart, onDisable.Modifiers.Last().Span.End), modifiers);
+                    else
+                        _edits.Add(new TextSpan(onDisable.ReturnType.SpanStart, 0), modifiers + " ");
+                }
+                if (_work.GeneratedOnDisables.TryGetValue(_cls, out bool isVirtual))
+                    _members.Add(isVirtual ? "public virtual void OnDisable() { __co_off(); }" : "private void OnDisable() { __co_off(); }");
 
                 // 2) コルーチンのメソッド → その場に状態機械、閉じ括弧の行に開始のメソッド
                 foreach (Coroutine co in _work.Coroutines.Where(c => c.Declaration.Parent == _cls))
@@ -250,6 +361,8 @@ namespace UdonSharpPlus
 
                 if (_cls == _work.Host)
                     _members.AddRange(Runtime());
+                else if (_work.DispatchHosts.TryGetValue(_type, out ClassDeclarationSyntax dispatch) && dispatch == _cls)
+                    _members.Add($"protected override void __co_stepx(object[] s, int id) {{ switch (id) {{ {Cases(_type)}}} base.__co_stepx(s, id); }}");
 
                 if (_members.Count > 0)
                     _edits.Add(new TextSpan(_cls.CloseBraceToken.SpanStart, 0), string.Join(" ", _members) + " ");
@@ -264,6 +377,27 @@ namespace UdonSharpPlus
                     return false;
                 string name = (_model.GetSymbolInfo(type).Symbol as INamedTypeSymbol)?.ToDisplayString();
                 return name == EnumeratorName || name == CoroutineName;
+            }
+
+            /// <summary>
+            /// List・Dictionary の段は、Coroutine・IEnumerator を参照の値として DataToken に入れる（new DataToken((object)(c))・(Coroutine)(t.Reference)）。
+            /// 番号の int のトークンにして（Contains・Remove などが番号で比べられるように）、読むところは .Int にする
+            /// </summary>
+            private void RewriteTokenCast(CastExpressionSyntax cast)
+            {
+                if (cast.Type.IsKind(SyntaxKind.PredefinedType) && ((PredefinedTypeSyntax)cast.Type).Keyword.IsKind(SyntaxKind.ObjectKeyword)
+                    && cast.Parent is ArgumentSyntax arg && arg.Parent?.Parent is ObjectCreationExpressionSyntax create
+                    && _model.GetTypeInfo(create).Type?.ToDisplayString() == DataTokenName && IsHandle(_model.GetTypeInfo(cast.Expression).Type))
+                {
+                    _edits.Add(cast.Type.Span, "int");
+                    return;
+                }
+                ExpressionSyntax inner = cast.Expression;
+                while (inner is ParenthesizedExpressionSyntax p)
+                    inner = p.Expression;
+                if (inner is MemberAccessExpressionSyntax access && access.Name.Identifier.ValueText == "Reference"
+                    && _model.GetTypeInfo(access.Expression).Type?.ToDisplayString() == DataTokenName && IsHandle(_model.GetTypeInfo(cast.Type).Type))
+                    _edits.Add(access.Name.Span, "Int");
             }
 
             private static bool IsHandle(ITypeSymbol type)
@@ -325,19 +459,26 @@ namespace UdonSharpPlus
                 return null;
             }
 
-            /// <summary>状態の表・開始・待つ処理（クラスに 1 組）</summary>
+            /// <summary>type で宣言したコルーチンの、状態機械のメソッドへの振り分け</summary>
+            private string Cases(INamedTypeSymbol type) => string.Concat(_work.Of(type).Select(co => $"case {co.Id}: {co.StepName}(s); return; "));
+
+            /// <summary>状態の表・開始・待つ処理（継承でつながったクラスの組に 1 組。派生から呼ぶものは protected）</summary>
             private IEnumerable<string> Runtime()
             {
                 int count = _work.Coroutines.Count;
                 yield return "private object[] __co_slots = new object[8]; private int __co_used;";
                 yield return $"private int[] __co_free = new int[{System.Math.Max(count, 1)}];";
-                yield return "private int[] __co_fq = new int[8]; private int[] __co_fp = new int[8]; private int __co_fqn; private bool __co_fs;";
+                // コルーチンのメソッドごとの「動いているか」（同じコルーチンへの再入を止める。#107 の決めたこと 10）
+                yield return $"private int[] __co_on = new int[{System.Math.Max(count, 1)}];";
+                yield return "private string[] __co_names = new string[] { " + string.Join(", ", _work.Coroutines.Select(c => "\"" + c.Declaration.Identifier.ValueText + "\"")) + " };";
+                // 次のフレームを待っているものの番号と、待ち始めたフレーム（外から __co_frame を呼ばれても、待ち始めたフレームのうちには再開しない）
+                yield return "private int[] __co_fq = new int[8]; private int[] __co_ff = new int[8]; private int __co_fh; private int __co_fn;";
                 yield return "private int[] __co_sh = new int[8]; private float[] __co_st = new float[8]; private int __co_sn;";
 
                 // 状態を作る（同じメソッドの空いた状態があれば使い回す）。
                 // 見出し：[0] 番号 [1] メソッドの番号 [2] 再開する位置 [3] 開始したか [4] 空きのつなぎ [5] 動いている途中か [6] 動いている途中で止められたか
                 // [7] 終わるのを待っている親の番号 [8] 親がまだ yield の途中か（子が最初の yield より前に終わったら、親は次のフレームで再開する）
-                yield return "private object[] __co_alloc(int id, int size) { int f = __co_free[id]; if (f != 0) { object[] r = (object[])__co_slots[f - 1]; int[] rh = (int[])r[0]; __co_free[id] = rh[4]; rh[2] = 0; rh[3] = 0; rh[4] = 0; rh[5] = 0; rh[6] = 0; rh[7] = 0; rh[8] = 0; return r; } "
+                yield return "protected object[] __co_alloc(int id, int size) { int f = __co_free[id]; if (f != 0) { object[] r = (object[])__co_slots[f - 1]; int[] rh = (int[])r[0]; __co_free[id] = rh[4]; rh[2] = 0; rh[3] = 0; rh[4] = 0; rh[5] = 0; rh[6] = 0; rh[7] = 0; rh[8] = 0; return r; } "
                              + "if (__co_used == __co_slots.Length) { object[] g = new object[__co_used * 2]; for (int i = 0; i < __co_used; i++) g[i] = __co_slots[i]; __co_slots = g; } "
                              + "object[] s = new object[size]; int[] h = new int[9]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }";
                 yield return "private object[] __co_get(int c) { int i = (c & 65535) - 1; if (i < 0 || i >= __co_used) return null; object[] s = (object[])__co_slots[i]; if (((int[])s[0])[0] != c) return null; return s; }";
@@ -348,38 +489,44 @@ namespace UdonSharpPlus
                 // 止める。動いている途中（自分を止めたときなど）なら、次の yield で空きに戻す（Unity と同じく、次の yield まで動く）
                 yield return "private void __co_kill(object[] s) { int[] h = (int[])s[0]; __co_bump(h); if (h[5] != 0) h[6] = 1; else __co_recycle(s); }";
                 // 終わり。待っている親があれば、同じフレームのうちに再開する（親がまだ yield の途中なら、次のフレーム）
-                yield return "private void __co_done(object[] s) { int[] h = (int[])s[0]; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) __co_bump(h); __co_recycle(s); "
+                yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) __co_bump(h); __co_recycle(s); "
                              + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
-                yield return "private void __co_stop(int c) { object[] s = __co_get(c); if (s != null && ((int[])s[0])[3] != 0) __co_kill(s); }";
-                yield return "private void __co_stopall() { for (int i = 0; i < __co_used; i++) { object[] s = (object[])__co_slots[i]; if (((int[])s[0])[3] != 0) __co_kill(s); } }";
+                yield return "protected void __co_stop(int c) { object[] s = __co_get(c); if (s != null && ((int[])s[0])[3] != 0) __co_kill(s); }";
+                yield return "protected void __co_stopall() { for (int i = 0; i < __co_used; i++) { object[] s = (object[])__co_slots[i]; if (((int[])s[0])[3] != 0) __co_kill(s); } }";
                 // GameObject が非アクティブになったときだけ止める（ビヘイビアを無効にしただけなら止めない。Unity と同じ）
-                yield return "private void __co_off() { if (!gameObject.activeInHierarchy) __co_stopall(); }";
+                yield return "protected void __co_off() { if (!gameObject.activeInHierarchy) __co_stopall(); }";
 
                 string inactive = "UnityEngine.Debug.LogError(\"Coroutine couldn't be started because the the game object '\" + gameObject.name + \"' is inactive!\");";
-                yield return $"private void __co_go(int c) {{ object[] s = __co_get(c); if (s == null) return; int[] h = (int[])s[0]; if (h[3] != 0) return; if (!gameObject.activeInHierarchy) {{ {inactive} __co_kill(s); return; }} h[3] = 1; __co_step(s); }}";
+                yield return $"protected void __co_go(int c) {{ object[] s = __co_get(c); if (s == null) return; int[] h = (int[])s[0]; if (h[3] != 0) return; if (!gameObject.activeInHierarchy) {{ {inactive} __co_kill(s); return; }} h[3] = 1; __co_step(s); }}";
                 // 戻り値を使う開始は、入れ子で呼ばれても戻り値を失わないよう RecursiveMethod にする
-                yield return $"[UdonSharp.RecursiveMethod] private int __co_start(int c) {{ object[] s = __co_get(c); if (s == null) return 0; int[] h = (int[])s[0]; if (h[3] != 0) return c; if (!gameObject.activeInHierarchy) {{ {inactive} __co_kill(s); return 0; }} h[3] = 1; __co_step(s); return c; }}";
+                yield return $"[UdonSharp.RecursiveMethod] protected int __co_start(int c) {{ object[] s = __co_get(c); if (s == null) return 0; int[] h = (int[])s[0]; if (h[3] != 0) return c; if (!gameObject.activeInHierarchy) {{ {inactive} __co_kill(s); return 0; }} h[3] = 1; __co_step(s); return c; }}";
 
-                var cases = new StringBuilder();
-                foreach (Coroutine co in _work.Coroutines)
-                    cases.Append($"case {co.Id}: {co.StepName}(s); return; ");
-                yield return $"private void __co_step(object[] s) {{ switch (((int[])s[0])[1]) {{ {cases}}} }}";
+                // 派生クラスのコルーチンは、派生クラスの override（__co_stepx）が振り分ける
+                yield return $"protected virtual void __co_stepx(object[] s, int id) {{ switch (id) {{ {Cases(_work.Root)}}} }}";
+                // 状態機械のメソッドを呼ぶ。そのメソッドが動いている途中なら再入なので、エラーにして止める（メソッドの中で確かめると、引数がもう上書きされている）
+                string reenter = Loc.T(" のコルーチンが動いている途中に、同じコルーチンを StartCoroutine で開始したため、止めました（ローカル変数が上書きされるため。yield return StartCoroutine(...) の形なら開始できます）",
+                    " : the same coroutine was started with StartCoroutine while it was running, so it was stopped (its local variables would be overwritten; it can be started with yield return StartCoroutine(...))");
+                yield return $"private void __co_step(object[] s) {{ int id = ((int[])s[0])[1]; if (__co_on[id] != 0) {{ UnityEngine.Debug.LogError(\"[UdonSharpPlus] \" + __co_names[id] + \"{reenter}\"); __co_kill(s); return; }} __co_on[id] = 1; __co_stepx(s, id); }}";
 
                 // 子のコルーチンを待つ。終わっている（番号が見つからない）なら次のフレーム。まだ開始していなければ、親を覚えてから開始する
                 string inactive2 = "UnityEngine.Debug.LogError(\"Coroutine couldn't be started because the the game object '\" + gameObject.name + \"' is inactive!\");";
-                yield return "private void __co_await(object[] s, int c) { int[] hd = (int[])s[0]; object[] k = __co_get(c); if (k == null || k == s) { __co_wf(s); return; } int[] kh = (int[])k[0]; "
+                yield return "protected void __co_await(object[] s, int c) { int[] hd = (int[])s[0]; object[] k = __co_get(c); if (k == null || k == s) { __co_wf(s); return; } int[] kh = (int[])k[0]; "
                              + "if (kh[7] != 0) { UnityEngine.Debug.LogError(\"Another coroutine is already waiting for this coroutine!\"); __co_wf(s); return; } "
-                             + "if (kh[3] != 0) { hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } kh[7] = hd[0]; kh[8] = kh[5]; return; } "
+                             + "if (kh[3] != 0) { __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } kh[7] = hd[0]; kh[8] = kh[5]; return; } "
                              + $"if (!gameObject.activeInHierarchy) {{ {inactive2} __co_kill(k); __co_wf(s); return; }} "
-                             + "hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); __co_kill(k); return; } kh[7] = hd[0]; kh[8] = 1; kh[3] = 1; __co_step(k); }";
+                             + "__co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); __co_kill(k); return; } kh[7] = hd[0]; kh[8] = 1; kh[3] = 1; __co_step(k); }";
 
-                // 次のフレーム（yield return null）
-                yield return "private void __co_wf(object[] s) { int[] hd = (int[])s[0]; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } if (__co_fqn == __co_fq.Length) { int[] g = new int[__co_fqn * 2]; for (int i = 0; i < __co_fqn; i++) g[i] = __co_fq[i]; __co_fq = g; } __co_fq[__co_fqn] = hd[0]; __co_fqn++; "
-                             + "if (!__co_fs) { __co_fs = true; SendCustomEventDelayedFrames(\"__co_frame\", 1); } }";
-                yield return "public void __co_frame() { int[] q = __co_fq; int n = __co_fqn; __co_fq = __co_fp; __co_fp = q; __co_fqn = 0; __co_fs = false; for (int i = 0; i < n; i++) { object[] s = __co_get(q[i]); if (s != null) __co_step(s); } }";
+                // 次のフレーム（yield return null）。yield のたびにイベントを 1 つ予約し、届くたびに待ち行列の先頭を 1 つ再開する
+                // （イベントは予約した順に届くので、ビヘイビアをまたいでも、待ち始めた順に再開する。Unity と同じ。#107）
+                yield return "protected void __co_wf(object[] s) { int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } "
+                             + "if (__co_fh + __co_fn == __co_fq.Length) { int len = __co_fn * 2 < 8 ? 8 : __co_fn * 2; int[] g = new int[len]; int[] gf = new int[len]; for (int i = 0; i < __co_fn; i++) { g[i] = __co_fq[__co_fh + i]; gf[i] = __co_ff[__co_fh + i]; } __co_fq = g; __co_ff = gf; __co_fh = 0; } "
+                             + "__co_fq[__co_fh + __co_fn] = hd[0]; __co_ff[__co_fh + __co_fn] = UnityEngine.Time.frameCount; __co_fn++; SendCustomEventDelayedFrames(\"__co_frame\", 1); }";
+                yield return "public void __co_frame() { if (__co_fn == 0 || __co_ff[__co_fh] >= UnityEngine.Time.frameCount) return; int c = __co_fq[__co_fh]; __co_fh++; __co_fn--; if (__co_fn == 0) __co_fh = 0; "
+                             + "object[] s = __co_get(c); if (s != null) __co_step(s); }";
 
                 // 秒（WaitForSeconds）。イベントは期限の順に届くので、届くたびに期限がいちばん早いもの（同じなら先に予約したもの）を再開する
-                yield return "private void __co_ws(object[] s, float t) { if (t <= 0f) { __co_wf(s); return; } int[] hd = (int[])s[0]; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } if (__co_sn == __co_sh.Length) { int[] g = new int[__co_sn * 2]; float[] gt = new float[__co_sn * 2]; for (int i = 0; i < __co_sn; i++) { g[i] = __co_sh[i]; gt[i] = __co_st[i]; } __co_sh = g; __co_st = gt; } "
+                yield return "protected void __co_ws(object[] s, float t) { if (t <= 0f) { __co_wf(s); return; } int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } "
+                             + "if (__co_sn == __co_sh.Length) { int[] g = new int[__co_sn * 2]; float[] gt = new float[__co_sn * 2]; for (int i = 0; i < __co_sn; i++) { g[i] = __co_sh[i]; gt[i] = __co_st[i]; } __co_sh = g; __co_st = gt; } "
                              + "__co_sh[__co_sn] = hd[0]; __co_st[__co_sn] = UnityEngine.Time.time + t; __co_sn++; SendCustomEventDelayedSeconds(\"__co_sec\", t); }";
                 yield return "public void __co_sec() { if (__co_sn == 0) return; int b = 0; for (int i = 1; i < __co_sn; i++) if (__co_st[i] < __co_st[b]) b = i; int c = __co_sh[b]; "
                              + "for (int i = b + 1; i < __co_sn; i++) { __co_sh[i - 1] = __co_sh[i]; __co_st[i - 1] = __co_st[i]; } __co_sn--; object[] s = __co_get(c); if (s != null) __co_step(s); }";

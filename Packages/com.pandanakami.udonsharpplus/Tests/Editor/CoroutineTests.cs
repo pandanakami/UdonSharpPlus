@@ -168,6 +168,22 @@ private IEnumerator Bar() { yield return null; yield break; }";
         }
 
         [Test]
+        public void KeepsOutVariablesAcrossYield()
+        {
+            string code = Lowered("OutVar", @"IEnumerator Foo()
+{
+    int.TryParse(""5"", out int p);
+    yield return null;
+    for (int i = 0; i < 2; i++) { int.TryParse(""7"", out var q); yield return null; Debug.Log(q); }
+    Debug.Log(p);
+}");
+            Assert.That(code, Does.Contain("out p);"));
+            Assert.That(code, Does.Contain("out q);"));
+            Assert.That(code, Does.Match(@"__s\[\d+\] = p;"));
+            Assert.That(code, Does.Match(@"__s\[\d+\] = q;"));
+        }
+
+        [Test]
         public void ErrorForYieldInsideTry()
         {
             AssertError("IEnumerator Foo() { lock (this) { yield return null; } }", "この文（try・using・lock", BodyLine);
@@ -215,6 +231,94 @@ IEnumerator Foo() { yield return null; }";
         public void ErrorForStringStop()
         {
             AssertError("void Start() { StopCoroutine(\"Foo\"); }\nIEnumerator Foo() { yield return null; }", "文字列で指定する StopCoroutine", BodyLine);
+        }
+
+        // ---- 同じコルーチンへの再入（#107 の決めたこと 10） ----------------------
+
+        [Test]
+        public void ErrorForDirectReentry()
+        {
+            AssertError("IEnumerator Foo(int n)\n{\n    yield return null;\n    StartCoroutine(Foo(n + 1));\n    Debug.Log(n);\n}", "Foo → Foo", BodyLine + 3);
+        }
+
+        [Test]
+        public void ErrorForReentryThroughMethod()
+        {
+            AssertError("IEnumerator Foo()\n{\n    yield return null;\n    Kick();\n}\nvoid Kick() { StartCoroutine(Foo()); }", "Foo → Kick → Foo", BodyLine + 3);
+        }
+
+        [Test]
+        public void ErrorForReentryThroughFirstSegmentOfAnotherCoroutine()
+        {
+            AssertError("IEnumerator Foo()\n{\n    StartCoroutine(Bar());\n    yield return null;\n}\nIEnumerator Bar() { StartCoroutine(Foo()); yield return null; }", "Foo → Bar → Foo", BodyLine + 2);
+        }
+
+        [Test]
+        public void NoErrorWhenStartedAfterAnotherCoroutinesYield()
+        {
+            // Bar が Foo を開始しても、Foo の最初の区間は yield だけ。Foo が Bar を開始するのは Foo の yield のあとで、Bar の最初の区間も yield だけ
+            // （どちらも、相手が動いている途中に相手へ入らない）
+            CompileOk("IEnumerator Foo()\n{\n    yield return null;\n    StartCoroutine(Bar());\n}\nIEnumerator Bar() { yield return null; StartCoroutine(Foo()); }");
+        }
+
+        [Test]
+        public void NoErrorForRecursionWithYieldReturn()
+        {
+            CompileOk("IEnumerator Walk(int n)\n{\n    int x = n;\n    if (n > 0) yield return StartCoroutine(Walk(n - 1));\n    if (n > 0) yield return Walk(n - 1);\n    Debug.Log(x);\n}");
+        }
+
+        [Test]
+        public void ReentryGuardIsGenerated()
+        {
+            string code = Lowered("Guard", "IEnumerator Foo() { yield return null; }");
+            Assert.That(code, Does.Contain("if (__co_on[id] != 0)"));
+        }
+
+        // ---- 継承・コレクション・外からの呼び出し（#107 の追加テスト案の 10・11・9） ----------------------
+
+        [Test]
+        public void InheritanceSharesOneRuntimeInTheBase()
+        {
+            CompileResult r = UdonSharpTestCompiler.Compile(
+                new TestSource("CoBase.cs", Head + "public class CoBase : UdonSharpBehaviour\n{\n    public void Go() { StartCoroutine(A()); }\n    protected virtual IEnumerator A() { yield return null; }\n}"),
+                new TestSource("CoDerived.cs", Head + "public class CoDerived : CoBase\n{\n    public void More() { StartCoroutine(B()); }\n    private IEnumerator B() { yield return null; }\n    protected override IEnumerator A() { yield return null; yield return null; }\n    void OnDisable() { Debug.Log(1); }\n}"));
+            Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", r.Diagnostics));
+            Assert.That(r["CoDerived"].Uasm, Does.Contain("__co_stepx"));
+        }
+
+        /// <summary>
+        /// 継承したクラスの OnDisable：U# は同じ名前のメソッドを隠せないので、書いていないクラスには、親をさかのぼって OnDisable がなければ作り、
+        /// 子孫が書いていれば virtual にして、子孫の OnDisable を override にする（書き換え後のコードだけ）。どのクラスのプログラムにも _onDisable が入る
+        /// </summary>
+        [TestCase("public class OdB : UdonSharpBehaviour { CO }", "public class OdD1 : OdB { private void OnDisable() { Debug.Log(1); } }", "public class OdD2 : OdB { }", TestName = "OnDisable only in one derived class")]
+        [TestCase("public class OdB : UdonSharpBehaviour { CO }", "public class OdD1 : OdB { protected virtual void OnDisable() { } }", "public class OdD2 : OdD1 { protected override void OnDisable() { base.OnDisable(); } }", TestName = "OnDisable virtual chain below the base")]
+        [TestCase("public class OdB : UdonSharpBehaviour { CO protected virtual void OnDisable() { } }", "public class OdD1 : OdB { protected override void OnDisable() { base.OnDisable(); } }", "public class OdD2 : OdB { }", TestName = "OnDisable written as virtual in the base")]
+        [TestCase("public class OdB : UdonSharpBehaviour { private void OnDisable() { } }", "public class OdD1 : OdB { CO }", "public class OdD2 : OdD1 { }", TestName = "OnDisable in a base without coroutines")]
+        public void EveryClassGetsOnDisable(string b, string d1, string d2)
+        {
+            const string co = "public void Go() { StartCoroutine(Co()); } IEnumerator Co() { yield return null; }";
+            CompileResult r = UdonSharpTestCompiler.Compile(
+                new TestSource("OdB.cs", Head + b.Replace("CO", co)), new TestSource("OdD1.cs", Head + d1.Replace("CO", co)), new TestSource("OdD2.cs", Head + d2.Replace("CO", co)));
+            Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", r.Diagnostics));
+            foreach (string type in new[] { "OdB", "OdD1", "OdD2" })
+                Assert.That(r[type].EntryPoints, Does.Contain("_onDisable"), type);
+        }
+
+        [Test]
+        public void HandlesInListsAreIntTokens()
+        {
+            string code = Lowered("List", @"private System.Collections.Generic.List<Coroutine> _list = new System.Collections.Generic.List<Coroutine>();
+void Start() { Coroutine c = StartCoroutine(Foo()); _list.Add(c); if (_list.Contains(c)) StopCoroutine(_list[0]); }
+IEnumerator Foo() { yield return null; }");
+            Assert.That(code, Does.Not.Contain("(object)(c)"));
+            Assert.That(code, Does.Contain(".Int"));
+        }
+
+        [Test]
+        public void FrameEventIgnoresCallsInTheSameFrame()
+        {
+            string code = Lowered("Guard2", "IEnumerator Foo() { yield return null; }");
+            Assert.That(code, Does.Contain("__co_ff[__co_fh] >= UnityEngine.Time.frameCount"));
         }
 
         [Test]

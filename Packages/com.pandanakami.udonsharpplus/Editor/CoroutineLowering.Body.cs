@@ -102,8 +102,10 @@ namespace UdonSharpPlus
                             if (n is StatementSyntax s)
                                 _flat.Add(s);
                     ScanList(_body.Statements);
+                    List<SingleVariableDesignationSyntax> designations = ScanDesignations();
                     CollectReferences();
                     RenameDuplicates();
+                    RewriteDesignations(designations);
 
                     // yield break はどこでも、終わりにして戻る
                     foreach (YieldStatementSyntax y in Yields(_body).Where(y => y.IsKind(SyntaxKind.YieldBreakStatement)))
@@ -181,6 +183,40 @@ namespace UdonSharpPlus
                             foreach (SwitchSectionSyntax section in sw.Sections)
                                 ScanList(section.Statements);
                             break;
+                    }
+                }
+
+                /// <summary>
+                /// 並べた文の中で宣言する out の変数（out var v・out int v）。スコープが並べた文の並びに広がるので、
+                /// 頭で宣言する（#107 の追加テスト案の 2）。is T v のパターンは、UdonSharp がもともと扱えない（IsPatternExpression）ので、そのまま残す
+                /// </summary>
+                private List<SingleVariableDesignationSyntax> ScanDesignations()
+                {
+                    var found = new List<SingleVariableDesignationSyntax>();
+                    foreach (SingleVariableDesignationSyntax d in _body.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax || n is LocalFunctionStatementSyntax))
+                                 .OfType<SingleVariableDesignationSyntax>())
+                    {
+                        StatementSyntax s = d.Ancestors().OfType<StatementSyntax>().First();
+                        bool inList = _flat.Contains(s)
+                                      || (s.Parent is BlockSyntax b && (b == _body || _flat.Contains(b)))
+                                      || (s.Parent is SwitchSectionSyntax section && _flat.Contains((StatementSyntax)section.Parent));
+                        if (!inList || !(d.Parent is DeclarationExpressionSyntax declaration && declaration.Parent is ArgumentSyntax)
+                            || !(_model.GetDeclaredSymbol(d) is ILocalSymbol symbol))
+                            continue;
+                        AddLocal(symbol, s.SpanStart);
+                        found.Add(d);
+                    }
+                    return found;
+                }
+
+                /// <summary>out var v・out int v → out v（宣言は頭）</summary>
+                private void RewriteDesignations(List<SingleVariableDesignationSyntax> designations)
+                {
+                    foreach (SingleVariableDesignationSyntax d in designations)
+                    {
+                        if (!(_model.GetDeclaredSymbol(d) is ILocalSymbol symbol) || !_bySymbol.TryGetValue(symbol, out Var v))
+                            continue;
+                        _edits.Add(((DeclarationExpressionSyntax)d.Parent).Span, v.Name);
                     }
                 }
 

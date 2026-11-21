@@ -5,6 +5,12 @@ using UnityEngine.UI;
 
 namespace FeatureTests.Coroutines
 {
+    // #107：Coroutine をフィールドに持つ普通のクラス
+    public class CoBox
+    {
+        public Coroutine handle;
+    }
+
     // #107：コルーチン。普通の Unity と同じ順・同じフレームで動くかを確かめる
     public class CoroutineRunner : UdonSharpBehaviour
     {
@@ -22,14 +28,22 @@ namespace FeatureTests.Coroutines
         private const string Expected = "A=x0@0;s;y0@0;e0;x1@1;y1@1;x2@2;y2@2;z0@0;z1@1;z2@2;|B=qok;pok;"
                                         + "|C=m0=3@1;k0=3@1;m2=26@2;k2=26@2;m3=59@3;kend26@4;B=e2o1d0d1two@4;mend59@5;|E=ab34p1;"
                                         + "|H=1a@1;1end@1;3a@1;3end@1;4a@1;4end@1;5a@1;5end@1;6a@1;6end@1;7s@1;8a@1;8end@1;9a@1;9end@1;10a@1;10end@1;11a1@1;11end@1;12a@1;12end@1;2f@2;2a@2;2end@2;|W=wTrueTrue;"
+                                        + "|R=r1;|O=5,7;1,8;2,9;|I=b0;d0;b1;d1;derived;own;b0;b1;off;|K=20;churnTrue;|L=True1,1,-1;stoppedTrue;"
                                         + "|G=t0;u0;nTrueTrue;t1;u1;s0;s1;u2;end;v0;v1;fin;allTrue;inactiveTrue;disabledTrue;inactiveStartTrue;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
+        // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
+        // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
+        // K：初めの大きさ（8）を超える数を同時に動かす・開始と停止を何度もくり返しても、古い番号で新しいものを止めない（秒を待つので、フレームは見ない）
+        // O：out var で宣言した変数を yield のあとで使う（ループの中も）
+        // R：デリゲートを通る、同じコルーチンへの再入（#107 の決めたこと 10）。実行時の確認でエラーをログに出して内側を止め、外側の変数は壊れない。
+        //    ここだけは、わざと普通の Unity と違う（Unity では内側も動き、r1;r9; になる）
         // G：StopCoroutine（Coroutine・IEnumerator の値）・止めた番号でほかを止めない・自分を止めると次の yield で止まる・
         //    Coroutine の null との比較、StopAllCoroutines・GameObject を非アクティブにすると止まる・ビヘイビアを無効にしても止まらない・
         //    非アクティブの GameObject では開始しない（Peer で確かめる）
 
         public Text display;
         public CoroutinePeer peer;
+        public CoroutineDerived derived;
 
         private string _log = "";
         private string _timed = "";
@@ -40,6 +54,15 @@ namespace FeatureTests.Coroutines
         private Coroutine _me;
         private string _stops = "";
         private string _nest = "";
+        private string _re = "";
+        private string _outs = "";
+        private string _inherit = "";
+        private string _many = "";
+        private int _manyDone;
+        private int _tick;
+        private string _coll = "";
+        private int[] _counts = new int[4];
+        private System.Action _again;
         private string _cached = "";
         private int _n0;
         private bool _flag;
@@ -65,6 +88,12 @@ namespace FeatureTests.Coroutines
             StartCoroutine(PeerTest());
             StartCoroutine(Nest());
             StartCoroutine(Cached());
+            _again = () => StartCoroutine(Re(9));
+            StartCoroutine(Re(1));
+            StartCoroutine(Outs());
+            StartCoroutine(Inherit());
+            StartCoroutine(ManyTest());
+            StartCoroutine(Collections());
             StartCoroutine(Judge());
         }
 
@@ -128,6 +157,117 @@ namespace FeatureTests.Coroutines
             float r = Time.realtimeSinceStartup;
             yield return real;
             _cached += "w" + (Time.time - t >= 0.1f) + (Time.realtimeSinceStartup - r >= 0.05f) + ";";
+        }
+
+        private IEnumerator CountUp(int slot)
+        {
+            while (true)
+            {
+                _counts[slot]++;
+                yield return null;
+            }
+        }
+
+        private IEnumerator Collections()
+        {
+            var list = new System.Collections.Generic.List<Coroutine>();
+            list.Add(StartCoroutine(CountUp(0)));
+            Coroutine second = StartCoroutine(CountUp(1));
+            list.Add(second);
+            var map = new System.Collections.Generic.Dictionary<string, Coroutine> { { "x", StartCoroutine(CountUp(2)) } };
+            var box = new CoBox();
+            box.handle = StartCoroutine(CountUp(3));
+            Coroutine[] arr = { list[0] };
+            _coll = list.Contains(second) + "" + list.IndexOf(second) + ",";
+            list.Remove(second);
+            _coll += list.Count + "," + list.IndexOf(second) + ";";
+            yield return null;
+            StopCoroutine(arr[0]);
+            StopCoroutine(second);
+            StopCoroutine(map["x"]);
+            StopCoroutine(box.handle);
+            int total = _counts[0] + _counts[1] + _counts[2] + _counts[3];
+            for (int k = 0; k < 3; k++) yield return null;
+            _coll += "stopped" + (total == _counts[0] + _counts[1] + _counts[2] + _counts[3]) + ";";
+        }
+
+        private IEnumerator Many()
+        {
+            yield return null;
+            yield return null;
+            yield return new WaitForSeconds(0.02f);
+            _manyDone++;
+        }
+
+        private IEnumerator Tick()
+        {
+            while (true)
+            {
+                _tick++;
+                yield return null;
+            }
+        }
+
+        private IEnumerator ManyTest()
+        {
+            for (int i = 0; i < 20; i++)
+                StartCoroutine(Many());
+            Coroutine[] old = new Coroutine[30];
+            for (int i = 0; i < 30; i++)
+            {
+                old[i] = StartCoroutine(Tick());
+                StopCoroutine(old[i]);
+            }
+            Coroutine live = StartCoroutine(Tick());
+            for (int i = 0; i < 30; i++)
+                StopCoroutine(old[i]);
+            int before = _tick;
+            for (int k = 0; k < 3; k++) yield return null;
+            bool running = _tick > before;
+            StopCoroutine(live);
+            yield return new WaitForSeconds(0.3f);
+            _many = _manyDone + ";churn" + running + ";";
+        }
+
+        private IEnumerator Inherit()
+        {
+            if (derived == null)
+            {
+                _inherit = "noderived;";
+                yield break;
+            }
+            derived.Begin();
+            derived.BeginMore();
+            for (int k = 0; k < 4; k++) yield return null;
+            derived.Begin();
+            yield return null;
+            derived.gameObject.SetActive(false);
+            derived.gameObject.SetActive(true);
+            for (int k = 0; k < 3; k++) yield return null;
+            _inherit = derived.log;
+        }
+
+        private IEnumerator Outs()
+        {
+            int.TryParse("5", out int p);
+            yield return null;
+            _outs += p + ",";
+            for (int i = 0; i < 3; i++)
+            {
+                int.TryParse((7 + i).ToString(), out var q);
+                yield return null;
+                _outs += q + ";";
+                if (i < 2)
+                    _outs += (i + 1) + ",";
+            }
+        }
+
+        private IEnumerator Re(int n)
+        {
+            int x = n;
+            yield return null;
+            _again();
+            _re += "r" + x + ";";
         }
 
         private IEnumerator Ticker(string tag)
@@ -333,7 +473,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|G=" + _stops;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;
