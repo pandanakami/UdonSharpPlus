@@ -21,6 +21,30 @@ namespace FeatureTests.Coroutines
         public static implicit operator int(CoNum a) => a.v;
     }
 
+    // #107：コルーチンの N の段で使う、デリゲート・インタフェース・ジェネリックの普通のクラス
+    public delegate int CoCalc(int x);
+    public delegate void CoNote(string s);
+
+    public interface ICoCounter
+    {
+        int Next();
+    }
+
+    public class CoCounter : ICoCounter
+    {
+        private int _n;
+        public CoCounter(int start) { _n = start; }
+        public int Next() { _n++; return _n; }
+    }
+
+    public class CoPair<T>
+    {
+        public T a;
+        public T b;
+        public CoPair(T a, T b) { this.a = a; this.b = b; }
+        public T Pick(bool first) => first ? a : b;
+    }
+
     // #107：コルーチン。普通の Unity と同じ順・同じフレームで動くかを確かめる
     public partial class CoroutineRunner : UdonSharpBehaviour
     {
@@ -46,7 +70,8 @@ namespace FeatureTests.Coroutines
                                         + "|V=parentTrue;restartRTrue;True;stopRTrue;S;True;destroy3,3;"
                                         + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;"
                                         + "|Y=g3;gs;pt5;atd;wrapTrue;"
-                                        + "|U=c1@1;e1@1;t1@1;a1@2;b2@3;prop@4;until@6;sb1@7;sa@8;sdb@8;lam@10;frames@10;/t2True;wpTrue;wrTrue;waTrue;rtTrue;";
+                                        + "|U=c1@1;e1@1;t1@1;a1@2;b2@3;prop@4;until@6;sb1@7;sa@8;sdb@8;lam@10;frames@10;/t2True;wpTrue;wrTrue;waTrue;rtTrue;"
+                                        + "|N=d6,21;n1x;n2x;i67;gq13;l01020/789;f55;ka;tTrueTrue;|M=a0.25;c3;a0.5;c2;a0.75;c1;c2;idle;a1;c1;wh;faded;ring;chase;whe;rest;whey;done;alpha1,timer0,ai2;/spawn3s0s1s2;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
         // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
@@ -123,6 +148,8 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Misc());
             StartCoroutine(More());
             StartCoroutine(Gaps());
+            StartCoroutine(Combos());
+            StartCoroutine(Real());
             StartCoroutine(Judge());
         }
 
@@ -986,6 +1013,181 @@ namespace FeatureTests.Coroutines
 
         private WaitForSeconds UMake() => new WaitForSeconds(0.05f);
 
+        // N：ほかの段が作った形を、yield をまたいで使う（自分で宣言したデリゲート・+= でつないだデリゲート・インタフェースの型の変数・
+        //    ジェネリックの普通のクラス・ループの中のラムダが、くり返しごとの変数を捕まえる形（yield をまたいでも、くり返しごとに別の変数）・ローカル関数・
+        //    タプルの分解でハンドルを代入する）
+        // M：実際に使いそうなスクリプト（フェード・やり直せるタイマー・一定の間隔の出現・状態を切り替える AI・文字送り・終わったら呼ぶコールバック）
+        private string _combo2 = "";
+        private string _real = "";
+        private string _realB = "";
+        private CoNote _nNote;
+
+        private void N(string s) { _combo2 += s + ";"; }
+        private void M(string s) { _real += s + ";"; }
+
+        private IEnumerator Combos()
+        {
+            CoCalc twice = x => x * 2;
+            int k = 10;
+            CoCalc add = x => x + k;
+            yield return null;
+            k = 20;
+            N("d" + twice(3) + "," + add(1));
+            _nNote = s => N("n1" + s);
+            _nNote += s => N("n2" + s);
+            yield return null;
+            _nNote("x");
+
+            ICoCounter counter = new CoCounter(5);
+            int c1 = counter.Next();
+            yield return null;
+            N("i" + c1 + counter.Next());
+
+            var pair = new CoPair<string>("p", "q");
+            var nums = new CoPair<int>(1, 2);
+            yield return null;
+            N("g" + pair.Pick(false) + nums.Pick(true) + (nums.a + nums.b));
+
+            var forActs = new System.Func<int>[3];
+            for (int i = 0; i < 3; i++)
+            {
+                int j = i * 10;
+                forActs[i] = () => j;
+                yield return null;
+            }
+            var eachActs = new System.Func<int>[3];
+            int e = 0;
+            foreach (int v in new[] { 7, 8, 9 })
+            {
+                eachActs[e++] = () => v;
+                yield return null;
+            }
+            string loops = "";
+            foreach (var f in forActs) loops += f();
+            loops += "/";
+            foreach (var f in eachActs) loops += f();
+            N("l" + loops);
+
+            int total = 0;
+            int Bump(int by) { total += by; return total; }
+            Bump(2);
+            yield return null;
+            N("f" + Bump(3) + total);
+
+            Coroutine ha, hb;
+            (ha, hb) = (StartCoroutine(NTick("a")), StartCoroutine(NTick("b")));
+            StopCoroutine(hb);
+            yield return ha;
+            N("t" + (ha != null) + (hb != null));
+        }
+
+        private IEnumerator NTick(string tag)
+        {
+            yield return null;
+            N("k" + tag);
+        }
+
+        private float _alpha;
+        private Coroutine _timer;
+        private int _timerLeft;
+        private readonly WaitForSeconds _spawnWait = new WaitForSeconds(0.03f);
+        private System.Collections.Generic.List<string> _spawned = new System.Collections.Generic.List<string>();
+        private int _aiState;
+        private bool _seen;
+
+        private IEnumerator Real()
+        {
+            StartCoroutine(Fade());
+            RestartTimer(3);
+            yield return null;
+            yield return null;
+            RestartTimer(2);
+            StartCoroutine(Ai());
+            yield return null;
+            _seen = true;
+            yield return StartCoroutine(Typewriter("hey", () => M("done")));
+            for (int f = 0; f < 4; f++) yield return null;
+            M("alpha" + _alpha + ",timer" + _timerLeft + ",ai" + _aiState);
+            yield return StartCoroutine(Spawner(3));
+            _realB += "spawn" + _spawned.Count + string.Join("", _spawned.ToArray()) + ";";
+        }
+
+        private IEnumerator Fade()
+        {
+            _alpha = 0f;
+            while (_alpha < 1f)
+            {
+                _alpha += 0.25f;
+                M("a" + _alpha);
+                yield return null;
+            }
+            M("faded");
+        }
+
+        private void RestartTimer(int frames)
+        {
+            if (_timer != null)
+                StopCoroutine(_timer);
+            _timer = StartCoroutine(Countdown(frames));
+        }
+
+        private IEnumerator Countdown(int frames)
+        {
+            _timerLeft = frames;
+            while (_timerLeft > 0)
+            {
+                M("c" + _timerLeft);
+                yield return null;
+                _timerLeft--;
+            }
+            M("ring");
+            _timer = null;
+        }
+
+        private IEnumerator Ai()
+        {
+            while (true)
+            {
+                switch (_aiState)
+                {
+                    case 0:
+                        M("idle");
+                        yield return new WaitUntil(() => _seen);
+                        _aiState = 1;
+                        break;
+                    case 1:
+                        M("chase");
+                        yield return null;
+                        _aiState = 2;
+                        break;
+                    default:
+                        M("rest");
+                        yield break;
+                }
+            }
+        }
+
+        private IEnumerator Typewriter(string text, System.Action onDone)
+        {
+            string shown = "";
+            foreach (char ch in text)
+            {
+                shown += ch;
+                M("w" + shown);
+                yield return null;
+            }
+            onDone();
+        }
+
+        private IEnumerator Spawner(int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                yield return _spawnWait;
+                _spawned.Add("s" + i);
+            }
+        }
+
         private IEnumerator Steps(string tag, int start)
         {
             _log += tag + "0@" + (F() - start) + ";";
@@ -1020,7 +1222,7 @@ namespace FeatureTests.Coroutines
 
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc + "|Y=" + _more + "|U=" + _gaps + "/" + _gapsB;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc + "|Y=" + _more + "|U=" + _gaps + "/" + _gapsB + "|N=" + _combo2 + "|M=" + _real + "/" + _realB;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;
