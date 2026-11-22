@@ -2,6 +2,8 @@
 
 UdonSharpBehaviour で、UniTask の `async` / `await` が書けます（UdonSharp 自体は対応していません）。書き換えでは、`async` のメソッドを[コルーチン](coroutines.md)にするので、待つ処理・止まる条件・動くフレームは、コルーチンと同じです。
 
+UniTask（Cysharp、MIT License）は VRChat SDK に同梱されているので、別にインストールする必要はありません。このパッケージには UniTask は含まれていません（型の名前を見分けるだけです）。`Assets` の中のスクリプトは、そのまま `using Cysharp.Threading.Tasks;` が使えます。自分で asmdef を作っている場合は、その asmdef の参照に `UniTask` を足してください。
+
 ```csharp
 using Cysharp.Threading.Tasks;
 using UdonSharp;

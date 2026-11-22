@@ -129,4 +129,4 @@ UdonSharp Plus を使うことによって生じたいかなる損害につい�
 
 [MIT License](LICENSE)（Copyright (c) 2026 pandanakami）
 
-このパッケージには、VRChat SDK・UdonSharp・Harmony・Roslyn は含まれていません。これらは VRChat SDK に同梱されたものを参照しているだけで、それぞれのライセンスに従います（VRChat SDK：https://hello.vrchat.com/legal/sdk ）。
+このパッケージには、VRChat SDK・UdonSharp・Harmony・Roslyn・UniTask は含まれていません。これらは VRChat SDK に同梱されたものを参照しているだけで、それぞれのライセンスに従います（VRChat SDK：https://hello.vrchat.com/legal/sdk ）。

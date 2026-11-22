@@ -129,4 +129,4 @@ The author accepts no liability whatsoever for any damage resulting from the use
 
 [MIT License](LICENSE) (Copyright (c) 2026 pandanakami)
 
-This package does not include the VRChat SDK, UdonSharp, Harmony, or Roslyn. It only references the copies that ship with the VRChat SDK; each is covered by its own license (VRChat SDK: https://hello.vrchat.com/legal/sdk).
+This package does not include the VRChat SDK, UdonSharp, Harmony, Roslyn, or UniTask. It only references the copies that ship with the VRChat SDK; each is covered by its own license (VRChat SDK: https://hello.vrchat.com/legal/sdk).
