@@ -430,6 +430,22 @@ async UniTask Run()
         }
 
         [Test]
+        public void NegativeWaitsAreClampedInsteadOfThrowing()
+        {
+            // 負の値は、例外にせず 1 フレーム待つ（UniTask は例外。#207 の追加テスト案の 2）
+            string code = Lowered("Negative", @"void Start() { Run(); }
+async UniTask Run()
+{
+    await UniTask.DelayFrame(-1);
+    await UniTask.Delay(-5);
+    await UniTask.Delay(TimeSpan.FromSeconds(-1));
+}");
+            Assert.That(code, Does.Contain("Mathf.Max((-1), 1)"), "DelayFrame は、1 以上にそろえる");
+            Assert.That(code, Does.Contain("__co_ws(").Or.Contain("__co_wf("), "Delay は、コルーチンの待ち（0 以下は次のフレーム）");
+            Assert.That(code, Does.Not.Contain("ArgumentOutOfRange"));
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
             AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);
