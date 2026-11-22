@@ -523,6 +523,19 @@ async UniTask Child() { await UniTask.Yield(); }");
         }
 
         [Test]
+        public void ErrorForUniTaskThingsThatWereSilentOrUnclear()
+        {
+            // async のメソッドが 1 つもなくても、UniTask を返す非 async のメソッドは、エラー（#216）
+            AssertError("UniTask Foo() => UniTask.CompletedTask;\nvoid Start() { Foo(); }", "UniTask を返す、async でないメソッドは未対応", BodyLine);
+            // await foreach・await using 宣言は、C# の生のエラーでなく、案内つきのエラー
+            AssertError("public int n;\nasync UniTask Foo() { await foreach (var i in Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable.Range(0, 3)) { n += i; } }",
+                "await foreach・await using は未対応", BodyLine + 1);
+            AssertError("async UniTask Foo() { await using var ms = new System.IO.MemoryStream(); await UniTask.Yield(); }", "await foreach・await using は未対応", BodyLine);
+            // Forget の例外のハンドラー
+            AssertError("async UniTask Bar() { await UniTask.Yield(); }\nvoid Start() { Bar().Forget(e => { }); }", "Forget の引数（例外のハンドラー）は未対応", BodyLine + 1);
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
             AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);

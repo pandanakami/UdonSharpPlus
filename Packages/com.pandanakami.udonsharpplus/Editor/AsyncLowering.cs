@@ -48,8 +48,11 @@ namespace UdonSharpPlus
             "OnMouseDown", "OnMouseUp", "OnMouseEnter", "OnMouseExit", "OnMouseOver", "OnMouseDrag",
         };
 
+        /// <summary>async のキーワード、または UniTask の名前（識別子）があるか。async がなくても、UniTask を返す非 async のメソッドなどを、案内つきのエラーにする（#216）</summary>
         public static bool MayHaveAsync(IEnumerable<SyntaxTree> trees) =>
-            trees.Any(t => CoroutineLowering.MayContain(t.GetRoot(), Words) && t.GetRoot().DescendantTokens().Any(token => token.IsKind(SyntaxKind.AsyncKeyword)));
+            trees.Any(t => CoroutineLowering.MayContain(t.GetRoot(), Words)
+                && t.GetRoot().DescendantTokens().Any(token => token.IsKind(SyntaxKind.AsyncKeyword)
+                    || token.IsKind(SyntaxKind.IdentifierToken) && token.ValueText == "UniTask"));
 
         private sealed class AsyncMethod
         {
@@ -71,6 +74,7 @@ namespace UdonSharpPlus
             // 1) async のメソッドを集める（UdonSharpBehaviour のものだけ。そのほかのクラスは触らない）
             var methods = new Dictionary<IMethodSymbol, AsyncMethod>(SymbolEqualityComparer.Default);
             var behaviourNames = new HashSet<string>();
+            var reportedInterfaceMethods = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
             foreach (SyntaxTree tree in trees)
             {
                 SemanticModel model = compilation.Model(tree);
@@ -80,7 +84,10 @@ namespace UdonSharpPlus
                         continue;
                     bool behaviour = InterfaceLowering.IsUdonSharpBehaviour(type);
                     if (behaviour)
+                    {
                         behaviourNames.Add(type.Name);
+                        ReportInterfaceMethods(type, reportedInterfaceMethods, diagnostics);
+                    }
                     foreach (MethodDeclarationSyntax m in cls.Members.OfType<MethodDeclarationSyntax>())
                     {
                         bool isAsync = m.Modifiers.Any(SyntaxKind.AsyncKeyword);
@@ -131,7 +138,12 @@ namespace UdonSharpPlus
                 }
             }
             if (methods.Count == 0)
+            {
+                // async のメソッドがなくても、UdonSharpBehaviour の中の UniTask の使い方は、案内つきのエラーにする（#216）
+                foreach (SyntaxTree tree in trees)
+                    ReportLeftovers(tree, behaviourNames, diagnostics);
                 return trees;
+            }
             // イベントの override（Interact など）は、同じ名前の void のメソッドが残る。自分で書いた virtual の async を override するものは、
             // 基底と同じ形（コルーチン）にする。基底がイベントの override なら、派生も void のまま（戻り値の型をそろえる）
             foreach (AsyncMethod am in methods.Values)
@@ -164,6 +176,28 @@ namespace UdonSharpPlus
                 result.Add(next);
             }
             return result;
+        }
+
+        /// <summary>
+        /// UdonSharpBehaviour が実装するインターフェース（ソースで宣言したもの）の、UniTask・UniTask&lt;T&gt;・UniTaskVoid を返すメソッドの宣言をエラーにする（#216）。
+        /// インターフェース越しの呼び出しは、async メソッドと認識できず、コルーチンを始めないまま通ってしまうため
+        /// </summary>
+        private static void ReportInterfaceMethods(INamedTypeSymbol behaviour, HashSet<IMethodSymbol> reported, InterfaceLowering.LoweringDiagnostics diagnostics)
+        {
+            foreach (INamedTypeSymbol iface in behaviour.AllInterfaces)
+            {
+                INamedTypeSymbol definition = iface.OriginalDefinition;
+                if (!definition.Locations.Any(l => l.IsInSource))
+                    continue;
+                foreach (IMethodSymbol method in definition.GetMembers().OfType<IMethodSymbol>())
+                {
+                    string kind = method.MethodKind == MethodKind.Ordinary ? KindOf(method.ReturnType) : null;
+                    if ((kind == "unitask" || kind == "generic") && reported.Add(method) && method.Locations.Any(l => l.IsInSource))
+                        diagnostics.Error(method.Locations.First(l => l.IsInSource), Loc.T(
+                            $"インターフェースの async メソッド（{method.Name}）は未対応です。インターフェース越しの呼び出しでは、async のメソッドを始められません。async のメソッドは UdonSharpBehaviour のクラスに書いてください",
+                            $"An async method in an interface ({method.Name}) is not supported: a call through the interface cannot start the async method. Write the async method in the UdonSharpBehaviour class"));
+                }
+            }
         }
 
         /// <summary>Udon がイベント名で呼ぶ（void のメソッドを残す）メソッドか：Unity のイベントの名前・イベントの override・それを override するもの</summary>
@@ -356,10 +390,26 @@ namespace UdonSharpPlus
                     AsyncMethod target = AsyncOf(call);
                     if (target == null || IsHandledCall(call, handled))
                         continue;
+                    // .Forget(ex => ...)（例外のハンドラー付き）は、一般的なエラーでなく、原因を案内する（#216）
+                    if (call.Parent is MemberAccessExpressionSyntax forgetAccess && forgetAccess.Name.Identifier.ValueText == "Forget"
+                        && forgetAccess.Parent is InvocationExpressionSyntax forgetCall && forgetCall.ArgumentList.Arguments.Count > 0)
+                    {
+                        Error(forgetCall, Loc.T("Forget の引数（例外のハンドラー）は未対応です。Forget(); と書いてください（例外が起きると、そのビヘイビアが止まります）",
+                            "Arguments of Forget (an exception handler) are not supported. Write Forget(); (an exception halts the behaviour)"));
+                        continue;
+                    }
                     Error(call, Loc.T(
                         $"async メソッド {target.Symbol.Name} は、Foo(); ・ Foo().Forget(); ・ async メソッドの中の await Foo(); の形だけで呼べます（値として使う書き方は未対応です）",
                         $"The async method {target.Symbol.Name} can only be called as Foo();, Foo().Forget() or await Foo(); inside an async method. Using it as a value is not supported"));
                 }
+
+                // 3a) await foreach・await using 宣言（IUniTaskAsyncEnumerable・IAsyncDisposable）。書き換えで async を外すと、C# の生のエラーになるため、先に案内する（#216）
+                foreach (MethodDeclarationSyntax m in asyncBodies)
+                    foreach (SyntaxNode n in OwnBody(m))
+                        if (n is ForEachStatementSyntax fe && fe.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword)
+                            || n is LocalDeclarationStatementSyntax ld && ld.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+                            Error(n, Loc.T("await foreach・await using は未対応です（IUniTaskAsyncEnumerable・IAsyncDisposable は使えません）。普通の foreach・for に書き換えてください",
+                                "await foreach and await using are not supported (IUniTaskAsyncEnumerable and IAsyncDisposable cannot be used). Use a plain foreach or for"));
 
                 // 3b) UniTask のメソッドに async のラムダを渡す書き方（UniTask.Void(async () => ...) など）。デリゲートの段は、ソースのデリゲート型のものだけ見るので、ここで案内する
                 foreach (AnonymousFunctionExpressionSyntax lambda in OwnNodes().OfType<AnonymousFunctionExpressionSyntax>())

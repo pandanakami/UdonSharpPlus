@@ -160,6 +160,49 @@ public class AsyEventsDerived : AsyEvents
         }
 
         [Test]
+        public void ErrorForUniTaskMethodsInInterfacesImplementedByBehaviours()
+        {
+            // インターフェース越しの呼び出しは、async メソッドと認識できず、コルーチンを始めないまま通ってしまうので、宣言をエラーにする（#216）
+            CompileResult r = Compile(@"
+public interface IAsyFoo { UniTask Do(); UniTask<int> Calc(); }",
+@"
+public class AsyFooImpl : UdonSharpBehaviour, IAsyFoo
+{
+    public async UniTask Do() { await UniTask.Yield(); }
+    public async UniTask<int> Calc() { await UniTask.Yield(); return 1; }
+}",
+@"
+public class AsyFooUser : UdonSharpBehaviour
+{
+    public IAsyFoo target;
+    void Start() { target.Do(); }
+}");
+            Assert.That(r.Diagnostics.Any(d => d.Contains("インターフェースの async メソッド（Do）は未対応") && d.Contains("AsyCombo0.cs(")), string.Join("\n", r.Diagnostics));
+            Assert.That(r.Diagnostics.Any(d => d.Contains("インターフェースの async メソッド（Calc）は未対応") && d.Contains("AsyCombo0.cs(")), string.Join("\n", r.Diagnostics));
+        }
+
+        [Test]
+        public void InterfaceMethodsReturningUniTaskAreFineForClassesThatAreNotUdonSharpBehaviours()
+        {
+            // UdonSharpBehaviour が実装しないインターフェースは、普通の Unity のコードなので、触らない
+            CompileResult r = Compile(@"
+public interface IPlainTask { UniTask Run(); }",
+@"
+public class MonoImpl : MonoBehaviour, IPlainTask
+{
+    public async UniTask Run() { await UniTask.Yield(); }
+}",
+@"
+public class AsyOther : UdonSharpBehaviour
+{
+    public int n;
+    void Start() { n = 1; }
+}");
+            // MonoBehaviour のクラスがインターフェースを実装すること自体は、別の段のエラー。ここでは、async のインターフェースのエラーが出ないことだけ見る
+            Assert.That(r.Diagnostics.Any(d => d.Contains("インターフェースの async メソッド")), Is.False, string.Join("\n", r.Diagnostics));
+        }
+
+        [Test]
         public void AbstractAsyncDeclarationIsAClearError()
         {
             CompileResult r = Compile(@"
