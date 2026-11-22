@@ -123,6 +123,42 @@ public class AsyEventsDerived : AsyEvents
             AssertOk(r, "値を返す virtual / override・イベントの override の override");
         }
 
+        /// <summary>
+        /// 自分で書いた void の基底メソッドを、B が override async void し、B のメソッドが Hurt(1) と直接呼ぶ。C が B を継承して、さらに override する。
+        /// B の中の呼び出しは、メソッドの呼び出しのままにして（コルーチンの名前を直接呼ばない）、C の override に振り分ける
+        /// </summary>
+        [Test]
+        public void CallsOfAnAsyncOverrideOfAUserVoidMethodStayVirtual()
+        {
+            string dir = System.IO.Path.GetFullPath(System.IO.Path.Combine("Temp", "UdonSharpPlusTests", "UdonSharpPlusAsyncCombo_Hurt"));
+            if (System.IO.Directory.Exists(dir))
+                System.IO.Directory.Delete(dir, recursive: true);
+            try
+            {
+                var sources = new[]
+                {
+                    @"public class AsyA : UdonSharpBehaviour { public int n; public virtual void Hurt(int k) { n += k; } }",
+                    @"public class AsyB : AsyA
+{
+    public override async void Hurt(int k) { await UniTask.Yield(); n += k; }
+    public void Twice() { Hurt(1); this.Hurt(2); }
+}",
+                    @"public class AsyC : AsyB { public override async void Hurt(int k) { await UniTask.Yield(); n += k * 2; } }",
+                }.Select((src, i) => new TestSource($"AsyCombo{i}.cs", Head + src)).ToArray();
+                CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir, sources);
+                AssertOk(r, "override async void");
+                string lowered = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "Assets", "UdonSharpPlusTests", "AsyCombo1.cs"));
+                Assert.That(lowered, Does.Contain("Hurt(1); this.Hurt(2);"), "呼び出しは、メソッドの呼び出しのまま");
+                Assert.That(System.Text.RegularExpressions.Regex.Matches(lowered, @"__co_go\(__async_AsyB_Hurt\(").Count, Is.EqualTo(1),
+                    "コルーチンを始めるのは、void のメソッドの中だけ");
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(dir))
+                    System.IO.Directory.Delete(dir, recursive: true);
+            }
+        }
+
         [Test]
         public void AbstractAsyncDeclarationIsAClearError()
         {
