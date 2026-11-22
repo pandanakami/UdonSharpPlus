@@ -26,7 +26,7 @@ namespace UdonSharpPlus
     /// UniTask を使わないプロジェクトでは、この段は何もしない（UniTask のアセンブリは参照せず、型の名前の文字だけで見分ける）。
     ///   async UniTask&lt;int&gt; Foo(int n) { ...; return n + 1; }
     ///     → IEnumerator Foo(int n, object[] __ar) { ...; { __ar[0] = (object)(n + 1); yield break; } yield break; }
-    ///   var x = await Foo(3);   → object[] __ar0 = new object[1]; yield return Foo(3, __ar: __ar0); var x = ((int)__ar0[0]);
+    ///   var x = await Foo(3);   → object[] __ar0 = __co_h(); yield return Foo(3, __ar: __ar0); var x = ((int)__ar0[0]);
     ///   await UniTask.WhenAll(A(), B());  → 子を全部始めて、順に待つ（値を返すものは、値を T[] にする）
     ///   戻り値の置き場は、呼ぶ側が開始ごとに作る（コルーチンの状態は、終わると使い回されるので、状態の中には置かない）
     /// WhenAny・CancellationToken・変数に入れた UniTask は、エラーにして案内する
@@ -571,7 +571,7 @@ namespace UdonSharpPlus
                     return;
                 }
 
-                string call = CallCode(inv, "new object[1]");
+                string call = CallCode(inv, "__co_h()");
                 if (call == null)
                     return;
                 string original = stmt.ToString();
@@ -730,7 +730,7 @@ namespace UdonSharpPlus
                         return null;
                     value = $"(({TypeText(target.ResultType)}){holder}[0])";
                     block = true;
-                    return $"object[] {holder} = new object[1]; yield return {valueCall};";
+                    return $"object[] {holder} = __co_h(); yield return {valueCall};";
                 }
                 if (!(_model.GetSymbolInfo(inv).Symbol is IMethodSymbol method) || !method.IsStatic || method.ContainingType.ToDisplayString() != UniTaskName)
                 {
@@ -862,7 +862,7 @@ namespace UdonSharpPlus
                     if (target.ResultType != null)
                     {
                         holder = $"__ar{temp++}";
-                        starts.Append($"object[] {holder} = new object[1]; ");
+                        starts.Append($"object[] {holder} = __co_h(); ");
                     }
                     string code = CallCode(call, holder);
                     if (code == null)
@@ -1079,7 +1079,7 @@ namespace UdonSharpPlus
                         string started = CallCode(call, generic ? name + "__ar" : null);
                         if (started == null)
                             return;
-                        code = (generic ? $"object[] {name}__ar = new object[1]; " : "") + $"UnityEngine.Coroutine {name} = StartCoroutine({started});";
+                        code = (generic ? $"object[] {name}__ar = __co_h(); " : "") + $"UnityEngine.Coroutine {name} = StartCoroutine({started});";
                     }
                     else
                     {
@@ -1106,7 +1106,7 @@ namespace UdonSharpPlus
                     if (started == null)
                         return;
                     string assign = $"{v.Handle} = StartCoroutine({started});";
-                    _edits.Add(es.Span, KeepLines(v.Result != null ? $"{{ {v.Holder} = new object[1]; {assign} }}" : assign, original));
+                    _edits.Add(es.Span, KeepLines(v.Result != null ? $"{{ {v.Holder} = __co_h(); {assign} }}" : assign, original));
                     return;
                 }
                 // t.Forget(); → もう始まっているので、何もしない

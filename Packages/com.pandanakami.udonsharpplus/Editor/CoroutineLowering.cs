@@ -668,6 +668,9 @@ namespace UdonSharpPlus
                              + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
                 // 動いている途中か（終わった・止めた・開始に失敗した番号は false。UniTask.WhenAny が、どれかが終わったかを見るのに使う。#210）
                 yield return "protected bool __co_alive(int c) { return __co_get(c) != null; }";
+                // UniTask<T> の戻り値の置き場（object[1]）。キャストを通して返す：Udon は、変数のコピーで、先の箱の型が元と違うと確保するため（#217）、
+                // new object[] の結果（object[] の箱）をそのまま使わず、__ar の変数に入る箱を、キャストの結果（object の箱）にそろえる
+                yield return "private object[] __co_hold = new object[1]; protected object[] __co_h() { __co_hold[0] = new object[1]; return (object[])__co_hold[0]; }";
                 yield return "protected void __co_stop(int c) { object[] s = __co_get(c); if (s != null && ((int[])s[0])[3] != 0) __co_kill(s); }";
                 yield return "protected int __co_named(int c) { object[] s = __co_get(c); if (s != null) ((int[])s[0])[10] = 1; return c; }";
                 yield return "protected void __co_stopn(string n) { for (int i = 0; i < __co_used; i++) { object[] s = (object[])__co_slots[i]; int[] h = (int[])s[0]; if (h[3] != 0 && h[10] != 0 && __co_names[h[1]] == n) __co_kill(s); } }";

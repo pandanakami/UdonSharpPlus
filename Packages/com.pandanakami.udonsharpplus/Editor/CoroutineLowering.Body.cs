@@ -36,7 +36,7 @@ namespace UdonSharpPlus
                     public string Type;
                     public int DeclPos;
                     public bool IsParam;
-                    /// <summary>参照型（default(T) の代わりに null で初期化する：Udon では、参照型のローカルを default(T) で初期化すると、実行のたびに確保が出る）</summary>
+                    /// <summary>配列型（default(T) の代わりに null で初期化する：Udon では、配列のローカルを default(T) で初期化すると、実行のたびに確保が出る。GameObject などの Unity の型は、null にすると動かなくなったので、default(T) のまま）</summary>
                     public bool IsRef;
                     public bool Written;
                     public int Slot = -1;
@@ -228,7 +228,7 @@ namespace UdonSharpPlus
                 {
                     if (symbol == null || _bySymbol.ContainsKey(symbol))
                         return;
-                    var v = new Var { Name = symbol.Name, Type = TypeText(symbol.Type), DeclPos = declPos, IsRef = symbol.Type.IsReferenceType && !IsHandle(symbol.Type) };
+                    var v = new Var { Name = symbol.Name, Type = TypeText(symbol.Type), DeclPos = declPos, IsRef = symbol.Type is IArrayTypeSymbol && !IsHandle(symbol.Type) };
                     _vars.Add(v);
                     _bySymbol[symbol] = v;
                 }
@@ -470,7 +470,7 @@ namespace UdonSharpPlus
                     }
                     int top = ++_label, next = ++_label, end = ++_label;
                     Var item = _model.GetDeclaredSymbol(s) is ILocalSymbol symbol && _bySymbol.TryGetValue(symbol, out Var found) ? found : null;
-                    Var array = AddTemp("fa", TypeText(type), s, !IsHandle(type) && type.IsReferenceType), index = AddTemp("fi", "int", s);
+                    Var array = AddTemp("fa", TypeText(type), s, type is IArrayTypeSymbol && !IsHandle(type)), index = AddTemp("fi", "int", s);
                     string source = _edits.Take(s.Expression);
                     Head(s.ForEachKeyword, s.CloseParenToken,
                         $"{array.Name} = {source}; {index.Name} = 0; {Label(top)} if (!({index.Name} < {array.Name}.Length)) {Jump(end)} {item?.Name} = ({item?.Type}){array.Name}[{index.Name}];");

@@ -211,7 +211,7 @@ async UniTask Run() { var a = await Add(1, 2); int b = await Add(a, 3); n = awai
 async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }
 async UniTask<string> Name() { return ""a""; }");
             Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain("async"));
-            Assert.That(code, Does.Contain("object[] __ar").And.Contain("new object[1]"), "戻り値の置き場は、呼ぶ側が作る");
+            Assert.That(code, Does.Contain("object[] __ar").And.Contain("__co_h()"), "戻り値の置き場は、呼ぶ側が作る");
             Assert.That(code, Does.Contain("__ar: __ar"), "最後の引数に渡す");
             Assert.That(code, Does.Contain("(int)__ar").And.Contain("(string)__ar"), "値は型を付けて読み出す");
             Assert.That(code, Does.Contain("__ar[0] = (object)(x + y)"), "return は置き場に入れる");
@@ -232,7 +232,7 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
         {
             string code = Lowered("ValueFire", @"void Start() { Add(1, 2); Add(3, 4).Forget(); }
 async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
-            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Add\(\d, \d, __ar: new object\[1\]\)\)").Count, Is.EqualTo(2),
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Add\(\d, \d, __ar: __co_h\(\)\)\)").Count, Is.EqualTo(2),
                 "待たずに呼ぶときは、使わない置き場を渡して始める");
         }
 
@@ -365,7 +365,7 @@ async UniTask A() { await UniTask.Yield(); }
 async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
             Assert.That(code, Does.Not.Contain("UniTask"));
             Assert.That(code, Does.Contain("a = __co_start(A())").And.Contain("b = __co_start(Add(1, 2, __ar: b__ar))").And.Contain("_field = __co_start(A())"));
-            Assert.That(code, Does.Contain("b__ar = new object[1]"), "UniTask<T> の変数は、置き場の変数も持つ");
+            Assert.That(code, Does.Contain("b__ar = __co_h()"), "UniTask<T> の変数は、置き場の変数も持つ");
             Assert.That(code, Does.Contain("_value__ar"), "UniTask<T> のフィールドは、置き場のフィールドも持つ");
         }
 
@@ -502,7 +502,7 @@ async UniTask Child() { await UniTask.Yield(); }
 async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
             Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain(" _ = "), "破棄への代入は、残さない");
             Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Child\(\)\)").Count, Is.EqualTo(2), "_ = Child(); は、Child(); と同じ");
-            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Add\(\d, \d, __ar: new object\[1\]\)\)").Count, Is.EqualTo(2), "値を返すものは、使わない置き場を渡して始める");
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Add\(\d, \d, __ar: __co_h\(\)\)\)").Count, Is.EqualTo(2), "値を返すものは、使わない置き場を渡して始める");
         }
 
         [Test]
