@@ -412,9 +412,16 @@ namespace UdonSharpPlus
                 return null;
             }
 
-            /// <summary>式が、待たずに呼ぶ形（Foo() ・ Foo().Forget()）なら、呼ぶ async メソッド（なければ null）</summary>
+            /// <summary>破棄への代入の左側（_ = Foo(); の _）か。_ という名前の変数・フィールドは、破棄ではない（#212）</summary>
+            private bool IsDiscard(ExpressionSyntax left) =>
+                left is IdentifierNameSyntax id && id.Identifier.ValueText == "_" && _model.GetSymbolInfo(id).Symbol?.Kind == SymbolKind.Discard;
+
+            /// <summary>式が、待たずに呼ぶ形（Foo() ・ Foo().Forget() ・ _ = Foo()）なら、呼ぶ async メソッド（なければ null）</summary>
             private AsyncMethod CallStatementTarget(ExpressionSyntax expression)
             {
+                if (expression is AssignmentExpressionSyntax discard && discard.IsKind(SyntaxKind.SimpleAssignmentExpression)
+                    && discard.Right is InvocationExpressionSyntax && IsDiscard(discard.Left))
+                    return CallStatementTarget(discard.Right);
                 if (expression is InvocationExpressionSyntax inv)
                 {
                     AsyncMethod direct = AsyncOf(inv);
@@ -496,7 +503,9 @@ namespace UdonSharpPlus
             /// <summary>Foo(); ・ Foo().Forget(); → StartCoroutine(Foo());（値を返すものは、使わない置き場を渡す）</summary>
             private void StartStatement(ExpressionStatementSyntax stmt)
             {
-                var inv = (InvocationExpressionSyntax)stmt.Expression;
+                // _ = Foo(); は、右側（Foo()）だけを見る（#212）
+                bool assigned = stmt.Expression is AssignmentExpressionSyntax;
+                var inv = (InvocationExpressionSyntax)(assigned ? ((AssignmentExpressionSyntax)stmt.Expression).Right : stmt.Expression);
                 bool forget = AsyncOf(inv) == null;
                 if (forget)
                     inv = (InvocationExpressionSyntax)((MemberAccessExpressionSyntax)inv.Expression).Expression;
@@ -507,7 +516,7 @@ namespace UdonSharpPlus
                 if (target.Wrapper && (inv.Expression is IdentifierNameSyntax
                     || inv.Expression is MemberAccessExpressionSyntax access && (access.Expression is ThisExpressionSyntax || access.Expression is BaseExpressionSyntax) && access.Name is IdentifierNameSyntax))
                 {
-                    if (forget)
+                    if (forget || assigned)
                         _edits.Add(stmt.Span, KeepLines(_edits.Take(inv) + ";", stmt.ToString()));
                     return;
                 }
@@ -602,6 +611,10 @@ namespace UdonSharpPlus
                 string original = statement.ToString();
                 switch (statement)
                 {
+                    // _ = await Foo(); は、値を捨てて待つ（#212）
+                    case ExpressionStatementSyntax discarded when discarded.Expression is AssignmentExpressionSyntax toDiscard && IsDiscard(toDiscard.Left):
+                        _edits.Add(discarded.Span, KeepLines(block ? $"{{ {code} }}" : code, original));
+                        break;
                     case ExpressionStatementSyntax es when es.Expression is AssignmentExpressionSyntax asg:
                     {
                         if (value == null || asg.Left.DescendantNodesAndSelf().Any(x => x is InvocationExpressionSyntax || x is AwaitExpressionSyntax))

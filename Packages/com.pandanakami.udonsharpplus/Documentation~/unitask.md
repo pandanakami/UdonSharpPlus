@@ -53,12 +53,12 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
   | `await UniTask.WaitUntil(() => 条件);`・`WaitWhile` | 条件が成り立つ（外れる）まで。条件は、式のラムダかメソッドの名前 |
   | `await Foo();`（`Foo` も async） | 子の `Foo` が終わるまで。終わると、同じフレームのうちに再開します |
 
-- **待たずに呼ぶ**：`Foo();`・`Foo().Forget();`（並行して動きます。最初の `await` までは、呼んだ場所で動きます）
+- **待たずに呼ぶ**：`Foo();`・`Foo().Forget();`・`_ = Foo();`（警告を消す書き方。並行して動きます。最初の `await` までは、呼んだ場所で動きます）
 - **値を返す async**（`UniTask<T>`）：`async UniTask<int> Add(int a, int b) { await UniTask.Yield(); return a + b; }` を、次の形で受け取れます。`T` は、数・文字列・クラスなど、ふつうの値です
   - `var x = await Add(1, 2);`・`int x = await Add(1, 2);`
   - `x = await Add(1, 2);`（左は、変数・フィールド・要素）
   - `return await Add(1, 2);`（値を返す async の中）
-  - 値を使わない `await Add(1, 2);`・`Add(1, 2);`・`Add(1, 2).Forget();`
+  - 値を使わない `await Add(1, 2);`・`Add(1, 2);`・`Add(1, 2).Forget();`・`_ = Add(1, 2);`・`_ = await Add(1, 2);`（値を捨てて待つ）
   - 式の途中の `await`（`n = 1 + await Add(1, 2);`・`if (await Check())`）は、前のものの評価の順番が変わるので、未対応です。`var` に受けてから使ってください
 - **`UniTask.WhenAll`**（`async` メソッドの呼び出しを並べる形）：全部を始めて、全部が終わるまで待ちます。値を返すものは、`var (a, b) = await UniTask.WhenAll(A(), B());`（タプル）で受け取れます（`UniTask` の本物と同じ。引数が 2〜15 個のとき）
 - **`UniTask.WhenAny`**（`async` メソッドの呼び出しか、変数を並べる形）：全部を始めて、どれかが終わるまで待ちます（残りは動き続けます）。`int i = await UniTask.WhenAny(A(), B());` は終わったものの番号、値を返すものは、`UniTask` の本物と同じ形で受け取れます：`var (i, r1, r2) = await UniTask.WhenAny(A(), B());`（2〜15 個。`i` は終わったものの番号、`r1`・`r2` は、それぞれの値。終わったもの以外は、既定の値）

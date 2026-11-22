@@ -486,6 +486,43 @@ void Twice() { Interact(); Show().Forget(); }");
         }
 
         [Test]
+        public void DiscardedCallsStartTheCoroutineLikePlainCalls()
+        {
+            // _ = Foo(); は、Foo(); と同じ（待たずに呼ぶ。#212）。_ = await Add(1, 2); は、値を捨てて待つ
+            string code = Lowered("Discard", @"void Start() { Run(true); }
+async UniTask Run(bool c)
+{
+    _ = Child();
+    _ = Add(1, 2);
+    if (c) _ = Child(); else _ = Add(3, 4);
+    _ = await Add(5, 6);
+    await Child();
+}
+async UniTask Child() { await UniTask.Yield(); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
+            Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain(" _ = "), "破棄への代入は、残さない");
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Child\(\)\)").Count, Is.EqualTo(2), "_ = Child(); は、Child(); と同じ");
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Add\(\d, \d, __ar: new object\[1\]\)\)").Count, Is.EqualTo(2), "値を返すものは、使わない置き場を渡して始める");
+        }
+
+        [Test]
+        public void AVariableNamedUnderscoreIsNotADiscard()
+        {
+            // _ という名前の変数（UniTask _ = Foo();）は、これまでどおり変数として扱う。破棄は、その名前の変数がないときだけ
+            string code = Lowered("UnderscoreVariable", @"void Start() { Run(); }
+async UniTask Run()
+{
+    UniTask _ = Child();
+    await _;
+    _ = Child();
+    await _;
+}
+async UniTask Child() { await UniTask.Yield(); }");
+            Assert.That(code, Does.Not.Contain("UniTask"));
+            Assert.That(code, Does.Contain("__co_await(__s, _)"), "変数 _ を await する");
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
             AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);

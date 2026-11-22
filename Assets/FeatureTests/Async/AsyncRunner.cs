@@ -127,6 +127,7 @@ namespace FeatureTests.Async
             await UniTask.Delay(-5);
             _log += "ng" + (Time.frameCount - fneg) + ";";
 
+            _ = await Add(1, 1);   // 値を捨てて待つ（#212）
             int acc = 0;
             for (int i = 0; i < 3; i++) { int d = await Add(i, 1); acc += d; }
             if (acc > 0) acc = await Add(acc, 1);

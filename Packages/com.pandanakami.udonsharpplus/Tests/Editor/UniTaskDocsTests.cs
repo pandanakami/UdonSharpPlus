@@ -48,6 +48,8 @@ namespace UdonSharpPlus.Tests
             "await UniTask.DelayFrame(n);",
             "await Foo();",
             "Foo().Forget();",
+            "_ = Foo();",
+            "_ = await Add(1, 2);",
             "var x = await Add(1, 2);",
             "int x = await Add(1, 2);",
             "x = await Add(1, 2);",
@@ -104,6 +106,8 @@ public class DocForms : UdonSharpBehaviour
         await Foo();
         Foo();
         Foo().Forget();
+        _ = Foo();
+        _ = await Add(1, 2);
         var v1 = await Add(1, 2);
         int v2 = await Add(1, 2);
         _v = await Add(1, 2);

@@ -85,7 +85,7 @@ namespace FeatureTests.Async
         // 引数の違う呼び出しを続けても、それぞれの引数・ローカルが混ざらない
         public void ArgsTwice()
         {
-            Arg("a", 1);
+            _ = Arg("a", 1);   // 破棄（警告を消す書き方）で待たずに呼ぶ（#212）
             Arg("b", 2);
         }
 
