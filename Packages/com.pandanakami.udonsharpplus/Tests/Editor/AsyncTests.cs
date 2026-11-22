@@ -473,6 +473,19 @@ void Twice() { Interact(); Show().Forget(); }");
         }
 
         [Test]
+        public void ErrorForAwaitingAnAsyncMethodNamedLikeAnEvent()
+        {
+            // イベントの名前（Update）の async UniTask は、await・変数・WhenAll・WhenAny では使えない（#214）。待たずに呼ぶ形は使える
+            string update = "public virtual async UniTask Update() { await UniTask.Yield(); }\n";
+            AssertError(update + "async UniTask Run() { await Update(); }", "イベントの名前（Update）の async メソッドは", BodyLine + 1);
+            AssertError(update + "async UniTask Run() { UniTask t = Update(); await t; }", "イベントの名前（Update）の async メソッドは", BodyLine + 1);
+            AssertError(update + "async UniTask Run() { await UniTask.WhenAll(Update(), Update()); }", "イベントの名前（Update）の async メソッドは", BodyLine + 1);
+            AssertError(update + "async UniTask Run() { await UniTask.WhenAny(Update(), Update()); }", "イベントの名前（Update）の async メソッドは", BodyLine + 1);
+            string ok = Lowered("EventNameCalls", update + "void Start() { Update(); Update().Forget(); }");
+            Assert.That(ok, Does.Not.Contain("UniTask"));
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
             AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);

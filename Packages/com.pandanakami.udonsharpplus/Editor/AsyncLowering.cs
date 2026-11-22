@@ -545,8 +545,14 @@ namespace UdonSharpPlus
                     Error(call, Loc.T("ジェネリックの async メソッドは未対応です", "A generic async method is not supported"));
                     return null;
                 }
+                // イベントの名前のメソッド（void のラッパーが残るもの）は、await・変数・WhenAll / WhenAny では使えない。
+                // コルーチンの名前を直接呼ぶと、派生の override に振り分けられないため（待たずに呼ぶ Foo(); は、メソッドの呼び出しのまま）
                 if (target.Wrapper)
-                    _edits.Add(name.Identifier.Span, target.CoroutineName);
+                {
+                    Error(call, Loc.T($"イベントの名前（{target.Symbol.Name}）の async メソッドは、await・変数・WhenAll / WhenAny では使えません（派生クラスの override に振り分けられません）。別の名前のメソッドにしてください",
+                        $"An async method named like an event ({target.Symbol.Name}) cannot be used with await, in a variable, or in WhenAll / WhenAny (it would not dispatch to an override in a derived class). Give it another name"));
+                    return null;
+                }
                 if (target.ResultType != null)
                     _edits.Add(new TextSpan(call.ArgumentList.CloseParenToken.SpanStart, 0),
                         (call.ArgumentList.Arguments.Count > 0 ? ", " : "") + "__ar: " + holder);
