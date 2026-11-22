@@ -26,10 +26,13 @@ namespace FeatureTests.Async
         // a0・b107：WhenAny（先に終わったものの番号と、それぞれの値。終わったもの以外は既定の値）。h9・f8・g12：変数・フィールドに入れた UniTask を await・WhenAll に渡す
         // ng2：負の値の待ち（DelayFrame(-1)・Delay(-5)）は、例外にならず、それぞれ 1 フレーム待つ（UniTask は例外。unitask.md）
         // k172：波括弧のない if / else・switch・for・foreach・while の中の await と、await の値。x19q53：匿名型・タプル・List・LINQ を await をまたいで使う
+        // lsABC：別の GameObject（peer）の async は、非アクティブにすると止まり、アクティブに戻しても再開しない。
+        // evIIJJ/ab12a1b2/：イベントの async（Interact）を続けて 2 回呼んでも、引数の違う async を続けて呼んでも、混ざらない。最後は WhenAll の途中で止めたものが再開しない（空）
         // p11・q21：同じメソッドを並行して動かしても、戻り値は混ざらない（開始ごとの置き場）
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
+        public AsyncPeer peer;
 
         private string _log = "";
         private int _f0;
@@ -144,6 +147,8 @@ namespace FeatureTests.Async
             await UniTask.DelayFrame(1);
             _log += "x" + sumq + anon.B + lv + lst.Count + ";";
 
+            await Life();
+
             Conc("p", 10);
             Conc("q", 20);
             Par("pa");
@@ -151,6 +156,44 @@ namespace FeatureTests.Async
             Both();
             await UniTask.DelayFrame(2);
             _log += "e;";
+        }
+
+        // 別の GameObject の async（AsyncPeer）：停止・多重呼び出し
+        private async UniTask Life()
+        {
+            if (peer == null)
+            {
+                _log += "nopeer;";
+                return;
+            }
+            peer.gameObject.SetActive(true);
+            peer.tick = "";
+            peer.ilog = "";
+            peer.alog = "";
+            peer.wlog = "";
+            peer.Begin("t");
+            await UniTask.DelayFrame(3);
+            int n1 = peer.tick.Length;
+            peer.gameObject.SetActive(false);
+            await UniTask.DelayFrame(3);
+            int n2 = peer.tick.Length;
+            peer.gameObject.SetActive(true);
+            await UniTask.DelayFrame(3);
+            int n3 = peer.tick.Length;
+            _log += "ls" + (n1 > 0 ? "A" : "a") + (n2 == n1 ? "B" : "b") + (n3 == n2 ? "C" : "c") + ";";
+
+            peer.InteractTwice();
+            peer.ArgsTwice();
+            await UniTask.DelayFrame(4);
+            string il = peer.ilog;
+            string al = peer.alog;
+            peer.BeginBoth();
+            await UniTask.DelayFrame(2);
+            peer.gameObject.SetActive(false);
+            await UniTask.DelayFrame(12);
+            peer.gameObject.SetActive(true);
+            await UniTask.DelayFrame(12);
+            _log += "ev" + il + "/" + al + "/" + peer.wlog + ";";
         }
 
         private async UniTask Child()
