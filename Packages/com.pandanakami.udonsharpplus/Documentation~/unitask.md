@@ -40,7 +40,7 @@ public class Door : UdonSharpBehaviour
 
 UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Plugins/UniTask`。2.5.x）。UdonSharp Plus は UniTask のアセンブリに依存せず、型の名前（`Cysharp.Threading.Tasks.UniTask` など）で見分けます。UniTask を使わないスクリプトは、何も変わりません。
 
-- **書ける場所**：UdonSharpBehaviour の、`async UniTask`・`async UniTaskVoid`・`async void`・値を返す `async UniTask<T>` のインスタンスメソッド。`virtual`／`override`・ジェネリックメソッド・引数のあるメソッドも使えます。`{ }` の本体で書いてください（`=>` の式の本体は未対応です）
+- **書ける場所**：UdonSharpBehaviour の、`async UniTask`・`async UniTaskVoid`・`async void`・値を返す `async UniTask<T>` のインスタンスメソッド。`virtual`／`override`・引数のあるメソッドも使えます。`{ }` の本体で書いてください（`=>` の式の本体は未対応です）
 - **イベント**：`Start`・`Update`・`OnEnable` などの Unity のメッセージや、`override` したイベント（`Interact`・`OnPlayerJoined` など）も `async` にできます。Udon が名前で呼ぶので、同じ名前の `void` のメソッドが、コルーチンを始めます
 - **`await` の書き方**（文として書きます）：
 
@@ -86,7 +86,7 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 - 式の途中の `await`（`n += await Foo();` のような複合代入も同じです。`+=` は、`await` の前に左の値を読むので、`var d = await Foo(); n += d;` と書いてください）
 - `try`・`catch`・`finally`・`using`・`lock` の中の `await`
 - `CancellationToken`（`default`・`None` 以外）。止めるときは、GameObject を非アクティブにするか、フラグで抜けてください
-- `static` の async メソッド、`Task`・`ValueTask` を返す async メソッド、ref・out・in の引数がある async メソッド
+- `static` の async メソッド、ジェネリックの async メソッド（`async UniTask Foo<T>()`）、`abstract` の async メソッド（`abstract UniTask Foo();` のように、`async` を付けない `UniTask` を返す宣言）、`Task`・`ValueTask` を返す async メソッド、ref・out・in の引数がある async メソッド
 - ほかのビヘイビアの async メソッドを呼ぶ（`other.Foo();`）。そのビヘイビアに、async を始める public メソッドを作って呼んでください
 - `async` のラムダ・匿名メソッド・ローカル関数（`async () => { ... }`・`async delegate { ... }`・`UniTask.Void(async () => { ... })`）。`async` のメソッドを書いて、`Foo();` で呼んでください
 - UdonSharpBehaviour でないクラスの async メソッド・async のラムダ・async のローカル関数
