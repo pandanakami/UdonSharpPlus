@@ -28,11 +28,14 @@ namespace FeatureTests.Async
         // k172：波括弧のない if / else・switch・for・foreach・while の中の await と、await の値。x19q53：匿名型・タプル・List・LINQ を await をまたいで使う
         // lsABC：別の GameObject（peer）の async は、非アクティブにすると止まり、アクティブに戻しても再開しない。
         // evIIJJ/ab12a1b2/：イベントの async（Interact）を続けて 2 回呼んでも、引数の違う async を続けて呼んでも、混ざらない。最後は WhenAll の途中で止めたものが再開しない（空）
+        // ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L：継承した別のビヘイビア。値を返す virtual の async を override して base を await する（41・基底は 4）、Interact の override（イベントの名前で呼ぶ・基底のメソッドから Interact() と直接呼ぶ。どちらも派生が動く。DDDDEEEE）、基底のメソッドから呼んだ virtual の async の override（base を await する）、
+        // OnPlayerJoined(player) の async（引数のあるイベント。ローカルのプレイヤー）
         // p11・q21：同じメソッドを並行して動かしても、戻り値は混ざらない（開始ごとの置き場）
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
         public AsyncPeer peer;
+        public AsyncPeerDerived derived;
 
         private string _log = "";
         private int _f0;
@@ -194,6 +197,23 @@ namespace FeatureTests.Async
             peer.gameObject.SetActive(true);
             await UniTask.DelayFrame(12);
             _log += "ev" + il + "/" + al + "/" + peer.wlog + ";";
+
+            if (derived == null)
+            {
+                _log += "noderived;";
+                return;
+            }
+            derived.calc = 0;
+            derived.ilog = "";
+            derived.hlog = "";
+            peer.calc = 0;
+            derived.BeginCalc(4);
+            peer.BeginCalc(4);
+            derived.InteractByEvent();
+            derived.InteractTwice();
+            derived.HitTwice();
+            await UniTask.DelayFrame(5);
+            _log += "ov" + derived.calc + "/" + peer.calc + "/" + derived.ilog + "/" + derived.hlog + "/" + peer.joined + ";";
         }
 
         private async UniTask Child()

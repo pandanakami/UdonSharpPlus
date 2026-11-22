@@ -497,8 +497,21 @@ namespace UdonSharpPlus
             private void StartStatement(ExpressionStatementSyntax stmt)
             {
                 var inv = (InvocationExpressionSyntax)stmt.Expression;
-                if (AsyncOf(inv) == null)
+                bool forget = AsyncOf(inv) == null;
+                if (forget)
                     inv = (InvocationExpressionSyntax)((MemberAccessExpressionSyntax)inv.Expression).Expression;
+
+                // イベントの override（Interact など）は、void のメソッドが残っている。コードからの呼び出しは、そのメソッドの呼び出しのままにする
+                // （コルーチンの名前を直接呼ぶと、派生の override を飛ばして、基底のものが動く）。Forget() だけ外す
+                AsyncMethod target = AsyncOf(inv);
+                if (target.Wrapper && (inv.Expression is IdentifierNameSyntax
+                    || inv.Expression is MemberAccessExpressionSyntax access && (access.Expression is ThisExpressionSyntax || access.Expression is BaseExpressionSyntax) && access.Name is IdentifierNameSyntax))
+                {
+                    if (forget)
+                        _edits.Add(stmt.Span, KeepLines(_edits.Take(inv) + ";", stmt.ToString()));
+                    return;
+                }
+
                 string call = CallCode(inv, "new object[1]");
                 if (call == null)
                     return;

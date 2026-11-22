@@ -45,6 +45,14 @@ namespace UdonSharpPlus.Tests
             yield return new TestCaseData(typeof(Coroutine[]), "System.Int32[]");
             yield return new TestCaseData(typeof(WaitForSeconds), "System.Single");
             yield return new TestCaseData(typeof(WaitForSecondsRealtime), "System.Single");
+            // UniTask（#207・#210）。UniTask のアセンブリは、型の名前で探す（なければ、この 3 件は飛ばす）
+            Type uniTask = Type.GetType("Cysharp.Threading.Tasks.UniTask, UniTask");
+            if (uniTask != null)
+            {
+                yield return new TestCaseData(uniTask, "System.Int32");
+                yield return new TestCaseData(uniTask.Assembly.GetType("Cysharp.Threading.Tasks.UniTask`1").MakeGenericType(typeof(int)), "System.Int32");
+                yield return new TestCaseData(uniTask.Assembly.GetType("Cysharp.Threading.Tasks.UniTask`1").MakeGenericType(typeof(string)), "System.Int32");
+            }
         }
 
         [TestCaseSource(nameof(Lowered))]

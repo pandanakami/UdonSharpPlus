@@ -458,6 +458,21 @@ async UniTask Run()
         }
 
         [Test]
+        public void CallsOfAnEventOverrideStayCallsOfTheMethod()
+        {
+            // イベントの override（Interact）を、コードから呼ぶ。コルーチンの名前を直接呼ぶと、派生の override を飛ばして基底のものが動くので、
+            // メソッド（void のもの）の呼び出しのままにする（Forget() だけ外す）
+            string code = Lowered("EventCall", @"public int n;
+public override async void Interact() { await UniTask.Yield(); n++; }
+public async UniTask Show() { await UniTask.Yield(); }
+void Start() { Interact(); this.Interact(); }
+void Twice() { Interact(); Show().Forget(); }");
+            Assert.That(code, Does.Contain("Interact(); this.Interact();"));
+            Assert.That(code, Does.Contain("Interact();"));
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(__async_AsyUse_Interact\(").Count, Is.EqualTo(1), "コルーチンを始めるのは、void のメソッドの中だけ");
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
             AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);

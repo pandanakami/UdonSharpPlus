@@ -86,7 +86,14 @@ namespace UdonSharpPlus
                 // タプル（(int, string)。#82 で普通のクラスに書き換える。#105 で見つけた写し方の漏れ）
                 if (definition.Namespace == "System" && definition.Name.StartsWith("ValueTuple`", StringComparison.Ordinal))
                     return typeof(object[]);
+                // UniTask<T>（#207・#210。開始したコルーチンの番号の int に書き換える。戻り値の置き場は、別の変数 名前 + __ar）。UniTask のアセンブリには依存しない（名前で見分ける）
+                if (definition.Namespace == "Cysharp.Threading.Tasks" && definition.Name == "UniTask`1")
+                    return typeof(int);
             }
+
+            // UniTask（#207・#210。開始したコルーチンの番号の int に書き換える）
+            if (type.Namespace == "Cysharp.Threading.Tasks" && type.Name == "UniTask" && !type.IsGenericType)
+                return typeof(int);
 
             // コルーチンの値（Coroutine・IEnumerator。#107 で状態の番号の int に書き換える）
             if (type == typeof(Coroutine) || type == typeof(System.Collections.IEnumerator))

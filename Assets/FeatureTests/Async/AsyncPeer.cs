@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UdonSharp;
 using UnityEngine;
+using VRC.SDKBase;
 
 namespace FeatureTests.Async
 {
@@ -13,6 +14,48 @@ namespace FeatureTests.Async
         [HideInInspector] public string ilog = "";
         [HideInInspector] public string alog = "";
         [HideInInspector] public string wlog = "";
+
+        // 継承・イベントの引数：派生（AsyncPeerDerived）が Calc・Interact を override する。joined：OnPlayerJoined の async（引数のあるイベント）
+        [HideInInspector] public int calc;
+        [HideInInspector] public string joined = "";
+
+        public virtual async UniTask<int> Calc(int k)
+        {
+            await UniTask.Yield();
+            return k;
+        }
+
+        public void BeginCalc(int k) { StoreCalc(k); }
+
+        private async UniTask StoreCalc(int k) { calc = await Calc(k); }
+
+        public override async void OnPlayerJoined(VRCPlayerApi player)
+        {
+            await UniTask.Yield();
+            joined += player != null && player.isLocal ? "L" : "R";
+        }
+
+        // virtual の async（値なし）。基底のメソッドから呼んでも、派生の override が動く。InteractByEvent：Interact を、イベントの名前で 2 回呼ぶ
+        [HideInInspector] public string hlog = "";
+
+        public virtual async UniTask Hit(int k)
+        {
+            hlog += "b" + k;
+            await UniTask.Yield();
+            hlog += "B" + k;
+        }
+
+        public void HitTwice()
+        {
+            Hit(1);
+            Hit(2);
+        }
+
+        public void InteractByEvent()
+        {
+            SendCustomEvent("_interact");
+            SendCustomEvent("_interact");
+        }
 
         public void Begin(string tag) { Tick(tag); }
 
