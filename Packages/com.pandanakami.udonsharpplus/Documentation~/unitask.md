@@ -88,6 +88,7 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 - `CancellationToken`（`default`・`None` 以外）。止めるときは、GameObject を非アクティブにするか、フラグで抜けてください
 - `static` の async メソッド、`Task`・`ValueTask` を返す async メソッド、ref・out・in の引数がある async メソッド
 - ほかのビヘイビアの async メソッドを呼ぶ（`other.Foo();`）。そのビヘイビアに、async を始める public メソッドを作って呼んでください
+- `async` のラムダ・匿名メソッド・ローカル関数（`async () => { ... }`・`async delegate { ... }`・`UniTask.Void(async () => { ... })`）。`async` のメソッドを書いて、`Foo();` で呼んでください
 - UdonSharpBehaviour でないクラスの async メソッド・async のラムダ・async のローカル関数
 
 ## 負荷

@@ -446,6 +446,18 @@ async UniTask Run()
         }
 
         [Test]
+        public void ErrorForAsyncLambdasAnonymousMethodsAndLocalFunctions()
+        {
+            // async のラムダ・匿名メソッド・ローカル関数は、書けない（#207 の追加テスト案）。メッセージの出る行は、書いた行
+            AssertError("public int n;\nvoid Start() { Action a = async () => { await UniTask.Yield(); n = 1; }; a(); }", "async のラムダ・匿名メソッドは未対応", BodyLine + 1);
+            AssertError("public int n;\nvoid Start() { Func<UniTask> f = async () => { await UniTask.Yield(); n = 1; }; f(); }", "async のラムダ・匿名メソッドは未対応", BodyLine + 1);
+            AssertError("public int n;\nvoid Start() { Action a = async delegate { await UniTask.Yield(); n = 1; }; a(); }", "async のラムダ・匿名メソッドは未対応", BodyLine + 1);
+            AssertError("public int n;\nasync UniTask Foo() { async UniTask Local() { await UniTask.Yield(); n = 1; } await Local(); }", "async・extern・unsafe のローカル関数は未対応", BodyLine + 1);
+            AssertError("public int n;\nvoid Start() { async void Local() { await UniTask.Yield(); n = 1; } Local(); }", "async・extern・unsafe のローカル関数は未対応", BodyLine + 1);
+            AssertError("public int n;\nvoid Start() { UniTask.Void(async () => { await UniTask.Yield(); n = 1; }); }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask.Void に async のラムダを渡す書き方は未対応", BodyLine + 1);
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
             AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);

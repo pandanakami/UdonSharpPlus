@@ -361,6 +361,13 @@ namespace UdonSharpPlus
                         $"The async method {target.Symbol.Name} can only be called as Foo();, Foo().Forget() or await Foo(); inside an async method. Using it as a value is not supported"));
                 }
 
+                // 3b) UniTask のメソッドに async のラムダを渡す書き方（UniTask.Void(async () => ...) など）。デリゲートの段は、ソースのデリゲート型のものだけ見るので、ここで案内する
+                foreach (AnonymousFunctionExpressionSyntax lambda in OwnNodes().OfType<AnonymousFunctionExpressionSyntax>())
+                    if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword) && lambda.Parent is ArgumentSyntax arg && arg.Parent?.Parent is InvocationExpressionSyntax outer
+                        && _model.GetSymbolInfo(outer).Symbol is IMethodSymbol passed && passed.ContainingType.ToDisplayString() == UniTaskName)
+                        Error(lambda, Loc.T($"UniTask.{passed.Name} に async のラムダを渡す書き方は未対応です。async のメソッドを書いて、Foo(); で呼んでください",
+                            $"Passing an async lambda to UniTask.{passed.Name} is not supported. Write an async method and call it as Foo();"));
+
                 // 4) メソッドの宣言
                 foreach (MethodDeclarationSyntax m in asyncBodies)
                     Declaration(m, _methods[((IMethodSymbol)_model.GetDeclaredSymbol(m)).OriginalDefinition]);
