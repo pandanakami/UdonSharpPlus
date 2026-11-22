@@ -132,6 +132,13 @@ namespace UdonSharpPlus
             }
             if (methods.Count == 0)
                 return trees;
+            // イベントの override（Interact など）は、同じ名前の void のメソッドが残る。自分で書いた virtual の async を override するものは、
+            // 基底と同じ形（コルーチン）にする。基底がイベントの override なら、派生も void のまま（戻り値の型をそろえる）
+            foreach (AsyncMethod am in methods.Values)
+            {
+                am.Wrapper = IsWrapper(am.Symbol, methods);
+                am.CoroutineName = am.Wrapper ? $"__async_{am.Type.Name}_{am.Symbol.Name}" : am.Symbol.Name;
+            }
 
             // 2) ファイルごとに書き換える。async・UniTask の文字か、async メソッドの名前（呼ぶだけのクラス）を含むクラスだけを見る
             string[] words = Words.Concat(methods.Values.Select(m => m.Symbol.Name)).Distinct().ToArray();
@@ -159,6 +166,18 @@ namespace UdonSharpPlus
             return result;
         }
 
+        /// <summary>Udon がイベント名で呼ぶ（void のメソッドを残す）メソッドか：Unity のイベントの名前・イベントの override・それを override するもの</summary>
+        private static bool IsWrapper(IMethodSymbol symbol, Dictionary<IMethodSymbol, AsyncMethod> methods)
+        {
+            if (UnityMessages.Contains(symbol.Name))
+                return true;
+            if (!symbol.IsOverride || symbol.OverriddenMethod == null)
+                return false;
+            return methods.TryGetValue(symbol.OverriddenMethod.OriginalDefinition, out AsyncMethod baseMethod)
+                ? IsWrapper(baseMethod.Symbol, methods)
+                : true;
+        }
+
         /// <summary>戻り値の型の種類：UniTask・UniTaskVoid・void・値を返す UniTask&lt;T&gt;（"generic"）・Task など（"other"）</summary>
         private static string KindOf(ITypeSymbol type)
         {
@@ -179,7 +198,7 @@ namespace UdonSharpPlus
         /// <summary>対応しない async メソッドなら、エラーの文（対応するなら null）</summary>
         private static string ProblemOf(MethodDeclarationSyntax m, IMethodSymbol symbol, string kind)
         {
-            if (kind == "generic" && (symbol.IsOverride || UnityMessages.Contains(symbol.Name)))
+            if (kind == "generic" && UnityMessages.Contains(symbol.Name))
                 return Loc.T("イベントのメソッド（Start・Interact など）は、値を返せません", "An event method (Start, Interact, ...) cannot return a value");
             if (kind == "other" || kind == null)
                 return Loc.T("UdonSharpBehaviour の async メソッドは、UniTask・UniTaskVoid・void を返すものだけ書けます",
@@ -249,6 +268,26 @@ namespace UdonSharpPlus
             {
                 MethodDeclarationSyntax m = node.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
                 return m != null && _model.GetDeclaredSymbol(m) is IMethodSymbol s && _methods.TryGetValue(s.OriginalDefinition, out AsyncMethod found) ? found : null;
+            }
+
+            /// <summary>いま書き換えている文の最初の行（0 始まり）。計算で作る待ちの引数を、元の行に合わせて置くのに使う（例外の位置を元の行に出す）</summary>
+            private int _anchorLine;
+
+            private static int LineOf(SyntaxNode n) => n.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+            /// <summary>引数の式。元の文で、文の最初の行より下にあるときは、その行数の改行を前に足して、生成した文の中でも同じ行に置く</summary>
+            private string Arg(ExpressionSyntax e) => new string('\n', System.Math.Max(0, LineOf(e) - _anchorLine)) + _edits.Take(e);
+
+            /// <summary>sb の改行の数を、node の行（文の最初の行からの数）に合わせる（足りないときだけ足す）</summary>
+            private void Pad(StringBuilder sb, SyntaxNode node)
+            {
+                int have = 0;
+                for (int i = 0; i < sb.Length; i++)
+                    if (sb[i] == '\n')
+                        have++;
+                int want = LineOf(node) - _anchorLine;
+                if (want > have)
+                    sb.Append('\n', want - have);
             }
 
             private static string TypeText(ITypeSymbol type) => type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -501,6 +540,7 @@ namespace UdonSharpPlus
                 if (aw == null)
                     return;
                 handledAwaits.Add(aw);
+                _anchorLine = LineOf(statement);
 
                 // コルーチンの状態機械が書けない文の中の await は、コルーチンの段のエラーより先に、await の言葉で案内する
                 for (SyntaxNode n = statement.Parent; n != null && !(n is MethodDeclarationSyntax); n = n.Parent)
@@ -630,7 +670,7 @@ namespace UdonSharpPlus
                             return null;
                         // UniTask の DelayFrame(n) は n フレーム、DelayFrame(0) は Yield と同じ（1 フレーム）
                         string i = $"__af{temp++}";
-                        return $"for (int {i} = UnityEngine.Mathf.Max(({_edits.Take(count)}), 1); {i} > 0; {i}--) yield return null;";
+                        return $"for (int {i} = UnityEngine.Mathf.Max(({Arg(count)}), 1); {i} > 0; {i}--) yield return null;";
                     }
                     case "Delay":
                         return DelayCode(inv, args);
@@ -639,7 +679,7 @@ namespace UdonSharpPlus
                     {
                         if (!args.TryGetValue("predicate", out ExpressionSyntax predicate))
                             return null;
-                        return $"yield return new UnityEngine.{method.Name}({_edits.Take(predicate)});";
+                        return $"yield return new UnityEngine.{method.Name}({Arg(predicate)});";
                     }
                     case "WhenAll":
                         return WhenAllCode(inv, method, ref temp, out value, out block);
@@ -729,6 +769,7 @@ namespace UdonSharpPlus
                     }
                     string handle = $"__w{temp++}";
                     string holder = null;
+                    Pad(starts, call);
                     if (target.ResultType != null)
                     {
                         holder = $"__ar{temp++}";
@@ -1007,7 +1048,7 @@ namespace UdonSharpPlus
             {
                 string seconds;
                 if (args.TryGetValue("millisecondsDelay", out ExpressionSyntax ms))
-                    seconds = $"({_edits.Take(ms)}) / 1000f";
+                    seconds = $"({Arg(ms)}) / 1000f";
                 else if (args.TryGetValue("delayTimeSpan", out ExpressionSyntax span))
                 {
                     seconds = SecondsOf(span);
@@ -1051,7 +1092,7 @@ namespace UdonSharpPlus
                     && _model.GetSymbolInfo(call).Symbol is IMethodSymbol m && m.ContainingType.ToDisplayString() == "System.TimeSpan"
                     && call.ArgumentList.Arguments.Count == 1)
                 {
-                    string value = _edits.Take(call.ArgumentList.Arguments[0].Expression);
+                    string value = Arg(call.ArgumentList.Arguments[0].Expression);
                     switch (access.Name.Identifier.ValueText)
                     {
                         case "FromSeconds": return $"(float)({value})";

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UdonSharp;
 using UnityEngine;
@@ -23,8 +24,9 @@ namespace FeatureTests.Async
         // c1〜c3：async を await（子が終わったら、同じフレームのうちに親が再開）。sum3：引数のある async。pa・pb・v：待たずに呼ぶ（並行。待った順に再開）
         // v3x!10/40：値を返す async（UniTask<T>）の値（int・string・return await・await のない async）。w5y!：WhenAll で値をタプルで受け取る。
         // a0・b107：WhenAny（先に終わったものの番号と、それぞれの値。終わったもの以外は既定の値）。h9・f8・g12：変数・フィールドに入れた UniTask を await・WhenAll に渡す
+        // k172：波括弧のない if / else・switch・for・foreach・while の中の await と、await の値。x19q53：匿名型・タプル・List・LINQ を await をまたいで使う
         // p11・q21：同じメソッドを並行して動かしても、戻り値は混ざらない（開始ごとの置き場）
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;k172;x19q53;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
 
@@ -112,6 +114,29 @@ namespace FeatureTests.Async
             UniTask<int> x2 = Slow(2, 1);
             var (g1, g2) = await UniTask.WhenAll(x1, x2);
             _log += "g" + g1 + g2 + ";";
+
+            int acc = 0;
+            for (int i = 0; i < 3; i++) { int d = await Add(i, 1); acc += d; }
+            if (acc > 0) acc = await Add(acc, 1);
+            else acc = -1;
+            switch (acc)
+            {
+                case 7: acc = await Add(acc, 10); break;
+                default: acc = 0; break;
+            }
+            foreach (int k in new int[] { 1, 2 }) await UniTask.Yield();
+            int j = 0;
+            while (j < 2) { j++; await UniTask.Yield(); }
+            _log += "k" + acc + j + ";";
+
+            var anon = new { A = 2, B = "q" };
+            var tup = (3, 4);
+            var lst = new System.Collections.Generic.List<int> { 5, 6, 7 };
+            await UniTask.Yield();
+            int sumq = lst.Where(x => x > 5).Sum() + anon.A + tup.Item2;
+            int lv = await Add(tup.Item1, anon.A);
+            await UniTask.DelayFrame(1);
+            _log += "x" + sumq + anon.B + lv + lst.Count + ";";
 
             Conc("p", 10);
             Conc("q", 20);

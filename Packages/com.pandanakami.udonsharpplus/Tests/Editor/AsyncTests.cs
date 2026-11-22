@@ -370,6 +370,66 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
         }
 
         [Test]
+        public void AwaitInControlFlowBecomesCoroutineCode()
+        {
+            // 波括弧のない 1 文（if・else・foreach）、ループ、switch の節の中の await（#207 の追加テスト案の 3）
+            string code = Lowered("ControlFlow", @"public int n;
+public int[] arr = new int[2];
+UniTask _held;
+void Start() { Run(true); }
+async UniTask Run(bool c)
+{
+    if (c) await UniTask.Yield();
+    if (c) n = await Add(1, 2);
+    if (c) await Child();
+    else await UniTask.Delay(10);
+    if (c) Child();
+    if (c) _held = Child();
+    if (c) await UniTask.WhenAll(Child(), Child());
+    if (c) await UniTask.WhenAny(Child(), Child());
+    for (int i = 0; i < 2; i++) { var v = await Add(i, 1); n += v; }
+    foreach (int k in arr) await UniTask.Yield();
+    while (n < 5) { int d = await Add(1, 1); n += d; }
+    do { await UniTask.Yield(); } while (false);
+    switch (n)
+    {
+        case 1: await UniTask.Yield(); break;
+        case 2: { int z = await Add(1, 2); n = z; break; }
+        case 3: { UniTask<int> h = Add(2, 2); n = await h; break; }
+        default: return;
+    }
+    if (c) return;
+    await UniTask.Yield();
+}
+async UniTask Child() { await UniTask.Yield(); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
+            Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain("async"));
+            Assert.That(code, Does.Not.Contain("await ").Or.Contain("__co_await"), "await は残さない");
+        }
+
+        [Test]
+        public void LocalsFromOutVarAndDeconstructionSurviveAnAwait()
+        {
+            string code = Lowered("OutVars", @"public int n;
+public int[] arr = new int[2];
+void Start() { Run(); }
+async UniTask Run()
+{
+    int.TryParse(""1"", out var pv);
+    var (a, b) = (1, 2);
+    await UniTask.Yield();
+    n = pv + a + b;
+    foreach (int k in arr)
+    {
+        int.TryParse(""2"", out int w);
+        await UniTask.Yield();
+        n += w + k;
+    }
+}");
+            Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain("async"));
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
             AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);

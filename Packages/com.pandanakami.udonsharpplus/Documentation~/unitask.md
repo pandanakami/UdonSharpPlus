@@ -82,7 +82,7 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 
 - 配列・List に入れた `UniTask` を渡す `WhenAll`・`WhenAny`、`Run`・`SwitchToThreadPool`・`WaitUntilValueChanged`・`UniTaskCompletionSource` など、上の表にない `await`
 - `UniTask` の値を、引数・戻り値・配列・List に入れる書き方（変数・フィールドに入れるのは使えます）、`UniTask.CompletedTask` を変数に入れる書き方
-- 式の途中の `await`
+- 式の途中の `await`（`n += await Foo();` のような複合代入も同じです。`+=` は、`await` の前に左の値を読むので、`var d = await Foo(); n += d;` と書いてください）
 - `try`・`catch`・`finally`・`using`・`lock` の中の `await`
 - `CancellationToken`（`default`・`None` 以外）。止めるときは、GameObject を非アクティブにするか、フラグで抜けてください
 - `static` の async メソッド、`Task`・`ValueTask` を返す async メソッド、ref・out・in の引数がある async メソッド
