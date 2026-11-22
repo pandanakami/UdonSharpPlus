@@ -153,6 +153,14 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
+            // UniTask の async / await（#207）→ コルーチン。UniTask を使わないプロジェクトでは何もしない（UniTask のアセンブリは参照しない）。
+            // タプルの段より前に置く：await UniTask.WhenAll(A(), B()) の値（タプル）を、タプルの式で書くので、あとのタプルの段に書き換えさせる
+            if (AsyncLowering.MayHaveAsync(current))
+            {
+                current = AsyncLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // タプル → 要素の型の並びごとの普通のクラス（#82）。ジェネリクスのコピーのあとに 1 回（タプルは型として書けるので、型引数のままコピーでき、
             // ジェネリックメソッドの型の推論（Pick((3, 4))）も、元のタプルの型のまま行える）。匿名型の 2 回目のあと（匿名型を要素にするタプルのため）
             if (TupleLowering.MayHaveTuples(current))
@@ -167,13 +175,6 @@ namespace UdonSharpPlus
             if (OperatorLowering.MayHaveOperators(current))
             {
                 current = OperatorLowering.Run(current, diagnostics, GetMetadataReferences());
-                SourceMap.RegisterTrees(current);
-            }
-
-            // UniTask の async / await（#207）→ コルーチン。UniTask を使わないプロジェクトでは何もしない（UniTask のアセンブリは参照しない）
-            if (AsyncLowering.MayHaveAsync(current))
-            {
-                current = AsyncLowering.Run(current, diagnostics, GetMetadataReferences());
                 SourceMap.RegisterTrees(current);
             }
 

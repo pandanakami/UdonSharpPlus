@@ -5,41 +5,11 @@ using NUnit.Framework;
 namespace UdonSharpPlus.Tests
 {
     /// <summary>
-    /// UniTask の async / await（#207）→ コルーチン。UniTask は入れていないので、型だけの殻（Stub。本物と同じ名前空間・同じ引数）を
-    /// テストの入力に含める。動きは FeatureTests のパネル（AsyncRunner）で、コルーチンと同じ順番・フレームになることを見る
+    /// UniTask の async / await（#207・#209）→ コルーチン。UniTask は、VRChat SDK に同梱されている本物（Cysharp.Threading.Tasks）を使う。
+    /// 動きは FeatureTests のパネル（AsyncRunner）で、コルーチンと同じ順番・フレームになることを見る
     /// </summary>
     public class AsyncTests
     {
-        /// <summary>本物の UniTask の名前空間・型・引数（この段が見分ける部分だけ。中身は空）</summary>
-        internal const string Stub = @"using System;
-using System.Threading;
-namespace Cysharp.Threading.Tasks
-{
-    public enum PlayerLoopTiming { Update, FixedUpdate, LastUpdate }
-    public enum DelayType { DeltaTime, UnscaledDeltaTime, Realtime }
-    public readonly struct UniTask
-    {
-        public readonly struct Awaiter { public bool IsCompleted => true; public void GetResult() { } }
-        public Awaiter GetAwaiter() => default;
-        public readonly struct YieldAwaitable { public Awaiter GetAwaiter() => default; }
-        public static YieldAwaitable Yield() => default;
-        public static YieldAwaitable Yield(PlayerLoopTiming timing) => default;
-        public static UniTask Yield(CancellationToken cancellationToken, bool cancelImmediately = false) => default;
-        public static UniTask NextFrame() => default;
-        public static UniTask NextFrame(PlayerLoopTiming timing) => default;
-        public static UniTask DelayFrame(int delayFrameCount, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false) => default;
-        public static UniTask Delay(int millisecondsDelay, bool ignoreTimeScale = false, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false) => default;
-        public static UniTask Delay(TimeSpan delayTimeSpan, bool ignoreTimeScale = false, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false) => default;
-        public static UniTask Delay(int millisecondsDelay, DelayType delayType, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false) => default;
-        public static UniTask Delay(TimeSpan delayTimeSpan, DelayType delayType, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false) => default;
-        public static UniTask WaitUntil(Func<bool> predicate, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false) => default;
-        public static UniTask WaitWhile(Func<bool> predicate, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false) => default;
-    }
-    public readonly struct UniTask<T> { public readonly struct Awaiter { public bool IsCompleted => true; public T GetResult() => default; } public Awaiter GetAwaiter() => default; }
-    public readonly struct UniTaskVoid { public void Forget() { } }
-    public static class UniTaskExtensions { public static void Forget(this UniTask task) { } }
-}";
-
         private const string Head = "using System;\nusing System.Threading;\nusing Cysharp.Threading.Tasks;\nusing UdonSharp;\nusing UnityEngine;\n";
 
         // AsyUse.cs の 1〜5 行目は using、6 行目はクラス、7 行目は {。本体は 8 行目から
@@ -48,7 +18,7 @@ namespace Cysharp.Threading.Tasks
         private static string Source(string body) => Head + "public class AsyUse : UdonSharpBehaviour\n{\n" + body + "\n}";
 
         private static CompileResult Compile(string body) =>
-            UdonSharpTestCompiler.Compile(new TestSource("UniTaskStub.cs", Stub), new TestSource("AsyUse.cs", Source(body)));
+            UdonSharpTestCompiler.Compile(new TestSource("AsyUse.cs", Source(body)));
 
         private static CompileResult CompileOk(string body)
         {
@@ -72,7 +42,7 @@ namespace Cysharp.Threading.Tasks
             try
             {
                 CompileResult r = UdonSharpTestCompiler.Compile(UdonSharpTestCompiler.EditorDefines, dir,
-                    new TestSource("UniTaskStub.cs", Stub), new TestSource("AsyUse.cs", Source(body)));
+                    new TestSource("AsyUse.cs", Source(body)));
                 Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, body + "\n" + string.Join("\n", r.Diagnostics));
                 return File.ReadAllText(Path.Combine(dir, "Assets", "UdonSharpPlusTests", "AsyUse.cs"));
             }
@@ -214,8 +184,7 @@ async UniTask A()
         public void PlainClassesWithoutUniTaskAreNotReportedInAProjectThatUsesUniTask()
         {
             // 別のビヘイビアが async を使っていても、UniTask と関係ない普通のクラス（void・値を返すメソッド）は、エラーにならない
-            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("UniTaskStub.cs", Stub),
-                new TestSource("AsyUse.cs", Source("async UniTask A() { await UniTask.Yield(); }\nvoid Start() { A(); var p = new Plain(); p.Hit(); }")),
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("AsyUse.cs", Source("async UniTask A() { await UniTask.Yield(); }\nvoid Start() { A(); var p = new Plain(); p.Hit(); }")),
                 new TestSource("Plain.cs", "public class Plain { public int hp = 3; public void Hit() { hp--; } public int Get() { return hp; } }"));
             Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", r.Diagnostics));
         }
@@ -224,7 +193,7 @@ async UniTask A()
         public void UniTaskInAnotherClassOfTheSameFileIsLeftAlone()
         {
             // UdonSharpBehaviour でないクラスの UniTask は、普通の Unity のもの（残った UniTask のエラーは、UdonSharpBehaviour の中だけ）
-            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("UniTaskStub.cs", Stub), new TestSource("Mix.cs",
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("Mix.cs",
                 Head + "public class Helper : MonoBehaviour { UniTask _t; public UniTask Foo() => UniTask.Delay(1); }\n"
                 + "public class Mix : UdonSharpBehaviour { public int n; void Start() { n++; } }"));
             Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", r.Diagnostics));
@@ -233,9 +202,70 @@ async UniTask A()
         // ---- 対応しない書き方 ----------------------------------------------------
 
         [Test]
-        public void ErrorForValueReturningUniTask()
+        public void ValueReturningAsyncUsesAHolder()
         {
-            AssertError("async UniTask<int> Foo() { await UniTask.Yield(); return 1; }", "値を返す UniTask<T> は未対応", BodyLine);
+            string code = Lowered("Value", @"public int n;
+public string s;
+void Start() { Run(); }
+async UniTask Run() { var a = await Add(1, 2); int b = await Add(a, 3); n = await Add(b, 4); s = await Name(); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }
+async UniTask<string> Name() { return ""a""; }");
+            Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain("async"));
+            Assert.That(code, Does.Contain("object[] __ar").And.Contain("new object[1]"), "戻り値の置き場は、呼ぶ側が作る");
+            Assert.That(code, Does.Contain("__ar: __ar"), "最後の引数に渡す");
+            Assert.That(code, Does.Contain("(int)__ar").And.Contain("(string)__ar"), "値は型を付けて読み出す");
+            Assert.That(code, Does.Contain("__ar[0] = (object)(x + y)"), "return は置き場に入れる");
+        }
+
+        [Test]
+        public void ReturnAwaitPassesTheValueOn()
+        {
+            string code = Lowered("ReturnAwait", @"public long n;
+void Start() { Wide(); }
+async UniTask<long> Wide() { return await Add(1, 2); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
+            Assert.That(code, Does.Contain("(object)((long)"), "型が違うときは、変換して返す");
+        }
+
+        [Test]
+        public void ValueReturningAsyncStartedWithoutAwait()
+        {
+            string code = Lowered("ValueFire", @"void Start() { Add(1, 2); Add(3, 4).Forget(); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_go\(Add\(\d, \d, __ar: new object\[1\]\)\)").Count, Is.EqualTo(2),
+                "待たずに呼ぶときは、使わない置き場を渡して始める");
+        }
+
+        [Test]
+        public void WhenAllOfDifferentTypesIsTakenAsATuple()
+        {
+            string code = Lowered("WhenAllTuple", @"public int n;
+public string s;
+void Start() { Run(); }
+async UniTask Run() { var (a, b) = await UniTask.WhenAll(Add(), Name()); n = a; s = b; }
+async UniTask<int> Add() { await UniTask.Yield(); return 1; }
+async UniTask<string> Name() { await UniTask.Yield(); return ""x""; }");
+            Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain("WhenAll"));
+            Assert.That(code, Does.Contain("__co_start(Add(__ar: __ar").And.Contain("__co_start(Name(__ar: __ar"));
+        }
+
+        [Test]
+        public void WhenAllStartsAllAndWaitsForEach()
+        {
+            string code = Lowered("WhenAll", @"public int n;
+void Start() { Run(); }
+async UniTask Run()
+{
+    await UniTask.WhenAll(A(), B());
+    var (x, y) = await UniTask.WhenAll(Add(1, 1), Add(2, 2));
+    n = x + y;
+}
+async UniTask A() { await UniTask.Yield(); }
+async UniTask B() { await UniTask.Yield(); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
+            Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain("WhenAll"));
+            Assert.That(code, Does.Contain("__co_start(A())").And.Contain("__co_start(B())"), "子は、すべて始めてから待つ");
+            Assert.That(code, Does.Contain("__co_start(Add(1, 1, __ar: __ar").And.Contain("__co_start(Add(2, 2, __ar: __ar"), "値を返すものも、holder を渡して始める");
         }
 
         [Test]
@@ -253,19 +283,39 @@ async UniTask A()
         [Test]
         public void ErrorForAwaitOfUnknownTask()
         {
-            AssertError("async UniTask Foo() { await UniTask.Run(() => 1); }", "この await は未対応", BodyLine);
+            AssertError("async UniTask Foo() { await UniTask.Run(() => 1); }", "UniTask.Run は未対応", BodyLine);
         }
 
         [Test]
         public void ErrorForAwaitOutsideStatement()
         {
-            AssertError("async UniTask Foo() { var x = await UniTask.Delay(1); }", "await は、文（", BodyLine);
+            AssertError("public int n;\nasync UniTask Foo() { n = 1 + await Add(1, 2); }\nasync UniTask<int> Add(int a, int b) { return a + b; }", "式の途中の await は未対応", BodyLine + 1);
         }
 
         [Test]
         public void ErrorForAwaitInTry()
         {
             AssertError("async UniTask Foo() { try { await UniTask.Yield(); } finally { } }", "try・catch・finally・using・lock の中の await は未対応", BodyLine);
+        }
+
+        [Test]
+        public void ErrorForAwaitedValueOfNoValueTask()
+        {
+            AssertError("public int n;\nasync UniTask Foo() { n = await UniTask.Delay(1); }", "値を返さない await の結果は、代入できません", BodyLine + 1);
+        }
+
+        [Test]
+        public void ErrorForWhenAllOfDifferentTypesOrVariables()
+        {
+            string common = "async UniTask<int> Add() { await UniTask.Yield(); return 1; }\nasync UniTask<string> Name() { await UniTask.Yield(); return \"a\"; }\n";
+            AssertError(common + "async UniTask Foo() { var t = Add(); await UniTask.WhenAll(t, t); }", "async メソッドの呼び出しを並べる形", BodyLine + 2);
+            AssertError(common + "async UniTask Foo() { await UniTask.WhenAny(Add(), Add()); }", "UniTask.WhenAny は未対応", BodyLine + 2);
+        }
+
+        [Test]
+        public void ErrorForEventMethodReturningAValue()
+        {
+            AssertError("async UniTask<int> Start() { await UniTask.Yield(); return 1; }", "イベントのメソッド（Start・Interact など）は、値を返せません", BodyLine);
         }
 
         [Test]
@@ -284,8 +334,7 @@ async UniTask A()
         public void ErrorForAsyncMethodOfAnotherBehaviour()
         {
             string body = "public AsyOther other;\nvoid Start() { other.Go(); }";
-            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("UniTaskStub.cs", Stub),
-                new TestSource("AsyUse.cs", Source(body)),
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("AsyUse.cs", Source(body)),
                 new TestSource("AsyOther.cs", Head + "public class AsyOther : UdonSharpBehaviour { public async UniTask Go() { await UniTask.Yield(); } }"));
             Assert.That(r.Diagnostics.Any(d => d.Contains("ほかのビヘイビアの async メソッド") && d.Contains($"AsyUse.cs({BodyLine + 1},")), string.Join("\n", r.Diagnostics));
         }
@@ -313,7 +362,7 @@ async UniTask A()
         [Test]
         public void ErrorForUniTaskInPlainClass()
         {
-            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("UniTaskStub.cs", Stub), new TestSource("AsyUse.cs",
+            CompileResult r = UdonSharpTestCompiler.Compile(new TestSource("AsyUse.cs",
                 Head + "public class Plain { public async UniTask Foo() { await UniTask.Yield(); } }\npublic class AsyUse : UdonSharpBehaviour { void Start() { var p = new Plain(); } }"));
             Assert.That(r.Diagnostics.Any(d => d.Contains("UdonSharpBehaviour でないクラスのメソッドの async")), string.Join("\n", r.Diagnostics));
         }

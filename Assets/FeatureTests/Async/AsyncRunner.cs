@@ -21,7 +21,9 @@ namespace FeatureTests.Async
         // s：始まり（0 フレーム目）。y・n：Yield・NextFrame（1 フレームずつ）。d：DelayFrame(3)（3 フレーム）。z：DelayFrame(0)（1 フレーム）
         // t・m・r：Delay(200)・Delay(TimeSpan)・Delay(ignoreTimeScale) が指定より短くない。u・w：WaitUntil・WaitWhile
         // c1〜c3：async を await（子が終わったら、同じフレームのうちに親が再開）。sum3：引数のある async。pa・pb・v：待たずに呼ぶ（並行。待った順に再開）
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;pa0;pb0;v0;pa1;pb1;v1;e;";
+        // v3x!10/40：値を返す async（UniTask<T>）の値（int・string・return await・await のない async）。w5y!：WhenAll で値をタプルで受け取る。
+        // p11・q21：同じメソッドを並行して動かしても、戻り値は混ざらない（開始ごとの置き場）
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
 
@@ -84,6 +86,16 @@ namespace FeatureTests.Async
             await AddLater(1, 2);
             _log += "sum" + _sum + ";";
 
+            int v = await Add(1, 2);
+            string nm = await Name("x");
+            int t2 = await Twice(5);
+            int f = await Fast(4);
+            _log += "v" + v + nm + t2 + "/" + f + ";";
+            var (ra, rb) = await UniTask.WhenAll(Add(2, 3), Name("y"));
+            _log += "w" + ra + rb + ";";
+
+            Conc("p", 10);
+            Conc("q", 20);
             Par("pa");
             Par("pb");
             Both();
@@ -102,6 +114,35 @@ namespace FeatureTests.Async
         {
             await UniTask.Yield();
             _sum += a + b;
+        }
+
+        private async UniTask<int> Add(int a, int b)
+        {
+            await UniTask.Yield();
+            return a + b;
+        }
+
+        private async UniTask<string> Name(string s)
+        {
+            await UniTask.Yield();
+            return s + "!";
+        }
+
+        private async UniTask<int> Twice(int a)
+        {
+            return await Add(a, a);
+        }
+
+        // await のない async：その場で終わる
+        private async UniTask<int> Fast(int a)
+        {
+            return a * 10;
+        }
+
+        private async UniTaskVoid Conc(string id, int k)
+        {
+            int r = await Add(k, 1);
+            _log += id + r + ";";
         }
 
         private async UniTaskVoid Par(string id)
