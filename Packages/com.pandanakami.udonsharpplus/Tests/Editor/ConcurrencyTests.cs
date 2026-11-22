@@ -97,6 +97,36 @@ namespace UdonSharpPlusTests.Concurrency
             }
         }
 
+        /// <summary>UniTask の async（#207）を含むソースも、プログラムを並列で生成しても、順番に生成したときと同じデバッグ情報・プログラムになる</summary>
+        [Test]
+        public void ParallelEmitOfAsyncKeepsTheSameResult()
+        {
+            CompileResult Run(bool parallel)
+            {
+                bool saved = UdonSharpTestCompiler.ParallelEmit;
+                UdonSharpTestCompiler.ParallelEmit = parallel;
+                try
+                {
+                    return UdonSharpTestCompiler.Compile(PrebindTests.AsyncMixed);
+                }
+                finally
+                {
+                    UdonSharpTestCompiler.ParallelEmit = saved;
+                }
+            }
+
+            CompileResult sequential = Run(parallel: false);
+            Assert.That(sequential.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", sequential.Diagnostics));
+            string expected = DebugInfo(sequential);
+            Assert.That(expected, Does.Contain("PbAsyMain.cs"));
+            for (int i = 0; i < 3; i++)
+            {
+                CompileResult parallel = Run(parallel: true);
+                Assert.That(parallel.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, string.Join("\n", parallel.Diagnostics));
+                Assert.That(DebugInfo(parallel), Is.EqualTo(expected), $"{i + 1} 回目");
+            }
+        }
+
         /// <summary>
         /// どのプログラムのコピーの中でも同じエラーは、元のクラスの位置の 1 つにまとまる（DiagnosticLocationPatch）。
         /// U# の Bind は並列なので、何回コンパイルしても数と位置が同じこと

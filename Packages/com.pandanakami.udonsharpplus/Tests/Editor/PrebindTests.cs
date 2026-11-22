@@ -126,6 +126,78 @@ public class PbBroken : UdonSharpBehaviour
 "),
         };
 
+        /// <summary>UniTask の async（#207）：イベント・値を返す・WhenAll / WhenAny・変数・virtual / override・ほかの機能（匿名型・タプル・演算子・LINQ）を、複数のファイルに分けたもの（書き換えの中で振る名前の番号が、毎回同じになること）</summary>
+        internal static readonly TestSource[] AsyncMixed =
+        {
+            new TestSource("PbAsyBase.cs", @"using Cysharp.Threading.Tasks;
+using UdonSharp;
+using UnityEngine;
+public class PbAsyBase : UdonSharpBehaviour
+{
+    public int n;
+    public virtual async UniTask<int> Calc(int k) { await UniTask.Yield(); return k; }
+    public virtual async void OnHit(int k) { await UniTask.Yield(); n += k; }
+    public override async void Interact() { await UniTask.Yield(); n++; }
+}
+"),
+            new TestSource("PbAsyDerived.cs", @"using Cysharp.Threading.Tasks;
+using UdonSharp;
+public class PbAsyDerived : PbAsyBase
+{
+    public override async UniTask<int> Calc(int k) { int b = await base.Calc(k); return b * 2; }
+    public override async void OnHit(int k) { await UniTask.Delay(10); n += k * 2; }
+    public override async void Interact() { await UniTask.Yield(); n += 10; }
+}
+"),
+            new TestSource("PbAsyMain.cs", @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using Cysharp.Threading.Tasks;
+using UdonSharp;
+using UnityEngine;
+public class PbAsyNum
+{
+    public int v;
+    public PbAsyNum(int v) { this.v = v; }
+    public static PbAsyNum operator +(PbAsyNum a, PbAsyNum b) => new PbAsyNum(a.v + b.v);
+}
+public class PbAsyMain : UdonSharpBehaviour
+{
+    public int n;
+    public PbAsyBase other;
+    private UniTask _held;
+    private UniTask<int> _heldValue;
+    void Start() { Run(); Other(); }
+    async UniTask Run()
+    {
+        var anon = new { A = 1, B = 2 };
+        var tup = (3, 4);
+        PbAsyNum m = new PbAsyNum(1) + new PbAsyNum(2);
+        var list = new List<int> { 3, 1, 2 };
+        await UniTask.Yield();
+        n = anon.A + tup.Item2 + m.v + list.Where(x => x > 1).Sum();
+        var (a, b) = await UniTask.WhenAll(Add(1, 2), Add(3, 4));
+        var (i, r1, r2) = await UniTask.WhenAny(Add(5, 6), Add(7, 8));
+        UniTask t = Wait(2);
+        var tv = Add(9, 10);
+        _held = Wait(3);
+        _heldValue = Add(11, 12);
+        await t;
+        int x = await tv;
+        await UniTask.WhenAll(_held, Wait(1));
+        int hv = await _heldValue;
+        n += a + b + i + r1 + r2 + x + hv;
+        for (int k = 0; k < 2; k++) { int d = await Add(k, 1); n += d; }
+        if (n > 0) n = await Add(n, 1);
+        else n = -1;
+    }
+    async UniTask Other() { await Wait(1); await UniTask.DelayFrame(2); await UniTask.WaitUntil(() => n > 0); }
+    async UniTask Wait(int frames) { await UniTask.DelayFrame(frames); }
+    async UniTask<int> Add(int a, int b) { await UniTask.Yield(); return a + b; }
+}
+"),
+        };
+
         private static TestSource[] GoldenSources(string caseName)
         {
             string dir = Path.Combine(GoldenCases.CasesRoot, caseName);
@@ -179,6 +251,16 @@ public class PbBroken : UdonSharpBehaviour
             Assert.That(Lower(Mixed, prebind: true), Does.Not.Contain("\nError"));
         }
 
+        [Test]
+        public void AsyncIsLoweredTheSame()
+        {
+            AssertSameWithAndWithout(AsyncMixed);
+            string lowered = Lower(AsyncMixed, prebind: true);
+            // 段をすべて通ったこと（エラーで途中で止まっていないこと）と、async が書き換わっていること
+            Assert.That(lowered, Does.Not.Contain("\nError"));
+            Assert.That(lowered, Does.Contain("__co_alive("));
+        }
+
         [TestCase("Combination")]
         [TestCase("Syntax")]
         [TestCase("Class/Generic")]
@@ -212,6 +294,9 @@ public class PbBroken : UdonSharpBehaviour
 
         [Test]
         public void RepeatedLoweringOfMixedFeaturesIsStable() => AssertStable(Mixed);
+
+        [Test]
+        public void RepeatedLoweringOfAsyncIsStable() => AssertStable(AsyncMixed);
 
         [Test]
         public void RepeatedLoweringOfBrokenSourceIsStable() => AssertStable(Broken);
