@@ -16,6 +16,7 @@ UdonSharp で書ける C# を増やすパッケージ、UdonSharp Plus の詳し
 | [タプル](tuples.md) | `(int, string)`、`(1, "a")`、`var (x, y) = ...`・入れ替え・`foreach` の分解・`==`・`ToString` |
 | [演算子のオーバーロード](operators.md) | `operator +`・`==`・`++` など、`implicit`／`explicit` の変換を、普通のクラスと UdonSharpBehaviour に宣言して使う |
 | [コルーチン](coroutines.md) | `IEnumerator` を返すメソッドの `yield return`（`null`・`WaitForSeconds`・`WaitUntil`・子のコルーチンなど）、`StartCoroutine`・`StopCoroutine`・`StopAllCoroutines` |
+| [UniTask](unitask.md) | `async UniTask` / `UniTaskVoid` / `async void`、`await UniTask.Delay`・`Yield`・`NextFrame`・`DelayFrame`・`WaitUntil`・`WaitWhile`、`await` で子の async を待つ・`Foo();` で並行して始める。コルーチンに書き換えて動かします |
 | [デリゲート・ローカル関数](delegates.md) | 自分で宣言したデリゲートと `Action`・`Func`・`Predicate`・`Comparison` に、メソッド・ラムダ・匿名メソッド・ローカル関数を入れて呼ぶ。ローカル関数を使う |
 
 それぞれのページに、対応している書き方と、未対応の書き方（コンパイルエラーになるもの）を書いています。

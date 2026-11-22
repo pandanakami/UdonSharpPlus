@@ -30,6 +30,7 @@ UdonSharp Plus の機能は、書き換えたあと、UdonSharp で書けるコ�
 | LINQ・List のメソッドに直接書いたラムダ | 手で書いた `for` ループと同じ（`ToList()` なら、結果の `DataList` 1 つ） |
 | `GroupBy` | 上に加えて、グループごとにキーのボックス化（グループをつなぎの外に出すときは、グループごとに `new object[]` と `new DataList()` も） |
 | 演算子のオーバーロード・ジェネリックメソッド | 同じ UdonSharpBehaviour の static メソッドの呼び出しと同じ |
+| UniTask の async / await | コルーチンと同じ（`async` のメソッドを、コルーチンに書き換えます。[UniTask](unitask.md)） |
 | コルーチン | 次のフレームを待つものがあるビヘイビアごとに 1 フレーム 1 回、`WaitForSeconds` で待つたびに 1 回の、遅れのイベントの予約。状態は使い回すので、同時に動く数が増えたときだけ `object[]`（下の「コルーチン」） |
 
 ほかの UdonSharpBehaviour のメソッドを呼ぶ重さについては、下の「ボックス化と、ほかの UdonSharpBehaviour とのやり取り」を見てください。

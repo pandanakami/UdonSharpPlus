@@ -3,6 +3,20 @@
 Changes in each version of UdonSharp Plus. Each section is used as the body of the GitHub release.
 UdonSharp Plus の各バージョンの変更点です。各節は GitHub のリリースの本文になります。
 
+## [0.1.7]
+
+### English
+
+New
+
+- UniTask (`async` / `await`) can be used in an `UdonSharpBehaviour`. UdonSharp itself does not support it. `async UniTask`, `async UniTaskVoid` and `async void` methods are rewritten to coroutines, so waiting, stopping and the frame it resumes in are the same as coroutines. You can `await UniTask.Yield()`, `NextFrame()`, `Delay(...)` (milliseconds or `TimeSpan.FromSeconds(x)`, with `ignoreTimeScale` / `DelayType`), `DelayFrame(n)`, `WaitUntil(...)`, `WaitWhile(...)`, and a call to another async method (it waits for the child). `Foo();` and `Foo().Forget();` start it in parallel. `Start`, `Update` and `override` events (`Interact`, `OnPlayerJoined`, ...) can be `async`. `UniTask<T>`, `WhenAll` / `WhenAny`, `CancellationToken` (other than `default`), keeping a `UniTask` in a variable, and `await` inside `try` are compile errors. UniTask comes with the VRChat SDK; UdonSharp Plus does not depend on it, so scripts that do not use UniTask are not affected. See Documentation~/unitask.md.
+
+### 日本語
+
+新しく使えるもの
+
+- UniTask の `async` / `await` を、`UdonSharpBehaviour` の中で使えるようになりました（UdonSharp 自体は対応していません）。`async UniTask`・`async UniTaskVoid`・`async void` のメソッドをコルーチンに書き換えるので、待ち方・止まる条件・再開するフレームはコルーチンと同じです。`await` できるのは、`UniTask.Yield()`・`NextFrame()`・`Delay(...)`（ミリ秒か `TimeSpan.FromSeconds(x)`。`ignoreTimeScale`・`DelayType` も使えます）・`DelayFrame(n)`・`WaitUntil(...)`・`WaitWhile(...)`・ほかの async メソッドの呼び出し（子を待ちます）です。`Foo();`・`Foo().Forget();` で並行して始められます。`Start`・`Update`・`override` したイベント（`Interact`・`OnPlayerJoined` など）も `async` にできます。`UniTask<T>`・`WhenAll` / `WhenAny`・`CancellationToken`（`default` 以外）・変数に入れた `UniTask`・`try` の中の `await` は、コンパイルエラーです。UniTask は VRChat SDK に同梱されています。UdonSharp Plus は UniTask に依存しないので、UniTask を使わないスクリプトは何も変わりません。詳しくは Documentation~/unitask.md を見てください。
+
 ## [0.1.6]
 
 ### English

@@ -170,6 +170,13 @@ namespace UdonSharpPlus
                 SourceMap.RegisterTrees(current);
             }
 
+            // UniTask の async / await（#207）→ コルーチン。UniTask を使わないプロジェクトでは何もしない（UniTask のアセンブリは参照しない）
+            if (AsyncLowering.MayHaveAsync(current))
+            {
+                current = AsyncLowering.Run(current, diagnostics, GetMetadataReferences());
+                SourceMap.RegisterTrees(current);
+            }
+
             // コルーチンの下ごしらえ（#107）：WaitUntil・WaitWhile のラムダを、デリゲートの段より前にふつうの文にする
             current = CoroutineLowering.Prepare(current, diagnostics, GetMetadataReferences());
             SourceMap.RegisterTrees(current);

@@ -48,7 +48,7 @@ namespace UdonSharpPlus
         /// node のテキストが、words のどれかを文字として含むか（ノードを全部たどる前に、含まないものを外すため。#203）。
         /// 識別子の文字を \u で書いたものは文字では分からないので、\u・\U があれば true にする
         /// </summary>
-        private static bool MayContain(SyntaxNode node, string[] words)
+        internal static bool MayContain(SyntaxNode node, string[] words)
         {
             string text = Texts.GetValue(node.SyntaxTree, t => t.GetText().ToString());
             int start = node.Span.Start;
@@ -266,7 +266,7 @@ namespace UdonSharpPlus
             body.DescendantNodes(n => !(n is AnonymousFunctionExpressionSyntax || n is LocalFunctionStatementSyntax)).OfType<YieldStatementSyntax>();
 
         /// <summary>cls のノード（入れ子の型の中は含めない）</summary>
-        private static IEnumerable<SyntaxNode> OwnNodes(ClassDeclarationSyntax cls) =>
+        internal static IEnumerable<SyntaxNode> OwnNodes(ClassDeclarationSyntax cls) =>
             cls.DescendantNodes(n => n == cls || !(n is BaseTypeDeclarationSyntax)).Where(n => !(n is BaseTypeDeclarationSyntax));
 
         // ---- テキストの編集 ----------------------------------------------------
@@ -275,7 +275,7 @@ namespace UdonSharpPlus
         /// 元のテキストへの置き換えを集め、最後にまとめて当てる。外側の置き換えを作るときは、中の置き換えを当てたテキストを Take で取り出す
         /// （取り出した置き換えは外側に含まれるので、一覧から消す）
         /// </summary>
-        private sealed class Edits
+        internal sealed class Edits
         {
             private readonly SourceText _text;
             private readonly List<(TextSpan Span, string Text)> _list = new List<(TextSpan, string)>();

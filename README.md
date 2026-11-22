@@ -23,6 +23,7 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Tuples | `(int, string)`, `(1, "a")`, `var (lo, hi) = Range(list);`, `(a, b) = (b, a);`, `==`, `ToString` |
 | Operator overloading | `public static Vec operator +(Vec a, Vec b)`, `a + b`, `a += b`, `==`, `implicit operator Vec(int v)` |
 | Coroutines | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`, `StartCoroutine(Open())`, `StopCoroutine(c)`, `WaitUntil`, `yield return StartCoroutine(Child())` |
+| UniTask (`async` / `await`) | `async UniTask Open() { await UniTask.Delay(1000); }`, `await UniTask.WaitUntil(() => ready);`, `await Child();`, `Foo().Forget();` (rewritten to coroutines) |
 | `switch` patterns | `case > 5:`, `case 1 or 2:`, `case var x when x > 100:`, `var s = n switch { < 0 => "neg", _ => "pos" };` |
 
 ```csharp
@@ -112,7 +113,6 @@ That's all. Nothing else is required. Optional settings (message language and co
 
 These are planned but not supported yet. There is no fixed schedule, and the scope may change.
 
-- UniTask (`async` / `await`)
 - ScriptableObject
 
 ## Disclaimer
