@@ -36,6 +36,8 @@ namespace UdonSharpPlus
                     public string Type;
                     public int DeclPos;
                     public bool IsParam;
+                    /// <summary>参照型（default(T) の代わりに null で初期化する：Udon では、参照型のローカルを default(T) で初期化すると、実行のたびに確保が出る）</summary>
+                    public bool IsRef;
                     public bool Written;
                     public int Slot = -1;
                     public readonly List<IdentifierNameSyntax> Refs = new List<IdentifierNameSyntax>();
@@ -121,7 +123,7 @@ namespace UdonSharpPlus
                     // 頭：修飾子から本体の開き括弧まで（引数が複数行なら、その分の改行を残す）
                     var head = new StringBuilder();
                     foreach (Var v in _vars)
-                        head.Append(v.IsParam ? $"{v.Type} {v.Name} = ({v.Type})__s[{v.Slot}]; " : $"{v.Type} {v.Name} = default({v.Type}); ");
+                        head.Append(v.IsParam ? $"{v.Type} {v.Name} = ({v.Type})__s[{v.Slot}]; " : $"{v.Type} {v.Name} = {(v.IsRef ? "null" : $"default({v.Type})")}; ");
                     var headSpan = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(
                         m.Modifiers.Count > 0 ? m.Modifiers.First().SpanStart : m.ReturnType.SpanStart, _body.OpenBraceToken.Span.End);
                     string headText = _edits.Take(headSpan);
@@ -226,15 +228,15 @@ namespace UdonSharpPlus
                 {
                     if (symbol == null || _bySymbol.ContainsKey(symbol))
                         return;
-                    var v = new Var { Name = symbol.Name, Type = TypeText(symbol.Type), DeclPos = declPos };
+                    var v = new Var { Name = symbol.Name, Type = TypeText(symbol.Type), DeclPos = declPos, IsRef = symbol.Type.IsReferenceType && !IsHandle(symbol.Type) };
                     _vars.Add(v);
                     _bySymbol[symbol] = v;
                 }
 
                 /// <summary>ループで使う、名前のない変数（foreach の配列と番号）。ループの中で使うものとして数える</summary>
-                private Var AddTemp(string prefix, string type, ForEachStatementSyntax loop)
+                private Var AddTemp(string prefix, string type, ForEachStatementSyntax loop, bool isRef = false)
                 {
-                    var v = new Var { Name = $"__{prefix}{_temp++}", Type = type, DeclPos = loop.SpanStart - 1 };
+                    var v = new Var { Name = $"__{prefix}{_temp++}", Type = type, DeclPos = loop.SpanStart - 1, IsRef = isRef };
                     v.Positions.Add(loop.Statement.SpanStart);
                     _vars.Add(v);
                     return v;
@@ -468,7 +470,7 @@ namespace UdonSharpPlus
                     }
                     int top = ++_label, next = ++_label, end = ++_label;
                     Var item = _model.GetDeclaredSymbol(s) is ILocalSymbol symbol && _bySymbol.TryGetValue(symbol, out Var found) ? found : null;
-                    Var array = AddTemp("fa", TypeText(type), s), index = AddTemp("fi", "int", s);
+                    Var array = AddTemp("fa", TypeText(type), s, !IsHandle(type) && type.IsReferenceType), index = AddTemp("fi", "int", s);
                     string source = _edits.Take(s.Expression);
                     Head(s.ForEachKeyword, s.CloseParenToken,
                         $"{array.Name} = {source}; {index.Name} = 0; {Label(top)} if (!({index.Name} < {array.Name}.Length)) {Jump(end)} {item?.Name} = ({item?.Type}){array.Name}[{index.Name}];");

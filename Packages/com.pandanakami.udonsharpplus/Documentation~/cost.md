@@ -30,7 +30,7 @@ UdonSharp Plus の機能は、書き換えたあと、UdonSharp で書けるコ�
 | LINQ・List のメソッドに直接書いたラムダ | 手で書いた `for` ループと同じ（`ToList()` なら、結果の `DataList` 1 つ） |
 | `GroupBy` | 上に加えて、グループごとにキーのボックス化（グループをつなぎの外に出すときは、グループごとに `new object[]` と `new DataList()` も） |
 | 演算子のオーバーロード・ジェネリックメソッド | 同じ UdonSharpBehaviour の static メソッドの呼び出しと同じ |
-| UniTask の async / await | コルーチンと同じ（`async` のメソッドを、コルーチンに書き換えます。[UniTask](unitask.md)）。値を返す `UniTask<T>` は、呼ぶたびに戻り値の置き場の `object[]` を 1 つ作ります。`WhenAny` は、どれかが終わるまで、1 フレームごとに見ます |
+| UniTask の async / await | コルーチンと同じ（`async` のメソッドを、コルーチンに書き換えます。[UniTask](unitask.md)）。値を返す `UniTask<T>` は、呼ぶたびに戻り値の置き場の `object[]` を作り、確保が増えます。`WhenAny`・`DelayFrame` は、待っている間も 1 フレームごとに確保します（下の「UniTask の async / await」） |
 | コルーチン | 次のフレームを待つものがあるビヘイビアごとに 1 フレーム 1 回、`WaitForSeconds` で待つたびに 1 回の、遅れのイベントの予約。状態は使い回すので、同時に動く数が増えたときだけ `object[]`（下の「コルーチン」） |
 
 ほかの UdonSharpBehaviour のメソッドを呼ぶ重さについては、下の「ボックス化と、ほかの UdonSharpBehaviour とのやり取り」を見てください。
@@ -173,6 +173,22 @@ UdonSharp Plus の機能は、書き換えたあと、UdonSharp で書けるコ�
 - **遅れのイベントの予約**（`SendCustomEventDelayedFrames`・`SendCustomEventDelayedSeconds`）は、Udon が予約するたびに 1 回確保します。次のフレームの予約は、ビヘイビアごとに 1 フレーム 1 回にまとめています（その代わり、ビヘイビアをまたいだ再開の順番は Unity と違うことがあります。[コルーチン](coroutines.md) の「注意」）。秒の予約は、`WaitForSeconds` で待つたびに 1 回です
 - `object[]` から値の型を取り出すこと（再開したときに引数・変数を読み戻すこと）は、確保になりません。入れるほう（ボックス化）は、`int` 1 つにつき 1 回・20 B です
 - 状態の表・待ち行列の配列は、足りなくなったときだけ 2 倍に広げます
+
+### UniTask の async / await
+
+[UniTask](unitask.md) の操作です。コルーチンに書き換えるので、上の「コルーチン」と同じ測り方（同じ操作を一度動かしたあとの値、1000 回の合計を 1 回あたりに直したもの）です。待つ側の再開は次のフレームなので、確保は「呼んだフレーム」と「再開のフレーム」に分かれます。
+
+| 操作 | 実際の確保 |
+|---|---|
+| 値を返さない `async` を呼ぶ（`Foo();`）・`await Foo();`・`await UniTask.Yield();` | —（コルーチンと同じ。上の「次のフレームの予約」だけ） |
+| `int v = await Zero();`（`UniTask<int>`・引数なし）・`await Zero();`（値を捨てる） | 全体で 5 回・約 165 B（戻り値の置き場の `object[1]`・戻り値のボックス化を含む） |
+| `int v = await Add(1, 2);`（`UniTask<int>`・`int` の引数 2 つ） | 全体で 7 回・約 190 B（上に引数のボックス化 2 回・40 B が足される） |
+| `await UniTask.WhenAll(A(), B());`（子が `Yield` を 1 回待つ） | 全体で 3 回・約 65 B（子の開始・再開を含む） |
+| **待っている間の毎フレーム**：`UniTask.DelayFrame(n)`・`UniTask.Delay(...)` | 待っているものごとに 1 回・約 20 B（数え直す変数のボックス化） |
+| **待っている間の毎フレーム**：`UniTask.WhenAny(A(), B())` | 待っている `WhenAny` ごとに 2 回・約 40 B（子を見張る番号のボックス化。上の `DelayFrame` などの子の分は別） |
+
+- `UniTask<T>` の確保が、戻り値の置き場の `object[1]`・ボックス化より多いのは、Udon が、変数のコピーのたびに（`UdonHeap.CopyHeapVariable` の中で）リフレクションで確保するためです。コルーチンの先頭で、参照型のローカルを `default(T)` で初期化していたものは、`null` にして減らしました（それまでは、1 回の再開で約 128 B 多く確保していました）。残りの確保の出どころは、調べきれていません。1 秒に数百回以上 `UniTask<T>` を呼ぶところでは、値を返さない `async` に変えて、結果をフィールドに入れるほうが軽くなります
+- 待っている間の毎フレームの確保は、待っているものの数に比例します（1000 個で、1 フレームに `DelayFrame` が約 1000 回・20 KB、`WhenAny` が約 2000 回・40 KB）。`Delay` は測っていません
 
 ## 読み方
 
