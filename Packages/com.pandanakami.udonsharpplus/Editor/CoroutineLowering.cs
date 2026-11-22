@@ -666,6 +666,8 @@ namespace UdonSharpPlus
                 // 終わり。待っている親があれば、同じフレームのうちに再開する（親がまだ yield の途中なら、次のフレーム）
                 yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) { int b = 1 << ((h[0] >> 16) & 31); if (h[2] == 0) h[9] |= b; else h[9] &= ~b; __co_bump(h); } __co_recycle(s); "
                              + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
+                // 動いている途中か（終わった・止めた・開始に失敗した番号は false。UniTask.WhenAny が、どれかが終わったかを見るのに使う。#210）
+                yield return "protected bool __co_alive(int c) { return __co_get(c) != null; }";
                 yield return "protected void __co_stop(int c) { object[] s = __co_get(c); if (s != null && ((int[])s[0])[3] != 0) __co_kill(s); }";
                 yield return "protected int __co_named(int c) { object[] s = __co_get(c); if (s != null) ((int[])s[0])[10] = 1; return c; }";
                 yield return "protected void __co_stopn(string n) { for (int i = 0; i < __co_used; i++) { object[] s = (object[])__co_slots[i]; int[] h = (int[])s[0]; if (h[3] != 0 && h[10] != 0 && __co_names[h[1]] == n) __co_kill(s); } }";

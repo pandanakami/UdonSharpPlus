@@ -214,8 +214,8 @@ namespace UdonSharpPlus
                     if (!reported.Add(line))
                         continue;
                     diagnostics.Error(token.GetLocation(), Loc.T(
-                        "UniTask は、async メソッドの戻り値と、await の中（UniTask.Delay など）だけで使えます。UniTask の値を変数・フィールド・引数・戻り値に入れる書き方は未対応です",
-                        "UniTask can only be used as the return type of an async method and inside await (UniTask.Delay, ...). Keeping a UniTask in a variable, field, parameter or return value is not supported"));
+                        "UniTask は、async メソッドの戻り値と、await の中（UniTask.Delay など）、async の呼び出しを入れる変数・フィールドだけで使えます。UniTask を引数・戻り値・配列・List に入れる書き方は未対応です",
+                        "UniTask can only be used as the return type of an async method, inside await (UniTask.Delay, ...), and as a variable or field that holds a call to an async method. Passing a UniTask as an argument or return value, or keeping it in an array or list, is not supported"));
                 }
             }
         }
@@ -281,6 +281,16 @@ namespace UdonSharpPlus
                 foreach (SyntaxNode n in OwnNodes().OfType<ExpressionStatementSyntax>())
                     if (CallStatementTarget(((ExpressionStatementSyntax)n).Expression) != null)
                         candidates.Add(n);
+                // 2b) 変数・フィールドに入れた UniTask（#210）：宣言・代入・Forget。名前は先に集めて、それ以外の式は問い合わせない
+                CollectTaskNames();
+                if (_taskNames.Count > 0)
+                {
+                    foreach (SyntaxNode n in OwnNodes())
+                        if (n is LocalDeclarationStatementSyntax ld && IsTaskDeclaration(ld) || n is ExpressionStatementSyntax es2 && IsTaskStatement(es2))
+                            candidates.Add(n);
+                    foreach (FieldDeclarationSyntax f in _cls.Members.OfType<FieldDeclarationSyntax>())
+                        TaskField(f);
+                }
                 foreach (SyntaxNode node in candidates.Distinct().OrderByDescending(n => n.SpanStart))
                 {
                     handled.Add(node);
@@ -288,9 +298,13 @@ namespace UdonSharpPlus
                         ReturnStatement(ret);
                     else if (node is ExpressionStatementSyntax call && CallStatementTarget(call.Expression) != null)
                         StartStatement(call);
+                    else if (AwaitOf(node) == null)
+                        TaskStatement(node);
                     else
                         AwaitStatement(node, handledAwaits, ref temp);
                 }
+                if (_taskNames.Count > 0)
+                    CheckTaskUses();
 
                 // 3) 書き換えていない await・async メソッドの呼び出し（式の途中・ほかのビヘイビアなど）はエラー
                 foreach (MethodDeclarationSyntax m in asyncBodies)
@@ -375,7 +389,7 @@ namespace UdonSharpPlus
                 {
                     case ExpressionStatementSyntax es:
                         e = es.Expression;
-                        if (e is AssignmentExpressionSyntax asg && asg.Right is AwaitExpressionSyntax)
+                        if (e is AssignmentExpressionSyntax asg && (asg.Right is AwaitExpressionSyntax || asg.Right is InvocationExpressionSyntax))
                             e = asg.Right;
                         break;
                     case ReturnStatementSyntax r:
@@ -407,7 +421,7 @@ namespace UdonSharpPlus
                         {
                             if (outer.Expression is MemberAccessExpressionSyntax access && access.Name.Identifier.ValueText == "Forget" && access.Expression == call)
                                 return true;
-                            if (call.Parent is ArgumentSyntax arg && arg.Parent?.Parent == outer && IsUniTaskMethod(outer, "WhenAll"))
+                            if (call.Parent is ArgumentSyntax arg && arg.Parent?.Parent == outer && (IsUniTaskMethod(outer, "WhenAll") || IsUniTaskMethod(outer, "WhenAny")))
                                 return true;
                         }
                         return false;
@@ -502,13 +516,20 @@ namespace UdonSharpPlus
                     operand = p.Expression;
                 string code = null, value = null;
                 bool block = false;
-                if (operand is InvocationExpressionSyntax inv)
+                TaskVar held = VarAt(operand);
+                if (held != null)
+                {
+                    Use(operand);
+                    code = $"yield return {held.Handle};";
+                    value = held.Result == null ? null : $"(({TypeText(held.Result)}){held.Holder}[0])";
+                }
+                else if (operand is InvocationExpressionSyntax inv)
                     code = AwaitCode(inv, ref temp, out value, out block);
                 if (code == null)
                 {
                     if (!(operand is InvocationExpressionSyntax))
-                        Error(operand, Loc.T("この await は未対応です。UniTask.Yield()・NextFrame()・Delay(...)・DelayFrame(n)・WaitUntil(...)・WaitWhile(...)・WhenAll(...)、または async メソッドの呼び出しを await してください",
-                            "This await is not supported. Await UniTask.Yield(), NextFrame(), Delay(...), DelayFrame(n), WaitUntil(...), WaitWhile(...), WhenAll(...) or a call to an async method"));
+                        Error(operand, Loc.T("この await は未対応です。UniTask.Yield()・NextFrame()・Delay(...)・DelayFrame(n)・WaitUntil(...)・WaitWhile(...)・WhenAll(...)・WhenAny(...)、async メソッドの呼び出し、または UniTask の変数を await してください",
+                            "This await is not supported. Await UniTask.Yield(), NextFrame(), Delay(...), DelayFrame(n), WaitUntil(...), WaitWhile(...), WhenAll(...), WhenAny(...), a call to an async method or a UniTask variable"));
                     return;
                 }
 
@@ -584,8 +605,8 @@ namespace UdonSharpPlus
                 }
                 if (!(_model.GetSymbolInfo(inv).Symbol is IMethodSymbol method) || !method.IsStatic || method.ContainingType.ToDisplayString() != UniTaskName)
                 {
-                    Error(inv, Loc.T("この await は未対応です。UniTask.Yield()・NextFrame()・Delay(...)・DelayFrame(n)・WaitUntil(...)・WaitWhile(...)・WhenAll(...)、または async メソッドの呼び出しを await してください",
-                        "This await is not supported. Await UniTask.Yield(), NextFrame(), Delay(...), DelayFrame(n), WaitUntil(...), WaitWhile(...), WhenAll(...) or a call to an async method"));
+                    Error(inv, Loc.T("この await は未対応です。UniTask.Yield()・NextFrame()・Delay(...)・DelayFrame(n)・WaitUntil(...)・WaitWhile(...)・WhenAll(...)・WhenAny(...)、async メソッドの呼び出し、または UniTask の変数を await してください",
+                        "This await is not supported. Await UniTask.Yield(), NextFrame(), Delay(...), DelayFrame(n), WaitUntil(...), WaitWhile(...), WhenAll(...), WhenAny(...), a call to an async method or a UniTask variable"));
                     return null;
                 }
 
@@ -622,9 +643,11 @@ namespace UdonSharpPlus
                     }
                     case "WhenAll":
                         return WhenAllCode(inv, method, ref temp, out value, out block);
+                    case "WhenAny":
+                        return WhenAnyCode(inv, method, ref temp, out value, out block);
                 }
-                Error(inv, Loc.T($"UniTask.{method.Name} は未対応です。Yield()・NextFrame()・Delay(...)・DelayFrame(n)・WaitUntil(...)・WaitWhile(...)・WhenAll(...) が使えます",
-                    $"UniTask.{method.Name} is not supported. Yield(), NextFrame(), Delay(...), DelayFrame(n), WaitUntil(...), WaitWhile(...) and WhenAll(...) can be used"));
+                Error(inv, Loc.T($"UniTask.{method.Name} は未対応です。Yield()・NextFrame()・Delay(...)・DelayFrame(n)・WaitUntil(...)・WaitWhile(...)・WhenAll(...)・WhenAny(...) が使えます",
+                    $"UniTask.{method.Name} is not supported. Yield(), NextFrame(), Delay(...), DelayFrame(n), WaitUntil(...), WaitWhile(...), WhenAll(...) and WhenAny(...) can be used"));
                 return null;
             }
 
@@ -636,20 +659,16 @@ namespace UdonSharpPlus
             {
                 value = null;
                 block = true;
-                List<InvocationExpressionSyntax> calls = inv.ArgumentList.Arguments.Select(a => a.Expression as InvocationExpressionSyntax).ToList();
-                List<AsyncMethod> targets = calls.Select(c => c == null ? null : AsyncOf(c)).ToList();
-                if (calls.Count == 0 || targets.Any(t => t == null))
-                {
-                    Error(inv, Loc.T("UniTask.WhenAll は、async メソッドの呼び出しを並べる形（WhenAll(A(), B())）だけで書けます（変数・配列・List に入れた UniTask は未対応です）",
-                        "UniTask.WhenAll can only be written as a list of calls to async methods (WhenAll(A(), B())). A UniTask kept in a variable, array or list is not supported"));
+                var starts = new StringBuilder();
+                List<TaskElement> elements = ElementsOf(inv, "WhenAll", starts, ref temp);
+                if (elements == null)
                     return null;
-                }
-                bool generic = targets[0].ResultType != null;
-                string elementType = generic ? TypeText(targets[0].ResultType) : null;
-                if (targets.Any(t => (t.ResultType != null) != generic))
+                bool generic = elements[0].Result != null;
+                string elementType = generic ? TypeText(elements[0].Result) : null;
+                if (elements.Any(t => (t.Result != null) != generic))
                 {
-                    Error(inv, Loc.T("UniTask.WhenAll に並べる async メソッドは、すべて値を返さないか、すべて値を返してください",
-                        "The async methods in UniTask.WhenAll must all return no value, or all return a value"));
+                    Error(inv, Loc.T("UniTask.WhenAll に並べる async メソッド・変数は、すべて値を返さないか、すべて値を返してください",
+                        "The async methods and variables in UniTask.WhenAll must all return no value, or all return a value"));
                     return null;
                 }
                 // 値を返す WhenAll は、引数が 2〜15 個なら、本物の UniTask ではタプル（T1, T2, ...）を返す。params の形（1 個）は配列を返す
@@ -662,27 +681,325 @@ namespace UdonSharpPlus
                     return null;
                 }
 
-                var starts = new StringBuilder();
                 var waits = new StringBuilder();
                 var reads = new List<string>();
-                foreach (InvocationExpressionSyntax c in calls)
+                foreach (TaskElement e in elements)
                 {
-                    string handle = $"__w{temp++}";
-                    string holder = generic ? $"__ar{temp++}" : "null";
+                    waits.Append($"yield return {e.Handle}; ");
                     if (generic)
-                    {
-                        starts.Append($"object[] {holder} = new object[1]; ");
-                        reads.Add($"({TypeText(targets[reads.Count].ResultType)}){holder}[0]");
-                    }
-                    string call = CallCode(c, holder);
-                    if (call == null)
-                        return null;
-                    starts.Append($"UnityEngine.Coroutine {handle} = StartCoroutine({call}); ");
-                    waits.Append($"yield return {handle}; ");
+                        reads.Add($"({TypeText(e.Result)}){e.Holder}[0]");
                 }
                 if (generic)
                     value = asTuple ? $"({string.Join(", ", reads)})" : $"new {elementType}[] {{ {string.Join(", ", reads)} }}";
                 return (starts.ToString() + waits.ToString()).TrimEnd();
+            }
+
+            /// <summary>WhenAll・WhenAny に並べた 1 つ（async の呼び出し、または UniTask の変数）</summary>
+            private sealed class TaskElement
+            {
+                public string Handle;
+                public string Holder;
+                public ITypeSymbol Result;
+            }
+
+            /// <summary>
+            /// WhenAll・WhenAny の引数を、1 つずつ見る。async の呼び出しは、starts に、置き場の宣言と開始の文を足す（変数に入れたものは、もう始まっている）。
+            /// 書けない引数は、エラーにして null
+            /// </summary>
+            private List<TaskElement> ElementsOf(InvocationExpressionSyntax inv, string name, StringBuilder starts, ref int temp)
+            {
+                var list = new List<TaskElement>();
+                foreach (ArgumentSyntax a in inv.ArgumentList.Arguments)
+                {
+                    ExpressionSyntax e = a.Expression;
+                    TaskVar v = VarAt(e);
+                    if (v != null)
+                    {
+                        Use(e);
+                        list.Add(new TaskElement { Handle = v.Handle, Holder = v.Holder, Result = v.Result });
+                        continue;
+                    }
+                    InvocationExpressionSyntax call = e as InvocationExpressionSyntax;
+                    AsyncMethod target = call == null ? null : AsyncOf(call);
+                    if (target == null)
+                    {
+                        Error(inv, Loc.T($"UniTask.{name} は、async メソッドの呼び出しか、async の呼び出しを入れた UniTask の変数を並べる形（{name}(A(), t)）だけで書けます（配列・List・引数に入れた UniTask は未対応です）",
+                            $"UniTask.{name} can only list calls to async methods or UniTask variables that hold such a call ({name}(A(), t)). A UniTask in an array, list or parameter is not supported"));
+                        return null;
+                    }
+                    string handle = $"__w{temp++}";
+                    string holder = null;
+                    if (target.ResultType != null)
+                    {
+                        holder = $"__ar{temp++}";
+                        starts.Append($"object[] {holder} = new object[1]; ");
+                    }
+                    string code = CallCode(call, holder);
+                    if (code == null)
+                        return null;
+                    starts.Append($"UnityEngine.Coroutine {handle} = StartCoroutine({code}); ");
+                    list.Add(new TaskElement { Handle = handle, Holder = holder, Result = target.ResultType });
+                }
+                if (list.Count == 0)
+                {
+                    Error(inv, Loc.T($"UniTask.{name} には、async メソッドの呼び出しを 1 つ以上並べてください", $"List one or more calls to async methods in UniTask.{name}"));
+                    return null;
+                }
+                return list;
+            }
+
+            /// <summary>
+            /// await UniTask.WhenAny(A(), B()) → 子を全部始めて、どれかが終わるまで 1 フレームごとに見る（残りは動き続ける）。
+            /// 値は、終わったものの番号（UniTask&lt;int&gt;）、値を返すものは (winArgumentIndex, result)
+            /// </summary>
+            private string WhenAnyCode(InvocationExpressionSyntax inv, IMethodSymbol method, ref int temp, out string value, out bool block)
+            {
+                value = null;
+                block = true;
+                var starts = new StringBuilder();
+                List<TaskElement> elements = ElementsOf(inv, "WhenAny", starts, ref temp);
+                if (elements == null)
+                    return null;
+                // 戻り値の形（本物の UniTask のオーバーロード）：UniTask<int>（値なし）・(int winArgumentIndex, T result)（params）・
+                // (int winArgumentIndex, T1 result1, T2 result2, ...)（2〜15 個）・(bool hasResultLeft, T result)（UniTask<T> と UniTask の 2 個）
+                var tuple = (method.ReturnType as INamedTypeSymbol)?.TypeArguments[0] as INamedTypeSymbol;
+                bool generic = tuple != null && tuple.IsTupleType;
+                bool left = generic && tuple.TupleElements[0].Type.SpecialType == SpecialType.System_Boolean;
+                if (left ? elements.Count != 2 || elements[0].Result == null || elements[1].Result != null
+                         : elements.Any(t => (t.Result != null) != generic))
+                {
+                    Error(inv, Loc.T("UniTask.WhenAny に並べる async メソッド・変数は、すべて値を返さないか、すべて値を返してください",
+                        "The async methods and variables in UniTask.WhenAny must all return no value, or all return a value"));
+                    return null;
+                }
+                string index = $"__wi{temp++}";
+                string pick = "-1";
+                for (int i = elements.Count - 1; i >= 0; i--)
+                    pick = $"!__co_alive({elements[i].Handle}) ? {i} : {pick}";
+                string wait = $"while ({string.Join(" && ", elements.Select(e => $"__co_alive({e.Handle})"))}) yield return null; int {index} = {pick};";
+                if (!generic)
+                    value = index;
+                else if (left)
+                    value = $"(hasResultLeft: {index} == 0, result: {index} == 0 ? ({TypeText(elements[0].Result)}){elements[0].Holder}[0] : default({TypeText(elements[0].Result)}))";
+                else if (tuple.TupleElements.Length == 2)
+                {
+                    // params の形：終わったものの値
+                    string chain = "null";
+                    for (int i = elements.Count - 1; i >= 0; i--)
+                        chain = $"{index} == {i} ? {elements[i].Holder}[0] : {chain}";
+                    value = $"(winArgumentIndex: {index}, result: ({TypeText(elements[0].Result)})({chain}))";
+                }
+                else
+                {
+                    // 2〜15 個の形：それぞれの値（終わったもの以外は、既定の値）
+                    var parts = new List<string> { $"winArgumentIndex: {index}" };
+                    for (int i = 0; i < elements.Count; i++)
+                    {
+                        string type = TypeText(elements[i].Result);
+                        parts.Add($"result{i + 1}: {index} == {i} ? ({type}){elements[i].Holder}[0] : default({type})");
+                    }
+                    value = $"({string.Join(", ", parts)})";
+                }
+                return (starts.ToString() + wait).TrimEnd();
+            }
+
+            // ---- UniTask を入れる変数・フィールド（#210） --------------------------------------
+            // UniTask の変数は Coroutine（開始したコルーチンの番号）にする。UniTask<T> は、戻り値の置き場の object[] を、変数の名前 + __ar の変数に持つ
+
+            private sealed class TaskVar
+            {
+                /// <summary>書いてある形（x ・ this.x）</summary>
+                public string Handle;
+                public string Holder;
+                public ITypeSymbol Result;
+            }
+
+            private readonly HashSet<string> _taskNames = new HashSet<string>();
+            private readonly HashSet<SimpleNameSyntax> _taskUses = new HashSet<SimpleNameSyntax>();
+
+            private static bool IsTaskType(ITypeSymbol type)
+            {
+                if (type == null)
+                    return false;
+                string name = type.OriginalDefinition.ToDisplayString();
+                return name == UniTaskName || name == UniTaskName + "<T>";
+            }
+
+            /// <summary>UniTask の名前を型に書いた（または var に async の呼び出しを入れた）変数・フィールドの名前を集める（以後の問い合わせは、この名前だけ）</summary>
+            private void CollectTaskNames()
+            {
+                foreach (SyntaxNode n in OwnNodes())
+                {
+                    if (!(n is VariableDeclarationSyntax d))
+                        continue;
+                    string text = d.Type.ToString();
+                    bool named = text.IndexOf("UniTask", System.StringComparison.Ordinal) >= 0 && text.IndexOf("UniTaskVoid", System.StringComparison.Ordinal) < 0;
+                    bool var = text == "var";
+                    if (!named && !var)
+                        continue;
+                    foreach (VariableDeclaratorSyntax v in d.Variables)
+                    {
+                        ExpressionSyntax init = v.Initializer?.Value;
+                        while (init is ParenthesizedExpressionSyntax p)
+                            init = p.Expression;
+                        if (named || init is InvocationExpressionSyntax call && AsyncOf(call) != null)
+                            _taskNames.Add(v.Identifier.ValueText);
+                    }
+                }
+            }
+
+            private static SimpleNameSyntax NameOf(ExpressionSyntax e)
+            {
+                while (e is ParenthesizedExpressionSyntax p)
+                    e = p.Expression;
+                if (e is IdentifierNameSyntax id)
+                    return id;
+                if (e is MemberAccessExpressionSyntax access && access.Expression is ThisExpressionSyntax)
+                    return access.Name as IdentifierNameSyntax;
+                return null;
+            }
+
+            /// <summary>e が、UniTask の変数・フィールド（x ・ this.x）なら、その情報</summary>
+            private TaskVar VarAt(ExpressionSyntax e)
+            {
+                SimpleNameSyntax name = NameOf(e);
+                if (name == null || !_taskNames.Contains(name.Identifier.ValueText))
+                    return null;
+                ISymbol symbol = _model.GetSymbolInfo(name).Symbol;
+                ITypeSymbol type = symbol is ILocalSymbol l ? l.Type : symbol is IFieldSymbol f ? f.Type : null;
+                if (!IsTaskType(type))
+                    return null;
+                string text = name.Identifier.ValueText;
+                string prefix = name.Parent is MemberAccessExpressionSyntax ? "this." : "";
+                return new TaskVar
+                {
+                    Handle = prefix + text,
+                    Holder = prefix + text + "__ar",
+                    Result = type is INamedTypeSymbol nt && nt.TypeArguments.Length == 1 ? nt.TypeArguments[0] : null,
+                };
+            }
+
+            /// <summary>書き換えた使い方として記録する（それ以外の使い方は、あとでエラーにする）</summary>
+            private void Use(ExpressionSyntax e) => _taskUses.Add(NameOf(e));
+
+            private bool IsTaskDeclaration(LocalDeclarationStatementSyntax ld)
+            {
+                VariableDeclarationSyntax d = ld.Declaration;
+                string text = d.Type.ToString();
+                if (text != "var" && (text.IndexOf("UniTask", System.StringComparison.Ordinal) < 0 || text.IndexOf("UniTaskVoid", System.StringComparison.Ordinal) >= 0))
+                    return false;
+                ExpressionSyntax init = d.Variables[0].Initializer?.Value;
+                if (init is AwaitExpressionSyntax)
+                    return false;
+                if (text == "var" && !(init is InvocationExpressionSyntax call && AsyncOf(call) != null))
+                    return false;
+                return IsTaskType(_model.GetTypeInfo(d.Type).Type);
+            }
+
+            private bool IsTaskStatement(ExpressionStatementSyntax es)
+            {
+                if (es.Expression is AssignmentExpressionSyntax asg && asg.IsKind(SyntaxKind.SimpleAssignmentExpression) && !(asg.Right is AwaitExpressionSyntax))
+                    return VarAt(asg.Left) != null;
+                return es.Expression is InvocationExpressionSyntax inv && inv.ArgumentList.Arguments.Count == 0
+                    && inv.Expression is MemberAccessExpressionSyntax access && access.Name.Identifier.ValueText == "Forget" && VarAt(access.Expression) != null;
+            }
+
+            /// <summary>フィールド UniTask t; → Coroutine t;（UniTask&lt;T&gt; は、置き場のフィールドも足す）</summary>
+            private void TaskField(FieldDeclarationSyntax f)
+            {
+                string text = f.Declaration.Type.ToString();
+                if (text.IndexOf("UniTask", System.StringComparison.Ordinal) < 0 || text.IndexOf("UniTaskVoid", System.StringComparison.Ordinal) >= 0)
+                    return;
+                ITypeSymbol type = _model.GetTypeInfo(f.Declaration.Type).Type;
+                if (!IsTaskType(type))
+                    return;
+                if (f.Declaration.Variables.Count != 1 || f.Declaration.Variables[0].Initializer != null)
+                {
+                    Error(f, Loc.T("UniTask のフィールドは、1 つずつ、初期値なしで宣言してください（値は、async の呼び出しを代入します）",
+                        "Declare a UniTask field one at a time without an initial value (assign a call to an async method to it)"));
+                    return;
+                }
+                _edits.Add(f.Declaration.Type.Span, "UnityEngine.Coroutine");
+                if (type is INamedTypeSymbol nt && nt.TypeArguments.Length == 1)
+                    _edits.Add(new TextSpan(f.Span.End, 0), $" private {(f.Modifiers.Any(SyntaxKind.StaticKeyword) ? "static " : "")}object[] {f.Declaration.Variables[0].Identifier.ValueText}__ar;");
+            }
+
+            /// <summary>UniTask t = Foo(); ・ UniTask t; ・ t = Foo(); ・ t.Forget();</summary>
+            private void TaskStatement(SyntaxNode statement)
+            {
+                string original = statement.ToString();
+                if (statement is LocalDeclarationStatementSyntax ld)
+                {
+                    VariableDeclarationSyntax d = ld.Declaration;
+                    if (d.Variables.Count != 1)
+                    {
+                        Error(ld, Loc.T("UniTask の変数は、1 つずつ宣言してください", "Declare a UniTask variable one at a time"));
+                        return;
+                    }
+                    string name = d.Variables[0].Identifier.ValueText;
+                    bool generic = _model.GetTypeInfo(d.Type).Type is INamedTypeSymbol nt && nt.TypeArguments.Length == 1;
+                    ExpressionSyntax init = d.Variables[0].Initializer?.Value;
+                    while (init is ParenthesizedExpressionSyntax p)
+                        init = p.Expression;
+                    string code;
+                    if (init == null)
+                        code = $"UnityEngine.Coroutine {name};" + (generic ? $" object[] {name}__ar;" : "");
+                    else if (init is InvocationExpressionSyntax call && AsyncOf(call) != null)
+                    {
+                        string started = CallCode(call, generic ? name + "__ar" : null);
+                        if (started == null)
+                            return;
+                        code = (generic ? $"object[] {name}__ar = new object[1]; " : "") + $"UnityEngine.Coroutine {name} = StartCoroutine({started});";
+                    }
+                    else
+                    {
+                        Error(init, Loc.T("UniTask の変数に入れられるのは、async メソッドの呼び出しだけです", "Only a call to an async method can be stored in a UniTask variable"));
+                        return;
+                    }
+                    _edits.Add(ld.Span, KeepLines(code, original));
+                    return;
+                }
+                var es = (ExpressionStatementSyntax)statement;
+                if (es.Expression is AssignmentExpressionSyntax asg)
+                {
+                    TaskVar v = VarAt(asg.Left);
+                    Use(asg.Left);
+                    ExpressionSyntax right = asg.Right;
+                    while (right is ParenthesizedExpressionSyntax p)
+                        right = p.Expression;
+                    if (!(right is InvocationExpressionSyntax rc) || AsyncOf(rc) == null)
+                    {
+                        Error(asg.Right, Loc.T("UniTask の変数に入れられるのは、async メソッドの呼び出しだけです", "Only a call to an async method can be stored in a UniTask variable"));
+                        return;
+                    }
+                    string started = CallCode(rc, v.Result != null ? v.Holder : null);
+                    if (started == null)
+                        return;
+                    string assign = $"{v.Handle} = StartCoroutine({started});";
+                    _edits.Add(es.Span, KeepLines(v.Result != null ? $"{{ {v.Holder} = new object[1]; {assign} }}" : assign, original));
+                    return;
+                }
+                // t.Forget(); → もう始まっているので、何もしない
+                var forget = (InvocationExpressionSyntax)es.Expression;
+                Use(((MemberAccessExpressionSyntax)forget.Expression).Expression);
+                _edits.Add(es.Span, KeepLines(";", original));
+            }
+
+            /// <summary>await・WhenAll・WhenAny・代入・Forget 以外の使い方（引数に渡す・戻す・比べるなど）は、エラー</summary>
+            private void CheckTaskUses()
+            {
+                var reported = new HashSet<int>();
+                foreach (IdentifierNameSyntax id in OwnNodes().OfType<IdentifierNameSyntax>())
+                {
+                    if (!_taskNames.Contains(id.Identifier.ValueText) || _taskUses.Contains(id))
+                        continue;
+                    ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                    if (!IsTaskType(symbol is ILocalSymbol l ? l.Type : symbol is IFieldSymbol f ? f.Type : null))
+                        continue;
+                    if (reported.Add(id.GetLocation().GetLineSpan().StartLinePosition.Line))
+                        Error(id, Loc.T("UniTask の変数は、await・WhenAll・WhenAny への指定・async の呼び出しの代入・Forget() だけで使えます（引数に渡す・戻す・比べるなどは未対応です）",
+                            "A UniTask variable can only be used with await, as an argument of WhenAll / WhenAny, to store a call to an async method, and with Forget(). Passing it as an argument, returning it or comparing it is not supported"));
+                }
             }
 
             /// <summary>UniTask.Delay(ms) / Delay(TimeSpan) → WaitForSeconds / WaitForSecondsRealtime</summary>

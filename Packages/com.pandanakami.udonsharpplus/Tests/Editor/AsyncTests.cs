@@ -308,8 +308,9 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
         public void ErrorForWhenAllOfDifferentTypesOrVariables()
         {
             string common = "async UniTask<int> Add() { await UniTask.Yield(); return 1; }\nasync UniTask<string> Name() { await UniTask.Yield(); return \"a\"; }\n";
-            AssertError(common + "async UniTask Foo() { var t = Add(); await UniTask.WhenAll(t, t); }", "async メソッドの呼び出しを並べる形", BodyLine + 2);
-            AssertError(common + "async UniTask Foo() { await UniTask.WhenAny(Add(), Add()); }", "UniTask.WhenAny は未対応", BodyLine + 2);
+            AssertError(common + "async UniTask Foo() { await UniTask.WhenAll(new UniTask[0]); }", "UniTask.WhenAll は、async メソッドの呼び出しか", BodyLine + 2);
+            AssertError(common + "void Take(object o) { }\nasync UniTask Foo() { var t = Add(); Take(t); }", "UniTask の変数は、await", BodyLine + 3);
+            AssertError(common + "async UniTask Foo() { UniTask t = UniTask.CompletedTask; }", "async メソッドの呼び出しだけ", BodyLine + 2);
         }
 
         [Test]
@@ -319,15 +320,66 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
         }
 
         [Test]
+        public void WhenAnyWaitsUntilOneIsDone()
+        {
+            string code = Lowered("WhenAny", @"public int n;
+public string s;
+void Start() { Run(); }
+async UniTask Run()
+{
+    int i = await UniTask.WhenAny(A(), B());
+    var (j, r1, r2) = await UniTask.WhenAny(Add(), Add());
+    n = i + j + r1 + r2;
+}
+async UniTask A() { await UniTask.Yield(); }
+async UniTask B() { await UniTask.Yield(); await UniTask.Yield(); }
+async UniTask<int> Add() { await UniTask.Yield(); return 1; }");
+            Assert.That(code, Does.Not.Contain("UniTask").And.Not.Contain("WhenAny"));
+            Assert.That(code, Does.Contain("__co_start(A())").And.Contain("__co_start(B())"), "子は、すべて始める");
+            Assert.That(code, Does.Contain("__co_alive("), "どれかが終わるまで、終わったかを見る");
+            Assert.That(code, Does.Contain("protected bool __co_alive(int c)"));
+        }
+
+        [Test]
+        public void UniTaskVariablesHoldTheStartedCoroutine()
+        {
+            string code = Lowered("Variables", @"public int n;
+UniTask _field;
+UniTask<int> _value;
+void Start() { Run(); }
+async UniTask Run()
+{
+    UniTask a = A();
+    var b = Add(1, 2);
+    _field = A();
+    _value = Add(3, 4);
+    await a;
+    int x = await b;
+    await _field;
+    n = x;
+    await UniTask.WhenAll(a, _field);
+    var (p, q1, q2) = await UniTask.WhenAny(b, _value);
+    b.Forget();
+}
+async UniTask A() { await UniTask.Yield(); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
+            Assert.That(code, Does.Not.Contain("UniTask"));
+            Assert.That(code, Does.Contain("a = __co_start(A())").And.Contain("b = __co_start(Add(1, 2, __ar: b__ar))").And.Contain("_field = __co_start(A())"));
+            Assert.That(code, Does.Contain("b__ar = new object[1]"), "UniTask<T> の変数は、置き場の変数も持つ");
+            Assert.That(code, Does.Contain("_value__ar"), "UniTask<T> のフィールドは、置き場のフィールドも持つ");
+        }
+
+        [Test]
         public void ErrorForStoredUniTask()
         {
-            AssertError("UniTask _t;\nasync UniTask Foo() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);
+            AssertError("void Foo(UniTask t) { }\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);
+            AssertError("UniTask[] _all;\nasync UniTask Z() { await UniTask.Yield(); }", "UniTask は、async メソッドの戻り値と", BodyLine);
         }
 
         [Test]
         public void ErrorForAsyncMethodUsedAsValue()
         {
-            AssertError("async UniTask A() { await UniTask.Yield(); }\nvoid Start() { var t = A(); }", "async メソッド A は、Foo();", BodyLine + 1);
+            AssertError("async UniTask A() { await UniTask.Yield(); }\nvoid Start() { Take(A()); }\nvoid Take(object o) { }", "async メソッド A は、Foo();", BodyLine + 1);
         }
 
         [Test]

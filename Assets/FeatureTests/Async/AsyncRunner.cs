@@ -22,8 +22,9 @@ namespace FeatureTests.Async
         // t・m・r：Delay(200)・Delay(TimeSpan)・Delay(ignoreTimeScale) が指定より短くない。u・w：WaitUntil・WaitWhile
         // c1〜c3：async を await（子が終わったら、同じフレームのうちに親が再開）。sum3：引数のある async。pa・pb・v：待たずに呼ぶ（並行。待った順に再開）
         // v3x!10/40：値を返す async（UniTask<T>）の値（int・string・return await・await のない async）。w5y!：WhenAll で値をタプルで受け取る。
+        // a0・b107：WhenAny（先に終わったものの番号と、それぞれの値。終わったもの以外は既定の値）。h9・f8・g12：変数・フィールドに入れた UniTask を await・WhenAll に渡す
         // p11・q21：同じメソッドを並行して動かしても、戻り値は混ざらない（開始ごとの置き場）
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
 
@@ -31,6 +32,7 @@ namespace FeatureTests.Async
         private int _f0;
         private int _n;
         private int _sum;
+        private UniTask<int> _held;
 
         private void L(string name) { _log += name + (Time.frameCount - _f0) + ";"; }
 
@@ -94,6 +96,23 @@ namespace FeatureTests.Async
             var (ra, rb) = await UniTask.WhenAll(Add(2, 3), Name("y"));
             _log += "w" + ra + rb + ";";
 
+            int first = await UniTask.WhenAny(Wait(1), Wait(3));
+            _log += "a" + first + ";";
+            var (wi, wv1, wv2) = await UniTask.WhenAny(Slow(5, 3), Slow(7, 1));
+            _log += "b" + wi + wv1 + wv2 + ";";
+            UniTask h = Wait(2);
+            var hv = Add(4, 5);
+            await h;
+            int hx = await hv;
+            _log += "h" + hx + ";";
+            _held = Slow(8, 2);
+            int fv = await _held;
+            _log += "f" + fv + ";";
+            UniTask<int> x1 = Slow(1, 2);
+            UniTask<int> x2 = Slow(2, 1);
+            var (g1, g2) = await UniTask.WhenAll(x1, x2);
+            _log += "g" + g1 + g2 + ";";
+
             Conc("p", 10);
             Conc("q", 20);
             Par("pa");
@@ -120,6 +139,17 @@ namespace FeatureTests.Async
         {
             await UniTask.Yield();
             return a + b;
+        }
+
+        private async UniTask Wait(int frames)
+        {
+            await UniTask.DelayFrame(frames);
+        }
+
+        private async UniTask<int> Slow(int value, int frames)
+        {
+            await UniTask.DelayFrame(frames);
+            return value;
         }
 
         private async UniTask<string> Name(string s)

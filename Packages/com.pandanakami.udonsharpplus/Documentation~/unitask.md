@@ -61,6 +61,8 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
   - 値を使わない `await Add(1, 2);`・`Add(1, 2);`・`Add(1, 2).Forget();`
   - 式の途中の `await`（`n = 1 + await Add(1, 2);`・`if (await Check())`）は、前のものの評価の順番が変わるので、未対応です。`var` に受けてから使ってください
 - **`UniTask.WhenAll`**（`async` メソッドの呼び出しを並べる形）：全部を始めて、全部が終わるまで待ちます。値を返すものは、`var (a, b) = await UniTask.WhenAll(A(), B());`（タプル）で受け取れます（`UniTask` の本物と同じ。引数が 2〜15 個のとき）
+- **`UniTask.WhenAny`**（`async` メソッドの呼び出しか、変数を並べる形）：全部を始めて、どれかが終わるまで待ちます（残りは動き続けます）。`int i = await UniTask.WhenAny(A(), B());` は終わったものの番号、値を返すものは、`UniTask` の本物と同じ形で受け取れます：`var (i, r1, r2) = await UniTask.WhenAny(A(), B());`（2〜15 個。`i` は終わったものの番号、`r1`・`r2` は、それぞれの値。終わったもの以外は、既定の値）
+- **変数・フィールドに入れた `UniTask`**：`UniTask t = Foo();`・`var t = Foo();`・`_t = Foo();`（フィールドは `UniTask _t;` と宣言）で、その場で始めて、あとで `await t;`・`var x = await t;`（`UniTask<T>`）・`UniTask.WhenAll(t1, t2)`・`UniTask.WhenAny(t1, t2)` に渡せます。`t.Forget();` も書けます。変数に入れられるのは、`async` メソッドの呼び出しだけです。同じ `UniTask` を 2 回 `await` する書き方は、できません
 - **`return;`**、`if`・ループ・`switch`・`foreach` の中の `await`、`await` をまたぐローカル変数（[コルーチン](coroutines.md)と同じ）
 - `CancellationToken` の引数は、`default`・`CancellationToken.None` のときだけ使えます（止められないので、何も変わりません）
 
@@ -69,6 +71,7 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 - **`UniTask.Yield()` は、次のフレームに再開します。** UniTask は、`Update` より前（`Start` など）で呼ぶと、同じフレームのうちに再開することがあります（`NextFrame()` は必ず次のフレーム）。ここでは、どちらも次のフレームです
 - **`PlayerLoopTiming` は無視します。** 再開するのは、Udon の遅れのイベントが届くときです（コルーチンと同じ）
 - **`WhenAll`**：子を全部始めてから、順に待ちます。同期的に終わる（`await` がない）子を待つと、次のフレームに再開します（コルーチンの「終わったものを待つ」と同じ）。UniTask は、その場で続きます
+- **`WhenAny`**：どれかが終わったかを、1 フレームごとに見ます。終わったフレームのうちには再開せず、次の見るときに続きます（UniTask は、終わったらすぐ続きます）。同じフレームに複数が終わったときは、並べた順で先のものを、終わったものとします
 - **例外**：`await` のあとで例外が起きると、そのビヘイビアが止まります（Udon は例外でビヘイビアが止まります）。例外を投げる・`try` / `catch` で受けることはできません
 - **止め方**：`async` のメソッドには、`StopCoroutine` に渡す値がありません。GameObject を非アクティブにすると、すべて止まります（コルーチンと同じ）。ビヘイビアを無効にしても止まりません
 - **同時に動かせる数**：同じメソッドを、何度でも並行して始められます（コルーチンと同じ）。ただし、動いている途中の async メソッドが、自分自身を `await` なしで呼ぶ（`Foo();`）形は、コルーチンと同じく、コンパイルエラー（コンパイル時にたどれないものは、実行時に止めます）です。`await Foo();` の形なら呼べます
@@ -77,9 +80,9 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 
 エラーは、`await`・メソッドの宣言の行に出ます。
 
-- `UniTask.WhenAny`、変数・配列・List に入れた `UniTask` を渡す `WhenAll`、`Run`・`SwitchToThreadPool`・`WaitUntilValueChanged`・`UniTaskCompletionSource` など、上の表にない `await`
-- `UniTask` の値を、変数・フィールド・引数・戻り値に入れる書き方（`var t = Foo();`・`UniTask _t;`）
-- `await` の値を使う書き方（`x = await ...`）、式の途中の `await`
+- 配列・List に入れた `UniTask` を渡す `WhenAll`・`WhenAny`、`Run`・`SwitchToThreadPool`・`WaitUntilValueChanged`・`UniTaskCompletionSource` など、上の表にない `await`
+- `UniTask` の値を、引数・戻り値・配列・List に入れる書き方（変数・フィールドに入れるのは使えます）、`UniTask.CompletedTask` を変数に入れる書き方
+- 式の途中の `await`
 - `try`・`catch`・`finally`・`using`・`lock` の中の `await`
 - `CancellationToken`（`default`・`None` 以外）。止めるときは、GameObject を非アクティブにするか、フラグで抜けてください
 - `static` の async メソッド、`Task`・`ValueTask` を返す async メソッド、ref・out・in の引数がある async メソッド
