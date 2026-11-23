@@ -98,6 +98,8 @@ namespace UdonSharpPlus
             public readonly Dictionary<MethodDeclarationSyntax, OnDisableEdit> OnDisables = new Dictionary<MethodDeclarationSyntax, OnDisableEdit>();
             /// <summary>OnDisable を生成する宣言と、virtual にするか（子孫のどれかが OnDisable を書いているとき）</summary>
             public readonly Dictionary<ClassDeclarationSyntax, bool> GeneratedOnDisables = new Dictionary<ClassDeclarationSyntax, bool>();
+            /// <summary>CancellationToken のキャンセル（__co_tk）を使うコルーチンがある。キャンセルで終わったものは、待っている親も終わらせる（#225）</summary>
+            public bool Tokens;
 
             public IEnumerable<Coroutine> Of(INamedTypeSymbol type) =>
                 Coroutines.Where(c => SymbolEqualityComparer.Default.Equals(c.Symbol?.ContainingType, type));
@@ -113,6 +115,9 @@ namespace UdonSharpPlus
                 t = t.BaseType.OriginalDefinition;
             return t;
         }
+
+        /// <summary>AsyncLowering が、CancellationToken のキャンセルで終わるときに書く呼び出し（#225）</summary>
+        private static readonly string[] TokenMarker = { "__co_tk" };
 
         public static List<SyntaxTree> Run(List<SyntaxTree> trees, InterfaceLowering.LoweringDiagnostics diagnostics, IEnumerable<MetadataReference> references)
         {
@@ -166,6 +171,9 @@ namespace UdonSharpPlus
                 }
                 classes.Add((d.Tree, d.Class, d.Type, work));
             }
+            foreach (var c in classes)
+                if (!c.Work.Tokens && MayContain(c.Class, TokenMarker))
+                    c.Work.Tokens = true;
             PlanOnDisable(classes.Select(c => (c.Class, c.Type, c.Work)).ToList(), inSource);
             // DispatchHosts のうち、Root の分は Host の振り分け（virtual）に入れる
             foreach (TypeWork work in works.Values)
@@ -654,18 +662,29 @@ namespace UdonSharpPlus
                 // [10] 文字列の StartCoroutine("Foo") で開始したか（StopCoroutine("Foo") が止めるのは、これだけ。Unity と同じ）
                 yield return "protected object[] __co_alloc(int id, int size) { int f = __co_free[id]; if (f != 0) { object[] r = (object[])__co_slots[f - 1]; int[] rh = (int[])r[0]; __co_free[id] = rh[4]; rh[2] = 0; rh[3] = 0; rh[4] = 0; rh[5] = 0; rh[6] = 0; rh[7] = 0; rh[8] = 0; rh[10] = 0; return r; } "
                              + "if (__co_used == __co_slots.Length) { object[] g = new object[__co_used * 2]; for (int i = 0; i < __co_used; i++) g[i] = __co_slots[i]; __co_slots = g; } "
-                             + "object[] s = new object[size]; int[] h = new int[11]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }";
+                             + $"object[] s = new object[size]; int[] h = new int[{(_work.Tokens ? 12 : 11)}]; h[0] = 65536 | (__co_used + 1); h[1] = id; s[0] = h; __co_slots[__co_used] = s; __co_used++; return s; }}";
                 yield return "private object[] __co_get(int c) { int i = (c & 65535) - 1; if (i < 0 || i >= __co_used) return null; object[] s = (object[])__co_slots[i]; if (((int[])s[0])[0] != c) return null; return s; }";
                 // 古い番号を無効にする（世代を進める）
                 // 世代を使い切ったら（32767）、世代を 0 にして引退させる（空きに戻さないので、古い番号が新しい開始を指すことはない。#107）
                 yield return "private void __co_bump(int[] h) { int g = (h[0] >> 16) + 1; if (g > 32767) g = 0; h[0] = (g << 16) | (h[0] & 65535); h[3] = 0; }";
                 // 空きに戻す：参照を切って、空きのつなぎに入れる
-                yield return "private void __co_recycle(object[] s) { int[] h = (int[])s[0]; for (int i = 1; i < s.Length; i++) s[i] = null; h[2] = -1; h[5] = 0; h[6] = 0; h[7] = 0; h[8] = 0; if ((h[0] >> 16) == 0) return; h[4] = __co_free[h[1]]; __co_free[h[1]] = h[0] & 65535; }";
+                yield return "private void __co_recycle(object[] s) { int[] h = (int[])s[0]; for (int i = 1; i < s.Length; i++) s[i] = null; h[2] = -1; h[5] = 0; h[6] = 0; h[7] = 0; h[8] = 0; " + (_work.Tokens ? "h[11] = 0; " : "") + "if ((h[0] >> 16) == 0) return; h[4] = __co_free[h[1]]; __co_free[h[1]] = h[0] & 65535; }";
                 // 止める。動いている途中（自分を止めたときなど）なら、次の yield で空きに戻す（Unity と同じく、次の yield まで動く）
                 yield return "private void __co_kill(object[] s) { int[] h = (int[])s[0]; h[9] &= ~(1 << ((h[0] >> 16) & 31)); __co_bump(h); if (h[5] != 0) h[6] = 1; else __co_recycle(s); }";
                 // 終わり。待っている親があれば、同じフレームのうちに再開する（親がまだ yield の途中なら、次のフレーム）
-                yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) { int b = 1 << ((h[0] >> 16) & 31); if (h[2] == 0) h[9] |= b; else h[9] &= ~b; __co_bump(h); } __co_recycle(s); "
-                             + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
+                if (_work.Tokens)
+                {
+                    // CancellationToken のキャンセルで終わったもの（__co_tk が [11] に印を付ける）は、待っている親を再開せず、親も終わらせる（鎖を上へ。#225）。
+                    // 再帰は書けないので、ループにする
+                    yield return "protected void __co_tk(object[] s) { ((int[])s[0])[11] = 1; }";
+                    yield return "protected void __co_done(object[] s) { while (s != null) { int[] h = (int[])s[0]; int cx = h[11]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) { int b = 1 << ((h[0] >> 16) & 31); if (h[2] == 0) h[9] |= b; else h[9] &= ~b; __co_bump(h); } __co_recycle(s); "
+                                 + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (cx != 0) { ((int[])p[0])[11] = 1; s = p; continue; } if (sync != 0) __co_wf(p); else __co_step(p); return; } }";
+                }
+                else
+                {
+                    yield return "protected void __co_done(object[] s) { int[] h = (int[])s[0]; __co_on[h[1]] = 0; h[5] = 0; int w = h[7]; int sync = h[8]; if (h[6] == 0) { int b = 1 << ((h[0] >> 16) & 31); if (h[2] == 0) h[9] |= b; else h[9] &= ~b; __co_bump(h); } __co_recycle(s); "
+                                 + "if (w == 0) return; object[] p = __co_get(w); if (p == null) return; if (sync != 0) __co_wf(p); else __co_step(p); }";
+                }
                 // 動いている途中か（終わった・止めた・開始に失敗した番号は false。UniTask.WhenAny が、どれかが終わったかを見るのに使う。#210）
                 yield return "protected bool __co_alive(int c) { return __co_get(c) != null; }";
                 // UniTask<T> の戻り値の置き場（object[1]）。キャストを通して返す：Udon は、変数のコピーで、先の箱の型が元と違うと確保するため（#217）、

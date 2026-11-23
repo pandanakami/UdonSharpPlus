@@ -64,7 +64,38 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 - **`UniTask.WhenAny`**（`async` メソッドの呼び出しか、変数を並べる形）：全部を始めて、どれかが終わるまで待ちます（残りは動き続けます）。`int i = await UniTask.WhenAny(A(), B());` は終わったものの番号、値を返すものは、`UniTask` の本物と同じ形で受け取れます：`var (i, r1, r2) = await UniTask.WhenAny(A(), B());`（2〜15 個。`i` は終わったものの番号、`r1`・`r2` は、それぞれの値。終わったもの以外は、既定の値）
 - **変数・フィールドに入れた `UniTask`**：`UniTask t = Foo();`・`var t = Foo();`・`_t = Foo();`（フィールドは `UniTask _t;` と宣言）で、その場で始めて、あとで `await t;`・`var x = await t;`（`UniTask<T>`）・`UniTask.WhenAll(t1, t2)`・`UniTask.WhenAny(t1, t2)` に渡せます。`t.Forget();` も書けます。変数に入れられるのは、`async` メソッドの呼び出しだけです。同じ `UniTask` を 2 回 `await` する書き方は、できません
 - **`return;`**、`if`・ループ・`switch`・`foreach` の中の `await`、`await` をまたぐローカル変数（[コルーチン](coroutines.md)と同じ）
-- `CancellationToken` の引数は、`default`・`CancellationToken.None` のときだけ使えます（止められないので、何も変わりません）
+
+## CancellationToken
+
+`CancellationTokenSource.Cancel()` で、トークンつきの待ちを止められます。使えるのは、次のものだけです。
+
+- `new CancellationTokenSource()`・`cts.Token`・`cts.Cancel()`・`cts.IsCancellationRequested`・`cts.Dispose()`（何もしません）
+- `CancellationToken` の値：フィールド・ローカル変数・`async` メソッドの引数（`CancellationToken token = default` も）。`token.IsCancellationRequested`・`token.ThrowIfCancellationRequested()`（`async` メソッドの中）
+- トークンを渡せる待ち：`UniTask.Delay`・`Yield`・`NextFrame`・`DelayFrame`・`WaitUntil`・`WaitWhile`（`cancellationToken: token`、または位置引数）
+- `destroyCancellationToken`・`GetCancellationTokenOnDestroy()`：止まらないトークンとして扱います（`GameObject` を破棄すると、Udon がコルーチンを全部止めるため）。`default`・`CancellationToken.None` も同じです
+
+```csharp
+private CancellationTokenSource _cts = new CancellationTokenSource();
+
+public override void Interact()
+{
+    _cts.Cancel();                                  // 動いている Run を止める
+    _cts = new CancellationTokenSource();
+    Run(_cts.Token);
+}
+
+private async UniTask Run(CancellationToken token)
+{
+    await UniTask.Delay(5000, cancellationToken: token);   // キャンセルされたら、ここで止まる
+    await Step(token);                                      // Step の中でキャンセルされたら、Run も止まる
+    // ここから先は、キャンセルされなかったときだけ動く
+}
+
+private async UniTask Step(CancellationToken token) { await UniTask.Yield(token); }
+```
+
+キャンセルされた待ちは、そこで止まり、続きは動きません（例外は出ません）。その待ちを `await` している `async` メソッドも止まります。止まるのは、`Cancel()` の次のフレームです。
+上の一覧にないもの（`CancelAfter`・`CreateLinkedTokenSource`・`Register` など）は、コンパイルエラーです。
 
 ## UniTask との違い
 
@@ -85,7 +116,7 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 - `UniTask` の値を、引数・戻り値・配列・List に入れる書き方（変数・フィールドに入れるのは使えます）、`UniTask.CompletedTask` を変数に入れる書き方
 - 式の途中の `await`（`n += await Foo();` のような複合代入も同じです。`+=` は、`await` の前に左の値を読むので、`var d = await Foo(); n += d;` と書いてください）
 - `try`・`catch`・`finally`・`using`・`lock` の中の `await`
-- `CancellationToken`（`default`・`None` 以外）。止めるときは、GameObject を非アクティブにするか、フラグで抜けてください
+- `CancellationToken` のうち、上の「CancellationToken」の節にないもの（`CancelAfter`・`CancelAsync`・`CreateLinkedTokenSource`・`Register`・`new CancellationTokenSource(ms)`・別のビヘイビアとトークンを共有する書き方など）
 - `static` の async メソッド、ジェネリックの async メソッド（`async UniTask Foo<T>()`）、`abstract` の async メソッド（`abstract UniTask Foo();` のように、`async` を付けない `UniTask` を返す宣言）、`Task`・`ValueTask` を返す async メソッド、ref・out・in の引数がある async メソッド
 - ほかのビヘイビアの async メソッドを呼ぶ（`other.Foo();`）。そのビヘイビアに、async を始める public メソッドを作って呼んでください
 - `async` のラムダ・匿名メソッド・ローカル関数（`async () => { ... }`・`async delegate { ... }`・`UniTask.Void(async () => { ... })`）。`async` のメソッドを書いて、`Foo();` で呼んでください

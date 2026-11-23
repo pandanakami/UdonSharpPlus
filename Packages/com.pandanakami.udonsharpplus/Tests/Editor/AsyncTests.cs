@@ -282,10 +282,73 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
             Assert.That(code, Does.Contain("__co_start(Add(1, 1, __ar: __ar").And.Contain("__co_start(Add(2, 2, __ar: __ar"), "値を返すものも、holder を渡して始める");
         }
 
+        // ---- CancellationToken（#225）----
+
+        private const string TokenUse =
+            "private CancellationTokenSource _cts = new CancellationTokenSource();\n"
+            + "private bool _flag;\n"
+            + "private int _n;\n"
+            + "async UniTask Work(CancellationToken token = default)\n"
+            + "{\n"
+            + "    await UniTask.Delay(100, cancellationToken: token);\n"
+            + "    await UniTask.Yield(token);\n"
+            + "    await UniTask.DelayFrame(3, cancellationToken: token);\n"
+            + "    await UniTask.WaitUntil(() => _flag, cancellationToken: token);\n"
+            + "    await UniTask.WaitWhile(() => !_flag, cancellationToken: token);\n"
+            + "    token.ThrowIfCancellationRequested();\n"
+            + "    while (!token.IsCancellationRequested) { _n++; await UniTask.Yield(token); }\n"
+            + "}\n"
+            + "async UniTask Outer(CancellationToken token) { await Work(token); _n = 99; }\n"
+            + "void Start() { Outer(_cts.Token); Work(); }\n"
+            + "public void Stop() { _cts.Cancel(); _cts.Dispose(); }\n"
+            + "public bool Stopped() { return _cts.Token.IsCancellationRequested; }";
+
         [Test]
-        public void ErrorForCancellationToken()
+        public void CancellationTokensBecomeIntArrays()
         {
-            AssertError("public CancellationToken token;\nasync UniTask Foo() { await UniTask.Delay(100, cancellationToken: token); }", "CancellationToken は未対応", BodyLine + 1);
+            string code = Lowered("Token", TokenUse);
+            Assert.That(code, Does.Not.Contain("CancellationToken"), "トークンの型は、すべて int[] になる");
+            Assert.That(code, Does.Contain("new int[1]"), "new CancellationTokenSource() は、キャンセル済みかを持つ int[1]");
+            Assert.That(code, Does.Contain("_cts[0] = 1"), "Cancel() はフラグを立てる");
+            Assert.That(code, Does.Contain("__co_tk(__s)"), "キャンセルで終わるとき、待っている親も終わらせる印を付ける");
+            Assert.That(code, Does.Contain("int[] token = null").Or.Contain("int[] token"), "async メソッドの引数");
+            Assert.That(code, Does.Not.Contain("Dispose"), "Dispose() は何もしない");
+        }
+
+        [Test]
+        public void TokenWaitsCheckEveryFrame()
+        {
+            string code = Lowered("TokenWaits", TokenUse);
+            Assert.That(code, Does.Contain("UnityEngine.Time.time"), "Delay は、毎フレーム、期限とキャンセルを見る");
+            Assert.That(System.Text.RegularExpressions.Regex.Matches(code, @"__co_tk\(__s\);").Count, Is.GreaterThanOrEqualTo(10), "待ちの前後と ThrowIfCancellationRequested でキャンセルを見る\n" + code);
+        }
+
+        [Test]
+        public void TokensThatNeverCancelUsePlainWaits()
+        {
+            string code = Lowered("TokenNever", "async UniTask Foo() { await UniTask.Delay(100, cancellationToken: destroyCancellationToken); await UniTask.Yield(this.GetCancellationTokenOnDestroy()); }\nvoid Start() { Foo(); }");
+            Assert.That(code, Does.Not.Contain("__co_tk").And.Not.Contain("CancellationToken"), "destroyCancellationToken・GetCancellationTokenOnDestroy() は、止まらないトークン");
+            Assert.That(code, Does.Contain("WaitForSeconds"));
+        }
+
+        [Test]
+        public void CancellationTokenCompilesInUdonSharp()
+        {
+            CompileOk(TokenUse);
+        }
+
+        [Test]
+        public void ErrorForUnsupportedCancellationTokenForms()
+        {
+            // async のメソッドが 1 つもないと、この段は何もしないので、足しておく
+            string head = "async UniTask Dummy() { await UniTask.Yield(); }\nprivate CancellationTokenSource _cts = new CancellationTokenSource();\n";
+            AssertError(head + "void Start() { _cts.CancelAfter(100); }", "CancelAfter は未対応", BodyLine + 2);
+            AssertError(head + "void Start() { _cts.Token.Register(() => { }); }", "Register は未対応", BodyLine + 2);
+            AssertError(head + "void Start() { var l = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token); }", "CreateLinkedTokenSource は未対応", BodyLine + 2);
+            AssertError("async UniTask Dummy() { await UniTask.Yield(); }\nvoid Start() { var c = new CancellationTokenSource(100); }", "引数のある new CancellationTokenSource", BodyLine + 1);
+            AssertError(head + "void Start() { _cts.Cancel(true); }", "Cancel(bool) は未対応", BodyLine + 2);
+            AssertError(head + "void Start() { _cts?.Cancel(); }", "?. （null 条件演算子） は未対応", BodyLine + 2);
+            AssertError("async UniTask Dummy() { await UniTask.Yield(); }\nvoid Foo(CancellationToken t) { t.ThrowIfCancellationRequested(); }", "async メソッドの外", BodyLine + 1);
         }
 
         [Test]

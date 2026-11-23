@@ -66,6 +66,19 @@ namespace UdonSharpPlus.Tests
             "t.Forget();",
         };
 
+        /// <summary>「CancellationToken」の節の例が、そのままコンパイルできる（#225）</summary>
+        [Test]
+        public void TheCancellationTokenExampleCompiles()
+        {
+            string doc = Doc();
+            int section = doc.IndexOf("## CancellationToken\n", System.StringComparison.Ordinal);
+            Assert.That(section, Is.GreaterThanOrEqualTo(0), "CancellationToken の節がありません");
+            int start = doc.IndexOf("```csharp\n", section, System.StringComparison.Ordinal) + "```csharp\n".Length;
+            int end = doc.IndexOf("\n```", start, System.StringComparison.Ordinal);
+            string example = doc.Substring(start, end - start);
+            AssertCompiles("using System.Threading;\nusing Cysharp.Threading.Tasks;\nusing UdonSharp;\nusing UnityEngine;\npublic class CancelDoc : UdonSharpBehaviour\n{\n" + example + "\n}", "CancellationToken の例");
+        }
+
         [Test]
         public void TheFormsListedInTheDocAreInTheDoc()
         {

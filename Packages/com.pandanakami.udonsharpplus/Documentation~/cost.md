@@ -187,6 +187,8 @@ UdonSharp Plus の機能は、書き換えたあと、UdonSharp で書けるコ�
 | `await UniTask.WhenAll(A(), B());`（子が `Yield` を 1 回待つ） | 全体で 3 回・約 65 B（子の開始・再開を含む） |
 | **待っている間の毎フレーム**：`UniTask.DelayFrame(n)`・`UniTask.Delay(...)` | 待っているものごとに 1 回・約 20 B（数え直す変数のボックス化） |
 | **待っている間の毎フレーム**：`UniTask.WhenAny(A(), B())` | 待っている `WhenAny` ごとに 2 回・約 40 B（子を見張る番号のボックス化。上の `DelayFrame` などの子の分は別） |
+| **`CancellationToken`**：`new CancellationTokenSource()` | 1 回・約 32 B（`int[1]`）。`Cancel()` は確保なし |
+| **待っている間の毎フレーム**：トークンつきの `Delay`・`Yield`・`DelayFrame`・`WaitUntil`・`WaitWhile` | 待っているものごとに 約 1 回・約 26 B（毎フレーム、キャンセルを見るため。1000 個で、1 フレームに 約 1100 回・約 26 KB。トークンなしの `Delay` は、毎フレームの確保なし） |
 
 - `UniTask<T>` の確保は、戻り値の置き場の `object[1]`・戻り値と引数のボックス化だけです（書き換え後の UASM の `new`・ボックス化と一致します）。Udon の変数のコピー（`UdonHeap.CopyHeapVariable`）は、元が `object`・`object[]` などのとき、コピー先の変数が持つ箱の型が元と違うと、リフレクションで新しい箱を作って確保します（1 回で 2 回・約 64 B）。戻り値の置き場の変数は、`new object[]` の結果（`object[]` の箱）と、キャストの結果（`object` の箱）が交互に入ると、毎回確保するので、置き場を作る補助メソッド（`__co_h`）が、キャストを通した値（`object` の箱）に揃えて返します。コルーチンの先頭で、配列のローカルを `default(T)` でなく `null` で初期化するのも、同じ理由です。1 秒に数百回以上 `UniTask<T>` を呼ぶところでは、値を返さない `async` に変えて、結果をフィールドに入れるほうが軽くなります
 - 待っている間の毎フレームの確保は、待っているものの数に比例します（1000 個で、1 フレームに `DelayFrame` が約 1000 回・20 KB、`WhenAny` が約 2000 回・40 KB）。`Delay` は、予約の 1 回（約 76 B）だけです

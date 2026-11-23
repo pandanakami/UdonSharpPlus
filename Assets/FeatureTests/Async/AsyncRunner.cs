@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UdonSharp;
 using UnityEngine;
@@ -31,7 +32,10 @@ namespace FeatureTests.Async
         // ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L：継承した別のビヘイビア。値を返す virtual の async を override して base を await する（41・基底は 4）、Interact の override（イベントの名前で呼ぶ・基底のメソッドから Interact() と直接呼ぶ。どちらも派生が動く。DDDDEEEE）、基底のメソッドから呼んだ virtual の async の override（base を await する）、
         // OnPlayerJoined(player) の async（引数のあるイベント。ローカルのプレイヤー）
         // p11・q21：同じメソッドを並行して動かしても、戻り値は混ざらない（開始ごとの置き場）
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
+        // cnapcl/F11P（#225）：CancellationTokenSource.Cancel() で、トークンつきの待ち（Delay・WaitUntil・子を待つ親・DelayFrame のあとの ThrowIfCancellationRequested）が止まり、
+        //   続きが動かない（a・p・c は始めたしるし。A・P・C・Z・S・T が出ない）。IsCancellationRequested を見るループは抜けて続きが動く（l）。
+        //   F：Cancel のあと、ループが止まる。11：キャンセルしないトークン・destroyCancellationToken の待ちは、ふつうに終わる。P：キャンセル済みのトークンで待ち始めると、続きが動かない
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L;cnapcl/F11P;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
         public AsyncPeer peer;
@@ -152,6 +156,7 @@ namespace FeatureTests.Async
             _log += "x" + sumq + anon.B + lv + lst.Count + ";";
 
             await Life();
+            await Cancels();
 
             Conc("p", 10);
             Conc("q", 20);
@@ -160,6 +165,48 @@ namespace FeatureTests.Async
             Both();
             await UniTask.DelayFrame(2);
             _log += "e;";
+        }
+
+        // #225：CancellationToken。Cancel() で、トークンつきの待ちが止まる（次のフレーム）
+        private string _cx = "";
+        private string _cx2 = "";
+        private int _loop;
+        private int _cn;
+        private int _cd;
+        private CancellationTokenSource _never = new CancellationTokenSource();
+
+        private async UniTask CDelay(CancellationToken t) { _cx += "a"; await UniTask.Delay(10000, cancellationToken: t); _cx += "A"; }
+        private async UniTask CChild(CancellationToken t) { _cx += "c"; await UniTask.Yield(t); await UniTask.Delay(10000, cancellationToken: t); _cx += "C"; }
+        private async UniTask CParent(CancellationToken t) { _cx += "p"; await CChild(t); _cx += "P"; }
+        private async UniTask CShared(CancellationToken t, string id) { await UniTask.WaitUntil(() => false, cancellationToken: t); _cx += id; }
+        private async UniTask CLoop(CancellationToken t) { while (!t.IsCancellationRequested) { _loop++; await UniTask.Yield(); } _cx += "l"; }
+        private async UniTask CThrow(CancellationToken t) { await UniTask.DelayFrame(8); t.ThrowIfCancellationRequested(); _cx += "Z"; }
+        private async UniTask CDone() { await UniTask.Delay(50, cancellationToken: _never.Token); _cn = 1; }
+        private async UniTask CDestroy() { await UniTask.Delay(30, cancellationToken: destroyCancellationToken); _cd = 1; }
+        private async UniTask CPre(CancellationToken t) { await UniTask.Yield(t); _cx2 += "X"; }
+
+        private async UniTask Cancels()
+        {
+            var cts = new CancellationTokenSource();
+            CDelay(cts.Token);
+            CParent(cts.Token);
+            CShared(cts.Token, "S");
+            CShared(cts.Token, "T");
+            CLoop(cts.Token);
+            CThrow(cts.Token);
+            CDone();
+            CDestroy();
+            await UniTask.DelayFrame(5);
+            cts.Cancel();
+            await UniTask.DelayFrame(2);
+            int l1 = _loop;
+            await UniTask.DelayFrame(3);
+            int l2 = _loop;
+            var pre = new CancellationTokenSource();
+            pre.Cancel();
+            CPre(pre.Token);
+            await UniTask.Delay(200);
+            _log += "cn" + _cx + "/" + (l1 == l2 ? "F" : "f") + _cn + _cd + (_cx2 == "" ? "P" : "p") + ";";
         }
 
         // 別の GameObject の async（AsyncPeer）：停止・多重呼び出し

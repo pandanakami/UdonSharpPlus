@@ -29,13 +29,21 @@ namespace UdonSharpPlus
     ///   var x = await Foo(3);   → object[] __ar0 = __co_h(); yield return Foo(3, __ar: __ar0); var x = ((int)__ar0[0]);
     ///   await UniTask.WhenAll(A(), B());  → 子を全部始めて、順に待つ（値を返すものは、値を T[] にする）
     ///   戻り値の置き場は、呼ぶ側が開始ごとに作る（コルーチンの状態は、終わると使い回されるので、状態の中には置かない）
-    /// WhenAny・CancellationToken・変数に入れた UniTask は、エラーにして案内する
+    ///
+    /// CancellationToken（#225）：トークンは int[1]（[0] がキャンセル済みか）に書き換える。new CancellationTokenSource() → new int[1]、
+    /// Token → そのまま、Cancel() → [0] = 1、IsCancellationRequested → [0] != 0、destroyCancellationToken・GetCancellationTokenOnDestroy() → null（止まらない）。
+    ///   await UniTask.Delay(ms, token) など → トークンつきの待ち：毎フレーム見て、キャンセルされたら、そのコルーチンを終え、待っている親も終わらせる（__co_tk）
+    /// 例外（OperationCanceledException）は出ない。Cancel() の次のフレームに止まる
     /// </summary>
     internal static class AsyncLowering
     {
         private const string UniTaskName = "Cysharp.Threading.Tasks.UniTask";
         private const string UniTaskVoidName = "Cysharp.Threading.Tasks.UniTaskVoid";
         private const string CancellationTokenName = "System.Threading.CancellationToken";
+        private const string CancellationTokenSourceName = "System.Threading.CancellationTokenSource";
+
+        /// <summary>CancellationToken を使うクラスを見るための言葉（CancellationTokenSource も含む）</summary>
+        private static readonly string[] TokenWords = { "CancellationToken", "destroyCancellationToken", "GetCancellationTokenOnDestroy" };
 
         private static readonly string[] Words = { "async", "UniTask" };
 
@@ -153,7 +161,7 @@ namespace UdonSharpPlus
             }
 
             // 2) ファイルごとに書き換える。async・UniTask の文字か、async メソッドの名前（呼ぶだけのクラス）を含むクラスだけを見る
-            string[] words = Words.Concat(methods.Values.Select(m => m.Symbol.Name)).Distinct().ToArray();
+            string[] words = Words.Concat(TokenWords).Concat(methods.Values.Select(m => m.Symbol.Name)).Distinct().ToArray();
             var result = new List<SyntaxTree>(trees.Count);
             int temp = 0;
             foreach (SyntaxTree tree in trees)
@@ -328,6 +336,8 @@ namespace UdonSharpPlus
 
             public void Run(ref int temp)
             {
+                // 0) CancellationToken の書き換え（式の中のものを先に。あとの書き換えが Take で取り込む）
+                TokenRewrite();
                 var handled = new HashSet<SyntaxNode>();
                 var handledAwaits = new HashSet<AwaitExpressionSyntax>();
 
@@ -740,35 +750,56 @@ namespace UdonSharpPlus
                 }
 
                 Dictionary<string, ExpressionSyntax> args = ArgumentsOf(inv, method);
+                // CancellationToken の引数（#225）。default・None・destroyCancellationToken は、止まらないトークンなので、ふつうの待ちにする。
+                // 書き換えたトークンの式は、Take で取り込む（文の書き換えと重ならないように）
+                string token = null, ct = null;
                 foreach (KeyValuePair<string, ExpressionSyntax> arg in args)
-                    if (_model.GetTypeInfo(arg.Value).ConvertedType?.ToDisplayString() == CancellationTokenName && !IsNoToken(arg.Value))
+                    if (_model.GetTypeInfo(arg.Value).ConvertedType?.ToDisplayString() == CancellationTokenName)
                     {
-                        Error(arg.Value, Loc.T("CancellationToken は未対応です（止めるときは StopCoroutine を使ってください）",
-                            "CancellationToken is not supported (use StopCoroutine to stop)"));
-                        return null;
+                        string text = _edits.Take(arg.Value);
+                        if (!IsNoToken(arg.Value))
+                        {
+                            token = text;
+                            ct = $"__ct{temp++}";
+                        }
                     }
+                if (ct != null && method.Name != "Yield" && method.Name != "NextFrame" && method.Name != "DelayFrame" && method.Name != "Delay"
+                    && method.Name != "WaitUntil" && method.Name != "WaitWhile")
+                {
+                    Error(inv, Loc.T($"UniTask.{method.Name} の CancellationToken は未対応です", $"A CancellationToken of UniTask.{method.Name} is not supported"));
+                    return null;
+                }
 
                 switch (method.Name)
                 {
                     case "Yield":
                     case "NextFrame":
-                        return "yield return null;";
+                        return ct == null ? "yield return null;" : $"{{ int[] {ct} = {token}; {Stop(ct)}yield return null; {Stop(ct)}}}";
                     case "DelayFrame":
                     {
                         if (!args.TryGetValue("delayFrameCount", out ExpressionSyntax count))
                             return null;
                         // UniTask の DelayFrame(n) は n フレーム、DelayFrame(0) は Yield と同じ（1 フレーム）
                         string i = $"__af{temp++}";
-                        return $"for (int {i} = UnityEngine.Mathf.Max(({Arg(count)}), 1); {i} > 0; {i}--) yield return null;";
+                        string loop = $"for (int {i} = UnityEngine.Mathf.Max(({Arg(count)}), 1); {i} > 0; {i}--) " + (ct == null ? "yield return null;" : $"{{ yield return null; {Stop(ct)}}}");
+                        return ct == null ? loop : $"{{ int[] {ct} = {token}; {Stop(ct)}{loop} }}";
                     }
                     case "Delay":
-                        return DelayCode(inv, args);
+                        return DelayCode(inv, args, ct, token);
                     case "WaitUntil":
                     case "WaitWhile":
                     {
                         if (!args.TryGetValue("predicate", out ExpressionSyntax predicate))
                             return null;
-                        return $"yield return new UnityEngine.{method.Name}({Arg(predicate)});";
+                        if (ct == null)
+                            return $"yield return new UnityEngine.{method.Name}({Arg(predicate)});";
+                        string condition = PredicateBody(predicate);
+                        if (condition == null)
+                            return null;
+                        string wait = method.Name == "WaitUntil"
+                            ? $"new UnityEngine.WaitUntil(() => !{Live(ct)} || ({condition}))"
+                            : $"new UnityEngine.WaitWhile(() => {Live(ct)} && ({condition}))";
+                        return $"{{ int[] {ct} = {token}; {Stop(ct)}yield return {wait}; {Stop(ct)}}}";
                     }
                     case "WhenAll":
                         return WhenAllCode(inv, method, ref temp, out value, out block);
@@ -1133,7 +1164,7 @@ namespace UdonSharpPlus
             }
 
             /// <summary>UniTask.Delay(ms) / Delay(TimeSpan) → WaitForSeconds / WaitForSecondsRealtime</summary>
-            private string DelayCode(InvocationExpressionSyntax inv, Dictionary<string, ExpressionSyntax> args)
+            private string DelayCode(InvocationExpressionSyntax inv, Dictionary<string, ExpressionSyntax> args, string ct, string token)
             {
                 string seconds;
                 if (args.TryGetValue("millisecondsDelay", out ExpressionSyntax ms))
@@ -1169,6 +1200,12 @@ namespace UdonSharpPlus
                     }
                     realtime = field != "DeltaTime";
                 }
+                if (ct != null)
+                {
+                    // トークンつきの Delay は、毎フレーム、キャンセルと期限を見る（Cancel() の次のフレームに止まる）
+                    string now = realtime ? "UnityEngine.Time.realtimeSinceStartup" : "UnityEngine.Time.time";
+                    return $"{{ int[] {ct} = {token}; {Stop(ct)}float {ct}d = {now} + ({seconds}); do yield return null; while ({Live(ct)} && {now} < {ct}d); {Stop(ct)}}}";
+                }
                 return realtime
                     ? $"yield return new UnityEngine.WaitForSecondsRealtime({seconds});"
                     : $"yield return new UnityEngine.WaitForSeconds({seconds});";
@@ -1194,15 +1231,36 @@ namespace UdonSharpPlus
                 return null;
             }
 
-            /// <summary>default・default(CancellationToken)・CancellationToken.None（止められないトークン）か</summary>
+            /// <summary>トークン c がキャンセルされていたら、そのコルーチンを終える（待っている親も終わる。__co_tk）</summary>
+            private static string Stop(string c) => $"if ({c} != null && {c}[0] != 0) {{ __co_tk(__s); yield break; }} ";
+
+            /// <summary>トークン c がまだキャンセルされていない（null は、キャンセルされないトークン）</summary>
+            private static string Live(string c) => $"({c} == null || {c}[0] == 0)";
+
+            /// <summary>UniTask.WaitUntil・WaitWhile の条件（() => 式 の式、またはメソッドの名前の呼び出し）。書けないものはエラーにして null</summary>
+            private string PredicateBody(ExpressionSyntax predicate)
+            {
+                if (predicate is ParenthesizedLambdaExpressionSyntax lambda && lambda.ParameterList.Parameters.Count == 0 && lambda.ExpressionBody != null)
+                    return _edits.Take(lambda.ExpressionBody);
+                if (predicate is IdentifierNameSyntax name && _model.GetSymbolInfo(name).Symbol is IMethodSymbol)
+                    return name.Identifier.ValueText + "()";
+                Error(predicate, Loc.T("CancellationToken つきの WaitUntil・WaitWhile の条件は、() => 条件 の形のラムダか、メソッドの名前で書いてください",
+                    "Write the condition of WaitUntil / WaitWhile with a CancellationToken as a lambda () => condition, or as the name of a method"));
+                return null;
+            }
+
+            /// <summary>default・default(CancellationToken)・CancellationToken.None・destroyCancellationToken・GetCancellationTokenOnDestroy()（キャンセルされないトークン）か</summary>
             private bool IsNoToken(ExpressionSyntax e)
             {
                 while (e is ParenthesizedExpressionSyntax p)
                     e = p.Expression;
-                if (e is DefaultExpressionSyntax || e.IsKind(SyntaxKind.DefaultLiteralExpression))
+                if (e is DefaultExpressionSyntax || e.IsKind(SyntaxKind.DefaultLiteralExpression) || e.IsKind(SyntaxKind.NullLiteralExpression))
                     return true;
-                return e is MemberAccessExpressionSyntax access && access.Name.Identifier.ValueText == "None"
-                       && _model.GetTypeInfo(e).Type?.ToDisplayString() == CancellationTokenName;
+                if (e is InvocationExpressionSyntax call)
+                    return _model.GetSymbolInfo(call).Symbol?.Name == "GetCancellationTokenOnDestroy";
+                string name = (e as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText ?? (e as IdentifierNameSyntax)?.Identifier.ValueText;
+                return name == "None" && _model.GetTypeInfo(e).Type?.ToDisplayString() == CancellationTokenName
+                       || name == "destroyCancellationToken";
             }
 
             /// <summary>呼び出しの引数を、引数の名前 → 式にする（位置・名前付きの両方）</summary>
@@ -1219,6 +1277,200 @@ namespace UdonSharpPlus
                 return result;
             }
 
+            // ---- CancellationToken（#225）----------------------------------------------------
+
+            private static bool IsTokenType(ITypeSymbol type)
+            {
+                string name = type?.ToDisplayString();
+                return name == CancellationTokenName || name == CancellationTokenSourceName;
+            }
+
+            private void TokenError(SyntaxNode at, string what) => Error(at, Loc.T(
+                $"{what} は未対応です。CancellationToken は、new CancellationTokenSource()・Token・Cancel()・IsCancellationRequested・ThrowIfCancellationRequested()・Dispose()・CancellationToken.None・default・destroyCancellationToken・GetCancellationTokenOnDestroy() と、UniTask.Delay・Yield・NextFrame・DelayFrame・WaitUntil・WaitWhile の引数だけ使えます",
+                $"{what} is not supported. CancellationToken supports only new CancellationTokenSource(), Token, Cancel(), IsCancellationRequested, ThrowIfCancellationRequested(), Dispose(), CancellationToken.None, default, destroyCancellationToken, GetCancellationTokenOnDestroy(), and as an argument of UniTask.Delay, Yield, NextFrame, DelayFrame, WaitUntil and WaitWhile"));
+
+            /// <summary>node を、text に置き換える（中にある書き換えは捨てる）</summary>
+            private void Replace(SyntaxNode node, string text)
+            {
+                _edits.Take(node);
+                _edits.Add(node.Span, text);
+            }
+
+            /// <summary>トークンを 2 回書く式（IsCancellationRequested・ThrowIfCancellationRequested）の左側。名前・this.名前だけ（呼び出しなどは、2 回動かすので書けない）</summary>
+            private string Receiver(ExpressionSyntax e)
+            {
+                ExpressionSyntax inner = e;
+                while (inner is ParenthesizedExpressionSyntax p)
+                    inner = p.Expression;
+                bool simple = inner is IdentifierNameSyntax || inner is ThisExpressionSyntax
+                    || inner is MemberAccessExpressionSyntax access && (access.Expression is ThisExpressionSyntax || access.Expression is IdentifierNameSyntax);
+                if (!simple)
+                {
+                    TokenError(e, Loc.T("トークンを返す式（メソッドの呼び出しなど）に直接つけた IsCancellationRequested・ThrowIfCancellationRequested", "IsCancellationRequested / ThrowIfCancellationRequested on an expression that is not a variable"));
+                    return null;
+                }
+                return _edits.Take(e);
+            }
+
+            /// <summary>
+            /// CancellationTokenSource・CancellationToken を int[1] に書き換える。Udon に、これらの型の実体がないため。
+            /// 型の名前は int[]、new CancellationTokenSource() は new int[1]、default・None・destroyCancellationToken は null（止まらないトークン）
+            /// </summary>
+            private void TokenRewrite()
+            {
+                if (!CoroutineLowering.MayContain(_cls, TokenWords))
+                    return;
+                var nodes = OwnNodes().Where(n => n is IdentifierNameSyntax id && (id.Identifier.ValueText == "CancellationToken" || id.Identifier.ValueText == "CancellationTokenSource" || id.Identifier.ValueText == "destroyCancellationToken")
+                    || n is QualifiedNameSyntax || n is MemberAccessExpressionSyntax || n is InvocationExpressionSyntax || n is ObjectCreationExpressionSyntax
+                    || n is DefaultExpressionSyntax || n.IsKind(SyntaxKind.DefaultLiteralExpression) || n is ConditionalAccessExpressionSyntax).ToList();
+                // 外側の式が、中の式の書き換えを取り込めるよう、中のものから（あとにあるもの・短いものから）書き換える
+                foreach (SyntaxNode n in nodes.OrderByDescending(x => x.SpanStart).ThenBy(x => x.Span.Length))
+                {
+                    switch (n)
+                    {
+                        case ObjectCreationExpressionSyntax creation when IsTokenType(_model.GetTypeInfo(creation).Type):
+                            if (creation.ArgumentList?.Arguments.Count > 0 || creation.Initializer != null || _model.GetTypeInfo(creation).Type.ToDisplayString() != CancellationTokenSourceName)
+                                TokenError(creation, Loc.T("引数のある new CancellationTokenSource(...)・new CancellationToken(...)", "new CancellationTokenSource(...) / new CancellationToken(...) with arguments"));
+                            else
+                                Replace(creation, "new int[1]");
+                            break;
+                        case DefaultExpressionSyntax _:
+                        case LiteralExpressionSyntax _ when n.IsKind(SyntaxKind.DefaultLiteralExpression):
+                            if (IsTokenType(_model.GetTypeInfo(n).ConvertedType) || IsTokenType(_model.GetTypeInfo(n).Type))
+                                Replace(n, "null");
+                            break;
+                        case QualifiedNameSyntax qualified when IsTokenType(_model.GetTypeInfo(qualified).Type):
+                            Replace(qualified, "int[]");
+                            break;
+                        case ConditionalAccessExpressionSyntax conditional when IsTokenType(_model.GetTypeInfo(conditional.Expression).Type):
+                            TokenError(conditional, Loc.T("?. （null 条件演算子）", "The ?. operator"));
+                            break;
+                        case IdentifierNameSyntax id:
+                            TokenName(id);
+                            break;
+                        case MemberAccessExpressionSyntax access:
+                            TokenMember(access);
+                            break;
+                        case InvocationExpressionSyntax invocation:
+                            TokenCall(invocation);
+                            break;
+                    }
+                }
+            }
+
+            /// <summary>型の名前（int[] に）と、destroyCancellationToken（null に）</summary>
+            private void TokenName(IdentifierNameSyntax id)
+            {
+                string name = id.Identifier.ValueText;
+                if (id.Parent is QualifiedNameSyntax || id.Parent is MemberAccessExpressionSyntax access && (access.Expression == id || access.Name == id) || id.Parent is ObjectCreationExpressionSyntax)
+                    return;   // 型の名前のあとのメンバー・new の型・メンバーの名前は、外側で扱う
+                ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
+                if (name == "destroyCancellationToken")
+                {
+                    if (symbol is IPropertySymbol)
+                        Replace(id, "null");
+                    return;
+                }
+                if (symbol is ITypeSymbol type && IsTokenType(type))
+                    Replace(id, "int[]");
+            }
+
+            /// <summary>メンバーの参照：Token・IsCancellationRequested・CancellationToken.None・this.destroyCancellationToken。使えないものはエラー</summary>
+            private void TokenMember(MemberAccessExpressionSyntax access)
+            {
+                ISymbol symbol = _model.GetSymbolInfo(access).Symbol;
+                if (symbol == null)
+                    return;
+                string owner = symbol.ContainingType?.ToDisplayString();
+                if (symbol.Name == "destroyCancellationToken" && symbol is IPropertySymbol)
+                {
+                    Replace(access, "null");
+                    return;
+                }
+                if (owner != CancellationTokenName && owner != CancellationTokenSourceName)
+                    return;
+                if (symbol.IsStatic)
+                {
+                    if (symbol.Name == "None" && owner == CancellationTokenName)
+                        Replace(access, "null");
+                    else
+                        TokenError(access, Loc.T($"{symbol.ContainingType.Name}.{symbol.Name}", $"{symbol.ContainingType.Name}.{symbol.Name}"));
+                    return;
+                }
+                switch (symbol.Name)
+                {
+                    case "Token":
+                        Replace(access, "(" + _edits.Take(access.Expression) + ")");
+                        return;
+                    case "IsCancellationRequested":
+                    {
+                        string recv = Receiver(access.Expression);
+                        if (recv != null)
+                            Replace(access, $"({recv} != null && {recv}[0] != 0)");
+                        return;
+                    }
+                    case "Cancel":
+                    case "Dispose":
+                    case "ThrowIfCancellationRequested":
+                        if (!(access.Parent is InvocationExpressionSyntax call && call.Expression == access))
+                            TokenError(access, Loc.T($"{symbol.Name} をメソッドとして呼ばない書き方", $"Using {symbol.Name} without calling it"));
+                        return;   // 呼び出しは、TokenCall で書き換える
+                    default:
+                        TokenError(access.Name, Loc.T($"{owner.Substring(owner.LastIndexOf('.') + 1)}.{symbol.Name}", $"{owner.Substring(owner.LastIndexOf('.') + 1)}.{symbol.Name}"));
+                        return;
+                }
+            }
+
+            /// <summary>メソッドの呼び出し：Cancel()・Dispose()・ThrowIfCancellationRequested()・GetCancellationTokenOnDestroy()</summary>
+            private void TokenCall(InvocationExpressionSyntax call)
+            {
+                if (!(_model.GetSymbolInfo(call).Symbol is IMethodSymbol method))
+                    return;
+                if (method.Name == "GetCancellationTokenOnDestroy")
+                {
+                    Replace(call, "null");   // GameObject を破棄すると、Udon はコルーチンを全部止めるので、キャンセルされないトークンと同じ
+                    return;
+                }
+                string owner = method.ContainingType?.ToDisplayString();
+                if ((owner != CancellationTokenName && owner != CancellationTokenSourceName) || method.IsStatic || !(call.Expression is MemberAccessExpressionSyntax access))
+                    return;
+                switch (method.Name)
+                {
+                    case "Cancel":
+                    {
+                        if (call.ArgumentList.Arguments.Count > 0)
+                        {
+                            TokenError(call, Loc.T("Cancel(bool)", "Cancel(bool)"));
+                            return;
+                        }
+                        string recv = _edits.Take(access.Expression);
+                        Replace(call, System.Text.RegularExpressions.Regex.IsMatch(recv, @"^[\w\.]+$") ? $"{recv}[0] = 1" : $"({recv})[0] = 1");
+                        return;
+                    }
+                    case "Dispose":
+                        if (call.Parent is ExpressionStatementSyntax disposeStatement)
+                            Replace(disposeStatement, ";");   // 何も確保していないので、何もしない
+                        else
+                            TokenError(call, Loc.T("式の中の Dispose()", "Dispose() inside an expression"));
+                        return;
+                    case "ThrowIfCancellationRequested":
+                    {
+                        if (!(call.Parent is ExpressionStatementSyntax statement) || OwnerOf(call) == null)
+                        {
+                            TokenError(call, Loc.T("async メソッドの外・文でない ThrowIfCancellationRequested()", "ThrowIfCancellationRequested() outside an async method, or not as a statement"));
+                            return;
+                        }
+                        string recv = Receiver(access.Expression);
+                        if (recv != null)
+                            Replace(statement, $"if ({recv} != null && {recv}[0] != 0) {{ __co_tk(__s); yield break; }}");
+                        return;
+                    }
+                    default:
+                        TokenError(call, Loc.T($"{method.Name}()", $"{method.Name}()"));
+                        return;
+                }
+            }
+
             // ---- メソッドの宣言 ----------------------------------------------------
 
             private void Declaration(MethodDeclarationSyntax m, AsyncMethod info)
@@ -1231,8 +1483,8 @@ namespace UdonSharpPlus
                 {
                     // Udon がイベント名で呼ぶので、同じ名前の void のメソッドで、コルーチンを始める
                     string parameters = string.Join(", ", m.ParameterList.Parameters.Select(p =>
-                        (p.Modifiers.Count > 0 ? string.Join(" ", p.Modifiers.Select(x => x.ValueText)) + " " : "") + p.Type + " " + p.Identifier.ValueText
-                        + (p.Default != null ? " " + p.Default.ToString() : "")));
+                        (p.Modifiers.Count > 0 ? string.Join(" ", p.Modifiers.Select(x => x.ValueText)) + " " : "") + _edits.Take(p.Type) + " " + p.Identifier.ValueText
+                        + (p.Default != null ? " " + _edits.Take(p.Default) : "")));
                     string args = string.Join(", ", m.ParameterList.Parameters.Select(p => p.Identifier.ValueText));
                     header = $"{modifiers} void {m.Identifier.ValueText}({parameters}) {{ StartCoroutine({info.CoroutineName}({args})); }} private System.Collections.IEnumerator";
                     _edits.Add(m.Identifier.Span, info.CoroutineName);
