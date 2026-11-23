@@ -282,6 +282,19 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
             Assert.That(code, Does.Contain("__co_start(Add(1, 1, __ar: __ar").And.Contain("__co_start(Add(2, 2, __ar: __ar"), "値を返すものも、holder を渡して始める");
         }
 
+        [Test]
+        public void PublicAsyncVoidAndUniTaskVoidKeepAVoidMethodSoTheyCanBeCalledByName()
+        {
+            // UI のボタン・SendCustomEvent("名前") で呼べるよう、public の async void・UniTaskVoid は、同じ名前の void のメソッドがコルーチンを始める（#226）
+            string code = Lowered("NameCallable", "public async void Named() { await UniTask.Yield(); }\npublic async UniTaskVoid NamedV(int n) { await UniTask.Yield(); }\n"
+                + "private async void Hidden() { await UniTask.Yield(); }\npublic async UniTask Plain() { await UniTask.Yield(); }\n"
+                + "void Start() { Named(); NamedV(1); Hidden(); Plain(); }");
+            Assert.That(code, Does.Contain("public void Named()").And.Contain("public void NamedV(int n)"));
+            Assert.That(code, Does.Contain("__async_AsyUse_Named"), "コルーチンは、別の名前で動く");
+            Assert.That(code, Does.Not.Contain("void Hidden()"), "private の async void は、名前で呼ばれないので、コルーチンのまま");
+            Assert.That(code, Does.Not.Contain("void Plain()"), "UniTask を返すものは、await されるので、コルーチンのまま");
+        }
+
         // ---- CancellationToken（#225）----
 
         private const string TokenUse =

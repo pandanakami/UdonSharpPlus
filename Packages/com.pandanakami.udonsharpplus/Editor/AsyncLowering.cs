@@ -132,7 +132,7 @@ namespace UdonSharpPlus
                             diagnostics.Error(m.Identifier.GetLocation(), problem);
                             continue;
                         }
-                        bool wrapper = symbol.IsOverride || UnityMessages.Contains(symbol.Name);
+                        bool wrapper = symbol.IsOverride || UnityMessages.Contains(symbol.Name) || IsNameCallable(symbol);
                         methods[symbol.OriginalDefinition] = new AsyncMethod
                         {
                             Declaration = m,
@@ -208,10 +208,19 @@ namespace UdonSharpPlus
             }
         }
 
+        /// <summary>
+        /// 名前で呼ばれうる public な async void・UniTaskVoid（UI のボタン・SendCustomEvent・SendCustomNetworkEvent・SendCustomEventDelayedSeconds。#226）。
+        /// コルーチンの形のままだと、名前で呼んでもコルーチンが始まらないので、同じ名前の void のメソッドを残して、コルーチンを始めさせる。
+        /// async void・UniTaskVoid は await できないので、await で使えなくなる制限（Wrapper）は、影響しない
+        /// </summary>
+        private static bool IsNameCallable(IMethodSymbol symbol) =>
+            symbol.DeclaredAccessibility == Accessibility.Public && !symbol.IsStatic
+            && (symbol.ReturnType.SpecialType == SpecialType.System_Void || symbol.ReturnType.OriginalDefinition.ToDisplayString() == UniTaskVoidName);
+
         /// <summary>Udon がイベント名で呼ぶ（void のメソッドを残す）メソッドか：Unity のイベントの名前・イベントの override・それを override するもの</summary>
         private static bool IsWrapper(IMethodSymbol symbol, Dictionary<IMethodSymbol, AsyncMethod> methods)
         {
-            if (UnityMessages.Contains(symbol.Name))
+            if (UnityMessages.Contains(symbol.Name) || IsNameCallable(symbol))
                 return true;
             if (!symbol.IsOverride || symbol.OverriddenMethod == null)
                 return false;

@@ -57,6 +57,12 @@ namespace FeatureTests.Async
             SendCustomEvent("_interact");
         }
 
+        // 名前で呼ばれる public な async void・UniTaskVoid（UI のボタン・SendCustomEvent・SendCustomEventDelayedSeconds。#226）
+        [HideInInspector] public string nlog = "";
+        public async void Named() { nlog += "a"; await UniTask.Yield(); nlog += "b"; }
+        public async UniTaskVoid NamedV() { nlog += "c"; await UniTask.Yield(); nlog += "d"; }
+        public void NamedDelayed() { SendCustomEventDelayedSeconds("Named", 0.05f); }
+
         public void Begin(string tag) { Tick(tag); }
 
         private async UniTask Tick(string tag)

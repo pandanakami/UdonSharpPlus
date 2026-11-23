@@ -41,7 +41,7 @@ public class Door : UdonSharpBehaviour
 UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Plugins/UniTask`。2.5.x）。UdonSharp Plus は UniTask のアセンブリに依存せず、型の名前（`Cysharp.Threading.Tasks.UniTask` など）で見分けます。UniTask を使わないスクリプトは、何も変わりません。
 
 - **書ける場所**：UdonSharpBehaviour の、`async UniTask`・`async UniTaskVoid`・`async void`・値を返す `async UniTask<T>` のインスタンスメソッド。`virtual`／`override`・引数のあるメソッドも使えます。`{ }` の本体で書いてください（`=>` の式の本体は未対応です）
-- **イベント**：`Start`・`Update`・`OnEnable` などの Unity のメッセージや、`override` したイベント（`Interact`・`OnPlayerJoined` など）も `async` にできます。Udon が名前で呼ぶので、同じ名前の `void` のメソッドが、コルーチンを始めます
+- **イベント**：`Start`・`Update`・`OnEnable` などの Unity のメッセージや、`override` したイベント（`Interact`・`OnPlayerJoined` など）も `async` にできます。Udon が名前で呼ぶので、同じ名前の `void` のメソッドが、コルーチンを始めます。`public` の `async void`・`UniTaskVoid` のメソッドも同じで、UI の `Button`・`SendCustomEvent("名前")`・`SendCustomNetworkEvent`・`SendCustomEventDelayedSeconds("名前", 秒)` で名前を指定して呼べます（`UniTask` を返すメソッドは、`await` されるので、名前では呼べません。`async void` のメソッドを 1 つ書いて、その中で呼んでください）
 - **`await` の書き方**（文として書きます）：
 
   | 書き方 | 待ち方 |
