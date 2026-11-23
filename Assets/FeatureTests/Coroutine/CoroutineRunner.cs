@@ -71,7 +71,8 @@ namespace FeatureTests.Coroutines
                                         + "|P=oi1;oss;d15;d17;p33;f;n4;n9;n5;fl20;b1;btwo;v223;r0;r1;r2;dict210;hbd;"
                                         + "|Y=g3;gs;pt5;atd;wrapTrue;gk;a0;b0;c0;o;a1;b1;c1;o1;stop;e0;c2;c3;o;o1;z0;w;z1;gq;x0;s;z2;x1;y;z3;x2;x3;lf113;lf123;ls123;"
                                         + "|U=c1@1;e1@1;t1@1;a1@2;b2@3;prop@4;until@6;sb1@7;sa@8;sdb@8;lam@10;frames@10;/t2True;wpTrue;wrTrue;waTrue;rtTrue;"
-                                        + "|N=d6,21;n1x;n2x;i67;gq13;l01020/789;f55;ka;tTrueTrue;|M=a0.25;c3;a0.5;c2;a0.75;c1;c2;idle;a1;c1;wh;faded;ring;chase;whe;rest;whey;done;alpha1,timer0,ai2;/spawn3s0s1s2;";
+                                        + "|N=d6,21;n1x;n2x;i67;gq13;l01020/789;f55;ka;tTrueTrue;|M=a0.25;c3;a0.5;c2;a0.75;c1;c2;idle;a1;c1;wh;faded;ring;chase;whe;rest;whey;done;alpha1,timer0,ai2;/spawn3s0s1s2;"
+                                        + "|T=1;3;6;11;2;5;9;0;7;4;10;8;";
         // H：WaitUntil・WaitWhile・子のコルーチンを待つ形（7 は、待っている子を止めると親は再開しない）。W：WaitForSeconds・WaitForSecondsRealtime を変数に入れて使い回す
         // I：基底と派生の両方にコルーチンがある・virtual のコルーチンを override する・派生の OnDisable（Derived で確かめる）
         // L：Coroutine を List・Dictionary・配列・普通のクラスのフィールドに入れて、Contains・IndexOf・Remove と停止に使う
@@ -150,6 +151,7 @@ namespace FeatureTests.Coroutines
             StartCoroutine(Gaps());
             StartCoroutine(Combos());
             StartCoroutine(Real());
+            StartCoroutine(HeapStart());
             StartCoroutine(Judge());
         }
 
@@ -1299,9 +1301,15 @@ namespace FeatureTests.Coroutines
             Finish();
         }
 
+        // T：秒を待つものを 12 個、同じフレームで開始する。期限の順に再開し、期限が同じなら開始した順（0.1 が 4 つ・0.2 が 3 つ・0.3 が 2 つ・0.4 が 2 つ・0.5 が 1 つ。#222）
+        private string _heap = "";
+        private float[] _heapT = { 0.30f, 0.10f, 0.20f, 0.10f, 0.40f, 0.20f, 0.10f, 0.30f, 0.50f, 0.20f, 0.40f, 0.10f };
+        private IEnumerator HeapStart() { for (int i = 0; i < 12; i++) StartCoroutine(HeapWait(i, _heapT[i])); yield return null; }
+        private IEnumerator HeapWait(int i, float t) { yield return new WaitForSeconds(t); _heap += i + ";"; }
+
         private void Finish()
         {
-            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc + "|Y=" + _more + "|U=" + _gaps + "/" + _gapsB + "|N=" + _combo2 + "|M=" + _real + "/" + _realB;
+            string actual = "A=" + _log + "|B=" + _timed + "|C=" + _loops + "|E=" + _lists + "|H=" + _nest + "|W=" + _cached + "|R=" + _re + "|O=" + _outs + "|I=" + _inherit + "|K=" + _many + "|L=" + _coll + "|G=" + _stops + "|X=" + _graph + "|S=" + string.Join("", _gSecs) + "|Q=" + _combo + "|V=" + _life + "|P=" + _misc + "|Y=" + _more + "|U=" + _gaps + "/" + _gapsB + "|N=" + _combo2 + "|M=" + _real + "/" + _realB + "|T=" + _heap;
             bool ok = actual == Expected;
             resultName = "#107 coroutines";
             resultOk = ok;

@@ -644,7 +644,7 @@ namespace UdonSharpPlus
                 yield return "private string[] __co_names = new string[] { " + string.Join(", ", _work.Coroutines.Select(c => "\"" + DisplayName(c.Declaration.Identifier.ValueText) + "\"")) + " };";
                 // 次のフレームを待っているものの番号と、待ち始めたフレーム（外から __co_frame を呼ばれても、待ち始めたフレームのうちには再開しない）
                 yield return "private int[] __co_fq = new int[8]; private int[] __co_ff = new int[8]; private int __co_fh; private int __co_fn;";
-                yield return "private int[] __co_sh = new int[8]; private float[] __co_st = new float[8]; private int[] __co_sf = new int[8]; private int __co_sn;";
+                yield return "private int[] __co_sh = new int[8]; private float[] __co_st = new float[8]; private int[] __co_sf = new int[8]; private int[] __co_sq = new int[8]; private int __co_sn; private int __co_sc;";
 
                 // 状態を作る（同じメソッドの空いた状態があれば使い回す）。
                 // 見出し：[0] 番号 [1] メソッドの番号 [2] 再開する位置 [3] 開始したか [4] 空きのつなぎ [5] 動いている途中か [6] 動いている途中で止められたか
@@ -728,10 +728,15 @@ namespace UdonSharpPlus
                 string naninf = "if (t != t) { UnityEngine.Debug.LogWarning(\"float.NaN has been passed into WaitForSeconds which will result in an infinite wait time.\"); __co_park(s); return; } if (t > float.MaxValue) { __co_park(s); return; } ";
                 // 秒（WaitForSeconds）。待ち始めたフレームのうちに届いたら（ごく短い秒）、Unity と同じく次のフレームまで待つ。イベントは期限の順に届くので、届くたびに期限がいちばん早いもの（同じなら先に予約したもの）を再開する
                 yield return "protected void __co_ws(object[] s, float t) { if (t <= 0f) { __co_wf(s); return; } " + naninf + " int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } "
-                             + "if (__co_sn == __co_sh.Length) { int[] g = new int[__co_sn * 2]; float[] gt = new float[__co_sn * 2]; int[] gf = new int[__co_sn * 2]; for (int i = 0; i < __co_sn; i++) { g[i] = __co_sh[i]; gt[i] = __co_st[i]; gf[i] = __co_sf[i]; } __co_sh = g; __co_st = gt; __co_sf = gf; } "
-                             + "__co_sh[__co_sn] = hd[0]; __co_st[__co_sn] = UnityEngine.Time.time + t; __co_sf[__co_sn] = UnityEngine.Time.frameCount; __co_sn++; SendCustomEventDelayedSeconds(\"__co_sec\", t); }";
-                yield return "public void __co_sec() { if (__co_sn == 0) return; int b = 0; for (int i = 1; i < __co_sn; i++) if (__co_st[i] < __co_st[b]) b = i; int c = __co_sh[b]; int sf = __co_sf[b]; "
-                             + "for (int i = b + 1; i < __co_sn; i++) { __co_sh[i - 1] = __co_sh[i]; __co_st[i - 1] = __co_st[i]; __co_sf[i - 1] = __co_sf[i]; } __co_sn--; object[] s = __co_get(c); if (s == null) return; "
+                             + "if (__co_sn == __co_sh.Length) { int[] g = new int[__co_sn * 2]; float[] gt = new float[__co_sn * 2]; int[] gf = new int[__co_sn * 2]; int[] gq = new int[__co_sn * 2]; for (int i = 0; i < __co_sn; i++) { g[i] = __co_sh[i]; gt[i] = __co_st[i]; gf[i] = __co_sf[i]; gq[i] = __co_sq[i]; } __co_sh = g; __co_st = gt; __co_sf = gf; __co_sq = gq; } "
+                             // 期限（同じなら予約の順）の最小ヒープに足す。予約の順の番号は増えていくので、期限が同じなら、あとから足したものは親より後ろ（上へは、期限が親より早いときだけ上がる）
+                             + "float due = UnityEngine.Time.time + t; int k = __co_sn; __co_sn++; while (k > 0) { int p = (k - 1) >> 1; if (!(due < __co_st[p])) break; __co_sh[k] = __co_sh[p]; __co_st[k] = __co_st[p]; __co_sf[k] = __co_sf[p]; __co_sq[k] = __co_sq[p]; k = p; } "
+                             + "__co_sh[k] = hd[0]; __co_st[k] = due; __co_sf[k] = UnityEngine.Time.frameCount; __co_sq[k] = __co_sc; __co_sc++; SendCustomEventDelayedSeconds(\"__co_sec\", t); }";
+                // 取り出すのは、ヒープの先頭（期限がいちばん早い。同じなら先に予約したもの）。最後の 1 つを先頭から下へ入れ直す（O(log n)）
+                yield return "public void __co_sec() { if (__co_sn == 0) return; int c = __co_sh[0]; int sf = __co_sf[0]; __co_sn--; int n = __co_sn; if (n > 0) { float lt = __co_st[n]; int lq = __co_sq[n]; int lh = __co_sh[n]; int lf = __co_sf[n]; int k = 0; "
+                             + "while (true) { int m = 2 * k + 1; if (m >= n) break; int r = m + 1; if (r < n && (__co_st[r] < __co_st[m] || (__co_st[r] == __co_st[m] && __co_sq[r] - __co_sq[m] < 0))) m = r; "
+                             + "if (!(__co_st[m] < lt || (__co_st[m] == lt && __co_sq[m] - lq < 0))) break; __co_sh[k] = __co_sh[m]; __co_st[k] = __co_st[m]; __co_sf[k] = __co_sf[m]; __co_sq[k] = __co_sq[m]; k = m; } "
+                             + "__co_sh[k] = lh; __co_st[k] = lt; __co_sf[k] = lf; __co_sq[k] = lq; } object[] s = __co_get(c); if (s == null) return; "
                              + "if (sf >= UnityEngine.Time.frameCount) { __co_wf(s); return; } __co_step(s); }";
             }
         }
