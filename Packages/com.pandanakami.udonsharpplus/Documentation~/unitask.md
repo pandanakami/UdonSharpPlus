@@ -70,9 +70,9 @@ UniTask は、VRChat SDK に同梱されています（`com.vrchat.base` の `Pl
 `CancellationTokenSource.Cancel()` で、トークンつきの待ちを止められます。使えるのは、次のものだけです。
 
 - `new CancellationTokenSource()`・`cts.Token`・`cts.Cancel()`・`cts.IsCancellationRequested`・`cts.Dispose()`（何もしません）
-- `CancellationToken` の値：フィールド・ローカル変数・`async` メソッドの引数（`CancellationToken token = default` も）。`token.IsCancellationRequested`・`token.ThrowIfCancellationRequested()`（`async` メソッドの中）
+- `CancellationToken` の値：`private` のフィールド（`public`・`[SerializeField]`・`[UdonSynced]` はエラー）・ローカル変数・`async` メソッドの引数（`CancellationToken token = default` も）。`List`・配列・タプルに入れる書き方はエラーです。`token.IsCancellationRequested`・`token.ThrowIfCancellationRequested()`（`async` メソッドの中）
 - トークンを渡せる待ち：`UniTask.Delay`・`Yield`・`NextFrame`・`DelayFrame`・`WaitUntil`・`WaitWhile`（`cancellationToken: token`、または位置引数）
-- `destroyCancellationToken`・`GetCancellationTokenOnDestroy()`：止まらないトークンとして扱います（`GameObject` を破棄すると、Udon がコルーチンを全部止めるため）。`default`・`CancellationToken.None` も同じです
+- `destroyCancellationToken`・`GetCancellationTokenOnDestroy()`：止まらないトークンとして扱います（`GameObject` を破棄すると、Udon がコルーチンを全部止めるため）。`default`・`CancellationToken.None` も同じです。そのまま渡してください（変数に入れて渡しても止まりませんが、毎フレーム見る待ちになります）
 
 ```csharp
 private CancellationTokenSource _cts = new CancellationTokenSource();

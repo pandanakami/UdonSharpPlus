@@ -1312,6 +1312,15 @@ namespace UdonSharpPlus
                 return _edits.Take(e);
             }
 
+            /// <summary>書き換えたトークンの式が null（None・default・destroyCancellationToken）</summary>
+            private static bool IsNullText(string text)
+            {
+                text = text.Trim();
+                while (text.Length > 1 && text[0] == '(' && text[text.Length - 1] == ')')
+                    text = text.Substring(1, text.Length - 2).Trim();
+                return text == "null";
+            }
+
             /// <summary>
             /// CancellationTokenSource・CancellationToken を int[1] に書き換える。Udon に、これらの型の実体がないため。
             /// 型の名前は int[]、new CancellationTokenSource() は new int[1]、default・None・destroyCancellationToken は null（止まらないトークン）
@@ -1323,6 +1332,21 @@ namespace UdonSharpPlus
                 var nodes = OwnNodes().Where(n => n is IdentifierNameSyntax id && (id.Identifier.ValueText == "CancellationToken" || id.Identifier.ValueText == "CancellationTokenSource" || id.Identifier.ValueText == "destroyCancellationToken")
                     || n is QualifiedNameSyntax || n is MemberAccessExpressionSyntax || n is InvocationExpressionSyntax || n is ObjectCreationExpressionSyntax
                     || n is DefaultExpressionSyntax || n.IsKind(SyntaxKind.DefaultLiteralExpression) || n is ConditionalAccessExpressionSyntax).ToList();
+                // public・[SerializeField]・[UdonSynced] のフィールドは、書き換えると int[] の public フィールドになり、Inspector・同期に出てしまうので、エラー
+                foreach (FieldDeclarationSyntax field in _cls.Members.OfType<FieldDeclarationSyntax>())
+                {
+                    if (!IsTokenType(_model.GetTypeInfo(field.Declaration.Type).Type))
+                        continue;
+                    bool exposed = field.Modifiers.Any(SyntaxKind.PublicKeyword)
+                        || field.AttributeLists.SelectMany(a => a.Attributes).Any(a =>
+                        {
+                            string n = a.Name.ToString();
+                            return n.EndsWith("SerializeField") || n.EndsWith("UdonSynced");
+                        });
+                    if (exposed)
+                        TokenError(field.Declaration.Type, Loc.T("public・[SerializeField]・[UdonSynced] の CancellationToken・CancellationTokenSource のフィールド（private で、属性なしで書いてください）",
+                            "A public, [SerializeField] or [UdonSynced] field of CancellationToken / CancellationTokenSource (write it private, without attributes)"));
+                }
                 // 外側の式が、中の式の書き換えを取り込めるよう、中のものから（あとにあるもの・短いものから）書き換える
                 foreach (SyntaxNode n in nodes.OrderByDescending(x => x.SpanStart).ThenBy(x => x.Span.Length))
                 {
@@ -1340,7 +1364,7 @@ namespace UdonSharpPlus
                                 Replace(n, "null");
                             break;
                         case QualifiedNameSyntax qualified when IsTokenType(_model.GetTypeInfo(qualified).Type):
-                            Replace(qualified, "int[]");
+                            TokenType(qualified);
                             break;
                         case ConditionalAccessExpressionSyntax conditional when IsTokenType(_model.GetTypeInfo(conditional.Expression).Type):
                             TokenError(conditional, Loc.T("?. （null 条件演算子）", "The ?. operator"));
@@ -1362,17 +1386,29 @@ namespace UdonSharpPlus
             private void TokenName(IdentifierNameSyntax id)
             {
                 string name = id.Identifier.ValueText;
-                if (id.Parent is QualifiedNameSyntax || id.Parent is MemberAccessExpressionSyntax access && (access.Expression == id || access.Name == id) || id.Parent is ObjectCreationExpressionSyntax)
-                    return;   // 型の名前のあとのメンバー・new の型・メンバーの名前は、外側で扱う
                 ISymbol symbol = _model.GetSymbolInfo(id).Symbol;
                 if (name == "destroyCancellationToken")
                 {
-                    if (symbol is IPropertySymbol)
+                    // this.destroyCancellationToken の名前の側は、メンバーの参照（TokenMember）で扱う。ほかは null に
+                    if (symbol is IPropertySymbol && !(id.Parent is MemberAccessExpressionSyntax owner && owner.Name == id))
                         Replace(id, "null");
                     return;
                 }
+                if (id.Parent is QualifiedNameSyntax || id.Parent is MemberAccessExpressionSyntax access && (access.Expression == id || access.Name == id) || id.Parent is ObjectCreationExpressionSyntax)
+                    return;   // 型の名前のあとのメンバー・new の型・メンバーの名前は、外側で扱う
                 if (symbol is ITypeSymbol type && IsTokenType(type))
-                    Replace(id, "int[]");
+                    TokenType(id);
+            }
+
+            /// <summary>型の名前を int[] にする。List・配列・タプルの要素にする書き方は、エラー</summary>
+            private void TokenType(TypeSyntax type)
+            {
+                if (type.Parent is TypeArgumentListSyntax || type.Parent is ArrayTypeSyntax || type.Parent is TupleElementSyntax)
+                {
+                    TokenError(type, Loc.T("CancellationToken・CancellationTokenSource を List・配列・タプルの要素にする書き方", "Using CancellationToken / CancellationTokenSource as the element of a List, array or tuple"));
+                    return;
+                }
+                Replace(type, "int[]");
             }
 
             /// <summary>メンバーの参照：Token・IsCancellationRequested・CancellationToken.None・this.destroyCancellationToken。使えないものはエラー</summary>
@@ -1406,7 +1442,7 @@ namespace UdonSharpPlus
                     {
                         string recv = Receiver(access.Expression);
                         if (recv != null)
-                            Replace(access, $"({recv} != null && {recv}[0] != 0)");
+                            Replace(access, IsNullText(recv) ? "false" : $"({recv} != null && {recv}[0] != 0)");   // null は、キャンセルされないトークン
                         return;
                     }
                     case "Cancel":
@@ -1462,7 +1498,7 @@ namespace UdonSharpPlus
                         }
                         string recv = Receiver(access.Expression);
                         if (recv != null)
-                            Replace(statement, $"if ({recv} != null && {recv}[0] != 0) {{ __co_tk(__s); yield break; }}");
+                            Replace(statement, IsNullText(recv) ? ";" : $"if ({recv} != null && {recv}[0] != 0) {{ __co_tk(__s); yield break; }}");
                         return;
                     }
                     default:

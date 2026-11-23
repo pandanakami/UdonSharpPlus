@@ -98,6 +98,9 @@ namespace UdonSharpPlus
             // コルーチンの値（Coroutine・IEnumerator。#107 で状態の番号の int に書き換える）
             if (type == typeof(Coroutine) || type == typeof(System.Collections.IEnumerator))
                 return typeof(int);
+            // CancellationTokenSource・CancellationToken（#225 で int[1]（キャンセル済みか）に書き換える）
+            if (type == typeof(System.Threading.CancellationToken) || type == typeof(System.Threading.CancellationTokenSource))
+                return typeof(int[]);
             // WaitForSeconds・WaitForSecondsRealtime（#107 で秒の float に書き換える）
             if (type == typeof(WaitForSeconds) || type == typeof(WaitForSecondsRealtime))
                 return typeof(float);

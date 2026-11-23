@@ -35,7 +35,7 @@ namespace FeatureTests.Async
         // cnapcl/F11P（#225）：CancellationTokenSource.Cancel() で、トークンつきの待ち（Delay・WaitUntil・子を待つ親・DelayFrame のあとの ThrowIfCancellationRequested）が止まり、
         //   続きが動かない（a・p・c は始めたしるし。A・P・C・Z・S・T が出ない）。IsCancellationRequested を見るループは抜けて続きが動く（l）。
         //   F：Cancel のあと、ループが止まる。11：キャンセルしないトークン・destroyCancellationToken の待ちは、ふつうに終わる。P：キャンセル済みのトークンで待ち始めると、続きが動かない
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L;cnapcl/F11P;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L;cnapcl/F11P;cm110110000/10;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
         public AsyncPeer peer;
@@ -157,6 +157,7 @@ namespace FeatureTests.Async
 
             await Life();
             await Cancels();
+            await Cancels2();
 
             Conc("p", 10);
             Conc("q", 20);
@@ -207,6 +208,46 @@ namespace FeatureTests.Async
             CPre(pre.Token);
             await UniTask.Delay(200);
             _log += "cn" + _cx + "/" + (l1 == l2 ? "F" : "f") + _cn + _cd + (_cx2 == "" ? "P" : "p") + ";";
+        }
+
+        // cm110110000/10（#225）：m2=1：CTS を作り直したあと、古いトークンの待ちだけ止まり、新しいトークンの待ちは終わる。r=1・R=0：Cancel() の次の文は動き、次の await で止まる。
+        //   h=1：destroyCancellationToken を変数に入れて渡した待ちは終わる。s=1・L=0：WhenAll の子が止まると親も止まり、ほかの子は動き続ける。V=0：値を返す子が止まると、親は値を読まない。
+        //   W=0：条件成立と Cancel が同じフレームなら、止まるほうが先。m1=0：古いトークンの待ちは動かない。10：WhenAny は、止まった子を、終わった子として勝者にする（番号 0）
+        private int _m2, _mr, _mR, _mh, _ms, _mL, _mV, _mW, _m1, _ma;
+        private bool _race;
+        private CancellationTokenSource _rc;
+
+        private async UniTask CRe(CancellationToken t, int id) { await UniTask.Delay(100, cancellationToken: t); if (id == 2) _m2 = 1; else _m1 = 9; }
+        private async UniTask CSelf() { var c = new CancellationTokenSource(); c.Cancel(); c.Cancel(); _mr = 1; await UniTask.Yield(c.Token); _mR = 1; }
+        private async UniTask CHeld() { CancellationToken held = destroyCancellationToken; await UniTask.Delay(30, cancellationToken: held); _mh = 1; }
+        private async UniTask CDelay2(CancellationToken t) { await UniTask.Delay(10000, cancellationToken: t); }
+        private async UniTask CShort() { await UniTask.Delay(60); _ms = 1; }
+        private async UniTask CNever() { await UniTask.Delay(100000); }
+        private async UniTask<int> CVal(CancellationToken t) { await UniTask.Delay(10000, cancellationToken: t); return 5; }
+        private async UniTask CValParent(CancellationToken t) { int v = await CVal(t); _mV = v; }
+        private async UniTask CAnyParent(CancellationToken t) { int i = await UniTask.WhenAny(CDelay2(t), CNever()); _ma = 10 + i; }
+        private async UniTask CAllParent(CancellationToken t) { await UniTask.WhenAll(CDelay2(t), CShort()); _mL = 1; }
+        private async UniTask CRace(CancellationToken t) { await UniTask.WaitUntil(() => _race, cancellationToken: t); _mW = 1; }
+
+        private async UniTask Cancels2()
+        {
+            _rc = new CancellationTokenSource();
+            CRe(_rc.Token, 1);
+            _rc.Cancel();
+            _rc = new CancellationTokenSource();
+            CRe(_rc.Token, 2);
+            CSelf();
+            CHeld();
+            var c = new CancellationTokenSource();
+            CValParent(c.Token);
+            CAnyParent(c.Token);
+            CAllParent(c.Token);
+            CRace(c.Token);
+            await UniTask.DelayFrame(4);
+            _race = true;
+            c.Cancel();
+            await UniTask.Delay(400);
+            _log += "cm" + _m2 + _mr + _mR + _mh + _ms + _mL + _mV + _mW + _m1 + "/" + _ma + ";";
         }
 
         // 別の GameObject の async（AsyncPeer）：停止・多重呼び出し

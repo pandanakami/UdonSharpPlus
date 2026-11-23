@@ -332,6 +332,21 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
         }
 
         [Test]
+        public void NeverCancelledTokensCanBeReadAndHeldInVariables()
+        {
+            // None・default・destroyCancellationToken は null に書き換わる。それに直接つけた読み取り・変数に入れて渡す形も、コンパイルできる
+            string code = Lowered("TokenNullReads", "async UniTask Foo()\n{\n"
+                + "    CancellationToken.None.ThrowIfCancellationRequested();\n"
+                + "    bool a = destroyCancellationToken.IsCancellationRequested;\n"
+                + "    bool b = CancellationToken.None.IsCancellationRequested;\n"
+                + "    CancellationToken held = destroyCancellationToken;\n"
+                + "    await UniTask.Yield(held);\n"
+                + "    held.ThrowIfCancellationRequested();\n"
+                + "}\nvoid Start() { Foo(); }");
+            Assert.That(code, Does.Not.Contain("null[0]"), "null には、添字をつけない");
+        }
+
+        [Test]
         public void CancellationTokenCompilesInUdonSharp()
         {
             CompileOk(TokenUse);
@@ -348,6 +363,12 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
             AssertError("async UniTask Dummy() { await UniTask.Yield(); }\nvoid Start() { var c = new CancellationTokenSource(100); }", "引数のある new CancellationTokenSource", BodyLine + 1);
             AssertError(head + "void Start() { _cts.Cancel(true); }", "Cancel(bool) は未対応", BodyLine + 2);
             AssertError(head + "void Start() { _cts?.Cancel(); }", "?. （null 条件演算子） は未対応", BodyLine + 2);
+            AssertError(head + "public CancellationToken exposed;", "public・[SerializeField]・[UdonSynced]", BodyLine + 2);
+            AssertError(head + "[SerializeField] private CancellationTokenSource serialized;", "public・[SerializeField]・[UdonSynced]", BodyLine + 2);
+            AssertError(head + "[UdonSynced] CancellationToken synced;", "public・[SerializeField]・[UdonSynced]", BodyLine + 2);
+            AssertError(head + "System.Collections.Generic.List<CancellationToken> list;", "List・配列・タプルの要素", BodyLine + 2);
+            AssertError(head + "CancellationToken[] array;", "List・配列・タプルの要素", BodyLine + 2);
+            AssertError(head + "(CancellationToken, int) pair;", "List・配列・タプルの要素", BodyLine + 2);
             AssertError("async UniTask Dummy() { await UniTask.Yield(); }\nvoid Foo(CancellationToken t) { t.ThrowIfCancellationRequested(); }", "async メソッドの外", BodyLine + 1);
         }
 

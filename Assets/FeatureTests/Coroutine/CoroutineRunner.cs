@@ -708,12 +708,14 @@ namespace FeatureTests.Coroutines
         [HideInInspector] public string ext = "";
         public GameObject peerParent;
         private string _life = "";
+        private bool _lifeDone;   // Life() が最後まで進んだ（遅いフレームが続くと、固定の時間の Judge より遅くなるので、Judge は終わるのを待つ。#218）
 
         private IEnumerator Life()
         {
             if (peerParent == null)
             {
                 _life += "noparent;";
+                _lifeDone = true;
                 yield break;
             }
             peer.Begin("p");
@@ -749,6 +751,7 @@ namespace FeatureTests.Coroutines
             int n3 = ext.Length;
             for (int k = 0; k < 3; k++) yield return null;
             _life += "destroy" + n3 + "," + ext.Length + ";";
+            _lifeDone = true;
         }
 
         // P：そのほかの書き方（オーバーロード・既定の引数・params・デリゲートが返す IEnumerator・ハンドルを返すメソッド・三項演算子・
@@ -1298,6 +1301,10 @@ namespace FeatureTests.Coroutines
             yield return new WaitForSeconds(1f);
             StartCoroutine(Steps("z", F()));
             yield return new WaitForSeconds(0.5f);
+            // Life() は、フレームの数で進む。エディタのフレームが遅い（Instantiate・重いフレーム）と、ここまでに終わらないので、終わるのを待つ（最大 10 秒）
+            float limit = Time.time + 10f;
+            while (!_lifeDone && Time.time < limit)
+                yield return null;
             Finish();
         }
 
