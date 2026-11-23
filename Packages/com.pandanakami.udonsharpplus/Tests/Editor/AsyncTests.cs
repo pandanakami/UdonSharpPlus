@@ -295,6 +295,31 @@ async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
             Assert.That(code, Does.Not.Contain("void Plain()"), "UniTask を返すものは、await されるので、コルーチンのまま");
         }
 
+        [Test]
+        public void AsyncOverridesOfEveryEventCompileAndKeepTheEventName()
+        {
+            // UdonSharpBehaviour の、ほぼすべてのイベント（引数つきを含む）を async にしても、コンパイルでき、同じ名前・同じ引数の void のメソッドが残る（#226 のあとの追加テスト）。
+            // 同じ名前の多重定義（OnDeserialization など）は、引数の数が多いほうを使う
+            var events = System.AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("UdonSharp.UdonSharpBehaviour")).First(x => x != null)
+                .GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly)
+                .Where(m => m.IsVirtual && !m.IsFinal && m.ReturnType == typeof(void) && (m.Name.StartsWith("On") || m.Name == "Interact" || m.Name == "PostLateUpdate")
+                            && !m.IsDefined(typeof(System.ObsoleteAttribute), false))
+                .GroupBy(m => m.Name)
+                .Select(g => g.OrderByDescending(m => m.GetParameters().Length).First())
+                .OrderBy(m => m.Name, System.StringComparer.Ordinal)
+                .ToList();
+            Assert.That(events.Count, Is.GreaterThan(30), "イベントが取れていません");
+            var sb = new System.Text.StringBuilder();
+            foreach (System.Reflection.MethodInfo m in events)
+            {
+                string parameters = string.Join(", ", m.GetParameters().Select(p => "global::" + p.ParameterType.FullName.Replace('+', '.') + " " + p.Name));
+                sb.Append($"public override async void {m.Name}({parameters}) {{ await UniTask.Yield(); }}\n");
+            }
+            string code = Lowered("AllEvents", sb.ToString());
+            foreach (System.Reflection.MethodInfo m in events)
+                Assert.That(code, Does.Contain($"void {m.Name}("), m.Name + " の void のメソッドが残っていません");
+        }
+
         // ---- CancellationToken（#225）----
 
         private const string TokenUse =
