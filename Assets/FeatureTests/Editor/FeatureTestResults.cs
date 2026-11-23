@@ -23,6 +23,7 @@ namespace FeatureTests.EditorTools
         private static readonly Dictionary<string, string> Manual = new Dictionary<string, string>
         {
             { "NetworkProbe", "#32 NetworkCallable：パネルの SEND を押し、表示の 1〜5 を見る（2 つのクライアントでも）" },
+            { "ClientCheck", "#227 クライアント確認：ボタン（立方体）を押し、パネルの各行の expect と見比べる（2 つのクライアントで）" },
             { "RuntimeErrorProbe", "#53 実行時例外の位置：Interact で、コンソールの「Udon runtime exception detected!」が Faulty.cs の 11 行目になること" },
         };
 
