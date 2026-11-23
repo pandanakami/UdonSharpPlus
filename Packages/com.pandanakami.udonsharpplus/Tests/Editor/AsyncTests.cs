@@ -202,6 +202,20 @@ async UniTask A()
         // ---- 対応しない書き方 ----------------------------------------------------
 
         [Test]
+        public void LocalsThatCarryOverAreNullAndTheOthersAreDefault()
+        {
+            // yield をまたいで持ち越す配列（戻り値の置き場）は、再開のときにキャスト（object の箱）で戻すので、null（object の箱）で初期化する。
+            // 持ち越さない配列（タプルを受ける一時変数）は、コンストラクタの結果（object[] の箱）が入るので、default（object[] の箱）のまま。
+            // 箱の型が合わないと、Udon の変数コピーで、実行のたびに確保する（#217・#220）
+            string code = Lowered("Carry", @"void Start() { Run(); }
+async UniTask Run() { var (a, b) = await UniTask.WhenAll(Add(1, 2), Add(3, 4)); }
+async UniTask<int> Add(int x, int y) { await UniTask.Yield(); return x + y; }");
+            Assert.That(System.Text.RegularExpressions.Regex.IsMatch(code, @"object\[\] __ar\d+ = null;"), Is.True, "持ち越す置き場は、null で初期化する");
+            Assert.That(System.Text.RegularExpressions.Regex.IsMatch(code, @"object\[\] __td\d+ = default\(object\[\]\);"), Is.True, "持ち越さないタプルの一時変数は、default のまま");
+            Assert.That(System.Text.RegularExpressions.Regex.IsMatch(code, @"object\[\] __td\d+ = null;"), Is.False);
+        }
+
+        [Test]
         public void ValueReturningAsyncUsesAHolder()
         {
             string code = Lowered("Value", @"public int n;

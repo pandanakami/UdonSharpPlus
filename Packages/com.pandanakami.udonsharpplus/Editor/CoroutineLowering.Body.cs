@@ -36,7 +36,7 @@ namespace UdonSharpPlus
                     public string Type;
                     public int DeclPos;
                     public bool IsParam;
-                    /// <summary>配列型（default(T) の代わりに null で初期化する：Udon では、配列のローカルを default(T) で初期化すると、実行のたびに確保が出る。GameObject などの Unity の型は、null にすると動かなくなったので、default(T) のまま）</summary>
+                    /// <summary>配列型（yield をまたいで持ち越すものは、default(T) の代わりに null で初期化する：持ち越すものは、再開のときに、キャスト（object の箱）で戻すので、型つきの null 定数（object[] の箱）で初期化すると、Udon の変数コピーで、箱の型が入れ替わって確保が出る。持ち越さないもの（タプルを受ける一時変数など）は、new・コンストラクタの結果（object[] の箱）が入るので、default(T) のまま）</summary>
                     public bool IsRef;
                     public bool Written;
                     public int Slot = -1;
@@ -123,7 +123,7 @@ namespace UdonSharpPlus
                     // 頭：修飾子から本体の開き括弧まで（引数が複数行なら、その分の改行を残す）
                     var head = new StringBuilder();
                     foreach (Var v in _vars)
-                        head.Append(v.IsParam ? $"{v.Type} {v.Name} = ({v.Type})__s[{v.Slot}]; " : $"{v.Type} {v.Name} = {(v.IsRef ? "null" : $"default({v.Type})")}; ");
+                        head.Append(v.IsParam ? $"{v.Type} {v.Name} = ({v.Type})__s[{v.Slot}]; " : $"{v.Type} {v.Name} = {(v.IsRef && v.Slot >= 0 ? "null" : $"default({v.Type})")}; ");
                     var headSpan = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(
                         m.Modifiers.Count > 0 ? m.Modifiers.First().SpanStart : m.ReturnType.SpanStart, _body.OpenBraceToken.Span.End);
                     string headText = _edits.Take(headSpan);
