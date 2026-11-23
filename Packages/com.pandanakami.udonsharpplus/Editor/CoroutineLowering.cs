@@ -734,14 +734,17 @@ namespace UdonSharpPlus
                 // 予約は、そのフレームで最初に待ち始めたときにする（前のフレームの予約がまだ届いていなくても、それは今のフレームに届くので、別に予約する）。
                 // ビヘイビアどうしの再開の順は、前のフレームで各ビヘイビアが最初に待ち始めた順になる
                 yield return "private int __co_fr = -1;";
+                yield return "private int __co_fk = 0;";
                 yield return "protected void __co_wf(object[] s) { int[] hd = (int[])s[0]; __co_on[hd[1]] = 0; hd[5] = 0; hd[8] = 0; if (hd[6] != 0) { __co_recycle(s); return; } "
                              // 行列の末尾に届いたら、前に詰める。半分より多く埋まっているときだけ、2 倍の配列に広げる（毎フレーム待つものが多いと、詰めるたびに確保していた。#174）
                              + "if (__co_fh + __co_fn == __co_fq.Length) { int[] g = __co_fq; int[] gf = __co_ff; if (__co_fn * 2 > __co_fq.Length) { g = new int[__co_fq.Length * 2]; gf = new int[__co_fq.Length * 2]; } "
                              + "for (int i = 0; i < __co_fn; i++) { g[i] = __co_fq[__co_fh + i]; gf[i] = __co_ff[__co_fh + i]; } __co_fq = g; __co_ff = gf; __co_fh = 0; } "
-                             + "__co_fq[__co_fh + __co_fn] = hd[0]; __co_ff[__co_fh + __co_fn] = UnityEngine.Time.frameCount; __co_fn++; int f = UnityEngine.Time.frameCount; if (__co_fr != f) { __co_fr = f; SendCustomEventDelayedFrames(\"__co_frame\", 1); } }";
+                             + "__co_fq[__co_fh + __co_fn] = hd[0]; __co_ff[__co_fh + __co_fn] = UnityEngine.Time.frameCount; __co_fn++; int f = UnityEngine.Time.frameCount; if (__co_fr != f) { __co_fr = f; __co_fk++; SendCustomEventDelayedFrames(\"__co_frame\", 1); } }";
                 // 待ち始めたフレームのうちに呼ばれたら（外から呼ばれたときなど）、何も再開しない。再開したものがまた待つと、行列の後ろに今のフレームで入るので、ここでは再開しない
-                yield return "public void __co_frame() { int f = UnityEngine.Time.frameCount; "
-                             + "while (__co_fn > 0 && __co_ff[__co_fh] < f) { int c = __co_fq[__co_fh]; __co_fh++; __co_fn--; if (__co_fn == 0) __co_fh = 0; object[] s = __co_get(c); if (s != null) __co_step(s); } }";
+                yield return "public void __co_frame() { int f = UnityEngine.Time.frameCount; int k0 = __co_fk; "
+                             + "while (__co_fn > 0 && __co_ff[__co_fh] < f) { int c = __co_fq[__co_fh]; __co_fh++; __co_fn--; if (__co_fn == 0) __co_fh = 0; object[] s = __co_get(c); if (s != null) __co_step(s); } "
+                             // 待ち始めたのと同じフレームで届いて、再開しないまま残ったものがあり、そのあいだに次の予約もされていなければ、予約し直す（実機で、背面だったあとの最初の再開が取りこぼされた。#231）
+                             + "if (__co_fn > 0 && k0 == __co_fk) { __co_fr = f; __co_fk++; SendCustomEventDelayedFrames(\"__co_frame\", 1); } }";
 
                 // NaN・正の無限大は、Unity と同じく二度と再開しない（NaN は Unity と同じ警告を出す）。#107 の追加テスト案の 12
                 string naninf = "if (t != t) { UnityEngine.Debug.LogWarning(\"float.NaN has been passed into WaitForSeconds which will result in an infinite wait time.\"); __co_park(s); return; } if (t > float.MaxValue) { __co_park(s); return; } ";

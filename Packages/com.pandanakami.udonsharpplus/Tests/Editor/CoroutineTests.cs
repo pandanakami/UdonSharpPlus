@@ -464,8 +464,10 @@ IEnumerator Foo() { yield return null; }");
         {
             // 次のフレームの予約は、ビヘイビアごとに 1 フレーム 1 回（#174）
             string code = Lowered("FrameOnce", "IEnumerator Foo() { yield return null; }");
-            Assert.That(code, Does.Contain("if (__co_fr != f) { __co_fr = f; SendCustomEventDelayedFrames(\"__co_frame\", 1); }"));
-            Assert.That(Regex.Matches(code, "SendCustomEventDelayedFrames").Count, Is.EqualTo(1));
+            Assert.That(code, Does.Contain("if (__co_fr != f) { __co_fr = f; __co_fk++; SendCustomEventDelayedFrames(\"__co_frame\", 1); }"));
+            // もう 1 か所は、届いたフレームで再開できずに残ったとき、予約がなければ、予約し直すところ（実機で最初の再開が取りこぼされた。#231）
+            Assert.That(code, Does.Contain("if (__co_fn > 0 && k0 == __co_fk) { __co_fr = f; __co_fk++; SendCustomEventDelayedFrames(\"__co_frame\", 1); }"));
+            Assert.That(Regex.Matches(code, "SendCustomEventDelayedFrames").Count, Is.EqualTo(2));
             Assert.That(code, Does.Not.Contain("RecursiveMethod"), "戻り値を使う開始は、自分の積み上げで退避する");
         }
 

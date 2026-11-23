@@ -11,11 +11,19 @@ New
 
 - UniTask (`async` / `await`) can be used in an `UdonSharpBehaviour`. UdonSharp itself does not support it. `async UniTask`, `async UniTaskVoid` and `async void` methods are rewritten to coroutines, so waiting, stopping and the frame it resumes in are the same as coroutines. You can `await UniTask.Yield()`, `NextFrame()`, `Delay(...)` (milliseconds or `TimeSpan.FromSeconds(x)`, with `ignoreTimeScale` / `DelayType`), `DelayFrame(n)`, `WaitUntil(...)`, `WaitWhile(...)`, and a call to another async method (it waits for the child). `Foo();` and `Foo().Forget();` start it in parallel. `Start`, `Update` and `override` events (`Interact`, `OnPlayerJoined`, ...) can be `async`. Methods returning a value (`async UniTask<int> Add(int a, int b)`) work too: `var x = await Add(1, 2);`, `x = await ...;`, `return await ...;`. `await UniTask.WhenAll(A(), B())` starts them all and waits for all of them (`var (a, b) = await UniTask.WhenAll(A(), B());` takes the values). `await UniTask.WhenAny(A(), B())` waits until one of them is done (the index, or `var (i, r1, r2) = ...` for values). A `UniTask` can be kept in a variable or field (`UniTask t = Foo(); await t;`, also passed to `WhenAll` / `WhenAny`). `CancellationToken` other than the supported forms (see unitask.md: `new CancellationTokenSource()`, `Cancel()`, `IsCancellationRequested`, `ThrowIfCancellationRequested()`, a token argument of `Delay` / `Yield` / `NextFrame` / `DelayFrame` / `WaitUntil` / `WaitWhile`, `destroyCancellationToken`), passing a `UniTask` as an argument or return value or keeping it in an array or list, an `await` in the middle of an expression, and `await` inside `try` are compile errors. UniTask comes with the VRChat SDK; UdonSharp Plus does not depend on it, so scripts that do not use UniTask are not affected. See Documentation~/unitask.md.
 
+Fixes
+
+- A coroutine (and `async` method) that was waiting for the next frame could, rarely, never resume in the VRChat client, when the event that resumes it arrived in the same frame the wait began (seen after the window had been in the background). It is now reserved again in that case.
+
 ### 日本語
 
 新しく使えるもの
 
 - UniTask の `async` / `await` を、`UdonSharpBehaviour` の中で使えるようになりました（UdonSharp 自体は対応していません）。`async UniTask`・`async UniTaskVoid`・`async void` のメソッドをコルーチンに書き換えるので、待ち方・止まる条件・再開するフレームはコルーチンと同じです。`await` できるのは、`UniTask.Yield()`・`NextFrame()`・`Delay(...)`（ミリ秒か `TimeSpan.FromSeconds(x)`。`ignoreTimeScale`・`DelayType` も使えます）・`DelayFrame(n)`・`WaitUntil(...)`・`WaitWhile(...)`・ほかの async メソッドの呼び出し（子を待ちます）です。`Foo();`・`Foo().Forget();` で並行して始められます。`Start`・`Update`・`override` したイベント（`Interact`・`OnPlayerJoined` など）も `async` にできます。値を返すメソッド（`async UniTask<int> Add(int a, int b)`）も使えます：`var x = await Add(1, 2);`・`x = await ...;`・`return await ...;`。`await UniTask.WhenAll(A(), B())` は、全部を始めて、全部が終わるまで待ちます（`var (a, b) = await UniTask.WhenAll(A(), B());` で値を受け取れます）。`await UniTask.WhenAny(A(), B())` は、どれかが終わるまで待ちます（終わったものの番号、値は `var (i, r1, r2) = ...`）。`UniTask` は、変数・フィールドに入れられます（`UniTask t = Foo(); await t;`。`WhenAll`・`WhenAny` にも渡せます）。`CancellationToken` のうち対応する形（unitask.md：`new CancellationTokenSource()`・`Cancel()`・`IsCancellationRequested`・`ThrowIfCancellationRequested()`・`Delay`・`Yield`・`NextFrame`・`DelayFrame`・`WaitUntil`・`WaitWhile` に渡すトークン・`destroyCancellationToken`）以外・`UniTask` を引数・戻り値に渡す・配列や List に入れる書き方・式の途中の `await`・`try` の中の `await` は、コンパイルエラーです。UniTask は VRChat SDK に同梱されています。UdonSharp Plus は UniTask に依存しないので、UniTask を使わないスクリプトは何も変わりません。詳しくは Documentation~/unitask.md を見てください。
+
+直したこと
+
+- 次のフレームを待っているコルーチン（と `async` メソッド）が、VRChat のクライアントで、まれに再開しないままになることがありました（ウィンドウが背面だったあとなどで、再開のイベントが、待ち始めたのと同じフレームに届いたとき）。その場合は、予約し直すようにしました。
 
 ## [0.1.6]
 
