@@ -23,6 +23,15 @@ namespace FeatureTests.ClientCheck
 
         [UdonSynced] private int _sv;
         private string _lines = "";
+        private int _lineCount;
+        private int _nb0;
+        private int _nc0;
+        private int _nb1;
+        private int _nc1;
+        private int _nb2;
+        private int _nc2;
+        private int _nb3;
+        private int _nc3;
         private CancellationTokenSource _cts;
         private bool _mOn;
         private float _mAcc;
@@ -33,11 +42,31 @@ namespace FeatureTests.ClientCheck
         public void Add(string s)
         {
             _lines += Time.realtimeSinceStartup.ToString("F2") + " " + s + "\n";
-            if (_lines.Length > 3400)
-                _lines = _lines.Substring(_lines.Length - 2800);
+            _lineCount++;
+            if (_lineCount > 20)
+            {
+                // パネルからはみ出さないよう、新しい 20 行だけを残す（全部は、ログの [FeatureTests] #227 の行にある）
+                _lines = _lines.Substring(_lines.IndexOf('\n') + 1);
+                _lineCount--;
+            }
             Debug.Log("[FeatureTests] #227 " + s);
+            Show();
+        }
+
+        // このクライアントの番号（playerId。先に入った側が 1・あとが 2）。同じアカウントで 2 つ動かすと名前では区別できない
+        private string Me()
+        {
+            VRCPlayerApi me = Networking.LocalPlayer;
+            if (!Utilities.IsValid(me))
+                return "?";
+            return me.playerId + (me.isMaster ? " (master)" : "");
+        }
+
+        // 先頭に、ネットワークで呼ぶ async の begin・continued の数を出す（合わないときは、再開が取りこぼされている。#231）
+        private void Show()
+        {
             if (display != null)
-                display.text = Header + _lines;
+                display.text = Header + "[this client: player " + Me() + "]  NetNoArg begin/continued " + _nb0 + "/" + _nc0 + "   NetArg " + _nb1 + "/" + _nc1 + "   [control: delayed frame " + _nb2 + "/" + _nc2 + "  coroutine " + _nb3 + "/" + _nc3 + "]\n" + _lines;
         }
 
         private void Update()
@@ -110,17 +139,49 @@ namespace FeatureTests.ClientCheck
 
         public async void NetNoArg()
         {
+            _nb0++;
             Add("B NetNoArg: begin");
             await UniTask.Yield();
+            _nc0++;
             Add("B NetNoArg: continued");
         }
 
         [NetworkCallable]
         public async void NetArg(int n)
         {
+            _nb1++;
             Add("B NetArg(" + n + "): begin");
             await UniTask.Yield();
+            _nc1++;
             Add("B NetArg(" + n + "): continued");
+        }
+
+        // ---- 対照（#231）：UniTask・async の書き換えを使わない。取りこぼしが、VRChat の遅れのイベントそのものか、書き換えかを分ける ----
+        public void NetCtl()
+        {
+            _nb2++;
+            Add("B ctl delayedFrame: begin");
+            SendCustomEventDelayedFrames("CtlDone", 1);
+        }
+
+        public void CtlDone()
+        {
+            _nc2++;
+            Add("B ctl delayedFrame: continued");
+        }
+
+        public void NetCo()
+        {
+            StartCoroutine(CoNet());
+        }
+
+        private IEnumerator CoNet()
+        {
+            _nb3++;
+            Add("B ctl coroutine: begin");
+            yield return null;
+            _nc3++;
+            Add("B ctl coroutine: continued");
         }
 
         // ---- 押された ----
@@ -128,7 +189,7 @@ namespace FeatureTests.ClientCheck
         {
             switch (id)
             {
-                case 0: _lines = ""; Add("log cleared"); break;
+                case 0: _lines = ""; _lineCount = 0; Add("log cleared"); break;
                 case 1: SendCustomNetworkEvent(NetworkEventTarget.All, "NetNoArg"); break;
                 case 2: SendCustomNetworkEvent(NetworkEventTarget.Owner, "NetNoArg"); break;
                 case 3: SendCustomNetworkEvent(NetworkEventTarget.Self, "NetNoArg"); break;
@@ -145,6 +206,8 @@ namespace FeatureTests.ClientCheck
                 case 14: LoadCheck(1000); break;
                 case 15: StartCoroutine(CoWait()); break;
                 case 16: RawStart(); break;
+                case 17: SendCustomNetworkEvent(NetworkEventTarget.All, "NetCtl"); break;
+                case 18: SendCustomNetworkEvent(NetworkEventTarget.All, "NetCo"); break;
             }
         }
 
