@@ -21,7 +21,11 @@ UdonSharp Plus は、Harmony で UdonSharp（VRChat Worlds SDK に同梱）の�
    - ゴールデンテスト（`GoldenTests`）が落ちたら、UdonSharp が出す Udon Assembly が変わっていないか、期待値ファイルとの差分を見る。変わったのが UdonSharp 側の都合だけなら、`Tools > UdonSharpPlus > Tests > Update Expected Files` で期待値を作り直す。
 4. `Assets/FeatureTests/FeatureTests.unity` を ClientSim で実行し、全パネルが `RESULT: OK` になることを見る。プレイモードの間にメニューの `Tools/UdonSharpPlus/FeatureTests/Collect Results` を実行すると、全パネルの結果がコンソールに 1 つのログでまとめて出る（Unity MCP からは `execute_code` で `return FeatureTests.EditorTools.FeatureTestResults.Collect();`）。遅れて判定するパネルは「未完了」になるので、少し待って呼び直す。#32（ネットワーク）は 2 クライアント、#53（実行時エラー）は手で操作して確かめる（まとめの最後に「手で確認」として出る）。
    - 新しいパネルを足すときは、結果を出す UdonSharpBehaviour に `resultReady`・`resultOk`・`resultName`・`resultText` の public 変数を作り、判定したところで入れる（`[HideInInspector]` を付ける）。
-5. VRChat のクライアントでも、同じパネルを確かめる。
+5. VRChat のクライアントでも、同じパネルを確かめる。VRChat SDK の Build & Test で、Number of Clients を 2 にして起動する。
+   - 各パネルの 2 行目が `RESULT: OK` か見る。ログ（`%AppData%` の隣の `LocalLow\VRChat\VRChat\output_log_*.txt`）の `[FeatureTests] … OK` / `NG` の行でも見られる（ログは、少し遅れて書かれる）。
+   - 手で押して確かめる項目は、`ClientCheckTest`（x = 75 のパネルとボタン）にある。ボタンは立方体で、上のラベルが番号と内容。結果は、パネルの行（`expect:` と見比べる）と、ログの `[FeatureTests] #227 …` の行に出る。パネルの先頭に、このクライアントの番号（`playerId`。同じアカウントで 2 つ動かすと名前では区別できない）と、ネットワークで呼ぶ async の `begin/continued` の数が出る（数が合わなければ、再開の取りこぼし）。
+   - 1 台で 2 クライアントを動かすと、背面のクライアントはフレームが大きく間引かれる。「次のフレーム」の再開が遅れて見えたり、`Time.time` と実時間が数十 ms ずれたりするのは、そのため。待ち時間の判定は、1 ms の余裕を持たせてある（#228）。
+   - 同じフレームに届く、別のビヘイビアの再開の順は、起動のたびに変わることがある。テストでは、順に頼らない（#230）。
 6. `package.json` の `vpmDependencies` の範囲を広げ（例：`>=3.10.6 <3.12`）、README の「動作対象」も直して、パッケージのバージョンを上げてリリースする。
 
 ## リリース

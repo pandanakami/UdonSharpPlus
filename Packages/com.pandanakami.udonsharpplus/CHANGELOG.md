@@ -13,6 +13,7 @@ New
 
 Fixes
 
+- Coroutines that wait for many `WaitForSeconds` at the same time put less load on the frame.
 - A coroutine (and `async` method) that was waiting for the next frame could, rarely, never resume in the VRChat client, when the event that resumes it arrived in the same frame the wait began (seen after the window had been in the background). It is now reserved again in that case.
 
 ### 日本語
@@ -23,6 +24,7 @@ Fixes
 
 直したこと
 
+- コルーチンで `WaitForSeconds` を同時にたくさん待たせたときの、フレームの負荷を減らしました。
 - 次のフレームを待っているコルーチン（と `async` メソッド）が、VRChat のクライアントで、まれに再開しないままになることがありました（ウィンドウが背面だったあとなどで、再開のイベントが、待ち始めたのと同じフレームに届いたとき）。その場合は、予約し直すようにしました。
 
 ## [0.1.6]
