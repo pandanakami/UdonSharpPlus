@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
+using VRC.Udon.Common.Interfaces;
 
 namespace FeatureTests.Async
 {
@@ -35,7 +36,7 @@ namespace FeatureTests.Async
         // cnapcl/F11P（#225）：CancellationTokenSource.Cancel() で、トークンつきの待ち（Delay・WaitUntil・子を待つ親・DelayFrame のあとの ThrowIfCancellationRequested）が止まり、
         //   続きが動かない（a・p・c は始めたしるし。A・P・C・Z・S・T が出ない）。IsCancellationRequested を見るループは抜けて続きが動く（l）。
         //   F：Cancel のあと、ループが止まる。11：キャンセルしないトークン・destroyCancellationToken の待ちは、ふつうに終わる。P：キャンセル済みのトークンで待ち始めると、続きが動かない
-        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L;cnapcl/F11P;cm110110000/10;nmacbd/acbdab;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
+        private const string Expected = "s0;y1;n2;d5;z6;t;m;r;u;w;c1;c2;c3;sum3;v3x!10/40;w5y!;a0;b107;h9;f8;g12;ng2;k172;x19q53;lsABC;evIIJJ/ab12a1b2/;ov41/4/DDDDEEEE/d1b1d2b2B1D1B2D2/L;cnapcl/F11P;cm110110000/10;nmacbd/acbdab;ntef/n7N;ldesES;pa0;pb0;v0;p11;q21;pa1;pb1;v1;e;";
 
         public Text display;
         public AsyncPeer peer;
@@ -264,6 +265,13 @@ namespace FeatureTests.Async
             peer.NamedDelayed();
             await UniTask.Delay(300);
             _log += "nm" + first + "/" + peer.nlog + ";";
+            peer.nnet = "";
+            peer.nnet2 = "";
+            peer.SendCustomNetworkEvent(NetworkEventTarget.All, "NamedNet0");
+            peer.SendCustomNetworkEvent(NetworkEventTarget.All, "NamedNet", 7);
+            await UniTask.DelayFrame(10);
+            _log += "nt" + peer.nnet + "/" + peer.nnet2 + ";";
+            _log += "ld" + (derived != null ? derived.elog : "-") + ";";
         }
 
         // 別の GameObject の async（AsyncPeer）：停止・多重呼び出し

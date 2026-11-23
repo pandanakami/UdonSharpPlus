@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UdonSharp;
 using UnityEngine;
+using VRC.SDK3.UdonNetworkCalling;
 using VRC.SDKBase;
 
 namespace FeatureTests.Async
@@ -62,6 +63,18 @@ namespace FeatureTests.Async
         public async void Named() { nlog += "a"; await UniTask.Yield(); nlog += "b"; }
         public async UniTaskVoid NamedV() { nlog += "c"; await UniTask.Yield(); nlog += "d"; }
         public void NamedDelayed() { SendCustomEventDelayedSeconds("Named", 0.05f); }
+
+        // SendCustomNetworkEvent で名前を指定して呼ぶ（引数なし・[NetworkCallable] の引数あり。#226）
+        [HideInInspector] public string nnet = "";
+        [HideInInspector] public string nnet2 = "";
+        public async void NamedNet0() { nnet += "e"; await UniTask.Yield(); nnet += "f"; }
+        [NetworkCallable]
+        public async void NamedNet(int n) { nnet2 += "n" + n; await UniTask.Yield(); nnet2 += "N"; }
+
+        // ワールドのロード直後：OnEnable・Start を async にする（普通の Unity は、OnEnable → Start → 続きの順）
+        [HideInInspector] public string elog = "";
+        private async void OnEnable() { elog += "e"; await UniTask.Yield(); elog += "E"; }
+        private async void Start() { elog += "s"; await UniTask.Yield(); elog += "S"; }
 
         public void Begin(string tag) { Tick(tag); }
 
