@@ -99,6 +99,8 @@ namespace FeatureTests.Coroutines
         private string _timed = "";
         private string _loops = "";
         private string _lists = "";
+        // 実機（VRChat のクライアント）では、遅れのイベントの届く時刻と Time.time が、小数の丸めの分（1ms 未満）ずれて、指定の秒に届かないことがある（#228）。判定に 1ms の余裕を持たせる
+        private const float Tol = 0.001f;
         private float _t0;
         private Coroutine _y;
         private Coroutine _me;
@@ -214,7 +216,7 @@ namespace FeatureTests.Coroutines
             var real = new WaitForSecondsRealtime(0.05f);
             float r = Time.realtimeSinceStartup;
             yield return real;
-            _cached += "w" + (Time.time - t >= 0.1f) + (Time.realtimeSinceStartup - r >= 0.05f) + ";";
+            _cached += "w" + (Time.time - t >= 0.1f - Tol) + (Time.realtimeSinceStartup - r >= 0.05f) + ";";
         }
 
         private IEnumerator CountUp(int slot)
@@ -708,6 +710,8 @@ namespace FeatureTests.Coroutines
         [HideInInspector] public string ext = "";
         public GameObject peerParent;
         private string _life = "";
+        private string _diag = "";
+        private int _lf0;
         private bool _lifeDone;   // Life() が最後まで進んだ（遅いフレームが続くと、固定の時間の Judge より遅くなるので、Judge は終わるのを待つ。#218）
 
         private IEnumerator Life()
@@ -718,6 +722,7 @@ namespace FeatureTests.Coroutines
                 _lifeDone = true;
                 yield break;
             }
+            _lf0 = Time.frameCount;
             peer.Begin("p");
             for (int k = 0; k < 3; k++) yield return null;
             peerParent.SetActive(false);
@@ -746,11 +751,22 @@ namespace FeatureTests.Coroutines
             CoroutinePeer cp = copy.GetComponent<CoroutinePeer>();
             cp.sink = this;   // Udon の Instantiate は、実行中に変えた変数をコピーに写さない
             cp.BeginExt("e");
-            for (int k = 0; k < 2; k++) yield return null;
+            _diag += "b" + ext.Length + "@" + (Time.frameCount - _lf0) + ",";   // 診断（#218）：コピーのコルーチンの歩みを、フレームごとに（期待の文字列には入れない）
+            for (int k = 0; k < 2; k++)
+            {
+                yield return null;
+                _diag += ext.Length + "@" + (Time.frameCount - _lf0) + ",";
+            }
             Destroy(copy);
             int n3 = ext.Length;
-            for (int k = 0; k < 3; k++) yield return null;
-            _life += "destroy" + n3 + "," + ext.Length + ";";
+            for (int k = 0; k < 3; k++)
+            {
+                yield return null;
+                _diag += ext.Length + "@" + (Time.frameCount - _lf0) + ",";
+            }
+            // 別のビヘイビア（コピー）の再開が、同じフレームで Life() の前か後かは、実機では起動のたびに変わる（VRChat の遅れのイベントの順番。#230）。
+            // Destroy の時点の数は、前なら 3・後なら 2 になるので、どちらも 3 として見る
+            _life += "destroy" + (n3 == 2 ? 3 : n3) + "," + ext.Length + ";";
             _lifeDone = true;
         }
 
@@ -1039,14 +1055,14 @@ namespace FeatureTests.Coroutines
 
             float t0 = Time.time;
             yield return !_uFlag ? null : new WaitForSeconds(0.1f);
-            UB("t2" + (Time.time - t0 >= 0.1f));
+            UB("t2" + (Time.time - t0 >= 0.1f - Tol));
             yield return StartCoroutine(UWait(_uWaits[0]));
             t0 = Time.time;
             yield return UMake();
-            UB("wr" + (Time.time - t0 >= 0.05f));
+            UB("wr" + (Time.time - t0 >= 0.05f - Tol));
             t0 = Time.time;
             yield return _uWaits[1];
-            UB("wa" + (Time.time - t0 >= 0.1f));
+            UB("wa" + (Time.time - t0 >= 0.1f - Tol));
             float r0 = Time.realtimeSinceStartup;
             for (int i = 0; i < 2; i++)
                 yield return new WaitForSecondsRealtime(0.02f);
@@ -1092,7 +1108,7 @@ namespace FeatureTests.Coroutines
         {
             float s = Time.time;
             yield return w;
-            UB("wp" + (Time.time - s >= 0.05f));
+            UB("wp" + (Time.time - s >= 0.05f - Tol));
         }
 
         private WaitForSeconds UMake() => new WaitForSeconds(0.05f);
@@ -1284,7 +1300,7 @@ namespace FeatureTests.Coroutines
         private IEnumerator Timed(string tag, float seconds)
         {
             yield return new WaitForSeconds(seconds);
-            _timed += tag + (Time.time - _t0 >= seconds ? "ok" : "early") + ";";
+            _timed += tag + (Time.time - _t0 >= seconds - Tol ? "ok" : "early") + ";";
         }
 
         private IEnumerator Early()
@@ -1323,6 +1339,7 @@ namespace FeatureTests.Coroutines
             resultText = actual;
             resultReady = true;
             Debug.Log("[FeatureTests] #107 coroutines " + (ok ? "OK" : "NG") + " | " + actual);
+            Debug.Log("[FeatureTests] #107 diag copy: " + _diag);
             if (display != null)
                 display.text = "#107 coroutines\n" + (ok ? "RESULT: OK (same as Unity)" : "RESULT: NG") + "\n\n" + actual.Replace(";", ";\n") + (ok ? "" : "\n\nexpected\n" + Expected.Replace(";", ";\n"));
         }

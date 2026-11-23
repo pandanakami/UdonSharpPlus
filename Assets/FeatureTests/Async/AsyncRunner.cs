@@ -44,6 +44,8 @@ namespace FeatureTests.Async
 
         private string _log = "";
         private int _f0;
+        // 実機では、遅れのイベントの届く時刻と Time.time が、小数の丸めの分（1ms 未満）ずれることがあるので、判定に 1ms の余裕を持たせる（#228）
+        private const float Tol = 0.001f;
         private int _n;
         private int _sum;
         private UniTask<int> _held;
@@ -82,10 +84,10 @@ namespace FeatureTests.Async
 
             float t0 = Time.time;
             await UniTask.Delay(200);
-            _log += (Time.time - t0 >= 0.2f ? "t" : "T") + ";";
+            _log += (Time.time - t0 >= 0.2f - Tol ? "t" : "T") + ";";
             t0 = Time.time;
             await UniTask.Delay(TimeSpan.FromMilliseconds(100));
-            _log += (Time.time - t0 >= 0.1f ? "m" : "M") + ";";
+            _log += (Time.time - t0 >= 0.1f - Tol ? "m" : "M") + ";";
             float r0 = Time.realtimeSinceStartup;
             await UniTask.Delay(100, ignoreTimeScale: true);
             _log += (Time.realtimeSinceStartup - r0 >= 0.1f ? "r" : "R") + ";";
@@ -326,7 +328,12 @@ namespace FeatureTests.Async
             derived.InteractTwice();
             derived.HitTwice();
             await UniTask.DelayFrame(5);
-            _log += "ov" + derived.calc + "/" + peer.calc + "/" + derived.ilog + "/" + derived.hlog + "/" + peer.joined + ";";
+            // 実機（VRChat のクライアント）では、ローカルのプレイヤーの OnPlayerJoined が、ワールドの Start より遅れて届く。届くまで（最長 5 秒）待つ。
+            // 別のクライアントが入ると、リモートの R も足されるので、ローカルの L が入っているかだけを見る（#229）
+            float lw = Time.time + 5f;
+            while (peer.joined.IndexOf("L") < 0 && Time.time < lw)
+                await UniTask.Yield();
+            _log += "ov" + derived.calc + "/" + peer.calc + "/" + derived.ilog + "/" + derived.hlog + "/" + (peer.joined.IndexOf("L") >= 0 ? "L" : "") + ";";
         }
 
         private async UniTask Child()
