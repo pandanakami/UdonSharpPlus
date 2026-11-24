@@ -32,6 +32,10 @@ namespace FeatureTests.ClientCheck
         private int _nc2;
         private int _nb3;
         private int _nc3;
+        private int _nb4;
+        private int _nc4;
+        private int _nb5;
+        private int _nc5;
         private CancellationTokenSource _cts;
         private bool _mOn;
         private float _mAcc;
@@ -66,7 +70,7 @@ namespace FeatureTests.ClientCheck
         private void Show()
         {
             if (display != null)
-                display.text = Header + "[this client: player " + Me() + "]  NetNoArg begin/continued " + _nb0 + "/" + _nc0 + "   NetArg " + _nb1 + "/" + _nc1 + "   [control: delayed frame " + _nb2 + "/" + _nc2 + "  coroutine " + _nb3 + "/" + _nc3 + "]\n" + _lines;
+                display.text = Header + "[this client: player " + Me() + "]  NetNoArg begin/continued " + _nb0 + "/" + _nc0 + "   NetArg " + _nb1 + "/" + _nc1 + "\n[17: delayed frame " + _nb2 + "/" + _nc2 + "  callable delayed frame " + _nb4 + "/" + _nc4 + "]  [18: coroutine " + _nb3 + "/" + _nc3 + "  callable delayed seconds " + _nb5 + "/" + _nc5 + "]\n" + _lines;
         }
 
         private void Update()
@@ -107,7 +111,7 @@ namespace FeatureTests.ClientCheck
         public override async void OnPlayerRespawn(VRCPlayerApi player)
         {
             string who = Utilities.IsValid(player) ? player.displayName + " local=" + player.isLocal : "invalid";
-            Add("C Respawn " + who);
+            Add("C Respawn " + who + "  expect: only on the respawning client (VRChat docs: local player only)");
             await UniTask.Yield();
             Add("C Respawn continued");
         }
@@ -160,14 +164,51 @@ namespace FeatureTests.ClientCheck
         public void NetCtl()
         {
             _nb2++;
+            _cf2 = Time.frameCount;
             Add("B ctl delayedFrame: begin");
             SendCustomEventDelayedFrames("CtlDone", 1);
         }
 
+        private int _cf2;
+
         public void CtlDone()
         {
             _nc2++;
-            Add("B ctl delayedFrame: continued");
+            Add("B ctl delayedFrame: continued (+" + (Time.frameCount - _cf2) + " frame)");
+        }
+
+        // [NetworkCallable] の中で SendCustomEventDelayedFrames・DelayedSeconds を呼ぶと、最初の 1 回が動かないか（UdonVM の不具合の疑い。#231）。
+        // 上の NetCtl（[NetworkCallable] でない）と、begin・continued の数を比べる。ボタン 17 が NetCtl と NetCtlCall、ボタン 18 が NetCo と NetCtlCallSec を呼ぶ
+        [NetworkCallable]
+        public void NetCtlCall(int n)
+        {
+            _nb4++;
+            _cf = Time.frameCount;
+            Add("B callable delayedFrame(" + n + "): begin");
+            SendCustomEventDelayedFrames("CtlCallDone", 1);
+        }
+
+        private int _cf;
+
+        public void CtlCallDone()
+        {
+            _nc4++;
+            // 届いたフレームが、呼んだフレームの何フレーム後か（+1 が正常。+0 は、同じフレームで届いた）
+            Add("B callable delayedFrame: continued (+" + (Time.frameCount - _cf) + " frame)");
+        }
+
+        [NetworkCallable]
+        public void NetCtlCallSec(int n)
+        {
+            _nb5++;
+            Add("B callable delayedSeconds(" + n + "): begin");
+            SendCustomEventDelayedSeconds("CtlCallSecDone", 0.1f);
+        }
+
+        public void CtlCallSecDone()
+        {
+            _nc5++;
+            Add("B callable delayedSeconds: continued");
         }
 
         public void NetCo()
@@ -206,8 +247,14 @@ namespace FeatureTests.ClientCheck
                 case 14: LoadCheck(1000); break;
                 case 15: StartCoroutine(CoWait()); break;
                 case 16: RawStart(); break;
-                case 17: SendCustomNetworkEvent(NetworkEventTarget.All, "NetCtl"); break;
-                case 18: SendCustomNetworkEvent(NetworkEventTarget.All, "NetCo"); break;
+                case 17:
+                    SendCustomNetworkEvent(NetworkEventTarget.All, "NetCtl");
+                    SendCustomNetworkEvent(NetworkEventTarget.All, "NetCtlCall", 1);
+                    break;
+                case 18:
+                    SendCustomNetworkEvent(NetworkEventTarget.All, "NetCo");
+                    SendCustomNetworkEvent(NetworkEventTarget.All, "NetCtlCallSec", 1);
+                    break;
             }
         }
 
@@ -284,15 +331,15 @@ namespace FeatureTests.ClientCheck
             Add("D Cancel: waiting Delay(5000) with a token; Cancel() after 0.5s");
             await UniTask.Delay(500);
             _cts.Cancel();
-            Add("D Cancel() called");
-            await UniTask.Delay(1000);
-            Add("D Cancel check done  expect: no 'resumed (NG)' line");
+            Add("D Cancel() called (the 5 s wait would end in 4.5 s)");
+            await UniTask.Delay(5000);
+            Add("D Cancel check done (5 s after Cancel, past the original wait)  expect: no line starting with D Cancel: resumed");
         }
 
         private async UniTask CancelWait(CancellationToken token)
         {
             await UniTask.Delay(5000, cancellationToken: token);
-            Add("D Cancel: resumed (NG)");
+            Add("D Cancel: resumed  <-- NG: the wait should have been canceled");
         }
 
         private async void SetActiveCheck()
