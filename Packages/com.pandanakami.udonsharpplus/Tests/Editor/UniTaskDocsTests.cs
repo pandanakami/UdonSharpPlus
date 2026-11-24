@@ -23,6 +23,22 @@ namespace UdonSharpPlus.Tests
             Assert.That(r.Diagnostics.Where(d => d.StartsWith("Error")), Is.Empty, what + "\n" + string.Join("\n", r.Diagnostics));
         }
 
+        /// <summary>リポジトリの README（日本語・英語）の ```csharp のブロック（Attacker の例。foreach を UniTask で 1 フレームずつに分ける）が、そのままコンパイルできる</summary>
+        [TestCase("README.md")]
+        [TestCase("README.ja.md")]
+        public void TheExampleInTheReadmeCompiles(string readme)
+        {
+            Assert.That(File.Exists(readme), readme);
+            string doc = File.ReadAllText(readme).Replace("\r\n", "\n");
+            int start = doc.IndexOf("```csharp\n", System.StringComparison.Ordinal);
+            Assert.That(start, Is.GreaterThanOrEqualTo(0), "コードのブロックがありません");
+            start += "```csharp\n".Length;
+            int end = doc.IndexOf("\n```", start, System.StringComparison.Ordinal);
+            string example = doc.Substring(start, end - start);
+            Assert.That(example, Does.Contain("await UniTask.Yield()").And.Contain("await Hit(e, total)").And.Contain("async UniTask Hit("));
+            AssertCompiles(example, readme + " の例");
+        }
+
         /// <summary>ドキュメントの最初の ```csharp のブロック（Door の例）が、そのままコンパイルできる</summary>
         [Test]
         public void TheExampleInTheDocCompiles()

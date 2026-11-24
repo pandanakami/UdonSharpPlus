@@ -13,7 +13,7 @@ UdonSharp のコンパイラに Harmony でパッチを当て、UdonSharp がコ
 | 機能 | 例 |
 |---|---|
 | インタフェース | `class Enemy : UdonSharpBehaviour, IDamageable`、`((IDamageable)target).Damage(10)`、`is`／`as`、`[NetworkCallable]` の実装 |
-| 普通のクラス<br>（UdonSharpBehaviour 以外） | `new Bullet(pos)`、`b.Move(d)`、プロパティ、static メソッド、クラスの配列 |
+| 普通のクラス<br>（UdonSharpBehaviour 以外）<br>※継承は未対応 | `new Bullet(pos)`、`b.Move(d)`、プロパティ、static メソッド、クラスの配列 |
 | ジェネリクス | `class Pool<T>`、`static T Max<T>(List<T> list) where T : IComparable<T>` |
 | List / Dictionary | `List<int>`、`Dictionary<string, Bullet>`、`foreach`、`TryGetValue` |
 | ラムダ・LINQ | `list.Find(b => b.damage > 0)`、`list.Where(...).Select(...).ToList()`、`OrderBy`、`GroupBy`、`Sum` |
@@ -22,13 +22,14 @@ UdonSharp のコンパイラに Harmony でパッチを当て、UdonSharp がコ
 | 匿名型 | `var p = new { Name = "a", Hp = 10 };`、`p.Hp`、`list.Select(x => new { x.Name, x.Hp })`、`ToString()`、`Equals` |
 | タプル | `(int, string)`、`(1, "a")`、`var (lo, hi) = Range(list);`・`(a, b) = (b, a);`、`==`・`ToString` |
 | 演算子のオーバーロード | `public static Vec operator +(Vec a, Vec b)`、`a + b`・`a += b`・`==`、`implicit operator Vec(int v)` |
-| コルーチン | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`、`StartCoroutine(Open())`、`StopCoroutine(c)`、`WaitUntil`、`yield return StartCoroutine(Child())` |
-| UniTask（`async` / `await`） | `async UniTask Open() { await UniTask.Delay(1000); }`、`await UniTask.WaitUntil(() => ready);`、`await Child();`、`Foo().Forget();`（コルーチンに書き換えて動かします） |
+| コルーチン<br>※普通のクラスの中には書けません | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`、`StartCoroutine(Open())`、`StopCoroutine(c)`、`WaitUntil`、`yield return StartCoroutine(Child())` |
+| UniTask（`async` / `await`）<br>※普通のクラスの中には書けません | `async UniTask Open() { await UniTask.Delay(1000); }`、`await UniTask.WaitUntil(() => ready);`、`await Child();`、`Foo().Forget();`（コルーチンに書き換えて動かします） |
 | `switch` のパターン | `case > 5:`、`case 1 or 2:`、`case var x when x > 100:`、`var s = n switch { < 0 => "neg", _ => "pos" };` |
 
 ```csharp
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UdonSharp;
 using UnityEngine;
 
@@ -60,7 +61,7 @@ public class Attacker : UdonSharpBehaviour
     private List<Bullet> _bullets = new List<Bullet>();
     private List<IDamageable> _enemies = new List<IDamageable>();
 
-    private void Start()
+    private async UniTaskVoid Start()
     {
         _bullets.Add(new Bullet(5));
         _bullets.Add(new Bullet(20));
@@ -69,7 +70,13 @@ public class Attacker : UdonSharpBehaviour
         _enemies.Add(new Slime());
         _enemies.Add(new Golem());
         foreach (IDamageable e in _enemies)
-            e.Damage(total);
+            await Hit(e, total);
+    }
+
+    private async UniTask Hit(IDamageable e, int amount)
+    {
+        e.Damage(amount);
+        await UniTask.Yield();
     }
 }
 ```
@@ -113,7 +120,9 @@ UdonSharp（U#）のコンパイラは、C# のソースを構文解析して、
 
 次のものに対応する予定です（まだ使えません）。時期は決まっておらず、内容も変わることがあります。
 
-- ScriptableObject
+- コルーチン・UniTask（`async` / `await`）を、普通のクラスや static メソッドの中に書けるようにすること（今は `UdonSharpBehaviour` の中だけです）
+- U# のコンパイル時間の短縮
+- Tween の `async` / `await` 対応（Tween の完了を `await` で待てるようにします。対象を VRCTween にするか、DOTween の書き方にするかは、検討中です）
 
 ## 免責事項
 

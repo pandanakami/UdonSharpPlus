@@ -13,7 +13,7 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Feature | Examples |
 |---|---|
 | Interfaces | `class Enemy : UdonSharpBehaviour, IDamageable`, `((IDamageable)target).Damage(10)`, `is` / `as`, implementing `[NetworkCallable]` methods |
-| Plain classes<br>(not UdonSharpBehaviour) | `new Bullet(pos)`, `b.Move(d)`, properties, static methods, arrays of classes |
+| Plain classes<br>(not UdonSharpBehaviour)<br>*Inheritance is not supported | `new Bullet(pos)`, `b.Move(d)`, properties, static methods, arrays of classes |
 | Generics | `class Pool<T>`, `static T Max<T>(List<T> list) where T : IComparable<T>` |
 | List / Dictionary | `List<int>`, `Dictionary<string, Bullet>`, `foreach`, `TryGetValue` |
 | Lambdas and LINQ | `list.Find(b => b.damage > 0)`, `list.Where(...).Select(...).ToList()`, `OrderBy`, `GroupBy`, `Sum` |
@@ -22,13 +22,14 @@ It patches the UdonSharp compiler with Harmony and rewrites your source into a f
 | Anonymous types | `var p = new { Name = "a", Hp = 10 };`, `p.Hp`, `list.Select(x => new { x.Name, x.Hp })`, `ToString()`, `Equals` |
 | Tuples | `(int, string)`, `(1, "a")`, `var (lo, hi) = Range(list);`, `(a, b) = (b, a);`, `==`, `ToString` |
 | Operator overloading | `public static Vec operator +(Vec a, Vec b)`, `a + b`, `a += b`, `==`, `implicit operator Vec(int v)` |
-| Coroutines | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`, `StartCoroutine(Open())`, `StopCoroutine(c)`, `WaitUntil`, `yield return StartCoroutine(Child())` |
-| UniTask (`async` / `await`) | `async UniTask Open() { await UniTask.Delay(1000); }`, `await UniTask.WaitUntil(() => ready);`, `await Child();`, `Foo().Forget();` (rewritten to coroutines) |
+| Coroutines<br>*Cannot be written inside a plain class | `IEnumerator Open() { yield return new WaitForSeconds(1f); }`, `StartCoroutine(Open())`, `StopCoroutine(c)`, `WaitUntil`, `yield return StartCoroutine(Child())` |
+| UniTask (`async` / `await`)<br>*Cannot be written inside a plain class | `async UniTask Open() { await UniTask.Delay(1000); }`, `await UniTask.WaitUntil(() => ready);`, `await Child();`, `Foo().Forget();` (rewritten to coroutines) |
 | `switch` patterns | `case > 5:`, `case 1 or 2:`, `case var x when x > 100:`, `var s = n switch { < 0 => "neg", _ => "pos" };` |
 
 ```csharp
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UdonSharp;
 using UnityEngine;
 
@@ -60,7 +61,7 @@ public class Attacker : UdonSharpBehaviour
     private List<Bullet> _bullets = new List<Bullet>();
     private List<IDamageable> _enemies = new List<IDamageable>();
 
-    private void Start()
+    private async UniTaskVoid Start()
     {
         _bullets.Add(new Bullet(5));
         _bullets.Add(new Bullet(20));
@@ -69,7 +70,13 @@ public class Attacker : UdonSharpBehaviour
         _enemies.Add(new Slime());
         _enemies.Add(new Golem());
         foreach (IDamageable e in _enemies)
-            e.Damage(total);
+            await Hit(e, total);
+    }
+
+    private async UniTask Hit(IDamageable e, int amount)
+    {
+        e.Damage(amount);
+        await UniTask.Yield();
     }
 }
 ```
@@ -113,7 +120,9 @@ That's all. Nothing else is required. Optional settings (message language and co
 
 These are planned but not supported yet. There is no fixed schedule, and the scope may change.
 
-- ScriptableObject
+- Coroutines and UniTask (`async` / `await`) inside plain classes and static methods (for now they work only inside an `UdonSharpBehaviour`)
+- Shorter U# compile times
+- `async` / `await` support for tweens (waiting for a tween to finish with `await`; whether this targets VRCTween or a DOTween-style API is still undecided)
 
 ## Disclaimer
 
